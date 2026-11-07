@@ -4,6 +4,8 @@ This is the shared task list for project agents. A checked implementation task m
 
 Status values: `available`, `in_progress`, `waiting`, `done`, `optional`, `deferred`. Fill in the owner when taking an assigned task. Proposed behavior remains selectable until the team confirms it.
 
+Update the assigned entry at the beginning and end of every project work turn, even when the task is not finished. Record `Owner`, `Status`, `Progress`, `Checks`, and `Next action`. A completed entry also needs its pushed work commit or PR and verification evidence. Publish checklist changes with the authorized work; a failed push keeps the task unchecked and must be reported.
+
 ## Documentation
 
 * [x] D01 Publish the English backend specification.
@@ -33,6 +35,10 @@ Status values: `available`, `in_progress`, `waiting`, `done`, `optional`, `defer
 * [x] D07 Publish the selected ElevenLabs and local agent architecture with the existing prototype source.
 
   Owner: Arjun Codex agent. Status: `done`. Evidence: completion record 5. Acceptance: preserve the confirmed multiplayer specification, document Route A and all eight logical roles, distinguish live models from downloaded candidates, publish the hosted API clients and tested prototype, and verify the work commit on `main`. This does not complete B01 through B13 or multiplayer integration tasks. Scope: documentation, agent instructions, existing `rehearsal/`, tests, clients, and the existing model lab source snapshot.
+
+* [x] D08 Require a TODO update during every assigned agent work turn.
+
+  Owner: coordinating Codex agent. Status: `done`. Acceptance: repository instructions require an update at work start and before completion or handoff, preserve unchecked partial tasks, and require verified remote publication before checking completed work. Progress: rules and the shared entry format are published to `Ricardo`. Checks: English prose, whitespace, task ID uniqueness, existing P02 state, and remote work commit verification passed. Next action: no further work for this documentation task; agents apply these instructions when working in the repository. Evidence: completion record 7.
 
 ## Product and content
 
@@ -145,3 +151,5 @@ Status values: `available`, `in_progress`, `waiting`, `done`, `optional`, `defer
 6. P02. Owner: coordinating Codex agent. Work commit: [f20de37](https://github.com/jeefwashere/BoardroomCrisisSimulator/commit/f20de3781e373c707523215c1922413c83bf1050). Branch: `Ricardo`, verified through `git ls-remote --heads origin Ricardo` after push. Verification: `python3 -m json.tool scenarios/cybersecurity_demo/v1/scenario.json --no-ensure-ascii` passed; the local validator at `/Users/gz/work/boardroom-architecture/validate-cyber-scenario.py` also passed all 64 prepared and no decision paths, references, meter bounds, evidence carryover, English content, document links, and timing arithmetic. Published results: `scenarios/cybersecurity_demo/v1/validation.json`. The draft is about 18 minutes, or 19.5 minutes with three CEO ties; a 15 minute profile is included. Merge status at this record: pushed feature branch. While incorporating the latest `main`, `python3 -m unittest discover -s tests -v` passed 21 existing tests and `python3 -m rehearsal demo --output /Users/gz/work/boardroom-architecture/scenario-merge-demo.json` passed in authored offline mode. These additional checks verify the existing prototype, not integration of this new scenario. Application schema compatibility, AI quality, backend execution of this package, multiplayer behavior, and human timing remain unverified. B03 and all other backend tasks stay unchecked.
 
 For new completions, append task ID, owner, remote branch, work commit or PR link, verification command and result, plus merge status if known. Leave incomplete tasks unchecked.
+
+7. D08. Owner: coordinating Codex agent. Work commit: [6dab711](https://github.com/jeefwashere/BoardroomCrisisSimulator/commit/6dab7114dacd524ba555cef81aa6c825e4a7680f). Branch: `Ricardo`. After a successful push, `git ls-remote --heads origin Ricardo` matched `git rev-parse HEAD` at the full work commit. Verification: `git diff --cached --check` passed for the work commit; English prose, whitespace, technical path exceptions, all 30 unique task IDs, and the existing checked P02 state were checked. Merge status at this record: pushed feature branch. The change strengthens agent instructions and checklist maintenance; application behavior is unchanged.

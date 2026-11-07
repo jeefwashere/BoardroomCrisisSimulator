@@ -5,6 +5,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+ROOM_CAPACITY = 30
+
 
 class CreateRoom(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -44,7 +46,7 @@ class RoomView(BaseModel):
     room_code: str
     room_version: int
     phase: Literal["lobby"] = "lobby"
-    capacity: Literal[20] = 20
+    capacity: Literal[30] = ROOM_CAPACITY
     host_member_id: UUID
     self_member_id: UUID
     members: list[MemberView]

@@ -4,7 +4,7 @@ Status: multiplayer specification with confirmed requirements and explicitly pro
 
 ## 1. Summary
 
-Confirmed: a multiplayer crisis simulation with entry by room code and display name, at least 3 players to start, and a capacity of 20. Players have different roles without private role information. They speak sequentially, then vote with equal weights for 60 seconds. The CEO resolves ties, and the simulation advances automatically after a decision. Prepared answers and consequences are part of the concept, alongside custom actions evaluated by AI. AI provides final feedback. The game ends at the total time limit or when the decision sequence finishes. Disconnected players can return while the meeting continues.
+Confirmed: a multiplayer crisis simulation with entry by room code and display name, at least 3 players to start, and a capacity of 30. Players have different roles without private role information. They speak sequentially, then vote with equal weights for 60 seconds. The CEO resolves ties, and the simulation advances automatically after a decision. Prepared answers and consequences are part of the concept, alongside custom actions evaluated by AI. AI provides final feedback. The game ends at the total time limit or when the decision sequence finishes. Disconnected players can return while the meeting continues.
 
 Proposed architecture: one FastAPI service maintains authoritative room state, accepts actions over HTTP, and synchronizes screens through WebSocket connections. Scenarios, choices, and prepared consequences use versioned scenario data. AI evaluates the winning custom action and returns an allowed outcome. Basic refresh and reconnect recovery are included; database recovery and server restart recovery remain later options.
 
@@ -15,7 +15,7 @@ Unconfirmed values and policies are marked Proposed, including speaking duration
 Confirmed means selected in the user's latest discussion. Proposed means an architect recommendation that remains editable. Deferred means explicitly left for later. The final correction in the discussion is used when speech recognition includes both an initial no and a later yes.
 
 1. Confirmed: FastAPI is the intended backend for a shared AI crisis simulation.
-2. Confirmed: rooms have multiple human players. Start requires at least 3 players. Capacity is 20.
+2. Confirmed: rooms have multiple human players. Start requires at least 3 players. Capacity is 30.
 3. Confirmed: join using a room code and a chosen display name.
 4. Confirmed: different roles, with no private scenario information requirement.
 5. Confirmed: predefined choices and consequences, plus custom actions. Custom actions were accepted after the discussion of an AI deciding agent.
@@ -26,11 +26,13 @@ Confirmed means selected in the user's latest discussion. Proposed means an arch
 10. Confirmed: an existing player can rejoin while the meeting continues.
 11. Deferred: advanced database recovery and server restart recovery.
 12. Provisional: AI can prepare three scenario documents. Cybersecurity was mentioned as an example. The other topics and document structure are not confirmed. Three documents must not silently become three implemented game modes.
-13. Confirmed: the room creator is the host and occupies one of the 20 seats.
+13. Confirmed: the room creator is the host and occupies one of the 30 seats.
 14. Confirmed: display names are unique within a room after trimming surrounding whitespace and case insensitive comparison. Names never prove seat ownership.
 15. Confirmed: full room and member details are available only to joined members, including the host.
 16. Confirmed for the initial delivery: rooms live in one backend process. Backend restart loses rooms; browser refresh preserves membership while that process lives.
 17. Confirmed for the initial delivery: approximately two second polling is acceptable for lobby updates before WebSocket delivery.
+18. Confirmed update: Jeff generates room codes and owns lobby role selection. The host submits room code, players, and selected roles together on Start. The backend validates the handoff. Its identity integration contract is still being clarified.
+19. Confirmed update: new participants may join after start, up to capacity 30. Their first eligible speaking and voting round remains to be selected.
 
 The first implemented lobby contract is documented in [room-api.md](room-api.md). Scenario selection, roles, and start remain later capabilities.
 
@@ -38,12 +40,12 @@ At the initial design review, remote `main` contained only the initial README an
 
 ## 3. Frontend usage and complete game flow
 
-1. The host selects an available scenario version, creates a room, and receives a room code and a host seat.
+1. The host selects an available scenario version and creates a room through Jeff's frontend, which generates the room code. The host occupies a seat.
 2. Players enter that code and a display name. The backend assigns a stable member identity. The frontend opens the room event connection and renders the returned snapshot.
-3. The host assigns roles in the lobby. Proposed: exactly one CEO must exist before start. The host and CEO are separate permissions, even if one person holds both.
-4. Starting validates the scenario, CEO, settings, and 3 to 20 connected members. The scenario version and initial roster are fixed for this session. A selected scenario may begin with a timed public briefing.
+3. Players choose roles in Jeff's lobby. The host submits the final selections together when clicking Start. Proposed: exactly one CEO must exist before start. The host and CEO are separate permissions, even if one person holds both.
+4. Starting validates the scenario, CEO, settings, and 3 to 30 connected members. The scenario version is fixed for this session. New participants may join after start; when they become eligible to speak and vote remains under clarification. A selected scenario may begin with a timed public briefing.
 5. Each round presents the current situation and public materials with its own reading period before timed discussion. The backend then announces one speaker at a time and the speaker deadline, within the selected discussion budget.
-6. Players can submit a custom action during speaking. Prepared choices remain available. Proposed: one editable custom proposal per player, with a maximum of 1,000 characters. At most 20 custom proposals therefore enter a round.
+6. Players can submit a custom action during speaking. Prepared choices remain available. Proposed: one editable custom proposal per player, with a maximum of 1,000 characters. At most 30 custom proposals therefore enter a round.
 7. When speaking finishes, the backend freezes the choices and opens a 60 second vote.
 8. At the deadline, the backend resolves the most voted option, or requests a CEO decision among the tied leaders.
 9. A prepared winner applies its authored consequence. A custom winner goes to the AI deciding operation, which evaluates it against the scenario and maps it to an allowed authored outcome.
@@ -79,7 +81,7 @@ The confirmed first delivery uses a private browser session cookie, a host seat,
 1. The host chooses display settings and roles before start. A room code locates a room; the display name does not prove ownership of an existing seat.
 2. Creating or joining establishes a server issued membership credential. Rejoin uses that credential, not another entry of the same nickname.
 3. Use a same origin deployment with a membership cookie for HTTP and WebSocket authentication. Validate membership for every operation and WebSocket connection. The frontend receives only its own seat and permissions.
-4. New seats may join only in the lobby. Existing seats can reconnect in any phase, including after the room drops below three connected players.
+4. New seats may join during the lobby and after start, subject to the 30 member capacity. The participation boundary for new members remains to be confirmed. Existing seats can reconnect in any phase, including after the room drops below three connected players.
 5. Start requires three connected players, but the meeting does not automatically stop when someone disconnects afterward.
 6. Role changes are locked after start, apart from an explicitly recorded CEO reassignment when the CEO is absent during a tie.
 7. A second connection for the same member does not create a second voter. Presence means at least one authenticated connection remains live.
@@ -100,7 +102,7 @@ Proposed defaults:
 
 Speaking time is a turn permission and timer requirement. ElevenLabs has now been selected for speech input and output under [Route A](ai-architecture.md). Live microphone transport, recording policy, and the complete voice client remain separate integration work tracked by O02; a WebSocket connection alone does not implement them.
 
-At 20 players, 30 seconds each consumes 10 minutes before a vote. The lobby should show the estimated minimum duration for the configured roster and scenario. The exact speaker and total session durations remain team choices.
+At 30 players, 30 seconds each consumes 15 minutes before a vote. The lobby should show the estimated minimum duration for the configured roster and scenario. The exact speaker and total session durations remain team choices.
 
 ## 7. Voting and ties
 
@@ -164,7 +166,7 @@ Database backed recovery, durable event history, and deployment across multiple 
 
 The team may choose delivery order without treating the following groups as completed implementations.
 
-1. F01 Room lifecycle: create, code based join, lobby, role assignment, start, end, 3 to 20 player constraints.
+1. F01 Room lifecycle: create, code based join, lobby, role assignment, start, end, 3 to 30 player constraints.
 2. F02 Scenario loading: package validation, pinned version, prepared options, authored consequences, and no decision paths.
 3. F03 Meeting flow: ordered speaker turns, deadlines, finish early, skip, current speaker display.
 4. F04 Voting: one equal vote per member, 60 second deadline, proposed replacement and secret ballots, deterministic tally.
@@ -183,9 +185,9 @@ Recommended delivery order is one prepared scenario through F01, F02, F04, F05, 
 
 ## 12. Acceptance examples
 
-1. Two connected members cannot start. Three can. A twenty first seat cannot join a full room.
+1. Two connected members cannot start. Three can. A thirty first seat cannot join a full room.
 2. A host who is not the CEO cannot decide a tie without an explicit allowed reassignment. A CEO cannot select an option that is outside the tied leaders.
-3. Twenty simultaneous votes are counted by member identity, not connection count. Duplicate retries add no votes. Vote replacement leaves one vote per member.
+3. Thirty simultaneous votes are counted by member identity, not connection count. Duplicate retries add no votes. Vote replacement leaves one vote per member.
 4. Votes processed exactly at the deadline are rejected. Competing close triggers resolve the round only once.
 5. A disconnected voter can rejoin the same seat. The existing vote and current speaker state are restored. The meeting clock has continued.
 6. A repeated speaker timeout does not skip two players. An old timer from a prior round cannot close the new round.

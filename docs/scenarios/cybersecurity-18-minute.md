@@ -1,6 +1,6 @@
 # MapleCart: a cybersecurity crisis in 18 minutes
 
-Version 1. Fictional scenario draft for the Boardroom Crisis Simulator. Recommended group: 3 to 6 players. The room's existing capacity of 20 is unchanged. This is a playable script and data draft, not a running backend or a validated training programme.
+Version 1. Fictional scenario draft for the Boardroom Crisis Simulator. Recommended group: 3 to 6 players. The current application capacity is 30. The immutable version 1 data retains its original 20 seat planning metadata; it is not the current application capacity rule. A revised scenario version is needed before using that metadata for the new Start handoff. This is a playable script and data draft, not a running backend or a validated training programme.
 
 ## 1. Research behind the format
 
@@ -33,7 +33,7 @@ The full experience has a 20 minute target ceiling. Reserve the final 90 seconds
 
 A faster 15 minute profile uses 30 seconds of reading, 120 seconds of discussion, 60 seconds of voting, and 30 seconds of results per round, plus the same briefing and debrief. Ties can extend that profile to 16 minutes 30 seconds.
 
-For 20 players, the short profile allows only 7 seconds per person in its 150 second speaking pool. If all 20 instead receive 30 seconds in every round, the base schedule becomes 40 minutes 30 seconds. Use a smaller demo group, shorter statements, or an explicitly agreed representation format. Do not promise 20 people a full 30 second turn each while also promising an 18 minute game.
+For 30 players, the 150 second speaking pool allows 5 seconds per person. If all 30 instead receive 30 seconds in every round, the base schedule becomes 55 minutes 30 seconds. Use a smaller demo group, shorter statements, or an explicitly agreed representation format. Do not promise 30 people a full 30 second turn each while also promising an 18 minute game.
 
 ## 3. Public documents and setup
 

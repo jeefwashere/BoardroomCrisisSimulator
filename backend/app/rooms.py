@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 import secrets
 from uuid import UUID, uuid4
 
-from .models import CreateRoom, JoinRoom, MemberView, RoomView
+from .models import ROOM_CAPACITY, CreateRoom, JoinRoom, MemberView, RoomView
 
 
 class RoomError(Exception):
@@ -103,8 +103,8 @@ class Rooms:
                 if any(member.display_name.casefold() == request.display_name.casefold()
                        for member in room.members.values()):
                     raise RoomError(409, "name_taken", "Choose another display name")
-                if len(room.members) >= 20:
-                    raise RoomError(409, "room_full", "This room already has 20 members")
+                if len(room.members) >= ROOM_CAPACITY:
+                    raise RoomError(409, "room_full", f"This room already has {ROOM_CAPACITY} members")
                 room.members[session] = MemberView(
                     member_id=uuid4(), display_name=request.display_name, is_host=False,
                 )

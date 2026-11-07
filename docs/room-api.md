@@ -4,7 +4,9 @@ Status: implemented lobby scope. This delivery supports creating a room, joining
 
 ## Confirmed decisions
 
-1. The creator is the host and occupies one of the 20 seats.
+Updated product direction: Jeff generates the room code and owns lobby role selection. The host submits the room code, members, and selected roles together when clicking Start. At least 3 participants are required to start, capacity is 30, and new participants may join after start. The current published lobby API does not yet implement the Start handoff or gameplay admission. Identity handoff and late join participation timing remain under clarification.
+
+1. The creator is the host and occupies one of the 30 seats.
 2. Names are trimmed, then compared using Unicode case folding within each room. The trimmed spelling is displayed. Names contain 1 to 40 printable characters. The same name may exist in different rooms.
 3. Only the host and joined members can read full room and member details. Room codes locate rooms; display names do not authenticate members.
 4. Active rooms and membership credentials live in memory in one backend process. Refresh retains the seat through the browser cookie while this process lives. Restart, development reload, clearing cookies, or changing browser profiles loses access to the old membership. Restart also loses all rooms.
@@ -71,7 +73,7 @@ Every successful room response has this shape:
   "room_code": "K7MPQ2",
   "room_version": 2,
   "phase": "lobby",
-  "capacity": 20,
+  "capacity": 30,
   "host_member_id": "9d716cd1-a7c8-4e73-a8ac-a05634972559",
   "self_member_id": "4d9f5d4a-a9b9-412a-9bf4-dd673cabef79",
   "members": [
@@ -163,7 +165,7 @@ Domain errors use this envelope:
 3. `403 origin_not_allowed`: browser POST origin is not allowed.
 4. `404 room_not_found`: unknown code or room ID.
 5. `409 name_taken`: another seat has the normalized display name.
-6. `409 room_full`: a new seat would exceed 20.
+6. `409 room_full`: a new seat would exceed 30.
 7. `409 already_joined`: this browser already owns a differently named seat in that room.
 8. `409 command_conflict`: a successful command ID was reused for a different intent.
 9. `422`: FastAPI validation errors use its normal `detail` array, including missing UUIDs, malformed codes, invalid names, and unexpected fields.

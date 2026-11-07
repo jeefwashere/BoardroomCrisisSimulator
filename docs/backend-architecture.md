@@ -12,6 +12,8 @@ In practice, begin with one FastAPI service. The backend maintains one authorita
 
 ## 2. Frontend usage first
 
+Latest confirmed handoff: Jeff's frontend generates the room code and handles role selection. The host submits the room code, players, and roles together on Start. Start requires at least 3 participants, the capacity is 30, and admission after start is required. The identity registration boundary and first participating round for late arrivals are still being clarified. The existing lobby implementation does not yet accept a frontend generated code or provide the Start operation.
+
 The following is a proposed contract, not a claim that these endpoints exist.
 
 ```text

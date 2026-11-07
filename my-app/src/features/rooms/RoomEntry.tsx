@@ -1,12 +1,15 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSessionName } from '../identity/useSessionName'
 import EditableSessionName from '../identity/EditableSessionName'
 import { RoomApiError } from '../../services/rooms'
 import type { CreateRoomInput, JoinRoomInput, Scenario } from '../../services/rooms'
 import { errorMessage, roomApi } from './useRoom'
+import { deferLinkedJoin, linkedJoinKey } from './directEntry'
 import '../../pages/Home.css'
 
-function RoomEntry({ mode, initialCode = '' }: { mode: 'host' | 'join'; initialCode?: string }) {
+type RoomEntryProps = { mode: 'host' | 'join'; initialCode?: string }
+
+function RoomEntryForm({ mode, initialCode = '' }: RoomEntryProps) {
     const { name } = useSessionName()
     const [code, setCode] = useState(() => mode === 'host' ? crypto.randomUUID().replaceAll('-', '').slice(0, 6).toUpperCase() : initialCode)
     const [role, setRole] = useState('')
@@ -14,6 +17,10 @@ function RoomEntry({ mode, initialCode = '' }: { mode: 'host' | 'join'; initialC
     const [scenarios, setScenarios] = useState<Scenario[]>([])
     const [error, setError] = useState('')
     const [busy, setBusy] = useState(false)
+    const [autoFailed, setAutoFailed] = useState(false)
+    const attemptedLinks = useRef(new Set<string>())
+    const linkKey = linkedJoinKey(mode, initialCode, name)
+    const directLink = mode === 'join' && /^[A-Za-z0-9]{6}$/.test(initialCode.trim())
     const requestRef = useRef<AbortController | null>(null)
     const intentRef = useRef<{ key: string; body: CreateRoomInput | JoinRoomInput } | null>(null)
 
@@ -25,7 +32,7 @@ function RoomEntry({ mode, initialCode = '' }: { mode: 'host' | 'join'; initialC
         return () => { controller.abort(); requestRef.current?.abort() }
     }, [])
 
-    async function submit() {
+    const submit = useCallback(async (automatic = false) => {
         if (requestRef.current || !name) return
         const controller = new AbortController()
         requestRef.current = controller
@@ -45,6 +52,7 @@ function RoomEntry({ mode, initialCode = '' }: { mode: 'host' | 'join'; initialC
         } catch (failure) {
             if (!controller.signal.aborted) {
                 setError(errorMessage(failure))
+                if (automatic) setAutoFailed(true)
                 if (mode === 'join' && failure instanceof RoomApiError && failure.code === 'invalid_role') setNeedsRole(true)
                 if (failure instanceof RoomApiError && failure.code === 'role_not_yet_allowed') { setRole(''); setNeedsRole(false) }
             }
@@ -52,7 +60,19 @@ function RoomEntry({ mode, initialCode = '' }: { mode: 'host' | 'join'; initialC
             requestRef.current = null
             if (!controller.signal.aborted) setBusy(false)
         }
-    }
+    }, [mode, code, name, role])
+
+    useEffect(() => {
+        if (autoFailed) return
+        return deferLinkedJoin(linkKey, attemptedLinks.current, () => { void submit(true) })
+    }, [linkKey, autoFailed, submit])
+
+    if (directLink && !autoFailed) return <main className="home-menu">
+        <section className="home-menu__content room-entry" aria-labelledby="entry-title">
+            <h1 id="entry-title">Joining boardroom</h1>
+            <p role="status">{name ? `Joining room ${initialCode.trim().toUpperCase()}…` : 'Choose your name to join.'}</p>
+        </section>
+    </main>
 
     return <main className="home-menu">
         <EditableSessionName />
@@ -78,4 +98,6 @@ function RoomEntry({ mode, initialCode = '' }: { mode: 'host' | 'join'; initialC
     </main>
 }
 
-export default RoomEntry
+export default function RoomEntry(props: RoomEntryProps) {
+    return <RoomEntryForm key={`${props.mode}:${props.initialCode?.trim().toUpperCase() ?? ''}`} {...props} />
+}

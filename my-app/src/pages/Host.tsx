@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { MotionConfig } from 'motion/react'
 import PlayerRoster from '../features/lobby/PlayerRoster'
 import DocumentUpload from '../features/lobby/DocumentUpload'
+import { useSessionName } from '../features/identity/useSessionName'
 import { addLobbyMember, assignLobbyRole, LOBBY_ROLES, MAX_LOBBY_MEMBERS } from '../features/lobby/lobbyModel'
 import type { LobbyMember } from '../features/lobby/lobbyModel'
 import './Host.css'
@@ -9,12 +10,14 @@ import './Host.css'
 const previewNames = ['Alex Morgan', 'Jordan Lee', 'Sam Rivera', 'Taylor Chen', 'Casey Patel', 'Riley Brooks', 'Jamie Park', 'Avery Quinn']
 
 function Host() {
+    const { name: sessionName } = useSessionName()
     const [members, setMembers] = useState<LobbyMember[]>([
         { id: 'local-host', name: 'You', role: 'unassigned', isHost: true },
     ])
     const [roomCode] = useState(() => crypto.randomUUID().replaceAll('-', '').slice(0, 6).toUpperCase())
     const [roomContext, setRoomContext] = useState('Upload a document to set the room context.')
     const [notice, setNotice] = useState('')
+    const displayedMembers = members.map((member) => member.isHost ? { ...member, name: sessionName || member.name } : member)
     const [previewTarget] = useState(() => {
         // Opt-in animation/scroll demo: #/host?preview=30. Normal lobbies start with just the host.
         const requested = Number(new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('preview'))
@@ -41,7 +44,7 @@ function Host() {
     function assignRole(memberId: string, role: string) {
         try {
             setMembers((current) => assignLobbyRole(current, memberId, role))
-            const name = members.find((member) => member.id === memberId)?.name
+            const name = displayedMembers.find((member) => member.id === memberId)?.name
             const roleName = LOBBY_ROLES.find((option) => option.id === role)?.label
             setNotice(role === 'unassigned' ? `${name}'s role was cleared.` : `${name} is now assigned to ${roleName}.`)
         } catch (error) {
@@ -74,7 +77,7 @@ function Host() {
 
                 <main className="lobby-main" aria-labelledby="lobby-title">
                     <h1 id="lobby-title" className="lobby-visually-hidden">Host lobby, {members.length} of {MAX_LOBBY_MEMBERS} players</h1>
-                    <PlayerRoster members={members} onAssignRole={assignRole} />
+                    <PlayerRoster members={displayedMembers} onAssignRole={assignRole} />
                 </main>
 
                 <footer className="lobby-context">

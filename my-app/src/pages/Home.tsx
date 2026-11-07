@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import HoverWaveText from '../common/HoverWaveText'
+import EditableSessionName from '../features/identity/EditableSessionName'
 import './Home.css'
 
 function Home() {
@@ -7,6 +8,7 @@ function Home() {
 
     return (
         <main className="home-menu">
+            <EditableSessionName />
             <section className="home-menu__content" aria-labelledby="home-title">
                 <h1 id="home-title" className="home-menu__title" aria-label="Boardroom Crisis Simulator">
                     <HoverWaveText text="Boardroom" />

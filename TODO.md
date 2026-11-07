@@ -46,9 +46,9 @@ The user assigned Jeff the pages before game start and Ricardo the backend. Keep
 
   Owner: coordinating Codex agent. Status: `done`. Acceptance: repository instructions require an update at work start and before completion or handoff, preserve unchecked partial tasks, and require verified remote publication before checking completed work. Progress: rules and the shared entry format are published to `Ricardo`. Checks: English prose, whitespace, task ID uniqueness, existing P02 state, and remote work commit verification passed. Next action: no further work for this documentation task; agents apply these instructions when working in the repository. Evidence: completion record 7.
 
-* [ ] D09 Review Jeff's pushed branch and record the collaboration boundary.
+* [x] D09 Review Jeff's pushed branch and record the collaboration boundary.
 
-  Owner: coordinating Codex agent. Status: `in_progress`. Acceptance: record the checked branch and commit, actual frontend work and placeholders, integration gaps, and the recommended nonoverlapping backend scope. Progress: source review complete; publishing the shared snapshot. Checks: remote branches, commit authors, source paths, component contents, and integration call search were inspected. Next action: push the snapshot, then record publication evidence.
+  Owner: coordinating Codex agent. Status: `done`. Acceptance: record the checked branch and commit, actual frontend work and placeholders, integration gaps, and the recommended nonoverlapping backend scope. Progress: source review and shared snapshot are published to `Ricardo`. Checks: remote branch and commit authors, source contents, integration call search, empty placeholder sizes, and remote publication were verified. Next action: use the recorded frontend and backend boundary; gameplay frontend ownership still needs assignment. Evidence: completion record 8.
 
 ## Product and content
 
@@ -163,3 +163,5 @@ The user assigned Jeff the pages before game start and Ricardo the backend. Keep
 For new completions, append task ID, owner, remote branch, work commit or PR link, verification command and result, plus merge status if known. Leave incomplete tasks unchecked.
 
 7. D08. Owner: coordinating Codex agent. Work commit: [6dab711](https://github.com/jeefwashere/BoardroomCrisisSimulator/commit/6dab7114dacd524ba555cef81aa6c825e4a7680f). Branch: `Ricardo`. After a successful push, `git ls-remote --heads origin Ricardo` matched `git rev-parse HEAD` at the full work commit. Verification: `git diff --cached --check` passed for the work commit; English prose, whitespace, technical path exceptions, all 30 unique task IDs, and the existing checked P02 state were checked. Merge status at this record: pushed feature branch. The change strengthens agent instructions and checklist maintenance; application behavior is unchanged.
+
+8. D09. Owner: coordinating Codex agent. Work commit: [0c9a496](https://github.com/jeefwashere/BoardroomCrisisSimulator/commit/0c9a496fd1adda7033963d3391c1dbaecda1aa6e). Branch: `Ricardo`. `git ls-remote --heads origin Ricardo` matched `git rev-parse HEAD` after push. Source review checked Jeff Tieng's `website` commit `85046a41a79b68a2f6f33572e87c61abc5a10631`, still the latest remote commit at publication. `git cat-file -s` confirmed the four named placeholders are empty, and the source search found no application API or WebSocket integration. All preexisting task checkbox states were preserved. This is a static collaboration review; no frontend build or browser test was run, and Jeff's branch was not changed.

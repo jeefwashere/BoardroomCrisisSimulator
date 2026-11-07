@@ -49,7 +49,7 @@ The following values are not confirmed team decisions. Record the final selectio
 9. An AI evaluation attempt has a 15 second timeout, followed by one explicit retry opportunity if it fails.
 10. Show a nonfinal result for 5 seconds, then automatically begin the next round.
 
-Total game duration, the actual scoring rubric, the AI provider, and the complete role list still need team decisions. For example, 20 players speaking for 30 seconds each require 10 minutes for speaking alone. Select the total duration alongside player count and the number of rounds.
+Total game duration, the actual scoring rubric, and the complete role list still need team decisions. The speech and model providers are selected in [ai-architecture.md](ai-architecture.md). For example, 20 players speaking for 30 seconds each require 10 minutes for speaking alone. Select the total duration alongside player count and the number of rounds.
 
 ## 5. Backend organization
 
@@ -101,7 +101,7 @@ See the architecture document for complete paths. The main groups are:
 ## 9. Optional and deferred features
 
 1. Generating three scenario documents with AI is an optional content tool. Cybersecurity is one example already mentioned; the other topics and document structure remain unselected.
-2. In app voice, recording, transcription, and chat are optional. A speaking countdown does not establish that these media features exist.
+2. ElevenLabs speech input and output are selected under Route A. Live microphone transport, recording policy, chat, and complete audio client integration remain separate delivery choices and verification work. A speaking countdown does not establish that these media features exist.
 3. Database persistence, server restart recovery, and multiple backend processes are deferred. The proposed initial memory design supports reconnects only while the backend process remains alive.
 
 ## 10. Completion and evidence

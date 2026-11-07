@@ -6,10 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "test": "node --experimental-strip-types --test tests/lobby.test.ts tests/documents.test.ts tests/scroll.test.ts tests/sessionName.test.ts tests/game.test.ts",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
+    "motion": "^14.10.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },

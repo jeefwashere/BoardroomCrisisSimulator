@@ -49,3 +49,46 @@ The optional interaction probe encountered a selector expression escaping defect
 The integration is ready for root review and PR merge approval. I01 remains partial. This branch preparation does not change main.
 
 Git's [official merge documentation](https://git-scm.com/docs/git-merge) describes the two parent history recorded by a true merge. The parent IDs above were checked locally rather than inferred from the command's success message.
+
+
+# Latest Jeff update review
+
+Review date: November 7, 2026, following the user's next update request. Owner: Jeff update merge Codex agent. Harness window: 22:53:15 UTC through 23:23:15 UTC. The earlier review above remains a historical record of the first frontend integration.
+
+## Updated source and conflict resolution
+
+Fresh `origin/website` is `e3eaca2bec0306333499cf83b8cfa3cac416e726`, authored by Jeff Tieng. It adds `b466f1f` for the lobby, `1807c08` for the name prompt and editing, and `e3eaca2` for the dummy Start flow and responsive 2D player grid. The new isolated branch `integration/jeff-update-20261107` starts from main `083a2a24e72744af7c21edd253068ff76774a174`.
+
+Merge `cd51f68` preserves both histories. The only conflicts were Navbar and BoardroomIcon, because the previous minimal exports overlapped Jeff's completed components. Both resolutions retain Jeff's exact versions. Two inherited trailing spaces in the duplicated Figtree license text were removed without changing its wording. No generated dependency files are tracked.
+
+The frontend now has a hash based Home and Host flow, a required visible name prompt with inline editing, locally generated room codes, role pickers, a 30 seat local roster, opt in demonstration members, document upload acknowledgement and a temporary Game call grid. Join has no action handler. Start opens a local preview even for one member. These are demonstration behaviors, not authenticated multiplayer admission or the backend's production three participant Start rule. The room backend and all confirmed requirements are preserved.
+
+## Document endpoint review
+
+The Vite development and preview middleware handles only `POST /api/documents/process`. There is no existing FastAPI route collision. It performs no filesystem operation, content extraction, provider forwarding or generated storage. Filenames are returned as JSON and rendered as text, not used as disk paths. There is consequently no path containment or generated storage ignore change to make in this stub.
+
+Raw multipart input is limited to 20 MiB plus 128 KiB of overhead, and the selected document is separately limited to 20 MiB. DOC, DOCX and PDF extension checks do not validate actual content, and the receipt explicitly says `mode: dummy` and `processed: false`. Existing tests use synthetic fixture bytes, not personal documents. This middleware does not establish production document processing or room authorization.
+
+## Checks and narrow runtime compatibility repair
+
+The machine runs Node `22.16.0`. Clean `npm ci --ignore-scripts`, `npm run build` and `npm run lint` pass from `my-app/`. The build transforms 470 modules. The unchanged lockfile audit reports ten moderate advisories; this integration does not upgrade the dependency graph.
+
+Jeff's initial `npm test` command fails before executing tests on this Node version with `ERR_UNKNOWN_FILE_EXTENSION` for `.ts`. The exact [Node 22.16 TypeScript documentation](https://nodejs.org/download/release/v22.16.0/docs/api/typescript.html) documents the required `--experimental-strip-types` flag. Commit `848974b` adds only that flag to the test script, without another dependency. Final `npm test` passes all 31 frontend tests, including real synthetic multipart requests, payload rejection, cancellation, names, lobby capacity and grid layout.
+
+The preserved backend checks pass:
+
+1. `env BOARDROOM_TTS_ENABLED=false /Users/gz/BoardroomCrisisSimulator/backend/.venv/bin/python -m unittest discover -s backend/tests -q`: 87 tests.
+2. `python3 -m unittest discover -s tests -q`: 31 existing prototype and watcher tests.
+3. `node --test backend/examples/narration-player.test.mjs`: seven tests.
+4. `python3 -m rehearsal demo --output artifacts/jeff-update-prototype-demo.json`: authored offline prototype demo passes.
+5. `env BOARDROOM_TTS_ENABLED=false /Users/gz/BoardroomCrisisSimulator/backend/.venv/bin/python -m backend.narrative_demo --output artifacts/jeff-update-narrative-demo.json`: actual owned localhost narrative fixture passes with four cookie clients, three trusted internal decisions and ten contributions. Speech is disabled and paid calls are zero.
+
+## Local browser evidence and handoff
+
+An exact task owned headless CDP page loaded a separate production preview at `http://127.0.0.1:4175/`. The probe entered a fictional name in the visible prompt, edited it through the visible control, opened a normal one member lobby, enabled three synthetic preview members, assigned the host CEO role, opened the 2D Game view, resized to 390 pixels, and returned to the same three member lobby. All assertions pass, with no captured runtime exceptions. The mobile document width equals the 390 pixel viewport. Desktop lobby, desktop Game and mobile Game screenshots were visually inspected; the desktop Game capture occurs during its entrance animation.
+
+Ignored local evidence: `artifacts/jeff-update-ui.json`, `artifacts/jeff-update-lobby-desktop.png`, `artifacts/jeff-update-game-desktop.png`, and `artifacts/jeff-update-game-mobile.png`. The exact task target is closed, the browser lease is released with managed process stop confirmed, and the separate preview server is stopped. The user's running frontend and backend processes were untouched.
+
+The app package manifest, package lock and Vite configuration all change relative to the old live checkout. After root merges the reviewed PR, the existing frontend checkout needs clean `npm ci --ignore-scripts`, a rebuild, and restart of its owned Vite process to load the new dependency and dummy middleware. Root owns that update. A final documentation correction labels `docs/local-development.md` and I04 as the initial historical runtime verification and directs readers to ignored process metadata for the active commit and PIDs. It makes no new runtime activation claim. Backend, rehearsal, tests, tools, scenarios and requirement documents remain unchanged.
+
+I01 remains partial. The verified flow is a local frontend demonstration, not multiple authenticated browsers sharing a FastAPI room, real speaking and voting, model evaluation, microphone recording, transcription, saved original audio or audible playback. There was no paid provider call or cloud deployment.

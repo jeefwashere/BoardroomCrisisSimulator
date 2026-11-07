@@ -1,0 +1,152 @@
+.game-call-screen {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100dvh;
+  padding-inline: clamp(12px, 2.5vw, 36px);
+  overflow: hidden;
+  background: #1e1f22;
+  color: #f2f3f5;
+  color-scheme: dark;
+  font-family: var(--font-heading);
+}
+
+.game-call-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  max-width: 1600px;
+  margin-inline: auto;
+  padding-block: 20px 16px;
+}
+
+.game-back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #c4c6ce;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.game-back-button:hover { background: #ffffff0a; color: #fff; }
+
+.game-call-screen svg {
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.game-call-heading { text-align: center; }
+.game-call-heading h1 { margin: 0 0 5px; font-size: 20px; font-weight: 650; letter-spacing: -0.035em; }
+.game-call-heading > span { color: #b0b4bf; font-size: 10px; letter-spacing: 0.04em; }
+.game-player-count { justify-self: end; padding-right: 10px; font-size: 14px; font-weight: 650; }
+.game-player-count > span { color: #a0a5b1; font-size: 12px; font-weight: 400; }
+
+.game-call-main {
+  display: flex;
+  min-height: 0;
+  width: 100%;
+  max-width: 1600px;
+  margin-inline: auto;
+  overflow: hidden;
+}
+
+.game-call-viewport {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #ffffff35 transparent;
+  scrollbar-gutter: stable;
+}
+
+.game-call-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 100%;
+  padding: 12px;
+}
+
+.game-call-grid--scrollable { align-content: flex-start; }
+
+.game-player-card {
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  flex: 0 0 auto;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #ffffff08;
+  border-radius: 11px;
+  background: #2b2d31;
+}
+
+.game-player-presence { display: grid; place-items: center; min-height: 0; padding-top: 8px; }
+
+.game-player-avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  user-select: none;
+}
+
+.game-player-caption { align-self: stretch; min-width: 0; padding: 8px 12px; }
+.game-player-caption h2 { margin: 0; overflow: hidden; font-size: 13px; font-weight: 600; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.game-player-caption > span { display: block; margin-top: 3px; overflow: hidden; color: #b4b9c5; font-size: 11px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+
+.game-host-indicator {
+  position: absolute;
+  top: 10px;
+  right: 11px;
+  display: inline-flex;
+  align-items: center;
+  color: #ecc783;
+}
+
+.game-host-indicator svg { width: 14px; height: 14px; }
+.game-call-footer { min-width: 0; padding-block: 15px max(20px, env(safe-area-inset-bottom)); text-align: center; }
+.game-call-footer p { margin: 0; overflow: hidden; color: #a6abb6; font-size: 11px; line-height: 1.7; text-overflow: ellipsis; white-space: nowrap; }
+.game-call-footer p > span { color: #d0d3da; }
+.game-empty-grid { align-self: center; margin: 0; color: #a6abb6; font-size: 14px; }
+.game-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.game-call-screen button:focus-visible, .game-call-viewport:focus-visible { outline: 2px solid #9da4ff; outline-offset: 3px; }
+
+@media (max-width: 600px) {
+  .game-call-header { gap: 10px; padding-block: 14px 10px; }
+  .game-back-button { gap: 5px; padding-inline: 3px; font-size: 11px; }
+  .game-back-button svg { width: 16px; height: 16px; }
+  .game-call-heading h1 { font-size: 17px; }
+  .game-call-heading > span { font-size: 8px; }
+  .game-player-count { padding-right: 0; font-size: 12px; }
+  .game-player-count > span { font-size: 10px; }
+  .game-call-footer p { font-size: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-back-button { transition: none; }
+}

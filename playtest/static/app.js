@@ -50,7 +50,7 @@ function render(){
  $('roomLabel').textContent=`ROOM ${s.code} · ${s.members.length}/30 · YOU ARE ${name(s.self)}`;
  $('phase').textContent=s.phase.replaceAll('_',' ');$('phase').style.textTransform='capitalize';
  $('newTab').href='/?room='+s.code;$('newTab').textContent='Open another seat';
- $('roundLabel').textContent=s.round?`ROUND ${s.round} OF 3 · ${s.profile==='test_3'?'ACCELERATED TEST':s.profile}`:'PREPARATION';
+ $('roundLabel').textContent=s.round?`ROUND ${s.round} OF ${s.round_limit||1} · ${s.profile==='test_3'?'ACCELERATED TEST':s.profile}`:'PREPARATION';
  $('situationTitle').textContent=s.node_title||s.title;$('inject').textContent=s.inject||'Read the documents and assign one CEO. The host starts when three people are connected.';
  $('questions').replaceChildren(...s.study_questions.map(q=>node('li',q)));
  $('metrics').replaceChildren(...Object.entries(s.metrics).map(([key,value])=>{const el=node('div',key.replaceAll('_',' '),'metric');el.append(node('strong',value));return el;}));
@@ -65,6 +65,8 @@ function render(){
  $('reassign').replaceChildren();if(s.phase==='tie_break'&&s.self===s.host&&s.members.some(m=>m.role==='ceo'&&!m.connected)){s.members.filter(m=>m.connected&&s.electorate.includes(m.id)).forEach(m=>{const b=node('button','Assign CEO to '+m.name,'secondary');b.onclick=()=>act('reassign_ceo',{member_id:m.id}).catch(e=>notice(e.message));$('reassign').append(b);});}
  $('climate').replaceChildren(...s.members.map(m=>node('p',`${m.name}: ${s.climate.contributions_by_member[m.id]||0} committed contributions`)),node('p',`${s.climate.questions_recorded} contributions contain a question.`));
  $('discussion').replaceChildren(...s.contributions.slice(-30).map(c=>{const el=node('div',undefined,'item');el.append(node('strong',`${name(c.member)} · round ${c.round} · ${c.source}`),node('p',c.text));return el;}));
+ const referenceReply=s.suggestions.filter(x=>x.kind==='preparation'&&x.pack_id===$('referencePack').value).at(-1);
+ if(referenceReply)$('referenceAnswer').textContent=referenceReply.text+'\n'+referenceReply.note;
  $('jobs').replaceChildren(...s.jobs.slice(-6).map(j=>node('p',`${j.kind}: ${j.status}${j.error?' · '+j.error:''}`,'job')));
  $('suggestions').replaceChildren(...s.suggestions.slice(-8).reverse().map(x=>{const el=node('div',undefined,'item');el.append(node('strong',`${x.kind} · round ${x.round}`),node('p',x.text,'prewrap'));if(x.note)el.append(node('p',x.note,'muted'));if(x.evidence_ids)el.append(node('p','Evidence: '+x.evidence_ids.join(', '),'muted'));if(x.spans)x.spans.forEach(span=>el.append(node('span',`${span.label}: ${span.text}`,'tag')));if(x.classification)el.append(node('p',`Advisory class: ${x.classification}. Raw span scores are not calibrated confidence.`,'muted'));const b=node('button','Generate response audio','secondary');b.disabled=x.round!==s.round||!!s.speech;b.onclick=()=>speak('suggestion',x.id).catch(e=>notice(e.message));el.append(b);return el;}));
  $('history').replaceChildren(...s.history.map(h=>{const el=node('div',undefined,'item');el.append(node('strong',`Round ${h.round} · ${h.reason.replaceAll('_',' ')}`),node('p',h.summary));if(h.ai_explanation)el.append(node('p','AI mapping explanation: '+h.ai_explanation,'muted'));return el;}));
@@ -76,7 +78,7 @@ function render(){
 }
 function renderClock(){if(!state)return;const now=Date.now()/1000+(state.server_time-(state._received||state.server_time));const remaining=state.deadline?Math.max(0,Math.ceil(state.deadline-now)):null;$('clock').textContent=`${remaining===null?'No active countdown':remaining+' seconds in this phase'}${state.total_deadline&&state.phase!=='ended'?' · '+Math.max(0,Math.ceil(state.total_deadline-now))+' seconds left overall':''}${state.speaker_deadline&&state.speaker?' · '+Math.max(0,Math.ceil(state.speaker_deadline-now))+' seconds in speaker slot':''}`;}
 $('joinForm').addEventListener('submit',async e=>{e.preventDefault();try{notice('');const result=await api('/api/join',{name:$('name').value,code:$('code').value.trim().toUpperCase()||undefined});token=result.token;sessionStorage.setItem('rehearsal_playtest_token',token);await loadRoom();}catch(error){notice(error.message);}});
-async function loadRoom(){await refresh();if(!state)return;const docs=await api('/api/documents');$('documents').replaceChildren(...docs.documents.map(d=>{const el=node('details');el.append(node('summary',d.id.replaceAll('_',' ')),node('div',d.text,'document'));return el;}));}
+async function loadRoom(){await refresh();if(!state)return;await loadReferences();const docs=await api('/api/documents');$('documents').replaceChildren(...docs.documents.map(d=>{const el=node('details');el.append(node('summary',d.id.replaceAll('_',' ')),node('div',d.text,'document'));return el;}));}
 handle('saveRoles',async()=>{const roles={};state.members.forEach(m=>roles[m.id]=roleDraft[m.id]||m.role);await act('roles',{roles});roleDraft={};roomKey='';});
 handle('start',()=>act('start',{profile:$('profile').value}));handle('end',()=>act('end'));
 handle('submit',async()=>{await act('contribute',{text:$('contribution').value,source:transcriptSource});$('contribution').value='';transcriptSource='typed';});
@@ -113,3 +115,9 @@ handle('checkDecision',async()=>{const result=await api('/api/command/check_deci
 
 handle('sendChat',async()=>{await act('chat',{text:$('chatText').value});$('chatText').value='';});
 $('chatText').addEventListener('keydown',event=>{if(event.key==='Enter'&&(event.ctrlKey||event.metaKey)){event.preventDefault();$('sendChat').click();}});
+
+let referencePacks=[];
+function renderReference(){const pack=referencePacks.find(p=>p.id===$('referencePack').value);$('referenceDocs').replaceChildren(...(pack?.documents||[]).map(d=>{const detail=node('details');detail.append(node('summary',d.id+' · '+d.title),node('div',d.text,'document'));return detail;}));}
+async function loadReferences(){const data=await api('/api/reference-packs');referencePacks=data.packs;$('referenceRules').textContent=data.common_rules;$('referencePack').replaceChildren(...data.packs.map(p=>{const option=node('option',p.id+' · '+p.title);option.value=p.id;return option;}));renderReference();}
+$('referencePack').addEventListener('change',()=>{renderReference();$('referenceAnswer').textContent='';});
+handle('askReference',async()=>{await api('/api/agent/preparation',{command_id:uid(),pack_id:$('referencePack').value,text:$('referenceQuestion').value});$('referenceAnswer').textContent='Preparation request queued. The answer will cite participant document clauses.';await refresh();});

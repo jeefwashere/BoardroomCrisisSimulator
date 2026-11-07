@@ -14,7 +14,7 @@ python3.13 -m venv .venv
 
 Open <http://127.0.0.1:8788>. Create a room and use **Open another seat** twice. Each new tab has its own member credential. Enter three distinct names, select roles, save the roles, and start. Refresh preserves the same seat within its tab. Closing the tab loses that credential; entering the same name cannot reclaim someone else's seat.
 
-The host can select the 15 or 18 minute profile with full 60 second voting. The explicitly labelled accelerated test profile uses 8 second votes and shorter speaking windows. It tests mechanics, not human rehearsal timing. Late arrivals become eligible at the next round boundary. The current electorate and CEO remain unchanged.
+The playtest now runs exactly one MapleCart round. The host can select an approximately 6 or 7 minute round with a full 60 second vote. The explicitly labelled accelerated test profile uses 8 second votes and shorter speaking windows. It tests mechanics, not human rehearsal timing. Late arrivals become eligible at the next round boundary. The current electorate and CEO remain unchanged.
 
 For the owner's authorized 10,000 credit speech test, the current separate worktree can run with:
 
@@ -40,7 +40,7 @@ The application uses one process and one worker. Rooms, credentials, command rec
 2. Public preparation documents, briefing, timed reading, ordered speakers, finish or skip, open discussion, and an overall deadline.
 3. Typed or reviewed speech contributions and one editable custom proposal per participant during discussion.
 4. Private equal ballots, replacement before the deadline, full voting windows in real profiles, CEO selection among tied leaders, and authored no decision outcomes for abstention or tie timeout.
-5. Three rounds of authored MapleCart consequences, bounded meters, carried facts, automatic progression, and a final factual history.
+5. One authored MapleCart decision round with bounded meters, an applied consequence, and a final factual history. The communication and recovery rounds do not run in this test.
 6. LFM3 mapping of the winning custom action to an allowed outcome. Output must contain only `outcome_id` and `explanation`; code applies the authored metrics and next node. Invalid or late results do not change a decision. One explicit retry is available within the original 30 second resolution window, only after the earlier provider job settles. Failure stays visible and ends with an unresolved action.
 7. Facilitator, IT character, and journalist replies selected by LFM3 from currently released evidence. The published wording is authored evidence, which prevents invented facts and prevents future outcome leakage. These roles are intentionally narrower than unrestricted conversation.
 8. GLiNER extraction from a selected committed contribution. Exact offsets and source text are validated. Extracted owners, deadlines, relations, and classes remain suggestions. Mentioning an owner does not record acceptance.
@@ -65,7 +65,7 @@ Generated audio is limited to 500 characters. Captions are the exact generated p
 
 The immutable authored MapleCart v2 package supplies the scenario, including its updated 30 seat capacity. The branch includes the latest production Start delivery from `main` at `b5d6fcb`; the experiment remains a separate application. Only the current situation, public documents, visible choices, and already committed history reach clients. Outcomes and custom rubrics stay on the server until the applicable decision.
 
-The three new fixture packs in the supplied revision use two eligible votes plus chair confirmation, conflicting with the selected production majority and CEO tie policy. They are not silently installed as alternative production game modes here. Arbitrary document ingestion, streaming audio, WebSocket delivery, long term recovery, shared Internet hosting, and the seven downloaded but disabled models remain outside this test build. One second polling supplies the minimal UI.
+T01, T02, and T03 participant documents are now in the Scenario reference library and available to the LFM3 preparation role. Their full timed branches are not playable game modes: they use two eligible votes plus chair confirmation, which differs from the selected production majority and CEO tie policy. Arbitrary document ingestion, streaming audio, WebSocket delivery, long term recovery, shared Internet hosting, and the seven downloaded but disabled models remain outside this test build. One second polling supplies the minimal UI.
 
 The independent HTTP contract is documented by the executable clients in `smoke.py` and `voice_smoke.py`. It intentionally does not claim compatibility with Ricardo's cookie based lobby or Jeff's Start payload. Production integration should port the tested rules and provider boundaries into their agreed modules after review.
 
@@ -107,3 +107,16 @@ An observed live quality failure shaped the final debrief boundary: unrestricted
 Open three separate Chrome windows at <http://127.0.0.1:8788>. Create a room as Test 01, then join its code as Test 02 and Test 03 in the other windows. Each window stores its own member credential; there is no shared identity selector. Window titles show the active name and room code, and People lists each public member ID. Do not duplicate an existing authenticated tab, since browsers may copy its session storage; use a fresh window instead.
 
 **Room text chat** works in the lobby, during speaking and voting, and after the exercise. Messages are authenticated as the sending window's participant and shared only within that room. Chat never casts a ballot, commits a decision, or changes the timed contribution history. Use **Timed contribution** for official discussion entries during your turn, and **Ask the local agents by text** for model replies. Text chat does not use ElevenLabs or consume speech credits. Press Ctrl+Enter or Command+Enter in the chat field to send.
+
+## Current agents and one round test procedure
+
+1. Preparation uses LFM3 to select relevant clauses from the chosen T01, T02, or T03 participant reference pack. Open the Scenario reference library while in the lobby, choose a pack, and ask a question. Responses cite exact source clauses. The original external reports remain source links in the imported guide; their complete PDFs and webpage text have not been indexed by this feature.
+2. Facilitator, IT, and journalist are logical roles sharing LFM3. During the exercise they see only released MapleCart evidence. A reference question about another pack cannot change that session's facts.
+3. Custom decision evaluation uses LFM3 to select an allowed authored outcome for the winning custom proposal. The backend applies its consequence. The debrief uses LFM3 to select authored reflections based on the actual single decision.
+4. Discussion tracking uses GLiNER2.5 Base for exact text spans such as names, actions, and deadlines. It cannot create an accepted task or decision.
+5. ElevenLabs Scribe v2 transcribes short optional recordings; Flash v2.5 speaks approved text. There is no managed ElevenLabs conversation agent controlling the game.
+6. Preparation documents, turn coordination, timekeeping, decision checks, and participation observations also have deterministic code responsibilities. Logical roles are not eight model instances.
+
+For a short test, join with three different windows, choose the accelerated one round timing in the host window, and start. Send room chat freely; submit timed contributions during each speaking turn. Vote once per user. A tied result goes to the CEO. After the one consequence is shown, the session ends with `round_complete`; click Generate debrief. The accelerated vote lasts eight seconds for mechanics checks only. Use the normal one round profile when testing human discussion and the full sixty second vote.
+
+The original supplied revision is archived at `fixtures/revision2-controller-reference.md` for developer review. It includes hidden schedules and expected outcomes and is never served or read by participant retrieval. The explicit allowlist is `fixtures/participant-packs.json`; `references.py` reads only that file. No future invoice, candidate response, or expected test answer is in that public set. These fixture documents preserve the supplied wording; trailing whitespace in the archived Markdown is normalized.

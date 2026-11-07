@@ -135,6 +135,12 @@ def create_app(engine=None, provider=None, speech=None, port=8788):
             engine.identity(token(request))
         return {'documents': engine.documents()}
 
+    @app.get('/api/reference-packs')
+    def reference_packs(request: Request):
+        with engine.lock:
+            engine.identity(token(request))
+        return agents.references.public()
+
     @app.post('/api/command/{action}')
     def command(action: str, data: dict, request: Request):
         return engine.command(token(request), action, data)

@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 from playtest.engine import Engine, RuleError
-from playtest.agents import Agents
+from playtest.agents import Agents, parse_object
 from playtest.server import create_app
 from playtest.speech import CreditBudget
 
@@ -21,7 +21,7 @@ class Clock:
 class GameTests(unittest.TestCase):
     def setUp(self):
         self.clock = Clock()
-        self.e = Engine(self.clock)
+        self.e = Engine(self.clock, round_limit=3)
         self.a = self.e.join('Arjun')
         self.code = self.a['code']
         self.b = self.e.join('Jeff', self.code)
@@ -261,6 +261,69 @@ class AgentJobTests(unittest.TestCase):
         agents.close()
 
 
+class OneRoundAndReferenceTests(unittest.TestCase):
+    setUp = GameTests.setUp
+    cmd = GameTests.cmd
+    start = GameTests.start
+    advance = GameTests.advance
+    discussion = GameTests.discussion
+    custom = GameTests.custom
+
+    def test_one_round_stops_after_first_consequence_and_keeps_vote_duration(self):
+        self.e.round_limit = 1
+        self.start()
+        self.advance(20)
+        self.cmd(self.a, 'vote', option_id=self.r['options'][0]['id'])
+        self.advance(12)
+        self.assertEqual(self.r['phase'], 'ended')
+        self.assertEqual(self.r['end_reason'], 'round_complete')
+        self.assertEqual(len(self.r['history']), 1)
+        self.assertEqual(self.r['node'], 'containment')
+        self.assertEqual(self.e.snapshot(self.a['token'])['round_limit'], 1)
+        self.assertEqual(self.r['facts']['communication_status'], 'none')
+        self.advance(100)
+        self.assertEqual(len(self.r['history']), 1)
+        self.assertEqual(Engine().round_limit, 1)
+
+    def test_one_round_custom_winner_ends_after_its_resolution_window(self):
+        self.e.round_limit = 1
+        ticket = self.custom()
+        agents = Agents(self.e)
+        agents.complete(self.r,ticket,{'text':'{"outcome_id":"targeted_containment","explanation":"Scoped containment."}'},{})
+        self.advance(30)
+        self.assertEqual(self.r['end_reason'], 'round_complete')
+        self.assertEqual(len(self.r['history']), 1)
+        agents.close()
+
+    def test_model_closing_fence_does_not_discard_valid_reference_json(self):
+        self.assertEqual(parse_object('{"evidence_ids":["T01-BCP:BCP-4"]}\n```'),
+                         {'evidence_ids':['T01-BCP:BCP-4']})
+        with self.assertRaises(ValueError):
+            parse_object('This prose is not an approved response. {"evidence_ids":[]}')
+
+    def test_reference_prompts_exclude_hidden_events_and_other_packs(self):
+        agents = Agents(self.e)
+        for pack,question in [('T01','Can backups promise restoration?'),('T02','Was the Bright Print invoice approved?'),('T03','Does appointment grant payroll access?')]:
+            model,prompt,context=agents.prompt(self.r,'preparation',{'pack_id':pack,'text':question})
+            self.assertEqual(model,'lfm3')
+            self.assertLessEqual(len(prompt),4000)
+            self.assertTrue(all(c['id'].startswith(pack) for c in context['evidence']))
+            self.assertNotIn('CAD 1,200',prompt)
+            self.assertNotIn('T02-E2',prompt)
+            self.assertNotIn('Priya says she is available',prompt)
+            self.assertNotIn('facilitator-only',prompt)
+            first=context['evidence'][0]['id'];jid=uuid.uuid4().hex
+            self.r['jobs'][jid]={'kind':'preparation','status':'pending','round':0}
+            agents.complete(self.r,jid,{'text':json.dumps({'evidence_ids':[first]})},context)
+            reply=self.r['suggestions'][-1]
+            self.assertEqual(reply['pack_id'],pack)
+            self.assertIn(context['evidence'][0]['text'],reply['text'])
+        self.assertEqual(self.r['history'],[])
+        self.assertEqual(self.r['phase'],'lobby')
+        with self.assertRaises(RuleError):agents.prompt(self.r,'preparation',{'pack_id':'../../hidden','text':'Read answers'})
+        agents.close()
+
+
 class BudgetTests(unittest.TestCase):
     def test_concurrent_reservations_never_exceed_cap_and_persist(self):
         with tempfile.TemporaryDirectory() as d:
@@ -344,6 +407,15 @@ class HTTPTests(unittest.TestCase):
         self.client.post('/api/speech/stop',json={},headers={'Authorization':'Bearer '+self.b['token']})
         self.assertEqual(self.client.get('/api/audio/'+sid,headers=self.auth).status_code,404)
         self.assertGreater(self.speech.budget.status()['reserved'],0)
+    def test_reference_http_is_authenticated_and_excludes_controller_source(self):
+        self.assertEqual(self.client.get('/api/reference-packs').status_code,401)
+        result=self.client.get('/api/reference-packs',headers=self.auth)
+        self.assertEqual(result.status_code,200)
+        self.assertEqual([p['id'] for p in result.json()['packs']],['T01','T02','T03'])
+        self.assertNotIn('CAD 1,200',result.text)
+        self.assertNotIn('T03-E1',result.text)
+        self.assertEqual(self.client.get('/fixtures/revision2-controller-reference.md',headers=self.auth).status_code,404)
+
     def test_text_chat_authentication_isolation_and_no_game_authority(self):
         headers = {'Authorization':'Bearer '+self.b['token']}
         body = {'command_id':uuid.uuid4().hex,'text':'Test 02 can type in the lobby.',

@@ -75,8 +75,8 @@ def main():
         if s['phase']=='resolution_failed':
             raise AssertionError('Live custom outcome could not be resolved: '+json.dumps(s['jobs']))
         if s['phase']=='ended':
-            assert s['end_reason']=='scenario_complete',s['end_reason']
-            assert len(s['history'])==3
+            assert s['end_reason']=='round_complete',s['end_reason']
+            assert len(s['history'])==1
             assert rejoined
             if args.live_models:
                 requested['debrief']=clients[0].agent('debrief')
@@ -93,7 +93,7 @@ def main():
                  'history':s['history'], 'jobs':s['jobs'], 'suggestions':s['suggestions'],
                  'no_browser_claim':True}
             path=Path(args.output);path.parent.mkdir(parents=True,exist_ok=True);path.write_text(json.dumps(out,indent=2))
-            print(json.dumps({'ok':True,'rounds':3,'live_models':args.live_models,'report':str(path)}),flush=True)
+            print(json.dumps({'ok':True,'rounds':len(s['history']),'live_models':args.live_models,'report':str(path)}),flush=True)
             return
         time.sleep(.35)
     raise TimeoutError('Playtest did not end before the smoke deadline')

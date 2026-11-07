@@ -31,7 +31,9 @@ def bounded_text(value, limit=1000):
 
 
 class Engine:
-    def __init__(self, clock=time.time):
+    def __init__(self, clock=time.time, round_limit=1):
+        require(type(round_limit) is int and 1 <= round_limit <= 3, "Invalid round limit", 422)
+        self.round_limit = round_limit
         self.clock = clock
         self.lock = threading.RLock()
         self.rooms, self.identities, self.receipts = {}, {}, {}
@@ -139,6 +141,9 @@ class Engine:
                 r['timing'] = dict(briefing=p['briefing_seconds'], reading=p['reading_seconds_per_round'],
                     discussion=p['discussion_seconds_per_round'], vote=60, result=p['result_seconds_per_round'],
                     tie=30, total=p['gameplay_ceiling_from_briefing_start_seconds'], speaker=p['speaker_max_seconds'])
+            if self.round_limit == 1:
+                t = r['timing']
+                t['total'] = sum(t[k] for k in ('briefing', 'reading', 'discussion', 'vote', 'tie')) + max(30, t['result']) + 5
             r['total_deadline'] = now + r['timing']['total']
             self.phase(r, 'briefing', now + r['timing']['briefing'])
         elif action == 'end':
@@ -281,6 +286,8 @@ class Engine:
             elif phase == 'result':
                 if r.get('next_node') is None:
                     self.end(r, 'scenario_complete')
+                elif r['round'] >= self.round_limit:
+                    self.end(r, 'round_complete')
                 else:
                     r['node'] = r['next_node']
                     self.begin_round(r, at)
@@ -346,7 +353,7 @@ class Engine:
             questions = [c for c in r['contributions'] if '?' in c['text']]
             node = self.nodes[r['node']]
             return deepcopy({'code': r['code'], 'self': mid, 'host': r['host'], 'members': members,
-                'version': r['version'], 'server_time': now, 'phase': r['phase'], 'round': r['round'],
+                'version': r['version'], 'server_time': now, 'phase': r['phase'], 'round': r['round'], 'round_limit': self.round_limit,
                 'profile': r.get('profile'), 'deadline': r['deadline'], 'total_deadline': r['total_deadline'],
                 'speaker': r.get('speaker') if r['phase'] == 'discussion' else None,
                 'speaker_deadline': r.get('speaker_deadline') if r['phase'] == 'discussion' else None,

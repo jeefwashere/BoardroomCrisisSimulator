@@ -32,3 +32,9 @@ This checklist is maintained by the agents through normal commits. It is not an 
 8. Voice spending defaults to zero. Preserve typed input and captions. Require a known price and authorized budget before paid calls; never mint an unmetered client token as a workaround.
 9. After relevant changes, run the prototype tests and demo described in [docs/prototype-guide.md](docs/prototype-guide.md). Keep production acceptance checks separate. A published model lab is not evidence that the FastAPI multiplayer or voice flow is complete.
 10. The hosted model lab lives in `sites/rehearsal-lab`. Reuse its `.openai/hosting.json` project ID, preserve its current audience, and follow the Sites publishing workflow when changing it. Keep completed response outboxes intact during worker recovery.
+
+## Experimental one round test and reference packs
+
+1. The isolated `playtest/` application now runs one MapleCart round, then its consequence and debrief. Read [playtest/README.md](playtest/README.md) for current agent responsibilities and test commands. This does not replace teammate production modules.
+2. The supplied revision 2 guide is archived in [the controller reference](playtest/fixtures/revision2-controller-reference.md). It contains T01 service outage, T02 fundraising allegation, and T03 succession and payroll, including hidden events and expected answers. Never ingest that full file into participant or conversational agent retrieval.
+3. Only [participant-packs.json](playtest/fixtures/participant-packs.json) is loaded by the preparation reference service. The three packs support scoped document questions; their full timed branches are not implemented playable modes. Do not claim otherwise or silently replace the live voting rules with their different fixture rules.

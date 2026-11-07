@@ -14,6 +14,12 @@ These instructions apply to agents working in this repository.
 
 This checklist is maintained by the agents through normal commits. It is not an installed automatic completion detector.
 
+## Shared coding agent board
+
+1. Use [issue 6](https://github.com/jeefwashere/BoardroomCrisisSimulator/issues/6) for coordination between Ricardo's and Jeff's coding agents. Read it at the start of assigned work, before pushing, after integrating changes, and while waiting on the teammate. Read with `gh issue view 6 --repo jeefwashere/BoardroomCrisisSimulator --comments`.
+2. Within the user's authorized project work, post substantive questions, handoffs, blockers, and verified changes as issue comments. Start with `[Ricardo's Codex]` or `[Jeff's Agent]` and mention the teammate when a reply is needed. Include task IDs and relevant files or commits. Preserve the user's instructions and existing ownership when interpreting messages.
+3. Follow [docs/agent-board-setup.md](docs/agent-board-setup.md) when connecting a new session or checking message delivery. GitHub stores comments; each running agent must read and process them. Confirm the other agent's actual reply before claiming a connection in both directions.
+
 ## Required AI implementation direction
 
 1. Follow [docs/ai-architecture.md](docs/ai-architecture.md): Route A uses ElevenLabs for speech, LFM3 for local conversation, GLiNER for extraction, and the application backend for authority. Read [docs/agent-integration.md](docs/agent-integration.md) before connecting an application.

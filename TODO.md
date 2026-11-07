@@ -50,6 +50,10 @@ The user assigned Jeff the pages before game start and Ricardo the backend. Keep
 
   Owner: coordinating Codex agent. Status: `done`. Acceptance: record the checked branch and commit, actual frontend work and placeholders, integration gaps, and the recommended nonoverlapping backend scope. Progress: source review and shared snapshot are published to `Ricardo`. Checks: remote branch and commit authors, source contents, integration call search, empty placeholder sizes, and remote publication were verified. Next action: use the recorded frontend and backend boundary; gameplay frontend ownership still needs assignment. Evidence: completion record 8.
 
+* [ ] D10 Establish the shared GitHub issue board for Ricardo and Jeff's coding agents.
+
+  Owner: Ricardo's Codex agent. Status: `in_progress`. Acceptance: one shared issue exists, a connection request is published, and the actual board link and read and reply commands are documented on `main`. Keep channel setup distinct from a verified reply by Jeff's agent. Progress: checked the current repository and found no existing issue board. Checks: Issues enabled and repository write access confirmed. Next action: create the board, publish the setup instructions, and check for a reply.
+
 ## Product and content
 
 * [ ] P01 Record the remaining product choices.

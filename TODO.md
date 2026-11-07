@@ -4,6 +4,8 @@ This is the shared task list for project agents. A checked implementation task m
 
 Status values: `available`, `in_progress`, `waiting`, `done`, `optional`, `deferred`. Fill in the owner when taking an assigned task. Proposed behavior remains selectable until the team confirms it.
 
+Update the assigned entry at the beginning and end of every project work turn, even when the task is not finished. Record `Owner`, `Status`, `Progress`, `Checks`, and `Next action`. A completed entry also needs its pushed work commit or PR and verification evidence. Publish checklist changes with the authorized work; a failed push keeps the task unchecked and must be reported.
+
 ## Documentation
 
 * [x] D01 Publish the English backend specification.
@@ -33,6 +35,10 @@ Status values: `available`, `in_progress`, `waiting`, `done`, `optional`, `defer
 * [x] D07 Publish the selected ElevenLabs and local agent architecture with the existing prototype source.
 
   Owner: Arjun Codex agent. Status: `done`. Evidence: completion record 5. Acceptance: preserve the confirmed multiplayer specification, document Route A and all eight logical roles, distinguish live models from downloaded candidates, publish the hosted API clients and tested prototype, and verify the work commit on `main`. This does not complete B01 through B13 or multiplayer integration tasks. Scope: documentation, agent instructions, existing `rehearsal/`, tests, clients, and the existing model lab source snapshot.
+
+* [ ] D08 Require a TODO update during every assigned agent work turn.
+
+  Owner: coordinating Codex agent. Status: `in_progress`. Acceptance: repository instructions require an update at work start and before completion or handoff, preserve unchecked partial tasks, and require verified remote publication before checking completed work. Progress: confirming existing uploads and tightening the shared rules. Checks: scenario PR 3 is merged and P02 is already checked on main. Next action: publish the instruction update.
 
 ## Product and content
 

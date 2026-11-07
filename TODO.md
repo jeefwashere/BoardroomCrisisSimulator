@@ -72,7 +72,7 @@ The user assigned Jeff the pages before game start and Ricardo the backend. Keep
 
 * [ ] B02 Implement room creation, code based joining, membership, and roles.
 
-  Owner: Ricardo Codex agent. Status: `in_progress`. Acceptance: start requires 3 connected members, room capacity is 30, host and CEO permissions are distinct, and a name alone cannot reclaim another seat. Supports F01. Progress: create, join, authenticated lobby snapshots, the host seat, unique trimmed names, and stable browser membership are implemented. Roles, live presence, and start remain unimplemented. Checks: 18 lobby tests passed, including simultaneous joins at capacity and concurrent retry deduplication; an actual three member HTTP smoke passed. Next action: implement the frontend supplied room code and batch start handoff after identity and late join eligibility are clarified. Current work owner: Ricardo Codex agent. Status: `in_progress`. Updated requirements: at least 3 participants to start, capacity 30, and admission after start. The user assigned room code generation and role selection to Jeff. Checks this turn: refreshed remote main and website source, reviewed the current room API and scenario format. Published partial work: completion record 9.
+  Owner: Ricardo Codex agent. Status: `waiting`. Acceptance: start requires 3 connected members, room capacity is 30, host and CEO permissions are distinct, and a name alone cannot reclaim another seat. Supports F01. Progress: create, join, private member snapshots, and browser identity remain implemented. Capacity is now 30. Jeff generates the room code and owns lobby role selection; the host submits the final JSON on Start, and new participants may join after start. The Start endpoint and gameplay admission are not implemented yet. Checks: 18 room tests passed, including 35 simultaneous join attempts where 29 succeeded with the host occupying seat 1 and 6 were rejected; 21 existing prototype tests passed. Next action: confirm whether lobby clients register through the existing APIs and when late arrivals first participate, then implement the handoff without replacing individual membership with names. The question is also posted on issue 6. Published earlier partial work: completion record 9.
 
 * [ ] B03 Implement versioned scenario loading and validation.
 
@@ -122,7 +122,7 @@ The user assigned Jeff the pages before game start and Ricardo the backend. Keep
 
 * [ ] I01 Publish the frontend API and snapshot contract with examples.
 
-  Owner: Ricardo Codex agent. Status: `in_progress`. Acceptance: examples match the implemented OpenAPI contract, the frontend can create, join, start, vote, resolve a tie, observe, and read results. No frontend implementation is implied by documentation alone. Progress: docs/room-api.md supplies cookie bootstrap, create, join, polling, errors, startup, and a frontend request example for Jeff. Full game endpoints remain unimplemented. Checks: all documented JSON requests and the room response validate against the implemented models; health, docs, OpenAPI, and three client HTTP access passed. Next action: document frontend generated room codes and the batch Start JSON handoff. Current work status: `in_progress`; ownership remains Ricardo Codex agent. Identity handoff and late join participation are being clarified. Capacity is now 30. No frontend page was changed. Published partial work: completion record 9.
+  Owner: Ricardo Codex agent. Status: `waiting`. Acceptance: examples match the implemented OpenAPI contract, the frontend can create, join, start, vote, resolve a tie, observe, and read results. No frontend implementation is implied by documentation alone. Progress: the existing room API guide and product documents now reflect capacity 30 and the confirmed batch Start handoff. The implemented API still uses backend generated codes and has no Start endpoint; those changes depend on the identity handoff. Checks: current backend tests and prototype tests passed. Next action: receive the lobby identity contract and late join participation decision, then publish executable Start examples. Jeff retains all pregame frontend ownership. Published earlier partial work: completion record 9.
 
 * [ ] I02 Verify one complete multiplayer game.
 
@@ -130,7 +130,7 @@ The user assigned Jeff the pages before game start and Ricardo the backend. Keep
 
 * [ ] I03 Verify concurrency and failure boundaries.
 
-  Owner: unassigned. Status: `available`. Acceptance: check the specification's acceptance cases, including 20 simultaneous voters, duplicate commands, cutoff equality, stale timers, CEO absence, provider failure, late AI, zero votes, and room isolation. Passing local unit tests alone does not prove the live client flow.
+  Owner: unassigned. Status: `available`. Acceptance: check the specification's acceptance cases, including 30 simultaneous voters, duplicate commands, cutoff equality, stale timers, CEO absence, provider failure, late AI, zero votes, and room isolation. Passing local unit tests alone does not prove the live client flow.
 
 * [ ] I04 Verify the selected deployment and frontend connection.
 

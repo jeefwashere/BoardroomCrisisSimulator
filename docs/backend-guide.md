@@ -6,13 +6,13 @@ This guide summarizes the two backend design documents so the team can understan
 
 `backend-spec.md` describes product behavior and acceptance criteria: how players enter rooms, speak, propose actions, vote, see consequences, and finish a session. It distinguishes confirmed requirements, proposed defaults, optional features, and deferred work.
 
-`backend-architecture.md` describes how the backend could implement those functions: module ownership, data structures, game state transitions, APIs, live synchronization, AI calls, concurrency, and deployment boundaries. Its functions and types are design sketches. They have not been implemented as a runnable backend.
+`backend-architecture.md` describes how the backend could implement those functions: module ownership, data structures, game state transitions, APIs, live synchronization, AI calls, concurrency, and deployment boundaries. Its full game functions and types remain design sketches. The first runnable lobby capability is documented in [room-api.md](room-api.md).
 
 ## 2. Complete game flow
 
-1. The host selects a scenario and creates a room. The system generates a room code.
-2. Players join with the room code and a display name. Starting requires at least 3 players; capacity is 20.
-3. The host assigns roles, including the CEO. Players can have different responsibilities, but private scenario information for individual roles is not required.
+1. The host selects a scenario and creates a room through Jeff's frontend, which generates the room code.
+2. Players join with the room code and a display name. Starting requires at least 3 players; capacity is 30. New participants may join after start, with their first participating round still to be confirmed.
+3. Players select roles in Jeff's lobby. The host submits the room code, players, and selected roles together on Start. Players can have different responsibilities, but private scenario information for individual roles is not required.
 4. Everyone reads the current crisis background, then speaks in sequence. There is one active speaker at a time, and the backend manages the countdown.
 5. The system presents prepared choices. Players can also submit their own action proposals during the allowed phase.
 6. When speaking finishes, choices freeze and a 60 second vote begins. Every player has equal voting weight.
@@ -49,7 +49,7 @@ The following values are not confirmed team decisions. Record the final selectio
 9. An AI evaluation attempt has a 15 second timeout, followed by one explicit retry opportunity if it fails.
 10. Show a nonfinal result for 5 seconds, then automatically begin the next round.
 
-Total game duration, the actual scoring rubric, and the complete role list still need team decisions. The speech and model providers are selected in [ai-architecture.md](ai-architecture.md). For example, 20 players speaking for 30 seconds each require 10 minutes for speaking alone. Select the total duration alongside player count and the number of rounds.
+Total game duration, the actual scoring rubric, and the complete role list still need team decisions. The speech and model providers are selected in [ai-architecture.md](ai-architecture.md). For example, 30 players speaking for 30 seconds each require 15 minutes for speaking alone. Select the total duration alongside player count and the number of rounds.
 
 ## 5. Backend organization
 

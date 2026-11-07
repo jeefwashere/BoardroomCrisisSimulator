@@ -73,7 +73,7 @@ One conversational model is resident on the assigned GPU. Do not load the remain
 
 ## 5. Production gameplay versus the prototype
 
-The confirmed multiplayer specification takes precedence for gameplay: 3 to 20 participants, equal weight votes lasting 60 seconds, CEO selection among tied leaders, and automatic progression after a decision. Do not replace this with the prototype's chair confirmation flow.
+The confirmed multiplayer specification takes precedence for gameplay: 3 to 30 participants, equal weight votes lasting 60 seconds, CEO selection among tied leaders, and automatic progression after a decision. Do not replace this with the prototype's chair confirmation flow.
 
 The `rehearsal/` package is a working experimental controller with a three participant demo, an authored scenario, explicit chair confirmation, SQLite event history, and a local HTTP API. It is not the planned FastAPI room service, has no production vote implementation, and does not satisfy B01 through B13 by itself. Its 15 minute demo duration is not the production session default. Its fixture does not stand in for team approval of scenario package P02.
 

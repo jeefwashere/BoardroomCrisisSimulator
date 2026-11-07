@@ -64,11 +64,11 @@ The user assigned Jeff the pages before game start and Ricardo the backend. Keep
 
 * [ ] B01 Create the FastAPI application entry and development setup.
 
-  Owner: unassigned. Status: `available`. Acceptance: documented local startup succeeds, a health endpoint responds, and API documentation loads. This task does not claim gameplay is implemented.
+  Owner: Ricardo Codex agent. Status: `in_progress`. Acceptance: documented local startup succeeds, a health endpoint responds, and API documentation loads. This task does not claim gameplay is implemented. Progress: the FastAPI entry, pinned isolated dependencies, health endpoint, interactive API documentation, room smoke command, and startup guide are implemented locally. Checks: 18 lobby tests, 21 existing prototype tests, the authored offline demo, pip dependency consistency, documented JSON models, and an actual single worker HTTP run with three independent member clients passed. Next action: push and verify this work commit before checking this task complete.
 
 * [ ] B02 Implement room creation, code based joining, membership, and roles.
 
-  Owner: unassigned. Status: `available`. Acceptance: start requires 3 connected members, room capacity is 20, host and CEO permissions are distinct, and a name alone cannot reclaim another seat. Supports F01.
+  Owner: Ricardo Codex agent. Status: `in_progress`. Acceptance: start requires 3 connected members, room capacity is 20, host and CEO permissions are distinct, and a name alone cannot reclaim another seat. Supports F01. Progress: create, join, authenticated lobby snapshots, the host seat, unique trimmed names, and stable browser membership are implemented. Roles, live presence, and start remain unimplemented. Checks: 18 lobby tests passed, including simultaneous joins at capacity and concurrent retry deduplication; an actual three member HTTP smoke passed. Next action: publish this partial capability, then implement role assignment and start in a separate unit. Keep this task unchecked.
 
 * [ ] B03 Implement versioned scenario loading and validation.
 
@@ -118,7 +118,7 @@ The user assigned Jeff the pages before game start and Ricardo the backend. Keep
 
 * [ ] I01 Publish the frontend API and snapshot contract with examples.
 
-  Owner: unassigned. Status: `available`. Acceptance: examples match the implemented OpenAPI contract, the frontend can create, join, start, vote, resolve a tie, observe, and read results. No frontend implementation is implied by documentation alone.
+  Owner: Ricardo Codex agent. Status: `in_progress`. Acceptance: examples match the implemented OpenAPI contract, the frontend can create, join, start, vote, resolve a tie, observe, and read results. No frontend implementation is implied by documentation alone. Progress: docs/room-api.md supplies cookie bootstrap, create, join, polling, errors, startup, and a frontend request example for Jeff. Full game endpoints remain unimplemented. Checks: all documented JSON requests and the room response validate against the implemented models; health, docs, OpenAPI, and three client HTTP access passed. Next action: publish this partial contract and extend it when roles, start, and gameplay are implemented. No frontend page was changed.
 
 * [ ] I02 Verify one complete multiplayer game.
 

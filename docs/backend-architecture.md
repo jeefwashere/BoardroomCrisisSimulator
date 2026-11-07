@@ -1,6 +1,6 @@
 # Backend architecture
 
-Status: proposed architecture, based on [the function specification](backend-spec.md). Its multiplayer type and interface sketches are not implemented application code. The existing prototype and hosted inference service are described in [ai-architecture.md](ai-architecture.md); their existence does not complete the room service.
+Status: proposed architecture, based on [the function specification](backend-spec.md). The full game type and interface sketches remain a design. The initial lobby implementation and exact API are documented in [room-api.md](room-api.md). The existing prototype and hosted inference service are described in [ai-architecture.md](ai-architecture.md); their existence does not complete the room service.
 
 ## 1. Recommendation and rationale
 
@@ -223,7 +223,7 @@ ElevenLabs speech is selected under Route A, but live media endpoints and browse
 
 ## 10. Storage and deployment choices
 
-Recommended first shape: one backend process and active rooms in memory. Scenario files remain immutable versioned inputs. Browser refresh and reconnect recover the seat while that process lives. Process restart recovery is not provided. This matches the user's decision to defer advanced recovery. FastAPI explicitly documents the process lifetime and single process limitation of its [memory based WebSocket example](https://fastapi.tiangolo.com/advanced/websockets/).
+Confirmed initial shape: one backend process and active rooms in memory. The first lobby capability uses HTTP snapshots with approximately two second frontend polling. WebSocket delivery remains later work. Scenario files remain immutable versioned inputs. Browser refresh and reconnect recover the seat while that process lives. Process restart recovery is not provided. This matches the user's decision to defer advanced recovery. FastAPI explicitly documents the process lifetime and single process limitation of its [memory based WebSocket example](https://fastapi.tiangolo.com/advanced/websockets/).
 
 Run one worker for this shape. A reverse proxy may serve the frontend and route `/api` and `/ws` to the backend under the same origin. This is a recommended deployment shape, not a selected hosting provider. An active room continues while temporarily empty. Cleanup may remove expired lobbies and ended rooms according to an explicitly chosen retention setting, not merely because a socket closed.
 
@@ -259,6 +259,6 @@ Reject a client owned simulation because clients could disagree about deadlines 
 
 ## 12. Next implementation unit and evidence boundary
 
-After architecture approval, the first unit is a pure room transition test fixture containing three members, one prepared scenario node, one 60 second vote, and a CEO tie case. Then expose creation, join, start, vote, and snapshots before extending to the full selected function set.
+The user selected a smaller first capability: browser identity initialization, room creation, code based joining, and authenticated lobby snapshots. Its contract and tests are documented in [room-api.md](room-api.md). It excludes scenario loading, roles, start, and gameplay. Subsequent capabilities add those functions and the prepared vote and CEO tie fixture.
 
 The specification's acceptance examples define required multiplayer implementation checks. The separate prototype and hosted model service have executed tests and inference, but they do not implement this FastAPI room architecture. Keep B01 through B13 and the multiplayer integration tasks open until their own acceptance criteria are met.

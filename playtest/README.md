@@ -1,4 +1,4 @@
-# Local AI and voice playtest
+# Vertex AI and voice playtest
 
 This isolated experiment adds a minimal FastAPI browser application on branch `experiment/ai-voice-playtest`. It does not replace Ricardo's `backend/app`, Jeff's frontend, or the shared model lab. Production task states and ownership are preserved.
 
@@ -6,11 +6,11 @@ Use [the manual test guide](TEST_GUIDE.md) for copyable T01, T02 and T03 questio
 
 ## Single window meeting lab
 
-Open <http://127.0.0.1:8788/meeting> for the requested meeting style UI. One window owns three explicitly labelled test memberships. Click Run 90s scripted demo to create a fresh room, submit three scripted contributions and prepared votes, and automatically request simultaneous character reviews after the round. The local model replies are live; scripted seats are not autonomous AI participants. Click a seat to control it manually, or use Start manual round with either the 90 second mechanics profile or the normal five minute profile. The short profile has a clearly labelled 15 second ballot. The normal profile retains 60 seconds.
+Open <http://127.0.0.1:8788/meeting> for the requested meeting style UI. One window owns three explicitly labelled test memberships. Click Run 90s scripted demo to create a fresh room, submit three scripted contributions and prepared votes, and automatically request simultaneous character reviews after the round. The Vertex model replies are live; scripted seats are not autonomous AI participants. Click a seat to control it manually, or use Start manual round with either the 90 second mechanics profile or the normal five minute profile. The short profile has a clearly labelled 15 second ballot. The normal profile retains 60 seconds.
 
-The page displays actual model request timings, cited replies, manual quality review fields and a JSON export. Total time includes hosted queue, network and polling. The shared worker does not run three large models in parallel. Post round character review requires an ended room and an explicit review request. Optional voice controls use the same persistent speech ledger; the demo does not generate speech automatically. Provider keys remain on the backend. This is a meeting style test interface, not video conferencing.
+The page displays actual model request timings, cited replies, manual quality review fields and a JSON export. Total time includes provider queueing, network and validation. Three logical roles share the selected Gemini model. Post round character review requires an ended room and an explicit review request. Optional voice controls use the same persistent speech ledger; the demo does not generate speech automatically. Provider keys remain on the backend. This is a meeting style test interface, not video conferencing.
 
-The measurement and quality findings are in [the meeting evaluation report](MEETING_REPORT.md). Run `python -m playtest.meeting_benchmark` with an online local model service to repeat the text evaluation. Its `--resume-round` option preserves saved preparation results after an interrupted harness run and starts a fresh room for the round. `python -m playtest.meeting_voice_benchmark --allow-paid-speech` explicitly opts into the short speech round trip under the existing shared cap.
+The measurement and quality findings are in [the preserved local model evaluation](MEETING_REPORT.md). Run `python -m playtest.meeting_benchmark` with the configured Vertex provider to repeat the text evaluation. Its `--resume-round` option preserves saved preparation results after an interrupted harness run and starts a fresh room for the round. `python -m playtest.meeting_voice_benchmark --allow-paid-speech` explicitly opts into the short speech round trip under the existing shared cap.
 
 ## Start it
 
@@ -32,18 +32,19 @@ For the owner's authorized 10,000 credit speech test, the current separate workt
 .venv/bin/python -m playtest \
   --env-file ../BoardroomCrisisSimulator/.env.local \
   --speech-credit-cap 10000 \
+  --vertex-cap-cents 200 \
   --allow-name-rejoin
 ```
 
-The application binds only to localhost. The URL on one laptop does not grant access from another laptop. This branch is not a public deployment. Ordinary application users do not need Velocity or ChatGPT credentials: the application backend calls the existing hosted model API. A later shared application deployment needs its own authenticated ingress, configured origin policy, and durable process lifecycle. Do not expose this development server publicly as a shortcut.
+The application binds only to localhost. The URL on one laptop does not grant access from another laptop. This branch is not a public deployment. Ordinary application users do not need Velocity or ChatGPT credentials: the application backend calls Google Vertex AI. A later shared application deployment needs its own authenticated ingress, configured origin policy, and durable process lifecycle. Do not expose this development server publicly as a shortcut.
 
 ## Credentials and storage
 
-Configure `REHEARSAL_API_URL`, `REHEARSAL_SITE_TOKEN`, `REHEARSAL_APP_KEY`, and optionally `ELEVENLABS_API_KEY` in an ignored environment file on the server. Existing `rehearsal.adapters.load_env` reads that file without executing it. No provider keys enter JavaScript, HTML, URLs, exports, or Git.
+Configure `VERTEX_API_KEY` or the existing `GOOGLE_API_KEY` for Vertex Express, and optionally `ELEVENLABS_API_KEY` in an ignored environment file on the server. Existing `rehearsal.adapters.load_env` reads that file without executing it. No provider keys enter JavaScript, HTML, URLs, exports, or Git.
 
 Member tokens live in `sessionStorage` and authenticate each HTTP action. The server validates membership, the active phase, the roster, and the host or CEO permission. A display name is not production proof of identity. The explicitly enabled local test rejoin flag permits recovering only an inactive seat by name and room. Provider jobs are scoped to the member's room; shared provider history is never exposed.
 
-The application uses one process and one worker. Rooms, credentials, command receipts, and agent jobs live in memory. Browser refresh works while that process lives. Restarting the backend loses rooms. The ignored `.local/ai-playtest/` directory stores the persistent speech credit ledger and cached generated audio. Temporary uploaded recordings are deleted after transcription. ElevenLabs retention follows the provider account policy; this application does not claim provider zero retention.
+The application uses one process and one worker. Rooms, credentials, command receipts, and agent jobs live in memory. Browser refresh works while that process lives. Restarting the backend loses rooms. The ignored `.local/ai-playtest/` directory stores the persistent Vertex reservation ledger, speech credit ledger and cached generated audio. Temporary uploaded recordings are deleted after transcription. ElevenLabs retention follows the provider account policy; this application does not claim provider zero retention.
 
 ## What can be tested
 
@@ -52,13 +53,23 @@ The application uses one process and one worker. Rooms, credentials, command rec
 3. Typed or reviewed speech contributions and one editable custom proposal per participant during discussion.
 4. Private equal ballots, replacement before the deadline, full voting windows in real profiles, CEO selection among tied leaders, and authored no decision outcomes for abstention or tie timeout.
 5. One authored MapleCart decision round with bounded meters, an applied consequence, and a final factual history. The communication and recovery rounds do not run in this test.
-6. LFM3 mapping of the winning custom action to an allowed outcome. Output must contain only `outcome_id` and `explanation`; code applies the authored metrics and next node. Invalid or late results do not change a decision. One explicit retry is available within the original 30 second resolution window, only after the earlier provider job settles. Failure stays visible and ends with an unresolved action.
-7. Facilitator, IT character, and journalist replies selected by LFM3 from currently released evidence. The published wording is authored evidence, which prevents invented facts and prevents future outcome leakage. These roles are intentionally narrower than unrestricted conversation.
-8. GLiNER extraction from a selected committed contribution. Exact offsets and source text are validated. Extracted owners, deadlines, relations, and classes remain suggestions. Mentioning an owner does not record acceptance.
-9. A deterministic decision checker, observed participation counts and question counts, and an optional LFM3 selection of authored debrief reflections tied to committed history. No emotional, personality, competence, or psychological scoring is produced.
+6. Gemini mapping of the winning custom action to an allowed outcome. Output must contain only `outcome_id` and `explanation`; code applies the authored metrics and next node. Invalid or late results do not change a decision. One explicit retry is available within the original 30 second resolution window, only after the earlier provider job settles. Failure stays visible and ends with an unresolved action.
+7. Facilitator, IT character, and journalist replies selected by Gemini from currently released evidence. The published wording is authored evidence, which prevents invented facts and prevents future outcome leakage. These roles are intentionally narrower than unrestricted conversation.
+8. Gemini extraction from a selected committed contribution. Exact offsets and source text are validated. Extracted people, actions, deadlines and the contribution classification remain suggestions. Offsets are derived from exact source substrings; no calibrated confidence score is invented. Mentioning an owner does not record acceptance.
+9. A deterministic decision checker, observed participation counts and question counts, and an optional Gemini selection of authored debrief reflections tied to committed history. No emotional, personality, competence, or psychological scoring is produced.
 10. Explicit ElevenLabs audio generation, single device playback leases, shared cancellation, short microphone or WAV transcription, editable provisional text, and explicit contribution commitment.
 
-The eight logical responsibilities map to authored preparation, LFM3 facilitation, LFM3 evaluation plus factual fallback, code turn coordination, GLiNER tracking, code timekeeping, code decision checking, and observational climate feedback. They do not require eight independently loaded models. Only `lfm3` and `gliner-base` are enabled. No OpenRouter, commercial LLM fallback, or legacy managed ElevenLabs mood agent is used.
+The eight logical responsibilities map to authored preparation, Gemini facilitation, Gemini evaluation plus factual fallback, code turn coordination, Gemini tracking, code timekeeping, code decision checking, and observational climate feedback. They do not require eight independently loaded models. Every text role uses `gemini-3.8-flash` with `LOW` thinking. There is no local model API fallback, OpenRouter fallback, or managed ElevenLabs mood agent.
+
+## Vertex model and dollar cap
+
+The user selected **Gemini 3.8 Flash with LOW reasoning** for preparation, character replies, extraction, custom outcome mapping and debrief. The backend calls Vertex Express with its key in an HTTP header. The model and thinking level are fixed in `vertex.py`; changing either requires a separate model and price review. There are no automatic retries or provider fallbacks. Public jobs include the model, thinking level and reported token usage.
+
+The user authorized a **US$2 test cap**. `--vertex-cap-cents 200` is the maximum. Each request reserves five cents in `.local/ai-playtest/vertex-budget.sqlite` before transmission, including failures. Reservations are atomic across rooms and retained across restarts. Do not delete, move or replace the ledger to restore the allowance. This is a local test subbudget; it does not meter other Google account spending and does not expand the earlier overall account allowance.
+
+[Google pricing](https://cloud.google.com/model-garden/pricing) checked November 7, 2026 lists global introductory rates of US$0.75 per million input tokens and US$3.75 per million output tokens through December 31. The reservation uses the higher US$1.50 and US$7.50 rates, bounded input and 2,048 output tokens. Model responses and thinking tokens are billed as output. Pricing must be reviewed before calls in 2027. Health checks do not generate content. The status distinguishes configured credentials from a successfully verified response in the current server process.
+
+Read [the progress record](PROGRESS.md) for the implementation checkpoint and [the Vertex comparison](VERTEX_REPORT.md) for measured outcomes. Historical local reports remain unchanged.
 
 ## Voice and the credit cap
 
@@ -76,7 +87,7 @@ Generated audio is limited to 500 characters. Captions are the exact generated p
 
 The immutable authored MapleCart v2 package supplies the scenario, including its updated 30 seat capacity. The branch includes the latest production Start delivery from `main` at `b5d6fcb`; the experiment remains a separate application. Only the current situation, public documents, visible choices, and already committed history reach clients. Outcomes and custom rubrics stay on the server until the applicable decision.
 
-T01, T02, and T03 participant documents are now in the Scenario reference library and available to the LFM3 preparation role. Their full timed branches are not playable game modes: they use two eligible votes plus chair confirmation, which differs from the selected production majority and CEO tie policy. Arbitrary document ingestion, streaming audio, WebSocket delivery, long term recovery, shared Internet hosting, and the seven downloaded but disabled models remain outside this test build. One second polling supplies the minimal UI.
+T01, T02, and T03 participant documents are now in the Scenario reference library and available to the Gemini preparation role. Their full timed branches are not playable game modes: they use two eligible votes plus chair confirmation, which differs from the selected production majority and CEO tie policy. Arbitrary document ingestion, streaming audio, WebSocket delivery, long term recovery, shared Internet hosting, and the seven downloaded but disabled models remain outside this test build. One second polling supplies the minimal UI.
 
 The independent HTTP contract is documented by the executable clients in `smoke.py` and `voice_smoke.py`. It intentionally does not claim compatibility with Ricardo's cookie based lobby or Jeff's Start payload. Production integration should port the tested rules and provider boundaries into their agreed modules after review.
 
@@ -97,7 +108,7 @@ With the server running, the default HTTP smoke exercises three clients without 
 .venv/bin/python -m playtest.smoke
 ```
 
-First check `/api/health` for the worker's live status and allocation expiry. Then opt into the existing local models:
+First check `/api/health` for the configured model, live verification status and remaining Vertex reservation budget. Then opt into paid Vertex calls:
 
 ```sh
 .venv/bin/python -m playtest.smoke --live-models
@@ -109,22 +120,22 @@ The explicitly paid speech smoke requires an enabled server credit cap and an ex
 .venv/bin/python -m playtest.voice_smoke --allow-paid-speech
 ```
 
-Reports go to ignored `artifacts/`. These HTTP checks do not establish human microphone capture or visual browser quality. The current hosted GPU allocation ends November 8, 2026 at 15:46:25 UTC, which is 10:46:25 AM Toronto. The app remains usable for authored play when models are unavailable; custom outcomes and AI feedback explicitly report failure. This branch does not start, stop, or release any GPU job.
+Reports go to ignored `artifacts/`. These HTTP checks do not establish human microphone capture or visual browser quality. This application no longer depends on the GPU allocation. The app remains usable for authored play when models are unavailable; custom outcomes and AI feedback explicitly report failure. This branch does not start, stop, or release any GPU job.
 
-An observed live quality failure shaped the final debrief boundary: unrestricted LFM3 prose incorrectly described an exported minimum as a final scope and treated a breach detail as a strength. The final implementation therefore lets LFM3 select authored, evidence linked reflections and publishes their exact wording. It does not publish unrestricted debrief prose.
+An observed live quality failure shaped the final debrief boundary: unrestricted LFM3 prose in the earlier local experiment incorrectly described an exported minimum as a final scope and treated a breach detail as a strength. The final implementation therefore lets Gemini select authored, evidence linked reflections and publishes their exact wording. It does not publish unrestricted debrief prose.
 
 ## Three window text testing
 
 Open three separate Chrome windows at <http://127.0.0.1:8788>. Create a room as Test 01, then join its code as Test 02 and Test 03 in the other windows. Each window stores its own member credential; there is no shared identity selector. Window titles show the active name and room code, and People lists each public member ID. Do not duplicate an existing authenticated tab, since browsers may copy its session storage; use a fresh window instead.
 
-**Room text chat** works in the lobby, during speaking and voting, and after the exercise. Messages are authenticated as the sending window's participant and shared only within that room. Chat never casts a ballot, commits a decision, or changes the timed contribution history. Use **Timed contribution** for official discussion entries during your turn, and **Ask the local agents by text** for model replies. Text chat does not use ElevenLabs or consume speech credits. Press Ctrl+Enter or Command+Enter in the chat field to send.
+**Room text chat** works in the lobby, during speaking and voting, and after the exercise. Messages are authenticated as the sending window's participant and shared only within that room. Chat never casts a ballot, commits a decision, or changes the timed contribution history. Use **Timed contribution** for official discussion entries during your turn, and **Ask the agents by text** for model replies. Text chat does not use ElevenLabs or consume speech credits. Press Ctrl+Enter or Command+Enter in the chat field to send.
 
 ## Current agents and one round test procedure
 
-1. Preparation uses LFM3 to select relevant clauses from the chosen T01, T02, or T03 participant reference pack. Open the Scenario reference library while in the lobby, choose a pack, and ask a question. Responses cite exact source clauses. The original external reports remain source links in the imported guide; their complete PDFs and webpage text have not been indexed by this feature.
-2. Facilitator, IT, and journalist are logical roles sharing LFM3. They can answer opening scenario preview questions in the lobby, before Start. During the exercise they see only released MapleCart evidence. Type a question and click Ask Facilitator, Ask IT character or Ask Journalist; Enter asks Facilitator. The panel shows sending, queued, completed and failed request status. Extraction requires a committed timed contribution, and debrief requires the exercise to have ended; the panel explains both prerequisites. A reference question about another pack cannot change that session's facts.
-3. Custom decision evaluation uses LFM3 to select an allowed authored outcome for the winning custom proposal. The backend applies its consequence. The debrief uses LFM3 to select authored reflections based on the actual single decision.
-4. Discussion tracking uses GLiNER2.5 Base for exact text spans such as names, actions, and deadlines. It cannot create an accepted task or decision.
+1. Preparation uses Gemini to select relevant clauses from the chosen T01, T02, or T03 participant reference pack. Open the Scenario reference library while in the lobby, choose a pack, and ask a question. Responses cite exact source clauses. The original external reports remain source links in the imported guide; their complete PDFs and webpage text have not been indexed by this feature.
+2. Facilitator, IT, and journalist are logical roles sharing Gemini. They can answer opening scenario preview questions in the lobby, before Start. During the exercise they see only released MapleCart evidence. Type a question and click Ask Facilitator, Ask IT character or Ask Journalist; Enter asks Facilitator. The panel shows sending, queued, completed and failed request status. Extraction requires a committed timed contribution, and debrief requires the exercise to have ended; the panel explains both prerequisites. A reference question about another pack cannot change that session's facts.
+3. Custom decision evaluation uses Gemini to select an allowed authored outcome for the winning custom proposal. The backend applies its consequence. The debrief uses Gemini to select authored reflections based on the actual single decision.
+4. Discussion tracking uses Gemini for exact text spans such as names, actions, and deadlines. It cannot create an accepted task or decision.
 5. ElevenLabs Scribe v2 transcribes short optional recordings; Flash v2.5 speaks approved text. There is no managed ElevenLabs conversation agent controlling the game.
 6. Preparation documents, turn coordination, timekeeping, decision checks, and participation observations also have deterministic code responsibilities. Logical roles are not eight model instances.
 

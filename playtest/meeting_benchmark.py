@@ -1,4 +1,4 @@
-"""Opt-in live local-agent evaluation; no provider credentials or seat tokens in reports."""
+"""Opt-in live agent evaluation; no provider credentials or seat tokens in reports."""
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 import json
@@ -19,9 +19,9 @@ def main():
     code=clients[0].join('Benchmark host')
     clients[1].join('Benchmark Jeff',code);clients[2].join('Benchmark Ricardo',code)
     host=clients[0];health=host.request('/api/health')
-    assert health['models']['online'],'Hosted models must be online'
-    report={'room':code,'model_service_ends':health['models'].get('ends'),'cases':[],
-            'latency_definition':'Application enqueue to validated completion. Includes transport, hosted queue and polling, not pure GPU inference.',
+    assert health['models']['online'],'Configured provider must be ready'
+    report={'room':code,'model_service':health['models'],'cases':[],
+            'latency_definition':'Application enqueue to validated completion. Includes provider transport, queueing and validation, not isolated inference time.',
             'paid_speech_calls':0,'voice_reserved_before':health['speech']['reserved']}
     if args.resume_round:
         previous=json.loads(out.read_text())
@@ -92,7 +92,7 @@ def main():
         'median_client_ms':round(statistics.median(c['client_elapsed_ms'] for c in report['cases']),1),
         'max_client_ms':max(c['client_elapsed_ms'] for c in report['cases']),
         'min_client_ms':min(c['client_elapsed_ms'] for c in report['cases'])}
-    report['voice_reserved_after']=host.request('/api/health')['speech']['reserved'];save();print(json.dumps(report['summary']),flush=True)
+    report['voice_reserved_after']=host.request('/api/health')['speech']['reserved'];report['model_service_after']=host.request('/api/health')['models'];save();print(json.dumps(report['summary']),flush=True)
 
 
 if __name__=='__main__':main()

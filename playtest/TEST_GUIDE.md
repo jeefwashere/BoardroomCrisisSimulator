@@ -4,7 +4,7 @@ Current application instructions, November 7, 2026. This guide describes the iso
 
 ## Quick single window test
 
-The latest meeting UI is at <http://127.0.0.1:8788/meeting>. Click Run 90s scripted demo to control three test seats in one window and see a short discussion, prepared votes, simultaneous live character reviews and debrief. The 90 second mechanics profile uses a labelled 15 second vote; choose the five minute profile for the full 60 second vote. Scripted participant lines are explicitly distinguished from live model replies. Optional speech remains manual and uses the same shared credit cap. Read [the measured results](MEETING_REPORT.md) for latency and quality findings. The detailed per report instructions below still apply to preparation retrieval.
+The latest meeting UI is at <http://127.0.0.1:8788/meeting>. Click Run 90s scripted demo to control three test seats in one window and see a short discussion, prepared votes, simultaneous live character reviews and debrief. The 90 second mechanics profile uses a labelled 15 second vote; choose the five minute profile for the full 60 second vote. Scripted participant lines are explicitly distinguished from live model replies. Optional speech remains manual and uses the same shared credit cap. Read [the local baseline](MEETING_REPORT.md) and [the Vertex comparison](VERTEX_REPORT.md) for latency and quality findings. The detailed per report instructions below still apply to preparation retrieval.
 
 ## What you can test now
 
@@ -26,18 +26,18 @@ The original guide associates T01 with R1, T02 with R2, and T03 with R3 and R4. 
 
 | Responsibility | Engine | Where you interact | Availability |
 | --- | --- | --- | --- |
-| Preparation | LFM3, served as `lfm3` from `LiquidAI/LFM3-1.7B` | Scenario reference library → Ask preparation agent | Any joined participant; T01, T02 or T03 |
-| Facilitation and characters | Shared LFM3; Facilitator, IT and Journalist are roles | Your question → Ask Facilitator, Ask IT character or Ask Journalist | Lobby preview and active MapleCart game |
-| Evaluation | Shared LFM3 selects an allowed custom outcome or authored reflection | Vote for a custom proposal; Generate debrief after the round | Winning custom proposal or completed game |
+| Preparation | Vertex `gemini-3.8-flash`, LOW reasoning | Scenario reference library → Ask preparation agent | Any joined participant; T01, T02 or T03 |
+| Facilitation and characters | Shared Gemini 3.8 Flash, LOW; Facilitator, IT and Journalist are roles | Your question → Ask Facilitator, Ask IT character or Ask Journalist | Lobby preview and active MapleCart game |
+| Evaluation | Shared Gemini 3.8 Flash, LOW selects an allowed custom outcome or authored reflection | Vote for a custom proposal; Generate debrief after the round | Winning custom proposal or completed game |
 | Turn coordination | Application code | Timed contribution, Finish my turn; host can Skip speaker | Discussion phase |
-| Discussion tracking | GLiNER2.5 Base, served as `gliner-base` from `fastino/gliner2.5-base-v1` | Extract latest contribution | After a timed contribution is committed |
+| Discussion tracking | Gemini 3.8 Flash, LOW; exact source spans | Extract latest contribution | After a timed contribution is committed |
 | Timekeeping | Application code | Phase and overall countdowns | After Start exercise |
 | Decision checking | Application code | Check committed decisions | Any joined participant |
 | Participation observation | Application code | Discussion tracker counts | Counts committed contributions and questions; no mood scoring |
 | Speech recognition | ElevenLabs Scribe v2, `scribe_v2` | Voice input → Record microphone → Stop recording → Transcribe recording | During an eligible speaking turn |
 | Speech generation | ElevenLabs Flash v2.5, `eleven_flash_v2_5` | Generate situation audio or Generate response audio → Play | When the relevant text and audio controls are available |
 
-These responsibilities share two local models. There is no separate managed ElevenLabs conversation agent, no enabled mood detector, and no OpenRouter fallback. Other downloaded models are not enabled in this app.
+These text responsibilities share one Vertex model. There is no separate managed ElevenLabs conversation agent, no enabled mood detector, and no OpenRouter fallback. Local model API calls are disabled in this app. The persistent Vertex test cap is US$2.
 
 ## How to run each reference test
 
@@ -109,7 +109,7 @@ These are manual acceptance tests. They are not claims that every adversarial pr
 
 ## Test the MapleCart characters before Start
 
-Use **Ask the local agents by text**, not Scenario reference library.
+Use **Ask the agents by text**, not Scenario reference library.
 
 | Button | Copy this question | What to check |
 | --- | --- | --- |

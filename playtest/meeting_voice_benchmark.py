@@ -68,7 +68,7 @@ def main():
     after=host.request('/api/health')['speech'];report={'tts_ms':tts_ms,'tts_cached':generated['cached'],'stt_ms':stt_ms,'audio_seconds':round(seconds,2),
         'captions':generated['captions'],'transcript':transcript['text'],'word_error_rate':round(dp[-1]/max(1,len(expected)),4),
         'audio_may_be_clipped':seconds>=29,'generated_audio_bytes':len(audio),'reserved_this_test':after['reserved']-before['reserved'],
-        'budget':after,'committed_only_after_separate_command':True,'input':'Synthetic local agent reply spoken by ElevenLabs, not human microphone audio.',
+        'budget':after,'committed_only_after_separate_command':True,'input':'Synthetic agent reply spoken by ElevenLabs, not human microphone audio.',
         'browser_playback_verified':False,'pricing_source':'https://elevenlabs.io/pricing','reservation_rates':'1 credit per TTS character, 400 per short transcription; failed requests remain reserved.'}
     out.write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report),flush=True)
 

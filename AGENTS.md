@@ -44,3 +44,7 @@ This checklist is maintained by the agents through normal commits. It is not an 
 5. [The manual test guide](playtest/TEST_GUIDE.md) documents current controls, agent responsibilities and reviewer checks for each participant pack. Keep its expected answers outside participant retrieval and update it when the implemented controls change.
 
 6. The latest user test uses `/meeting`: three explicitly labelled test memberships in one window, a 90 second scripted mechanics demo, real local agent replies and simultaneous post round review. This supersedes the separate window preference for this mode only. See [the measured evaluation](playtest/MEETING_REPORT.md). Preserve the distinction between scripted seats, model replies and enforced authored evidence.
+
+## Approved Vertex experiment
+
+The user explicitly approved Gemini 3.8 Flash with LOW reasoning for every text responsibility in `playtest/`, replacing its local model API calls. This supersedes the local provider direction above for this experiment only. Retain ElevenLabs Scribe v2 and Flash v2.5, the persistent shared 10,000 credit speech cap, and server authority. Vertex has a separately confirmed US$2 test reservation cap; keep its SQLite ledger across restarts. Do not delete GPU weights, stop shared workers, or alter teammate production modules. Historical local results remain in `playtest/MEETING_REPORT.md`. Read `playtest/PROGRESS.md` for current status and never treat a smoke probe as a completed evaluation.

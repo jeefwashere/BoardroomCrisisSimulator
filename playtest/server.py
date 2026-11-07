@@ -136,8 +136,8 @@ def create_app(engine=None, provider=None, speech=None, port=8788):
     @app.get('/api/state')
     def state(request: Request):
         snapshot = engine.snapshot(token(request))
-        # Never expose provider identifiers, prompts or application credentials.
-        snapshot['jobs'] = [{k: j.get(k) for k in ('id', 'kind', 'member', 'status', 'round', 'error', 'submitted_at', 'completed_at', 'timing', 'question', 'review')} for j in snapshot['jobs']]
+        # Expose model names and token counts, never prompts or application credentials.
+        snapshot['jobs'] = [{k: j.get(k) for k in ('id', 'kind', 'member', 'status', 'round', 'error', 'submitted_at', 'completed_at', 'timing', 'question', 'review', 'model_info')} for j in snapshot['jobs']]
         if snapshot['speech']:
             snapshot['speech'].pop('path', None)
         return snapshot

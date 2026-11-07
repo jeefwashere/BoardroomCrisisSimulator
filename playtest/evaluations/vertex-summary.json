@@ -1,0 +1,53 @@
+{
+  "model": "gemini-3.8-flash",
+  "thinking_level": "LOW",
+  "provider": "Google Vertex AI Express",
+  "connection_probe_ms": 1411,
+  "text_cases": {
+    "cases": 14,
+    "completed": 14,
+    "criterion_passes": 14,
+    "median_total_ms": 1579.5,
+    "max_total_ms": 11969.9,
+    "min_total_ms": 1106.2,
+    "small_sample": true,
+    "median_client_ms": 2031.2,
+    "max_client_ms": 12150.6,
+    "min_client_ms": 1526.6
+  },
+  "checks": {
+    "playtest_tests_passed": 39,
+    "existing_tests_passed": 31,
+    "prototype_demo": true,
+    "javascript_syntax": true,
+    "dom_ids": true,
+    "custom_round": true,
+    "speech_roundtrip": true,
+    "vertex_browser_visual_qa": false
+  },
+  "vertex_budget": {
+    "cap_usd": 2.0,
+    "reserved_usd": 1.05,
+    "remaining_usd": 0.95,
+    "attempts": 21,
+    "note": "Local test reservations, including failures; excludes other account spending."
+  },
+  "reported_token_usage_all_vertex_attempts": {
+    "promptTokenCount": 4414,
+    "candidatesTokenCount": 347,
+    "thoughtsTokenCount": 375,
+    "totalTokenCount": 5136
+  },
+  "estimated_usd_at_published_global_introductory_rates": 0.006018,
+  "pricing_source": "https://cloud.google.com/model-garden/pricing",
+  "price_checked": "2026-11-07",
+  "speech_budget": {
+    "cap": 10000,
+    "reserved": 1690,
+    "remaining": 8310,
+    "unit": "credits",
+    "note": "Conservative reservations, not an exact provider invoice. Failed calls stay reserved."
+  },
+  "speech_this_task": 400,
+  "billing_note": "Token estimate is not an invoice; local conservative reservations are authoritative for this test cap. Other account spending is not tracked."
+}

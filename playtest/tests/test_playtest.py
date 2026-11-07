@@ -232,8 +232,8 @@ class AgentJobTests(unittest.TestCase):
         self.cmd(self.a, 'contribute', text='Jeff will call IT by 3 PM.')
         cid = self.r['contributions'][0]['id']
         class Provider:
-            def run(self, prompt, model='lfm3', timeout=120):
-                if model == 'gliner-base':
+            def run(self, prompt, model='text', timeout=120):
+                if model == 'extract':
                     return {'kind':'proposal','spans':[{'start':0,'end':4,'text':'Jeff','label':'person','raw_score':.9},
                                                        {'start':0,'end':4,'text':'FAKE','label':'person'}]}
                 if 'debrief' in prompt:
@@ -255,7 +255,7 @@ class AgentJobTests(unittest.TestCase):
         jid = uuid.uuid4().hex
         self.r['jobs'][jid] = {'id':jid,'kind':'facilitator','status':'pending','error':None}
         with patch.object(agents.provider,'run',side_effect=RuntimeError('provider unavailable')):
-            agents.run(self.code,jid,'lfm3','prompt',{})
+            agents.run(self.code,jid,'text','prompt',{})
         self.assertEqual(self.r['jobs'][jid]['status'],'failed')
         self.assertEqual(self.r['events'][-1]['type'],'model_failed')
         agents.close()
@@ -305,7 +305,7 @@ class OneRoundAndReferenceTests(unittest.TestCase):
         agents = Agents(self.e)
         for pack,question in [('T01','Can backups promise restoration?'),('T02','Was the Bright Print invoice approved?'),('T03','Does appointment grant payroll access?')]:
             model,prompt,context=agents.prompt(self.r,'preparation',{'pack_id':pack,'text':question})
-            self.assertEqual(model,'lfm3')
+            self.assertEqual(model,'text')
             self.assertLessEqual(len(prompt),4000)
             self.assertTrue(all(c['id'].startswith(pack) for c in context['evidence']))
             self.assertNotIn('CAD 1,200',prompt)
@@ -484,7 +484,7 @@ class FakeSpeech:
 
 class FakeProvider:
     def request(self, path): return {'online':True}
-    def run(self, prompt, model='lfm3', timeout=120): return {'text':'{"evidence_ids":["current_situation"]}'}
+    def run(self, prompt, model='text', timeout=120): return {'text':'{"evidence_ids":["current_situation"]}'}
 
 
 class HTTPTests(unittest.TestCase):

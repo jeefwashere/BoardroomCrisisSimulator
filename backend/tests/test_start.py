@@ -59,7 +59,7 @@ class StartApiTests(unittest.TestCase):
     def start_body(self):
         return command(
             room_code=self.room["room_code"], scenario_id="maplecart_cybersecurity",
-            scenario_version=2, timing_profile="standard_18",
+            scenario_version=3, timing_profile="standard_18",
             players=[{"member_id": member_id, "role_id": "ceo" if index == 0 else "security"}
                      for index, member_id in enumerate(self.ids)],
         )
@@ -187,11 +187,11 @@ class StartApiTests(unittest.TestCase):
         self.assertEqual(game["timing_profile"], "standard_18")
         self.assertEqual(game["briefing_seconds"], 90)
         self.assertEqual(game["initial_node_id"], "containment")
-        self.assertEqual(game["initial_metrics"], {
-            "service_continuity": 60, "data_protection": 60, "public_trust": 60,
-        })
+        self.assertNotIn("initial_metrics", game)
+        self.assertEqual(game["facts"]["verified_export_records"], 0)
+        self.assertEqual(game["history"], [])
         self.assertEqual(game["scenario"]["scenario_id"], "maplecart_cybersecurity")
-        self.assertEqual(game["scenario"]["version"], 2)
+        self.assertEqual(game["scenario"]["version"], 3)
         self.assertRegex(game["scenario"]["content_sha256"], r"^[0-9a-f]{64}$")
         self.assertTrue(game["public_documents"])
         self.assertEqual(set(game["eligible_member_ids"]), set(self.ids))
@@ -429,7 +429,7 @@ class ConcurrentStartTests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(joined.status_code, 200, joined.text)
                     ids.append(joined.json()["self_member_id"])
             start_request = command(
-                room_code=room["room_code"], scenario_id="maplecart_cybersecurity", scenario_version=2,
+                room_code=room["room_code"], scenario_id="maplecart_cybersecurity", scenario_version=3,
                 timing_profile="standard_18",
                 players=[{"member_id": member_id, "role_id": "ceo" if index == 0 else "security"}
                          for index, member_id in enumerate(ids)],
@@ -494,7 +494,7 @@ class ConcurrentStartTests(unittest.IsolatedAsyncioTestCase):
                     ids.append(joined.json()["self_member_id"])
             path = f'/api/rooms/{room["room_id"]}'
             body = command(
-                room_code=room["room_code"], scenario_id="maplecart_cybersecurity", scenario_version=2,
+                room_code=room["room_code"], scenario_id="maplecart_cybersecurity", scenario_version=3,
                 timing_profile="standard_18",
                 players=[{"member_id": member_id, "role_id": "ceo" if index == 0 else "finance"}
                          for index, member_id in enumerate(ids)],

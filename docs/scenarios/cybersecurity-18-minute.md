@@ -1,12 +1,12 @@
 # MapleCart: a cybersecurity crisis in 18 minutes
 
-Version 2. Fictional scenario draft for the Boardroom Crisis Simulator. Recommended group: 3 to 6 players. Version 2 carries the current application capacity of 30 and is admitted for the Start handoff. Immutable version 1 remains available as historical content. This is a playable script and data draft, not a running backend or a validated training programme.
+Version 3. Fictional scenario draft for the Boardroom Crisis Simulator. Recommended group: 3 to 6 players. Version 3 removes fixed numerical gameplay meters and preserves the current capacity of 30. Versions 1 and 2 remain unchanged as historical packages. This is a playable script and data draft, not a running backend or a validated training programme.
 
 ## 1. Research behind the format
 
 The UK NCSC's [Responding to a ransomware attack micro exercise](https://www.ncsc.gov.uk/sites/default/files/documents/responding-to-a-ransomware-attack-micro-exercise.pdf), page 2, suggests roughly 15 to 30 minutes and recommends a facilitator with a small group of 3 to 5 people. Its format combines a situation, group discussion, and reflection. The Australian Signals Directorate's [Exercise in a Box](https://www.cyber.gov.au/exercise-in-a-box) also distinguishes micro exercises of 15 to 30 minutes from discussion exercises of 30 to 120 minutes.
 
-Those sources support using a short, focused format. The exact 18 minute schedule, voting mechanics, MapleCart story, choices, consequences, and game meters below are original design proposals for this project. No source establishes that five minutes per round is a universal standard. The schedule has been checked arithmetically but has not been tested with players.
+Those sources support using a short, focused format. The exact 18 minute schedule, voting mechanics, MapleCart story, choices and narrative consequences below are original design proposals for this project. No source establishes that five minutes per round is a universal standard. The schedule has been checked arithmetically but has not been tested with players.
 
 ## 2. Timing
 
@@ -23,11 +23,11 @@ Every normal round reserves five minutes:
 1. 60 seconds to read the new evidence and review the three public documents.
 2. 150 seconds for sequential speaking and any remaining shared discussion.
 3. 60 seconds to vote.
-4. 30 seconds to evaluate a custom winner if needed, apply the result, and display it.
+4. 30 seconds to display a committed nonterminal result. A terminal result ends gameplay immediately and remains readable.
 
 Allocate each player's speaking slot as the smaller of 30 seconds and `floor(150 / player_count)` seconds. Three players get 30 seconds each plus 60 seconds of open discussion. Five players get 30 seconds each. Six players get 25 seconds each. Unused speaking time remains available for discussion rather than removing the investigation period.
 
-Voting remains 60 seconds even when everyone votes early. A tie adds up to 30 seconds for the CEO, giving up to 19 minutes 30 seconds if all three rounds tie. AI evaluation uses the existing 30 second result window, not another unrestricted phase. Allow one attempt of up to 15 seconds; a permitted retry uses only the result window's remaining time. On failure, show the selected action as unresolved and follow the specification's visible failure handling. Do not invent a successful result to keep the schedule.
+Voting remains 60 seconds even when everyone votes early. A tie adds up to 30 seconds for the CEO, giving up to 19 minutes 30 seconds if all three rounds tie. The implemented narrative guard reserves the full 30 seconds after consequence commitment. Custom AI evaluation remains deferred and cannot consume that presentation guard. The proposed 15 second attempt and one retry require a separate bounded budget before commitment. The 18 minute arithmetic below does not establish a latency guarantee for that future custom flow. On failure, show the selected action as unresolved and follow the specification's visible failure handling. Do not invent a successful result to keep the schedule.
 
 The full experience has a 20 minute target ceiling. Reserve the final 90 seconds for debrief, so gameplay must end no later than 18 minutes 30 seconds after the briefing began. If the backend's session timer starts after the briefing, its gameplay ceiling is 17 minutes. A provider failure or facilitator intervention can consume the 30 second reserve after the maximum tie schedule; further delay ends play with an incomplete result. These are proposed scenario specific limits, not changes to every room's defaults.
 
@@ -39,11 +39,11 @@ For 30 players, the 150 second speaking pool allows 5 seconds per person. If all
 
 Share these documents with every player:
 
-1. [Company and role briefing](../../scenarios/cybersecurity_demo/v2/briefing.md).
-2. [Initial evidence](../../scenarios/cybersecurity_demo/v2/initial-evidence.md).
-3. [Service and recovery notes](../../scenarios/cybersecurity_demo/v2/operations.md).
+1. [Company and role briefing](../../scenarios/cybersecurity_demo/v3/briefing.md).
+2. [Initial evidence](../../scenarios/cybersecurity_demo/v3/initial-evidence.md).
+3. [Service and recovery notes](../../scenarios/cybersecurity_demo/v3/operations.md).
 
-The company, records, deadlines, incident facts, and outcomes are fictional. No real attack or live system action is performed. Initial meters are service continuity 60, data protection 60, and public trust 60, each bounded from 0 to 100. These are educational game values chosen for this draft.
+The company, records, deadlines, incident facts, and outcomes are fictional. No real attack or live system action is performed. There are no fixed numerical gameplay meters. A later AI evaluates all individual answers, chats, reviewed speech transcripts, and the committed decisions.
 
 The facilitator owns the complete script. Players should see only the current situation, public documents, and action labels. Do not expose unreached updates or outcome deltas as part of the player view. All players receive the same facts; there is no private role information.
 
@@ -72,10 +72,10 @@ Prepared choices:
 
 Authored consequences:
 
-1. A gives a narrower investigation boundary. The next update confirms an export of 160 customer records before the account was suspended. It does not claim that containment proves the incident is completely resolved. Meter changes: service minus 5, protection plus 20, trust unchanged.
-2. B preserves short term availability but gives the incident more time to develop. The next update confirms an export of 5,000 customer records and additional finance disruption. Meter changes: service plus 5, protection minus 25, trust minus 10.
-3. C limits continued connected activity, but checkout and support tools become unavailable. Investigators can currently confirm 160 exported records; completeness is still uncertain. Meter changes: service minus 25, protection plus 10, trust minus 5.
-4. No decision gives the same observed escalation as waiting, without attributing an affirmative choice to the team. Meter changes: service minus 10, protection minus 20, trust minus 5.
+1. A gives a narrower investigation boundary. The next update confirms an export of 160 customer records before the account was suspended. It does not claim that containment proves the incident is completely resolved.
+2. B preserves short term availability but gives the incident more time to develop. The next update confirms an export of 5,000 customer records and additional finance disruption.
+3. C limits continued connected activity, but checkout and support tools become unavailable. Investigators can currently confirm 160 exported records; completeness is still uncertain.
+4. No decision gives the same observed escalation as waiting, without attributing an affirmative choice to the team.
 
 Demo happy path: A. The facilitator should still invite discussion of when broader containment would be warranted. The option is preferred for the explicit dependencies in this fictional case, not as a universal incident response instruction.
 
@@ -104,10 +104,10 @@ Prepared choices:
 
 Authored consequences:
 
-1. A establishes an accountable update cadence and avoids unsupported certainty. Meter changes: service unchanged, protection plus 5, trust plus 20. The known export count remains the one established by round 1.
-2. B is contradicted by the verified export. The next update includes screenshots of the earlier denial alongside customer questions. Meter changes: service plus 5, protection minus 5, trust minus 25.
-3. C leaves customers without a consistent explanation as questions spread. Meter changes: service unchanged, protection unchanged, trust minus 10.
-4. No decision misses the planned communication window. Meter changes: service unchanged, protection unchanged, trust minus 15.
+1. A establishes an accountable update cadence and avoids unsupported certainty.
+2. B is contradicted by the verified export. The next update includes screenshots of the earlier denial alongside customer questions.
+3. C leaves customers without a consistent explanation as questions spread.
+4. No decision misses the planned communication window.
 
 Demo happy path: A. A good custom answer may use different wording and still receive the same outcome if it preserves accuracy, ownership, and follow through. No fictional choice defines a real legal notification deadline.
 
@@ -136,12 +136,12 @@ Prepared choices:
 
 Authored consequences:
 
-1. A produces a controlled recovery plan with reduced near term capacity. The game ends with validation and recovery still in progress, not with proof that systems are clean. Meter changes: service plus 20, protection plus 10, trust plus 10.
-2. B offers immediate availability at the cost of accepting unresolved integrity and access risks. The game records a risky restoration decision; it does not need to invent a second attack to explain the tradeoff. Meter changes: service plus 25, protection minus 25, trust minus 15.
-3. C prioritizes assurance through a slower recovery. It is a defensible alternative for a cautious team that accepts the business cost. Meter changes: service minus 15, protection plus 15, trust plus 5.
-4. No decision leaves recovery unowned at the end of the exercise. Meter changes: service minus 15, protection minus 5, trust minus 10.
+1. A produces a controlled recovery plan with reduced near term capacity. The game ends with validation and recovery still in progress, not with proof that systems are clean.
+2. B offers immediate availability at the cost of accepting unresolved integrity and access risks. The game records a risky restoration decision; it does not need to invent a second attack to explain the tradeoff.
+3. C prioritizes assurance through a slower recovery. It is a defensible alternative for a cautious team that accepts the business cost.
+4. No decision leaves recovery unowned at the end of the exercise.
 
-Demo happy path: A, with C accepted as a coherent alternative when the team explains its tradeoff. Every prepared consequence and every meter value is a fictional teaching device.
+Demo happy path: A, with C accepted as a coherent alternative when the team explains its tradeoff. Every prepared consequence is fictional narrative content.
 
 ## 7. Custom action adjudication
 
@@ -158,20 +158,20 @@ Integration follows the selected [AI architecture](../ai-architecture.md). This 
 
 ## 8. Happy path and debrief
 
-The prepared A, A, A sequence ends with service 75, protection 95, and trust 90. These values measure this game's authored tradeoffs only. The team has a controlled recovery plan, a verified export of at least 160 records, and an ongoing incident that still requires real work in the fictional world.
+The prepared A, A, A sequence has no numerical gameplay grade. The team has a controlled recovery plan, a verified export of at least 160 records, and an ongoing incident that still requires real work in the fictional world.
 
 Use the final 90 seconds for:
 
-1. First 30 seconds: show the actual three decisions and final meters. If a choice is unresolved, state that directly.
+1. First 30 seconds: show the actual three decisions and narrative consequences. If a choice is unresolved, state that directly.
 2. Next 30 seconds: let the group identify one strong decision and one assumption it would investigate further.
 3. Final 30 seconds: give concise feedback on containment, communication, and recovery ownership. Provide one specific improvement grounded in their actual choices.
 
-An A, A, C ending has service 40, protection 100 after clamping, and trust 85. It reflects a more conservative recovery choice, not automatic failure. A weak path can recover some trust through later accurate communication, but later good choices do not erase earlier confirmed exposure.
+An A, A, C ending reflects a more conservative recovery choice. Later accurate communication does not erase earlier confirmed exposure. Preserve all individual reasoning, unselected answers, chat, and reviewed speech transcripts for the later AI evaluator.
 
-For AI feedback, use the committed record and these rubric dimensions. Do not generate claims that malware was removed, affected customers were all found, notifications were legally sufficient, or recovery completed unless the game state actually establishes those facts.
+For AI feedback, use every individual answer and chat or reviewed speech transcript together with the committed record and these rubric dimensions. Do not generate claims that malware was removed, affected customers were all found, notifications were legally sufficient, or recovery completed unless the game state actually establishes those facts.
 
 ## 9. Data artifact and validation boundary
 
-The proposed data representation is [scenario.json](../../scenarios/cybersecurity_demo/v2/scenario.json). Its `schema_version` is explicitly `draft.1` because the application loader has not been implemented. It contains the timing profiles, public documents, role combinations, three nodes, options, permitted outcomes, carried facts, and expected happy path.
+The proposed data representation is [scenario.json](../../scenarios/cybersecurity_demo/v3/scenario.json). Its `schema_version` is `draft.2`, admitted by the production narrative loader. It contains the timing profiles, public documents, role combinations, three nodes, options, permitted outcomes, carried facts, and expected happy path.
 
-Static validation checks all references, the three step decision sequence, all 64 prepared and no decision combinations, metric bounds, expected happy path meters, and timing arithmetic. It does not establish playtest duration, AI quality, API compatibility, or live multiplayer behavior.
+Static validation checks all references, the three step decision sequence, all 64 prepared and no decision combinations, fact carryover, authored endings, and timing arithmetic. Internal engine tests execute these paths and verify history and event guards. It does not establish playtest duration, AI quality, API compatibility, or live multiplayer behavior.

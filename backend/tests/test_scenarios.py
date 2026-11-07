@@ -8,10 +8,10 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from backend.app.scenarios import ScenarioCatalog
+from backend.app.scenarios import Node, Outcome, PreparedOption, ScenarioCatalog
 
 
-PACKAGE = Path(__file__).resolve().parents[2] / "scenarios/cybersecurity_demo/v2"
+PACKAGE = Path(__file__).resolve().parents[2] / "scenarios/cybersecurity_demo/v3"
 
 
 class ScenarioCatalogTests(unittest.TestCase):
@@ -33,15 +33,31 @@ class ScenarioCatalogTests(unittest.TestCase):
             self.catalog()
         self.data = original
 
-    def test_default_catalog_loads_only_v2_and_projects_no_outcomes(self):
+    def test_default_catalog_loads_only_v3_and_retains_execution_data(self):
         catalog = ScenarioCatalog()
-        scenario = catalog.get("maplecart_cybersecurity", 2)
+        scenario = catalog.get("maplecart_cybersecurity", 3)
         self.assertIsNotNone(scenario)
         self.assertEqual(catalog.all(), (scenario,))
         self.assertEqual(scenario.initial_node_id, "containment")
-        self.assertEqual(dict(scenario.initial_metrics), {
-            "service_continuity": 60, "data_protection": 60, "public_trust": 60,
-        })
+        self.assertEqual(dict(scenario.initial_facts), self.data["initial_facts"])
+        self.assertNotIn("initial_metrics", asdict(scenario))
+        self.assertEqual(tuple(node.node_id for node in scenario.nodes),
+                         ("containment", "communication", "recovery"))
+        for authored, node in zip(self.data["nodes"], scenario.nodes):
+            self.assertIsInstance(node, Node)
+            self.assertEqual((node.title, node.inject, node.study_questions),
+                             (authored["title"], authored["inject"], tuple(authored["study_questions"])))
+            self.assertEqual(node.no_decision_outcome_id, authored["no_decision_outcome_id"])
+            self.assertEqual(node.options, tuple(PreparedOption(
+                item["id"], item["label"], item["outcome_id"],
+            ) for item in authored["options"]))
+            self.assertEqual(node.outcomes, tuple(Outcome(
+                item["id"], item["summary"], tuple(item["fact_updates"].items()),
+                item["next_node_id"], item["terminal"], item.get("ending_label"),
+            ) for item in authored["outcomes"]))
+        # Partial communication updates must not acquire fabricated reset values.
+        self.assertEqual(scenario.nodes[1].outcomes[0].fact_updates,
+                         (("communication_status", "factual_update_and_owned_followup"),))
         self.assertEqual({role.role_id for role in scenario.roles}, {
             "ceo", "security", "technology", "finance", "operations", "communications_privacy",
         })
@@ -50,9 +66,8 @@ class ScenarioCatalogTests(unittest.TestCase):
         self.assertEqual({document.id for document in scenario.public_documents}, {
             "briefing", "initial_evidence", "operations",
         })
-        self.assertNotIn("outcomes", asdict(scenario))
-        self.assertNotIn("nodes", asdict(scenario))
-        self.assertNotIn("initial_facts", asdict(scenario))
+        self.assertTrue(all(timing.result_seconds == 30 for timing in scenario.timings))
+        self.assertIsNone(catalog.get("maplecart_cybersecurity", 2))
         self.assertIsNone(catalog.get("maplecart_cybersecurity", 1))
         self.assertIsNone(catalog.get("missing", 2))
         self.assertEqual(ScenarioCatalog(()).all(), ())
@@ -65,11 +80,20 @@ class ScenarioCatalogTests(unittest.TestCase):
             (scenario.roles[0], "name", "Replacement"),
             (scenario.timings[0], "briefing_seconds", 1),
             (scenario.public_documents[0], "text", "Replacement"),
+            (scenario.nodes[0], "inject", "Replacement"),
+            (scenario.nodes[0].options[0], "label", "Replacement"),
+            (scenario.nodes[0].outcomes[0], "summary", "Replacement"),
         ):
             with self.assertRaises(FrozenInstanceError):
                 setattr(instance, name, value)
         with self.assertRaises(TypeError):
-            scenario.initial_metrics[0] = ("service_continuity", 1)
+            scenario.initial_facts[0] = ("verified_export_records", 1)
+        with self.assertRaises(TypeError):
+            scenario.nodes[0].options[0] = scenario.nodes[0].options[1]
+        with self.assertRaises(TypeError):
+            scenario.nodes[0].outcomes[0].fact_updates[0] = ("verified_export_records", 999)
+        self.data["nodes"][0]["outcomes"][0]["fact_updates"]["verified_export_records"] = 999
+        self.assertEqual(dict(scenario.nodes[0].outcomes[0].fact_updates)["verified_export_records"], 160)
         shutil.rmtree(self.package)
         with patch.object(Path, "read_bytes", side_effect=AssertionError("Lookup attempted I/O")):
             self.assertIs(catalog.get(scenario.scenario_id, scenario.version), scenario)
@@ -119,28 +143,55 @@ class ScenarioCatalogTests(unittest.TestCase):
                 self.reject(change)
         with self.assertRaises(ValueError):
             ScenarioCatalog((self.path, self.path))
-        self.path.write_text('{"schema_version":"draft.1","schema_version":"draft.1"}')
+        self.path.write_text('{"schema_version":"draft.2","schema_version":"draft.2"}')
         with self.assertRaisesRegex(ValueError, "Duplicate JSON key"):
             ScenarioCatalog((self.path,))
 
-    def test_metric_initial_bounds_and_deltas_are_checked(self):
-        changes = (
-            lambda data: data["initial_metrics"].update(service_continuity=101),
-            lambda data: data["initial_metrics"].update(service_continuity=True),
-            lambda data: data["metric_bounds"]["service_continuity"].update(minimum=101),
-            lambda data: data["metric_bounds"]["service_continuity"].update(maximum="100"),
-            lambda data: data["metric_bounds"].pop("public_trust"),
-            lambda data: data["nodes"][0]["outcomes"][0]["metric_deltas"].update(public_trust=101),
-            lambda data: data["nodes"][0]["outcomes"][0]["metric_deltas"].update(public_trust=-101),
-            lambda data: data["nodes"][0]["outcomes"][0]["metric_deltas"].update(public_trust=0.5),
-            lambda data: data["nodes"][0]["outcomes"][0]["metric_deltas"].pop("public_trust"),
-        )
-        for index, change in enumerate(changes):
-            with self.subTest(case=index):
+    def test_legacy_meter_fields_are_rejected_at_every_depth(self):
+        for key in ("initial_metrics", "metric_bounds", "metric_deltas", "metric_semantics",
+                    "expected_metrics", "metrics", "applied_deltas"):
+            for location in ((), ("nodes", 0), ("nodes", 0, "outcomes", 0), ("happy_path",)):
+                with self.subTest(key=key, location=location):
+                    def change(data):
+                        target = data
+                        for part in location:
+                            target = target[part]
+                        target[key] = {"public_trust": 60}
+                    self.reject(change)
+
+    def test_legacy_packages_remain_on_disk_but_are_not_admitted(self):
+        for version in (1, 2):
+            path = PACKAGE.parent / f"v{version}" / "scenario.json"
+            with self.subTest(version=version):
+                self.assertTrue(path.is_file())
+                with self.assertRaisesRegex(ValueError, "Unsupported scenario schema"):
+                    ScenarioCatalog((path,))
+
+    def test_facts_accept_only_exact_scalar_types_and_preserve_update_types(self):
+        for value in (1.5, [], {}, ["value"]):
+            with self.subTest(value=value):
+                self.reject(lambda data: data["initial_facts"].update(extra=value))
+                self.reject(lambda data: data["nodes"][0]["outcomes"][0]["fact_updates"].update(
+                    verified_export_records=value))
+        for initial, update in ((0, True), (False, 1), (None, "known"), ("unknown", None)):
+            with self.subTest(initial=initial, update=update):
+                def change(data):
+                    data["initial_facts"]["extra"] = initial
+                    data["nodes"][0]["outcomes"][0]["fact_updates"]["extra"] = update
                 self.reject(change)
-        # Consequences may exceed current metric values; runtime clamps later.
-        self.data["nodes"][0]["outcomes"][0]["metric_deltas"]["public_trust"] = 100
-        self.assertIsNotNone(self.catalog().all()[0])
+        for initial, update in ((0, 3), (False, True), (None, None), ("unknown", "known")):
+            self.data["initial_facts"]["extra"] = initial
+            self.data["nodes"][0]["outcomes"][0]["fact_updates"]["extra"] = update
+            loaded = self.catalog().all()[0]
+            self.assertIs(type(dict(loaded.initial_facts)["extra"]), type(initial))
+            self.assertEqual(dict(loaded.nodes[0].outcomes[0].fact_updates)["extra"], update)
+
+    def test_narration_summaries_are_retained_exactly_with_a_500_character_limit(self):
+        self.data["nodes"][0]["outcomes"][0]["summary"] = "x" * 500
+        loaded = self.catalog().all()[0]
+        self.assertEqual(loaded.nodes[0].outcomes[0].summary, "x" * 500)
+        self.reject(lambda data: data["nodes"][0]["outcomes"][0].update(summary="x" * 501))
+        self.reject(lambda data: data["nodes"][0]["outcomes"][0].update(summary="   "))
 
     def test_graph_requires_reachable_nodes_and_finite_terminal_paths(self):
         changes = (
@@ -150,6 +201,7 @@ class ScenarioCatalogTests(unittest.TestCase):
             lambda data: data["nodes"][2]["outcomes"][0].update(next_node_id="containment"),
             lambda data: data["nodes"][0]["outcomes"][0].update(next_node_id=None),
             lambda data: data["nodes"][2]["outcomes"][0].pop("ending_label"),
+            lambda data: data["nodes"][0]["outcomes"][0].update(ending_label="not_terminal"),
         )
         for index, change in enumerate(changes):
             with self.subTest(case=index):
@@ -158,6 +210,7 @@ class ScenarioCatalogTests(unittest.TestCase):
     def test_room_roles_schema_and_required_types_are_validated(self):
         changes = (
             lambda data: data.update(schema_version="future"),
+            lambda data: data.update(schema_version="draft.1"),
             lambda data: data.update(version=True),
             lambda data: data.update(title=[]),
             lambda data: data["room_constraints"].update(capacity=20),
@@ -179,6 +232,7 @@ class ScenarioCatalogTests(unittest.TestCase):
             lambda data: data["timing_profiles"]["standard_18"].update(briefing_seconds=0),
             lambda data: data["timing_profiles"]["standard_18"].update(briefing_seconds=True),
             lambda data: data["timing_profiles"]["standard_18"].update(voting_seconds_per_round=30),
+            lambda data: data["timing_profiles"]["standard_18"].update(result_seconds_per_round=5),
             lambda data: data["timing_profiles"]["standard_18"].update(round_count=4),
             lambda data: data["timing_profiles"]["standard_18"].update(base_total_seconds=1),
             lambda data: data["timing_profiles"]["standard_18"].update(experience_ceiling_seconds=1),

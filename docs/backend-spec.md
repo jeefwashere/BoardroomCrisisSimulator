@@ -21,7 +21,7 @@ Confirmed means selected in the user's latest discussion. Proposed means an arch
 5. Confirmed: predefined choices and consequences, plus custom actions. Custom actions were accepted after the discussion of an AI deciding agent.
 6. Confirmed: equal vote weights, 60 seconds of voting, and CEO selection when the result is tied.
 7. Confirmed: sequential speaking time for each person, followed by voting and automatic decision progression.
-8. Confirmed: AI evaluates player decisions and provides final feedback.
+8. Confirmed: AI evaluates every individual answer, chat, reviewed speech transcript, and committed decision after the game.
 9. Confirmed: the session ends at its total time limit or when its decision sequence finishes.
 10. Confirmed: an existing player can rejoin while the meeting continues.
 11. Deferred: advanced database recovery and server restart recovery.
@@ -33,6 +33,9 @@ Confirmed means selected in the user's latest discussion. Proposed means an arch
 17. Confirmed for the initial delivery: approximately two second polling is acceptable for lobby updates before WebSocket delivery.
 18. Confirmed update: Jeff generates room codes and owns lobby role selection. The host submits room code, players, and selected roles together on Start. The backend validates the handoff. Lobby browsers register through the authenticated create and join flow before that Start handoff.
 19. Confirmed update: new participants may join after start, up to capacity 30. New members first participate from the next round; they do not expand the current electorate or replace the CEO.
+20. Confirmed update: remove fixed numerical gameplay meters. Use narrative consequences and carried facts. Preserve every individual answer, typed chat, and reviewed speech transcript for later AI evaluation, including unselected answers.
+21. Confirmed update: this unit implements the internally verified narrative engine first. Nonterminal consequences use a 30 second presentation guard; terminal consequences end immediately. Display what happened as text, then narrate that same committed text. Real media calls remain subject to the existing speech budget rule.
+22. Confirmed update: record every participant during their own speaking turn and transcribe through backend ElevenLabs integration while the game is ongoing. Store both the original recording and its transcript, linked to the authenticated member, room, round, speaking turn, and timestamps. The end screen shows the accumulated records and supplies them to the later AI evaluator. This is a recorded requirement; microphone capture, production transcription, original audio storage, and the end screen are not implemented in the narrative foundation.
 
 The implemented registration contract is documented in [room-api.md](room-api.md), with scenario admission, batch roles, Start, and next round eligibility in [start-api.md](start-api.md). The full game flow remains unimplemented.
 
@@ -49,7 +52,7 @@ At the initial design review, remote `main` contained only the initial README an
 7. When speaking finishes, the backend freezes the choices and opens a 60 second vote.
 8. At the deadline, the backend resolves the most voted option, or requests a CEO decision among the tied leaders.
 9. A prepared winner applies its authored consequence. A custom winner goes to the AI deciding operation, which evaluates it against the scenario and maps it to an allowed authored outcome.
-10. The result, metric changes, and decision record are broadcast. Proposed: display the result for 5 seconds, then automatically start the next round if the scenario continues and session time remains. No mandatory host next round click is introduced.
+10. The narrative result and decision record are broadcast. Confirmed: present a nonterminal result for 30 seconds before the next round. A terminal result ends immediately and remains readable. Show consequence captions before spoken narration. Automatic scheduling remains a separate implementation task. No mandatory host next round click is introduced.
 11. At completion or total timeout, gameplay freezes. The final page shows the actual decision history and an AI evaluation. A structured factual summary is available even if AI feedback fails.
 
 ## 4. Scenario package
@@ -60,19 +63,19 @@ Every scenario package supplies:
 
 1. `scenario_id`, `version`, title, description, and public background documents.
 2. Role definitions, including the CEO role. Roles provide perspective or responsibilities without private scenario facts.
-3. Initial metrics, allowed metric bounds, and metric meanings. The actual metric names belong to the supplied scenario.
+3. Initial narrative facts and their scalar value types. Fixed numerical gameplay meters are removed.
 4. An initial node and a finite set of decision nodes.
 5. For each node: the situation, prepared options, allowed outcomes, custom action rubric, and optional terminal outcome.
 6. For each prepared option: stable option ID, displayed action, and an authored outcome ID.
-7. For each outcome: narration facts, exact metric deltas, and either a next node ID or a terminal ending.
+7. For each outcome: literal consequence text, partial fact updates, and either a next node ID or a terminal ending.
 8. An explicit path for no decision, so a round with zero votes has a defined meaning rather than fabricated agreement.
 9. An evaluation rubric and any pass or fail criteria. Numerical grading is not an established requirement until this rubric exists.
 
-Validate IDs, references, reachable endings, metric bounds, and at least one prepared choice per decision node before exposing a package for play. Proposed: the initial package format uses JSON plus Markdown background documents. An editor UI is optional.
+Validate IDs, references, reachable endings, fact references and update types, and at least one prepared choice per decision node before exposing a package for play. Proposed: the initial package format uses JSON plus Markdown background documents. An editor UI is optional.
 
 An AI drafted package remains a draft until these checks pass and the team accepts its content. The document generation feature is separate from runtime decision evaluation.
 
-A newly authored fictional example is available in [the English cybersecurity script](scenarios/cybersecurity-18-minute.md), with [admitted draft scenario data](../scenarios/cybersecurity_demo/v2/scenario.json). Its 18 minute schedule includes separate reading, discussion, voting, and result budgets. It is not previously supplied team content, a running game, or a human playtested duration.
+A newly authored fictional example is available in [the English cybersecurity script](scenarios/cybersecurity-18-minute.md), with [admitted draft scenario data](../scenarios/cybersecurity_demo/v3/scenario.json). Its 18 minute schedule includes separate reading, discussion, voting, and result budgets. It is not previously supplied team content, a running game, or a human playtested duration.
 
 ## 5. Rooms, roles, and identity
 
@@ -100,7 +103,7 @@ Proposed defaults:
 4. A returning player remains eligible to vote in the current round if they were in its original roster.
 5. The server owns the speaker deadline; the frontend countdown is a display.
 
-Speaking time is a turn permission and timer requirement. ElevenLabs has now been selected for speech input and output under [Route A](ai-architecture.md). Live microphone transport, recording policy, and the complete voice client remain separate integration work tracked by O02; a WebSocket connection alone does not implement them.
+Speaking time is a turn permission and timer requirement. Recording and transcription of each participant's own speaking turn are confirmed requirements under [Route A](ai-architecture.md). The backend must retain original audio and its associated transcript with authenticated member, room, round, speaking turn, and timestamps while play continues. Exact capture transport and storage backend remain implementation choices. Production microphone capture, transcription, original audio storage, and the complete voice client remain unimplemented work tracked by O02; a WebSocket connection or reviewed text submission alone does not implement them.
 
 At 30 players, 30 seconds each consumes 15 minutes before a vote. The lobby should show the estimated minimum duration for the configured roster and scenario. The exact speaker and total session durations remain team choices.
 
@@ -130,13 +133,13 @@ The deciding agent is a bounded backend operation, not an independent process wi
 1. Collect custom proposals during speaking. Validate author membership, phase, length, and proposal limit on the server. Freeze the text before voting begins.
 2. Keep prepared and custom options distinguishable in the public contract. A custom option has no authored consequence until it has been evaluated.
 3. Proposed: evaluate only the winning custom action. This avoids one AI call for every submitted idea. Prepared actions use their predefined consequence and can receive an explanation in the final debrief.
-4. Input includes the pinned scenario version, current node, current metrics, selected text, relevant decision history, and authored rubric.
+4. Input includes the pinned scenario version, current node, committed narrative facts, selected text, relevant decision history, and authored rubric.
 5. Proposed output: `outcome_id`, rubric assessments, explanation, and narrative text. The chosen outcome must belong to the current node's allowed outcome set.
-6. The backend applies the metric deltas and next node belonging to that outcome. AI cannot write arbitrary metrics, invent a next node, alter votes, assign roles, or modify session deadlines.
+6. The backend applies the fact updates and next node belonging to that outcome. AI cannot rewrite unrelated facts, invent a next node, alter votes, assign roles, or modify session deadlines.
 7. Validate the output structure and domain references. Typed model validation is available through [Pydantic models](https://docs.pydantic.dev/latest/concepts/models/), while checking that an outcome belongs to a particular scenario remains application logic.
 8. Proposed: one 15 second attempt, then a visible `resolution_failed` state. The host can request one further attempt. The total session clock continues.
 9. If output is invalid or unavailable, preserve the voted action as unresolved. Do not silently turn it into a prepared answer or award invented scores. The team may retry within the remaining time or end with an incomplete evaluation.
-10. The final feedback operation receives only committed decisions and explicitly unresolved actions. It returns a summary, strengths, risks, and suggested improvements. A deterministic history summary is the fallback.
+10. The final feedback operation receives all individual answers, chats, reviewed speech transcripts, committed decisions, and explicitly unresolved actions, with member and round attribution. Unselected answers are retained. It returns a summary, strengths, risks, and suggested improvements. A deterministic history summary is the fallback.
 
 Mapping custom actions into a finite authored outcome set is a recommendation. It makes the existing prepared paths consistent, but limits novel consequences. Fully dynamic story generation is a larger alternative the team may choose separately.
 
@@ -146,7 +149,7 @@ The game has one server owned total deadline and a decision sequence defined by 
 
 1. A terminal scenario outcome ends gameplay after its result is recorded.
 2. Reaching the total deadline ends gameplay immediately. Proposed: total timeout takes precedence over a speaking deadline, a voting deadline, a CEO decision, or an AI completion processed at the same instant.
-3. A pending AI operation that completes after gameplay ends may not change the ending or metrics. The unresolved selected action remains visible in the final record.
+3. A pending AI operation that completes after gameplay ends may not change the ending or committed facts. The unresolved selected action remains visible in the final record.
 4. A host end action records `host_ended`, so it cannot be mistaken for a completed scenario or a timeout.
 5. Final feedback generation is separate from gameplay completion. Clients can display the final factual record while feedback is pending.
 
@@ -176,7 +179,7 @@ The team may choose delivery order without treating the following groups as comp
 8. F08 Results: decision history, terminal or timeout reason, rubric based evaluation, AI debrief and fallback.
 9. F09 Basic rejoin: existing seat recovery while the process and meeting continue.
 10. Optional F10 Scenario document generation: three draft documents once topics and format are chosen, validation, and team review before play.
-11. Optional F11 Media: in app voice transport, transcription, generated speech, or text chat if selected.
+11. Selected F11 Media: record each participant's own speaking turn, transcribe through backend ElevenLabs integration during play, retain original audio and attributed transcripts, and display accumulated records at game end for later AI evaluation. Consequence text precedes its selected narration. Exact transport and storage implementation remain unselected.
 12. Deferred F12 Durable recovery: database storage, recovery after restart, event retention, and multiple backend workers.
 
 F03 and F04 require F01, F02, and F07. F05 requires F04 and a valid CEO. F06 requires voting plus the AI contract and authored outcome references. F08 requires actual decision records; AI prose is an enhancement of those records. F09 requires stable membership from F01. F10 does not replace scenario validation in F02. F12 is necessary before enabling multiple backend workers.
@@ -197,13 +200,16 @@ Recommended delivery order is one prepared scenario through F01, F02, F04, F05, 
 10. A zero vote round takes its authored no decision outcome. A positive tie waits for the CEO and follows the documented fallback if no choice arrives.
 11. Separate rooms cannot see or mutate each other's members, votes, timers, or state.
 12. The final feedback agrees with committed decisions and end reason. If AI feedback fails, the factual result page still works.
+13. Each participant's speaking turn produces a retained original recording and associated transcript under the authenticated member, room, round, turn, and timestamps while the game continues. At game end, the accumulated records remain visible and available to AI evaluation. A reviewed text fixture alone does not pass this media acceptance case.
 
 These are required future multiplayer verification cases. Prototype and model API tests do not establish that this complete game flow works.
 
 ## 13. Remaining choices, not blockers to drafting
 
-The team still chooses the actual scenario content and document topics, complete role roster, who supplies the scenario and AI integration, speaker and total session durations, scoring rubric, delivery deadline, game backend hosting target, simultaneous room target, and any changes to the marked Proposed policies. The fictional version 2 package now passes startup admission and initializes briefing. Full consequence execution and human timing remain unverified.
+The team still chooses the actual scenario content and document topics, complete role roster, who supplies the scenario and AI integration, speaker and total session durations, scoring rubric, delivery deadline, game backend hosting target, simultaneous room target, and any changes to the marked Proposed policies. The fictional version 3 package passes startup admission and the internal narrative engine executes its prepared paths. Live voting integration, human timing, actual narration playback, and final AI scoring remain unverified.
 
 ## 14. Sources
 
 The product requirements come from the user's written answers and latest voice discussion, with the earlier [shared ChatGPT conversation](https://chatgpt.com/share/6aef6dba-c374-83ea-84ab-a9f4de9925ed) providing project context. Recommendations are the architect's proposals. Framework facts are supported beside their relevant claims by official documentation.
+
+The current internal narrative engine, evidence export, and narration integration are documented in [narrative-engine.md](narrative-engine.md). Its trusted integration driver is not a public substitute for normal voting.

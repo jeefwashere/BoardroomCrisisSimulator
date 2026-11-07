@@ -45,9 +45,10 @@ The following values are not confirmed team decisions. Record the final selectio
 5. The CEO has 30 seconds to resolve a tie. If absent, the host can openly reassign the CEO role.
 6. Each player can submit one custom proposal per round, with a maximum of 1,000 characters. Its text freezes when voting begins.
 7. Evaluate only the winning custom action to reduce AI requests and waiting time.
-8. AI maps a custom action to an outcome allowed by the scenario. The backend applies that outcome's metric changes and next node.
+8. AI maps a custom action to an outcome allowed by the scenario. The backend applies that outcome's narrative fact updates and next node.
 9. An AI evaluation attempt has a 15 second timeout, followed by one explicit retry opportunity if it fails.
-10. Show a nonfinal result for 5 seconds, then automatically begin the next round.
+
+Confirmed separately: show a nonterminal result for at least 30 seconds after commitment, and end terminal outcomes immediately while retaining their text. The internal guard is implemented; automatic scheduling remains deferred.
 
 Total game duration, the actual scoring rubric, and the complete role list still need team decisions. The speech and model providers are selected in [ai-architecture.md](ai-architecture.md). For example, 30 players speaking for 30 seconds each require 15 minutes for speaking alone. Select the total duration alongside player count and the number of rounds.
 
@@ -55,7 +56,7 @@ Total game duration, the actual scoring rubric, and the complete role list still
 
 Start with one FastAPI service and one authoritative state per room. Browsers submit actions over HTTP and receive current room views through WebSocket connections. The backend decides winners and round transitions. AI returns evaluated data for the backend to validate and apply.
 
-Proposed modules, whose directories have not yet been created:
+The current backend contains `main.py`, `models.py`, `rooms.py`, `simulation.py`, `scenarios.py`, and `narration.py`. HTTP routes currently live in `main.py`; wire models live in `models.py`. The following full game module map remains a proposal, including the separate `api.py` and `intelligence.py` modules:
 
 1. `main.py`: application startup and lifecycle.
 2. `api.py`: HTTP routes, WebSocket connections, input validation, and public data.
@@ -69,7 +70,7 @@ Proposed modules, whose directories have not yet been created:
 
 AI can use the background, current situation, player choices, and scoring rubric to explain an action's strengths, risks, and consequences. It can also generate feedback at the end.
 
-The proposed design lets the scenario define allowed outcomes. AI selects one of them for the winning custom action. The backend verifies that the outcome belongs to the current scenario before updating metrics and story progress. This preserves the team's prepared happy paths while supporting players' own ideas.
+The proposed design lets the scenario define allowed outcomes. AI selects one of them for the winning custom action. The backend verifies that the outcome belongs to the current scenario before updating narrative facts and story progress. This preserves the team's prepared happy paths while supporting players' own ideas.
 
 If AI times out, returns an unknown outcome, or responds after the game ends, the backend shows the actual failure or unresolved state. Completed votes and decision records remain available when AI fails.
 
@@ -98,10 +99,10 @@ See the architecture document for complete paths. The main groups are:
 6. Rejoin restores the original identity. Entering the same display name alone cannot reclaim a seat.
 7. Final feedback must match actual decision records and outcomes.
 
-## 9. Optional and deferred features
+## 9. Selected, optional, and deferred features
 
 1. Generating three scenario documents with AI is an optional content tool. Cybersecurity is one example already mentioned; the other topics and document structure remain unselected.
-2. ElevenLabs speech input and output are selected under Route A. Live microphone transport, recording policy, chat, and complete audio client integration remain separate delivery choices and verification work. A speaking countdown does not establish that these media features exist.
+2. ElevenLabs speech input and output are selected under Route A. Recording each participant's own speaking turn, retaining original audio and its attributed transcript during play, and showing accumulated records at game end for later AI evaluation are confirmed requirements. Exact capture transport and storage backend remain unselected. Production recording, transcription, original audio storage, and the complete media client remain unimplemented; the current reviewed text endpoint and speaking countdown do not establish them.
 3. Database persistence, server restart recovery, and multiple backend processes are deferred. The proposed initial memory design supports reconnects only while the backend process remains alive.
 
 ## 10. Completion and evidence
@@ -117,3 +118,5 @@ Route A is now selected: the application backend owns room state and permissions
 Teammates call the hosted HTTPS API from their application server. They do not need the owner's Velocity account or SSH access. Application users need no ChatGPT account. Keep service credentials on the backend and do not distribute the developer's entire `.env.local`.
 
 The `rehearsal/` package is a tested experiment. Its chair confirmation, 15 minute fixture, and SQLite history do not replace the confirmed voting, CEO, and FastAPI room requirements. Two models are enabled; seven other checkpoints are downloaded only. Speech adapters exist, but paid audio and a live microphone client have not been verified. Keep production backend and multiplayer integration tasks open until their own acceptance criteria pass.
+
+The latest selected unit uses narrative consequences without fixed gameplay meters and preserves all answers, typed chats, and reviewed speech transcripts for later AI evaluation. See [the narrative engine guide](narrative-engine.md) for implemented execution, evidence, and narration boundaries.

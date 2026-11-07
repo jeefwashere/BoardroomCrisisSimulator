@@ -1,0 +1,103 @@
+{
+  "validated_at": "2026-11-07T22:26:03.388741+00:00",
+  "status": "catalog_and_internal_narrative_validation_passed",
+  "schema": "draft.2",
+  "scenario_id": "maplecart_cybersecurity",
+  "version": 3,
+  "scenario_sha256": "1f65ce6d8ffba83f3f8aa5940affb0211349348f59ceeee13eecfebf818d80f4",
+  "content_sha256": "44efefdcf276dd40fbf26f028c622c1c417096f790d58ce42123864709d4c15b",
+  "nodes": 3,
+  "prepared_options": 9,
+  "authored_outcomes": 12,
+  "paths_checked": 64,
+  "path_evidence": "test_engine.NarrativeEngineTests.test_all_64_prepared_and_no_decision_paths_preserve_facts_and_end",
+  "checks": [
+    "draft.2 catalog admission and legacy meter rejection",
+    "graph references and finite terminal paths",
+    "all 64 prepared and no decision paths",
+    "partial fact preservation and immutable history",
+    "exact 90 second briefing and 30 second nonterminal result guards",
+    "immediate terminal ending",
+    "event replay conflict stale phase and rollback checks",
+    "cookie membership and next round eligibility",
+    "complete attributed evidence and terminal freeze",
+    "public document containment and content digest",
+    "document JSON examples validated with current models",
+    "English prose and typography",
+    "local document links",
+    "historical v1 and v2 byte preservation"
+  ],
+  "commands": [
+    {
+      "command": "backend/.venv/bin/python -m unittest discover -s backend/tests -p test_scenarios.py -v",
+      "exit_code": 0,
+      "tests_run": 15
+    },
+    {
+      "command": "backend/.venv/bin/python -m unittest discover -s backend/tests -p test_engine.py -v",
+      "exit_code": 0,
+      "tests_run": 8
+    }
+  ],
+  "document_json_examples": [
+    {
+      "file": "docs/start-api.md",
+      "model": "StartRoom"
+    },
+    {
+      "file": "docs/start-api.md",
+      "model": "JoinRoom"
+    },
+    {
+      "file": "docs/room-api.md",
+      "model": "CreateRoom"
+    },
+    {
+      "file": "docs/room-api.md",
+      "model": "CreateRoom"
+    },
+    {
+      "file": "docs/room-api.md",
+      "model": "RoomView"
+    },
+    {
+      "file": "docs/room-api.md",
+      "model": "parsed JSON only"
+    },
+    {
+      "file": "docs/narrative-engine.md",
+      "model": "ContributionBody"
+    }
+  ],
+  "local_references_checked": 81,
+  "historical_files_sha256": {
+    "scenarios/cybersecurity_demo/v1/briefing.md": "2f36c22e7c8dcbbcfda840c8c7af511eccc082fafef2b90edd441ed9eb0263b9",
+    "scenarios/cybersecurity_demo/v1/initial-evidence.md": "9f5ab7f1052ff3132829fad512dee9465bf0ddeb578d51484f51a81a01eee799",
+    "scenarios/cybersecurity_demo/v1/operations.md": "9ef3cc6a875b8d6e3d2d6070cb1f9a29f9792f6ddcf1a1a1478d5856396e6d97",
+    "scenarios/cybersecurity_demo/v1/scenario.json": "359ed0d7d1b7a562856a2ecf2ea2d71fe98b7d8a8f5ff26b7eb8ff519a36105f",
+    "scenarios/cybersecurity_demo/v1/validation.json": "2faad85191c4ab77618a0c0b07d2b2f635d0a65ce2098eaa88b29a56cc76f6cc",
+    "scenarios/cybersecurity_demo/v2/briefing.md": "2f36c22e7c8dcbbcfda840c8c7af511eccc082fafef2b90edd441ed9eb0263b9",
+    "scenarios/cybersecurity_demo/v2/initial-evidence.md": "9f5ab7f1052ff3132829fad512dee9465bf0ddeb578d51484f51a81a01eee799",
+    "scenarios/cybersecurity_demo/v2/operations.md": "9ef3cc6a875b8d6e3d2d6070cb1f9a29f9792f6ddcf1a1a1478d5856396e6d97",
+    "scenarios/cybersecurity_demo/v2/scenario.json": "18f90696758a09d4e416644d2f42acd894309da85abab9817dcce1b7d3528603",
+    "scenarios/cybersecurity_demo/v2/validation.json": "43403311715784bb50eb5577a9f5feecb6c0671db9ef3d56783f20220912b668"
+  },
+  "timing_metadata": {
+    "result_seconds": 30,
+    "result_window_includes_ai": false,
+    "custom_evaluation": "deferred separate precommit budget"
+  },
+  "new_recording_requirement": "Recorded in documentation only; every participant own speaking turn requires original audio plus attributed transcript during play and accumulated end screen records for later AI evaluation.",
+  "paid_calls": 0,
+  "not_verified": [
+    "actual microphone recording",
+    "production speech recognition",
+    "original recording storage",
+    "audible browser playback",
+    "full live speaking voting and CEO flow",
+    "automatic scheduling and total timeout",
+    "AI evaluation quality",
+    "deployed frontend integration",
+    "human playtest timing"
+  ]
+}

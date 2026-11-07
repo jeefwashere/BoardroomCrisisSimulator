@@ -1,0 +1,111 @@
+# Backend function guide
+
+This guide summarizes the two backend design documents so the team can understand what to build, how the backend is organized, and which decisions are confirmed. The complete constraints remain in the [specification](backend-spec.md) and [architecture](backend-architecture.md). Track actual development progress in the root [TODO list](../TODO.md).
+
+## 1. What the two documents cover
+
+`backend-spec.md` describes product behavior and acceptance criteria: how players enter rooms, speak, propose actions, vote, see consequences, and finish a session. It distinguishes confirmed requirements, proposed defaults, optional features, and deferred work.
+
+`backend-architecture.md` describes how the backend could implement those functions: module ownership, data structures, game state transitions, APIs, live synchronization, AI calls, concurrency, and deployment boundaries. Its functions and types are design sketches. They have not been implemented as a runnable backend.
+
+## 2. Complete game flow
+
+1. The host selects a scenario and creates a room. The system generates a room code.
+2. Players join with the room code and a display name. Starting requires at least 3 players; capacity is 20.
+3. The host assigns roles, including the CEO. Players can have different responsibilities, but private scenario information for individual roles is not required.
+4. Everyone reads the current crisis background, then speaks in sequence. There is one active speaker at a time, and the backend manages the countdown.
+5. The system presents prepared choices. Players can also submit their own action proposals during the allowed phase.
+6. When speaking finishes, choices freeze and a 60 second vote begins. Every player has equal voting weight.
+7. The action with the most votes wins. When leading choices tie, the CEO selects among them.
+8. A prepared winner applies the consequence written in the scenario. A custom winner is evaluated by AI, which returns an allowed outcome.
+9. The backend updates the situation, records the decision, synchronizes all players, and automatically advances to the next round.
+10. The game ends when the decision sequence finishes or total time expires. Results include decision history and AI feedback.
+11. The meeting continues during a player's temporary disconnection. On return, that player recovers the same seat, vote, and current progress.
+
+## 3. Confirmed function scope
+
+1. Rooms and members: room creation, room code entry, display names, player limits, roles, and host and CEO permissions.
+2. Scenarios: background material, prepared questions and answers, corresponding consequences, subsequent rounds, and endings.
+3. Speaking: sequential turns, the current speaker, and a speaking countdown.
+4. Voting: a 60 second period, equal weights, tallying, and CEO tie decisions.
+5. Custom actions: players propose alternatives beyond the prepared choices, and AI evaluates them.
+6. State synchronization: all clients see the same room phase, remaining time, and final outcome.
+7. Automatic progression and ending: decisions advance the session; total timeout and scenario endings can both finish it.
+8. Feedback: preserve what happened during the game and produce results with AI feedback.
+9. Basic rejoin: recover the same player identity after refresh or temporary disconnection, avoiding duplicate votes.
+
+## 4. Rules that remain proposals
+
+The following values are not confirmed team decisions. Record the final selections before implementing them.
+
+1. Each player speaks for 30 seconds, in room entry order.
+2. Players can change their votes before close. Individual choices and aggregate counts remain hidden until the deadline.
+3. Keep the full 60 second voting window even if everyone votes early.
+4. Missing votes count as abstentions. A round with zero votes follows the scenario's explicit no decision outcome.
+5. The CEO has 30 seconds to resolve a tie. If absent, the host can openly reassign the CEO role.
+6. Each player can submit one custom proposal per round, with a maximum of 1,000 characters. Its text freezes when voting begins.
+7. Evaluate only the winning custom action to reduce AI requests and waiting time.
+8. AI maps a custom action to an outcome allowed by the scenario. The backend applies that outcome's metric changes and next node.
+9. An AI evaluation attempt has a 15 second timeout, followed by one explicit retry opportunity if it fails.
+10. Show a nonfinal result for 5 seconds, then automatically begin the next round.
+
+Total game duration, the actual scoring rubric, the AI provider, and the complete role list still need team decisions. For example, 20 players speaking for 30 seconds each require 10 minutes for speaking alone. Select the total duration alongside player count and the number of rounds.
+
+## 5. Backend organization
+
+Start with one FastAPI service and one authoritative state per room. Browsers submit actions over HTTP and receive current room views through WebSocket connections. The backend decides winners and round transitions. AI returns evaluated data for the backend to validate and apply.
+
+Proposed modules, whose directories have not yet been created:
+
+1. `main.py`: application startup and lifecycle.
+2. `api.py`: HTTP routes, WebSocket connections, input validation, and public data.
+3. `models.py`: data structures for players, choices, votes, phases, and decision records.
+4. `rooms.py`: membership, permissions, timers, duplicate request handling, and the sole entry for room state changes.
+5. `simulation.py`: compute the next state from the current state and a valid action.
+6. `scenarios.py`: load, validate, and pin scenario versions.
+7. `intelligence.py`: call AI, check its response, and return a usable evaluation.
+
+## 6. What AI can do
+
+AI can use the background, current situation, player choices, and scoring rubric to explain an action's strengths, risks, and consequences. It can also generate feedback at the end.
+
+The proposed design lets the scenario define allowed outcomes. AI selects one of them for the winning custom action. The backend verifies that the outcome belongs to the current scenario before updating metrics and story progress. This preserves the team's prepared happy paths while supporting players' own ideas.
+
+If AI times out, returns an unknown outcome, or responds after the game ends, the backend shows the actual failure or unresolved state. Completed votes and decision records remain available when AI fails.
+
+## 7. Required APIs
+
+See the architecture document for complete paths. The main groups are:
+
+1. Read scenarios and background material.
+2. Create a room, join it, and read its current state.
+3. Assign roles, start a meeting, and explicitly end it.
+4. Finish the current player's speaking turn early, or skip a turn under the selected policy.
+5. Submit, edit, or withdraw the player's own custom action.
+6. Submit a vote and replace it if the final policy permits.
+7. Resolve a tie as CEO.
+8. Request an allowed retry for a failed AI evaluation.
+9. Retrieve the final report.
+10. Receive live state through a WebSocket connection.
+
+## 8. Correctness boundaries
+
+1. Multiple pages opened by one player still represent one voting member.
+2. Network retries must preserve a single vote and apply each consequence once.
+3. The backend checks deadlines. An expired request cannot change a closed vote.
+4. Timers and AI responses from an old round cannot affect a newer round.
+5. Each room keeps its members, votes, and story state isolated from other rooms.
+6. Rejoin restores the original identity. Entering the same display name alone cannot reclaim a seat.
+7. Final feedback must match actual decision records and outcomes.
+
+## 9. Optional and deferred features
+
+1. Generating three scenario documents with AI is an optional content tool. Cybersecurity is one example already mentioned; the other topics and document structure remain unselected.
+2. In app voice, recording, transcription, and chat are optional. A speaking countdown does not establish that these media features exist.
+3. Database persistence, server restart recovery, and multiple backend processes are deferred. The proposed initial memory design supports reconnects only while the backend process remains alive.
+
+## 10. Completion and evidence
+
+The specification and architecture were published to `main` through [PR 1](https://github.com/jeefwashere/BoardroomCrisisSimulator/pull/1). That completes the documents. Backend functionality still requires implementation and verification before its tasks can be checked.
+
+The root `TODO.md` lists tasks and acceptance requirements by function. After completing and verifying a task, each agent confirms that its implementation commit has been pushed, checks the task, adds the commit link and verification result, and pushes the checklist update.

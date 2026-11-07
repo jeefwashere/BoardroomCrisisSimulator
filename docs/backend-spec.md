@@ -2,13 +2,13 @@
 
 Status: design proposal for team selection. Application implementation has not started.
 
-## 1. 中文摘要
+## 1. Summary
 
-已确认：多人危机模拟，房间码加昵称加入，开始时至少 3 人，最多 20 人，不同角色但不提供角色私密信息。玩家按顺序发言，然后进行 60 秒等权投票。平票由 CEO 决定，完成决策后自动推进。已有预设答案和后果，也支持自定义行动，由 AI 评估。AI 在结束时提供反馈。总时间到达或者决策流程完成时结束。玩家断线后可以回来，会议继续。
+Confirmed: a multiplayer crisis simulation with entry by room code and display name, at least 3 players to start, and a capacity of 20. Players have different roles without private role information. They speak sequentially, then vote with equal weights for 60 seconds. The CEO resolves ties, and the simulation advances automatically after a decision. Prepared answers and consequences are part of the concept, alongside custom actions evaluated by AI. AI provides final feedback. The game ends at the total time limit or when the decision sequence finishes. Disconnected players can return while the meeting continues.
 
-建议架构：一个 FastAPI 服务维护每个房间的权威状态，通过 HTTP 接受操作，通过 WebSocket 同步画面。剧本、选项和预设后果使用有版本的场景数据。AI 评估获胜的自定义行动，并返回允许范围内的结果。普通刷新和断线重连纳入基础功能，数据库恢复和服务器重启恢复作为后续可选范围。
+Proposed architecture: one FastAPI service maintains authoritative room state, accepts actions over HTTP, and synchronizes screens through WebSocket connections. Scenarios, choices, and prepared consequences use versioned scenario data. AI evaluates the winning custom action and returns an allowed outcome. Basic refresh and reconnect recovery are included; database recovery and server restart recovery remain later options.
 
-尚未确认的数值和规则都标为 Proposed，包括发言时长、总游戏时长、角色分配方式、改票、票数可见性、CEO 缺席处理、评分细则和 AI 服务商。团队可以从本文的功能清单中选择交付范围。
+Unconfirmed values and policies are marked Proposed, including speaking duration, total game duration, role assignment, vote replacement, vote visibility, CEO absence, scoring details, and the AI provider. The team can select its delivery scope from this document's function catalog.
 
 ## 2. Evidence and decision status
 

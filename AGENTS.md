@@ -2,7 +2,7 @@
 
 These instructions apply to agents working in this repository.
 
-1. Read `TODO.md`, `docs/backend-spec.md`, and `docs/backend-architecture.md` before changing project files. `docs/backend-guide.zh.md` explains the same function scope in Chinese.
+1. Read `TODO.md`, `docs/backend-spec.md`, and `docs/backend-architecture.md` before changing project files. `docs/backend-guide.md` provides a readable overview of the same function scope.
 2. Use the existing task IDs in `TODO.md`. When assigned a task, record your agent name as owner and set its status to `in_progress` before editing its files. Check the latest remote changes before claiming work another agent may own.
 3. Keep changes within the assigned task. Preserve other agents' edits and completed task records. Do not overwrite the whole checklist to update one item.
 4. A task is complete only when its acceptance criteria have been checked and its implementation commit has been pushed successfully to the named remote branch. Verify the remote contains that commit. Local edits, a local commit, a proposed design, and a queued push do not count as completed implementation.

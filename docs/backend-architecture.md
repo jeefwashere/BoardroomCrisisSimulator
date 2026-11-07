@@ -8,7 +8,7 @@ Use one FastAPI service, one authoritative room object per meeting, and one shor
 
 This concentrates voting, timers, speaker order, and consequences behind one room interface. The frontend sends intentions rather than calculating winners or advancing the story. Each room is independent; coordination is needed only among players who actually share that room.
 
-中文说明：建议先做一个 FastAPI 服务。每个房间只有一份由后端维护的真实状态。前端提交操作，后端统一处理发言、投票、平票和剧情推进，随后同步给所有玩家。AI 只返回评估结果，不直接修改房间。
+In practice, begin with one FastAPI service. The backend maintains one authoritative state per room. Clients submit actions, and the backend handles speaking, voting, ties, and story progression before synchronizing the result to all players. AI returns an evaluation without directly modifying the room.
 
 ## 2. Frontend usage first
 

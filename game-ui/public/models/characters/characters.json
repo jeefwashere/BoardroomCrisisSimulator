@@ -3,60 +3,60 @@
   "id": "01-coo",
   "file": "characters/01-coo.glb",
   "triangles": 9966,
-  "bytes": 716836
+  "bytes": 885612
  },
  {
   "id": "02-cfo",
   "file": "characters/02-cfo.glb",
   "triangles": 10123,
-  "bytes": 769604
+  "bytes": 947188
  },
  {
   "id": "03-cto",
   "file": "characters/03-cto.glb",
   "triangles": 10635,
-  "bytes": 781732
+  "bytes": 1012928
  },
  {
   "id": "04-general-counsel",
   "file": "characters/04-general-counsel.glb",
   "triangles": 10649,
-  "bytes": 812388
+  "bytes": 1004856
  },
  {
   "id": "05-head-of-hr",
   "file": "characters/05-head-of-hr.glb",
   "triangles": 10526,
-  "bytes": 740660
+  "bytes": 925028
  },
  {
   "id": "06-head-of-communications",
   "file": "characters/06-head-of-communications.glb",
   "triangles": 10159,
-  "bytes": 902808
+  "bytes": 1115548
  },
  {
   "id": "07-marketing-director",
   "file": "characters/07-marketing-director.glb",
   "triangles": 10164,
-  "bytes": 833580
+  "bytes": 1036476
  },
  {
   "id": "08-sales-manager",
   "file": "characters/08-sales-manager.glb",
   "triangles": 10104,
-  "bytes": 707716
+  "bytes": 898892
  },
  {
   "id": "09-operations-manager",
   "file": "characters/09-operations-manager.glb",
   "triangles": 10201,
-  "bytes": 766324
+  "bytes": 943360
  },
  {
   "id": "10-project-manager",
   "file": "characters/10-project-manager.glb",
   "triangles": 9933,
-  "bytes": 805820
+  "bytes": 1027072
  }
 ]

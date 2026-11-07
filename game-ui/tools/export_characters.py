@@ -6,7 +6,7 @@ Run with Blender in background mode from the repository root:
         --python game-ui/tools/export_characters.py -- \
         assets/characters/mixamo_rigged game-ui/public/models/characters 01 02 03
 
-Each character becomes <name>.glb with mesh, skin and a 1024 px texture, without animation.
+Each character becomes <name>.glb with mesh, skin and a 2048 px texture, without animation.
 The first character's rig also produces animations.glb, holding one clip per seated
 animation. All characters share the Mixamo skeleton, so the browser reuses those clips.
 """
@@ -20,7 +20,7 @@ import bpy
 argv = sys.argv[sys.argv.index("--") + 1:]
 SRC, OUT = argv[0], argv[1]
 WANTED = argv[2:]
-TEXTURE_SIZE = 1024
+TEXTURE_SIZE = 2048
 CLIPS = {
     "talk": "Sitting Talking.fbx",
     "disbelief": "Sitting Disbelief.fbx",
@@ -104,7 +104,7 @@ def add_track(rig, action, name):
 
 def export(path, animations):
     kwargs = dict(filepath=path, export_format="GLB", export_yup=True, export_skins=True,
-                  export_animations=animations, export_image_format="JPEG", export_jpeg_quality=85)
+                  export_animations=animations, export_image_format="JPEG", export_jpeg_quality=88)
     if animations:
         kwargs.update(export_animation_mode="NLA_TRACKS", export_frame_step=2,
                       export_force_sampling=True, export_optimize_animation_size=True)

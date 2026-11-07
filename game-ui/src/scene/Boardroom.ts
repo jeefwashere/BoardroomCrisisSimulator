@@ -9,6 +9,11 @@
 import * as THREE from 'three'
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
 import { SeatTags } from './SeatTags'
 import { ROLE_COLORS } from '../game/types'
 
@@ -99,6 +104,7 @@ class Avatar {
         mesh.castShadow = true
         mesh.receiveShadow = true
         mesh.frustumCulled = false
+        tuneMaterial(mesh.material as THREE.MeshStandardMaterial, { roughness: 0.74, envMapIntensity: 0.95 })
       }
       const bone = o as THREE.Bone
       if (bone.isBone && /Head$/.test(bone.name) && !/HeadTop/.test(bone.name)) this.head = bone
@@ -286,12 +292,15 @@ function orientHand(arm: Arm, forward: THREE.Vector3, weight: number) {
 
 export class Boardroom {
   private renderer: THREE.WebGLRenderer
+  private composer: EffectComposer
+  private sun!: THREE.DirectionalLight
+  private ao: GTAOPass
   private tags: SeatTags
   private speakerRing: THREE.Mesh
   private highlightRing: THREE.Mesh
   private size = { width: 1, height: 1 }
   private scene = new THREE.Scene()
-  private camera = new THREE.PerspectiveCamera(42, 1, 0.05, 60)
+  private camera = new THREE.PerspectiveCamera(36, 1, 0.05, 60)
   private controls: OrbitControls
   private clock = new THREE.Clock()
   private avatars: Avatar[]
@@ -309,13 +318,33 @@ export class Boardroom {
   onProgress: (loaded: number, total: number) => void = () => {}
 
   constructor(private container: HTMLElement) {
-    this.renderer = new THREE.WebGLRenderer({ antialias: true })
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    this.renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' })
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75))
     this.renderer.shadowMap.enabled = true
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping
-    this.renderer.toneMappingExposure = 1.05
+    // Neutral tone mapping keeps skin and fabric colours closer to their textures than ACES.
+    this.renderer.toneMapping = THREE.NeutralToneMapping
+    this.renderer.toneMappingExposure = 1.0
     container.appendChild(this.renderer.domElement)
+    const vignette = document.createElement('div')
+    vignette.className = 'scene-vignette'
+    container.appendChild(vignette)
+
+    // Image based lighting: soft reflections and bounce light for every PBR material.
+    const pmrem = new THREE.PMREMGenerator(this.renderer)
+    this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
+    this.scene.environmentIntensity = 0.5
+    pmrem.dispose()
+
+    // Post processing: multisampled render, ground contact ambient occlusion, tone mapped output.
+    const target = new THREE.WebGLRenderTarget(1, 1, { samples: 4, type: THREE.HalfFloatType })
+    this.composer = new EffectComposer(this.renderer, target)
+    this.composer.addPass(new RenderPass(this.scene, this.camera))
+    this.ao = new GTAOPass(this.scene, this.camera, 1, 1)
+    this.ao.updateGtaoMaterial({ radius: 0.32, distanceExponent: 1.4, thickness: 1.2, scale: 1.15, samples: 12 })
+    this.ao.blendIntensity = 0.9
+    this.composer.addPass(this.ao)
+    this.composer.addPass(new OutputPass())
 
     this.tags = new SeatTags(CHARACTER_IDS.length)
     container.appendChild(this.tags.element)
@@ -323,12 +352,12 @@ export class Boardroom {
     this.highlightRing = makeRing(0.7)
     this.scene.add(this.speakerRing, this.highlightRing)
 
-    this.camera.position.set(5.6, 2.7, 0.0)
+    this.camera.position.set(6.4, 3.0, 0.0)
     this.controls = new OrbitControls(this.camera, this.renderer.domElement)
     this.controls.target.copy(this.focus)
     this.controls.enableDamping = true
     this.controls.minDistance = 2.2
-    this.controls.maxDistance = 9
+    this.controls.maxDistance = 10
     this.controls.maxPolarAngle = Math.PI * 0.47
     this.controls.enablePan = false
 
@@ -405,6 +434,7 @@ export class Boardroom {
       }),
     )
     this.avatars.forEach((avatar, index) => this.chairs[index]?.position.copy(this.chairPosition(avatar)))
+    this.loadedAtFrame = this.frame
   }
 
   /** Measure where the seated pose puts the hips so chairs sit under every character. */
@@ -430,22 +460,24 @@ export class Boardroom {
       const manifest = (await response.json()) as { models: Entry[] }
       const entries = manifest.models
       const find = (word: string) => entries.find((entry) => entry.file.toLowerCase().includes(word))
-      const load = async (word: string) => {
+      // Only large furniture casts shadows; small props add shadow pass cost for no visible gain.
+      const load = async (word: string, castShadow = false) => {
         const entry = find(word)
         if (!entry) return null
         const gltf = await this.loader.loadAsync(`${MODELS}props/${entry.file.split('/').pop()}`)
         gltf.scene.traverse((o) => {
           if ((o as THREE.Mesh).isMesh) {
-            o.castShadow = true
+            o.castShadow = castShadow
             o.receiveShadow = true
+            tuneMaterial((o as THREE.Mesh).material as THREE.MeshStandardMaterial, {})
           }
         })
         return gltf.scene
       }
       await Promise.all([
-        this.swapProp(await load('table'), 'table', (model) => model.position.set(0, 0, 0), true),
-        this.swapChairs(await load('chair')),
-        this.placeProp(await load('credenza'), new THREE.Vector3(0, 0, -3.15), 0),
+        this.swapProp(await load('table', true), 'table', (model) => model.position.set(0, 0, 0), true),
+        this.swapChairs(await load('chair', true)),
+        this.placeProp(await load('credenza', true), new THREE.Vector3(0, 0, -3.15), 0),
         this.placeProp(await load('plant'), new THREE.Vector3(-4.6, 0, -2.9), 0),
         this.placeProp((await load('plant'))?.clone() ?? null, new THREE.Vector3(-4.6, 0, 2.9), 0),
         this.placeProp(await load('clock'), new THREE.Vector3(2.0, 1.95, -3.56), 0),
@@ -507,20 +539,28 @@ export class Boardroom {
     this.scene.background = new THREE.Color('#e9e5da')
     this.scene.fog = new THREE.Fog('#e9e5da', 14, 30)
 
-    const hemi = new THREE.HemisphereLight('#fffaf0', '#6b5a48', 1.25)
+    const hemi = new THREE.HemisphereLight('#fffaf0', '#6b5a48', 0.55)
     this.scene.add(hemi)
-    const sun = new THREE.DirectionalLight('#fff4e2', 2.2)
+    // Cool window light from the far wall gives characters a rim and separates them from the room.
+    const windowLight = new THREE.DirectionalLight('#dbe8f2', 1.1)
+    windowLight.position.set(-6, 3.2, 0.6)
+    this.scene.add(windowLight)
+    const sun = new THREE.DirectionalLight('#fff1dc', 2.4)
     sun.position.set(3.5, 6, 2.5)
     sun.castShadow = true
     sun.shadow.mapSize.set(2048, 2048)
+    sun.shadow.radius = 3
     sun.shadow.camera.left = -6
     sun.shadow.camera.right = 6
     sun.shadow.camera.top = 5
     sun.shadow.camera.bottom = -5
     sun.shadow.bias = -0.0004
     sun.shadow.normalBias = 0.02
+    // Refreshed every other frame in render(); seated motion is slow enough that this is invisible.
+    sun.shadow.autoUpdate = false
+    this.sun = sun
     this.scene.add(sun)
-    const fill = new THREE.PointLight('#ffd9b0', 6, 9, 1.6)
+    const fill = new THREE.PointLight('#ffd9b0', 4, 9, 1.6)
     fill.position.set(0, 2.6, 0)
     this.scene.add(fill)
 
@@ -549,7 +589,7 @@ export class Boardroom {
     this.scene.add(front)
 
     // Window band on the far wall.
-    const glass = new THREE.MeshBasicMaterial({ color: '#cfdde0' })
+    const glass = new THREE.MeshBasicMaterial({ color: '#e4eef1', toneMapped: false })
     for (const z of [-2.2, 0, 2.2]) {
       const pane = new THREE.Mesh(new THREE.PlaneGeometry(1.9, 1.7), glass)
       pane.position.set(-5.24, 1.75, z)
@@ -641,6 +681,11 @@ export class Boardroom {
     const { clientWidth: w, clientHeight: h } = this.container
     if (!w || !h) return
     this.renderer.setSize(w, h)
+    this.composer.setPixelRatio(this.renderer.getPixelRatio())
+    this.composer.setSize(w, h)
+    // Ambient occlusion at half resolution; its denoise pass hides the difference.
+    const ratio = this.renderer.getPixelRatio()
+    this.ao.setSize(Math.round((w * ratio) / 2), Math.round((h * ratio) / 2))
     this.size = { width: w, height: h }
     this.camera.aspect = w / h
     const dx = (this.insets.left - this.insets.right) / 2
@@ -679,9 +724,33 @@ export class Boardroom {
     this.screenTexture.needsUpdate = true
   }
 
+  /**
+   * Adaptive quality: if frames stay slow, step down (AO off, then pixel ratio 1) so weaker
+   * machines stay smooth. Measured over about two seconds of frames.
+   */
+  private qualityLevel = 2
+  private loadedAtFrame = 0
+  private slowFrames = 0
+  private adaptQuality(rawDt: number) {
+    // Wait until models are loaded and shaders warmed up; loading frames are not representative.
+    if (this.qualityLevel === 0 || this.loadedAtFrame === 0 || this.frame - this.loadedAtFrame < 180) return
+    this.slowFrames = rawDt > 1 / 28 ? this.slowFrames + 1 : Math.max(0, this.slowFrames - 2)
+    if (this.slowFrames < 60) return
+    this.slowFrames = 0
+    this.qualityLevel -= 1
+    if (this.qualityLevel === 1) this.ao.enabled = false
+    if (this.qualityLevel === 0) {
+      this.renderer.setPixelRatio(1)
+      this.resize()
+    }
+    console.info('[boardroom] lowered render quality to level', this.qualityLevel)
+  }
+
   private render() {
-    const dt = Math.min(this.clock.getDelta(), 0.1)
+    const rawDt = this.clock.getDelta()
+    const dt = Math.min(rawDt, 0.1)
     this.frame += 1
+    this.adaptQuality(rawDt)
     const state = this.state
     const speakerIndex = state ? state.seats.findIndex((s) => s.memberId === state.speakerId) : -1
     const speaker = speakerIndex >= 0 ? this.avatars[speakerIndex] : null
@@ -710,7 +779,8 @@ export class Boardroom {
     this.placeRing(this.highlightRing, highlightIndex === speakerIndex ? -1 : highlightIndex, 1)
     if (highlightIndex >= 0) (this.highlightRing.material as THREE.MeshBasicMaterial).color.set(ROLE_COLORS[state!.seats[highlightIndex].roleId] ?? ROLE_COLORS.none)
 
-    this.renderer.render(this.scene, this.camera)
+    if (this.frame % 2 === 0) this.sun.shadow.needsUpdate = true
+    this.composer.render(dt)
     this.camera.updateMatrixWorld()
     const anchors = this.avatars.map((avatar) => (avatar.model && avatar.group.visible ? avatar.headPosition().add(new THREE.Vector3(0, 0.27, 0)) : null))
     this.tags.layout(anchors, this.camera, this.size.width, this.size.height)
@@ -722,6 +792,20 @@ export class Boardroom {
     ring.position.copy(this.chairPosition(this.avatars[index])).setY(0.012)
     ring.scale.setScalar(scale)
   }
+}
+
+/** Sharper texture filtering and consistent PBR response for generated models. */
+function tuneMaterial(material: THREE.MeshStandardMaterial, options: { roughness?: number; envMapIntensity?: number }) {
+  if (!material?.isMeshStandardMaterial) return
+  for (const map of [material.map, material.normalMap, material.roughnessMap, material.metalnessMap]) {
+    if (map) {
+      map.anisotropy = 8
+      map.needsUpdate = true
+    }
+  }
+  if (options.roughness !== undefined) material.roughness = options.roughness
+  material.envMapIntensity = options.envMapIntensity ?? 1
+  material.needsUpdate = true
 }
 
 /** A soft glowing ring on the floor, drawn from a white radial gradient and tinted per role. */

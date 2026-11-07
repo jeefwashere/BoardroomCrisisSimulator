@@ -5,7 +5,7 @@
   --muted: #687065;
   --accent: #ae5238;
   --border: #dedfd5;
-  --glass: rgba(246, 245, 239, 0.9);
+  --glass: rgba(247, 246, 241, 0.95);
   --shadow: 0 10px 30px rgba(33, 60, 50, 0.14);
   font-family: 'Segoe UI', Arial, sans-serif;
   color: var(--ink);
@@ -26,10 +26,11 @@ h1, h2, h3, h4, p { margin: 0; }
 .stage { position: absolute; inset: 0; z-index: 0; isolation: isolate; }
 .stage canvas { display: block; }
 .scene-labels { position: absolute; inset: 0; }
+.scene-vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 55% 50%, transparent 55%, rgba(20, 30, 25, 0.28) 100%); }
 
+/* No backdrop-filter: blurring over a live WebGL canvas costs about 40 percent of the frame rate. */
 .panel {
   background: var(--glass);
-  backdrop-filter: blur(10px);
   border: 1px solid var(--border);
   border-radius: 14px;
   box-shadow: var(--shadow);

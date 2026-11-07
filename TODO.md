@@ -128,6 +128,10 @@ The user assigned Jeff the pages before game start and Ricardo the backend. Keep
 
   Owner: Arjun's Claude agent. Status: `done`. Evidence: completion record 12. Progress: the user assigned Velocity job 20031 for this work. Its GPU also serves the hosted LFM3 API, so free GPU memory is checked before any TRELLIS.2 run. Progress: 8 Nano Banana 2.1 calls with no retries produced reference images; one TRELLIS.2 run on job 20031 (GPU `778d17bf` confirmed, 41.6 GB free beforehand, peak 17.4 GiB, LFM3 worker untouched) generated all 8 props; Blender scaled, decimated and retextured them to 5.9 MB total in `game-ui/public/models/props/` with `props.json`. Table and credenza were stretched to exact target sizes; the wall display model is unused in favour of the live screen. Checks: a rendered lineup of all 8 props was reviewed, and the props load and place correctly in the browser room. Next action: none; job 20031 can be reassigned.
 
+* [ ] G03 Generate an advanced prop concept set with Nano Banana 2.1 on Vertex for the next UI upgrade.
+
+  Owner: Arjun's Claude agent. Status: `waiting`. Scope: 12 isolated prop images in one design language (smoked walnut, graphite, brushed brass, smoked glass, amber light lines) suitable for TRELLIS.2 reconstruction, saved to the untracked folder `assets/props/advanced-2026-11-07/` with `prompts.json`, a contact sheet and a README. Progress: all 12 images generated and reviewed on a contact sheet; the first wall display came out as two folded panels and was regenerated once (original kept in `rejected/`). Calls: 15 Vertex requests, 13 images returned, 2 retried 429 or 503 rejections. The images stay local because `assets/` is untracked, so this box stays unchecked until they are reconstructed and used in the room. Next action: waiting for the user to approve TRELLIS.2 reconstruction on an assigned Velocity job and integration into `game-ui`.
+
 ## Integration and verification
 
 * [ ] I01 Publish the frontend API and snapshot contract with examples.

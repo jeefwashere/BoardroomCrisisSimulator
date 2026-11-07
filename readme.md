@@ -1,6 +1,6 @@
 # Boardroom Crisis Simulator
 
-Multiplayer crisis simulation. The multiplayer backend is specified and designed. A tested headless rehearsal prototype and a hosted local model API are also available. These do not yet implement the full multiplayer specification. Progress is tracked in [TODO.md](TODO.md).
+Multiplayer crisis simulation. The first FastAPI lobby capability supports room creation, joining, and member snapshots. The full multiplayer backend is specified and designed. A tested headless rehearsal prototype and a hosted local model API are also available. These do not yet implement the full multiplayer specification. Progress is tracked in [TODO.md](TODO.md).
 
 1. [Backend function guide](docs/backend-guide.md)
 2. [Backend specification](docs/backend-spec.md)
@@ -9,6 +9,7 @@ Multiplayer crisis simulation. The multiplayer backend is specified and designed
 5. [Agent collaboration instructions](AGENTS.md)
 6. [Agent communication setup](docs/agent-board-setup.md)
 7. [Fictional cybersecurity scenario: about 18 minutes](docs/scenarios/cybersecurity-18-minute.md)
+8. [Run the FastAPI lobby and connect the frontend](docs/room-api.md)
 
 Agents working on this repository should read `AGENTS.md` and update their own task in `TODO.md` after verifying and pushing completed work.
 

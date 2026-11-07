@@ -26,6 +26,13 @@ Confirmed means selected in the user's latest discussion. Proposed means an arch
 10. Confirmed: an existing player can rejoin while the meeting continues.
 11. Deferred: advanced database recovery and server restart recovery.
 12. Provisional: AI can prepare three scenario documents. Cybersecurity was mentioned as an example. The other topics and document structure are not confirmed. Three documents must not silently become three implemented game modes.
+13. Confirmed: the room creator is the host and occupies one of the 20 seats.
+14. Confirmed: display names are unique within a room after trimming surrounding whitespace and case insensitive comparison. Names never prove seat ownership.
+15. Confirmed: full room and member details are available only to joined members, including the host.
+16. Confirmed for the initial delivery: rooms live in one backend process. Backend restart loses rooms; browser refresh preserves membership while that process lives.
+17. Confirmed for the initial delivery: approximately two second polling is acceptable for lobby updates before WebSocket delivery.
+
+The first implemented lobby contract is documented in [room-api.md](room-api.md). Scenario selection, roles, and start remain later capabilities.
 
 At the initial design review, remote `main` contained only the initial README and `.gitignore`. Existing story scripts had not been located in the repository. This specification defines their required shape without inventing their contents.
 
@@ -67,7 +74,7 @@ A newly authored fictional example is available in [the English cybersecurity sc
 
 ## 5. Rooms, roles, and identity
 
-Proposed defaults:
+The confirmed first delivery uses a private browser session cookie, a host seat, unique display names, member only snapshots, and polling. See [the room API](room-api.md) for the implemented contract. The remaining role and gameplay defaults below are proposed.
 
 1. The host chooses display settings and roles before start. A room code locates a room; the display name does not prove ownership of an existing seat.
 2. Creating or joining establishes a server issued membership credential. Rejoin uses that credential, not another entry of the same nickname.
@@ -149,7 +156,7 @@ Basic rejoin is required. On reconnect, authenticate the original membership and
 
 The meeting continues during a network interruption. Its timers are not paused. Past socket messages do not have to be replayed if a complete current snapshot is sent.
 
-Proposed first deployment: keep active room state in one running backend process. A browser refresh or temporary network disconnect can recover against that process. A process restart loses active rooms. This distinction is explicit because server restart recovery was deferred. FastAPI's own [WebSocket example documents the same single process limitation for memory held connections](https://fastapi.tiangolo.com/advanced/websockets/).
+Confirmed initial storage: keep active room state in one running backend process. A browser refresh or temporary network disconnect can recover against that process. A process restart loses active rooms. This distinction is explicit because server restart recovery was deferred. FastAPI's own [WebSocket example documents the same single process limitation for memory held connections](https://fastapi.tiangolo.com/advanced/websockets/).
 
 Database backed recovery, durable event history, and deployment across multiple backend processes are selectable later capabilities. They require persistence and coordination together. Adding a database alone does not make process local room locks or socket broadcasts work across workers.
 

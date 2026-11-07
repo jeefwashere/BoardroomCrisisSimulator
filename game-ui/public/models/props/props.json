@@ -1,0 +1,171 @@
+{
+  "generated": "2026-11-07",
+  "pipeline": "Nano Banana 2.1 image -> TRELLIS.2-4B (512 pipeline, Velocity job 20031) -> Blender 5.2 scale/decimate/1024px -> JPEG textures",
+  "conventions": {
+    "units": "metres",
+    "up": "+Y (glTF)",
+    "front": "+Z (glTF)",
+    "origin": "centred in X/Z, base at Y=0",
+    "w_d_h": "W along X, D along Z, H along Y"
+  },
+  "models": [
+    {
+      "id": "conference-table",
+      "file": "conference-table.glb",
+      "description": "Long walnut conference table, seats 10",
+      "target_size_m": {
+        "w": 4.2,
+        "d": 1.4,
+        "h": 0.75
+      },
+      "actual_size_m": {
+        "w": 4.201,
+        "d": 1.402,
+        "h": 0.758
+      },
+      "triangles": 11760,
+      "bytes": 633164,
+      "textures": "baseColor + metallicRoughness, 1024px JPEG",
+      "source_image": "assets/props/images/01-conference-table.png",
+      "scaling": "per-axis to target (TRELLIS proportions were deeper/taller)"
+    },
+    {
+      "id": "executive-chair",
+      "file": "executive-chair.glb",
+      "description": "Black leather executive swivel chair; reuse x10",
+      "target_size_m": {
+        "w": 0.65,
+        "d": 0.65,
+        "h": 1.15
+      },
+      "actual_size_m": {
+        "w": 0.652,
+        "d": 0.646,
+        "h": 1.044
+      },
+      "triangles": 14700,
+      "bytes": 1016676,
+      "textures": "baseColor + metallicRoughness, 1024px JPEG",
+      "source_image": "assets/props/images/02-executive-chair.png"
+    },
+    {
+      "id": "wall-display",
+      "file": "wall-display.glb",
+      "description": "Wall-mounted flat display (screen baked dark with faint reflection; override screen material if needed)",
+      "target_size_m": {
+        "w": 1.9,
+        "d": 0.08,
+        "h": 1.1
+      },
+      "actual_size_m": {
+        "w": 1.645,
+        "d": 0.058,
+        "h": 1.102
+      },
+      "triangles": 4900,
+      "bytes": 387328,
+      "textures": "baseColor + metallicRoughness, 1024px JPEG",
+      "source_image": "assets/props/images/03-wall-display.png"
+    },
+    {
+      "id": "credenza",
+      "file": "credenza.glb",
+      "description": "Low walnut credenza",
+      "target_size_m": {
+        "w": 2.0,
+        "d": 0.5,
+        "h": 0.75
+      },
+      "actual_size_m": {
+        "w": 2.0,
+        "d": 0.5,
+        "h": 0.765
+      },
+      "triangles": 11760,
+      "bytes": 632508,
+      "textures": "baseColor + metallicRoughness, 1024px JPEG",
+      "source_image": "assets/props/images/04-credenza.png",
+      "scaling": "per-axis to target",
+      "note": "baked shadow plate removed; faint dark strip remains under cabinet"
+    },
+    {
+      "id": "potted-plant",
+      "file": "potted-plant.glb",
+      "description": "Tall potted fiddle-leaf fig",
+      "target_size_m": {
+        "w": 0.6,
+        "d": 0.6,
+        "h": 1.6
+      },
+      "actual_size_m": {
+        "w": 0.917,
+        "d": 0.758,
+        "h": 1.607
+      },
+      "triangles": 19600,
+      "bytes": 1245352,
+      "textures": "baseColor + metallicRoughness, 1024px JPEG",
+      "source_image": "assets/props/images/05-potted-plant.png",
+      "scaling": "uniform, height fitted to 1.6 m (canopy wider than 0.6 m)"
+    },
+    {
+      "id": "laptop",
+      "file": "laptop.glb",
+      "description": "Open silver laptop",
+      "target_size_m": {
+        "w": 0.33,
+        "d": 0.23,
+        "h": 0.22
+      },
+      "actual_size_m": {
+        "w": 0.332,
+        "d": 0.288,
+        "h": 0.248
+      },
+      "triangles": 4899,
+      "bytes": 496772,
+      "textures": "baseColor + metallicRoughness, 1024px JPEG",
+      "source_image": "assets/props/images/06-laptop.png",
+      "scaling": "uniform, width fitted to 0.33 m"
+    },
+    {
+      "id": "speakerphone",
+      "file": "speakerphone.glb",
+      "description": "Conference speakerphone puck",
+      "target_size_m": {
+        "w": 0.24,
+        "d": 0.24,
+        "h": 0.06
+      },
+      "actual_size_m": {
+        "w": 0.243,
+        "d": 0.248,
+        "h": 0.048
+      },
+      "triangles": 4900,
+      "bytes": 466740,
+      "textures": "baseColor + metallicRoughness, 1024px JPEG",
+      "source_image": "assets/props/images/07-speakerphone.png"
+    },
+    {
+      "id": "wall-clock",
+      "file": "wall-clock.glb",
+      "description": "Round wall clock",
+      "target_size_m": {
+        "w": 0.4,
+        "d": 0.05,
+        "h": 0.4
+      },
+      "actual_size_m": {
+        "w": 0.401,
+        "d": 0.061,
+        "h": 0.401
+      },
+      "triangles": 19599,
+      "bytes": 1031136,
+      "textures": "baseColor + metallicRoughness, 1024px JPEG",
+      "source_image": "assets/props/images/08-wall-clock.png",
+      "note": "kept at ~20k tris: lower budgets produced speckled dial"
+    }
+  ]
+}

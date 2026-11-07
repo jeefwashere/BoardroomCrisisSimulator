@@ -1,6 +1,6 @@
-# Game UI: in-game screens and 3D boardroom
+# Game UI: in game screens and 3D boardroom
 
-React, Vite and TypeScript, matching Jeff's `website` branch, with three.js for the room. This app covers the game after the lobby: briefing, reading, speaking turns, the 60-second vote, the CEO tie decision, outcomes and the debrief. Jeff's pre-game pages (landing, Host, Join, lobby) are not part of it.
+React, Vite and TypeScript, matching Jeff's `website` branch, with three.js for the room. This app covers the game after the lobby: briefing, reading, speaking turns, the 60 second vote, the CEO tie decision, outcomes and the debrief. Jeff's pre game pages (landing, Host, Join, lobby) are not part of it.
 
 ```sh
 cd game-ui
@@ -15,24 +15,24 @@ npm run build        # type check and production build
 
 | Query parameter | Default | Meaning |
 | --- | --- | --- |
-| `players` | `10` | Seats filled (3–30; only the first 10 are drawn in 3D) |
+| `players` | `10` | Seats filled, from 3 to 30; only the first 10 are drawn in 3D |
 | `speed` | `1` | Timer speed multiplier |
 | `name` | `Arjun` | Your display name |
-| `ceo` | `1` | `0` makes a bot the CEO, so you see the "waiting for the CEO" tie view |
+| `ceo` | `1` | `0` makes a bot the CEO, so you see the waiting view during a tie |
 | `profile` | `standard_18` | Or `fast_15` |
 
-**Backend.** `?room=<room_id>&api=http://127.0.0.1:8000` polls `GET /api/rooms/{id}` every two seconds with the browser's cookie, as described in `docs/room-api.md`. The backend only serves the briefing today, so the vote, tie and turn actions report that they are not available yet. To try it, start the backend with `BOARDROOM_ALLOWED_ORIGINS=http://127.0.0.1:5174`, register the browser through the room API, then open the URL.
+**Backend.** `?room=<room_id>&api=http://127.0.0.1:8000` polls `GET /api/rooms/{id}` every two seconds with the browser's cookie, as described in `docs/room-api.md`. The backend serves the briefing only today, so the vote, tie and turn actions report that they are not available yet. To try it, start the backend with `BOARDROOM_ALLOWED_ORIGINS=http://127.0.0.1:5174`, register the browser through the room API, then open the URL.
 
 ## Snapshot contract
 
-`src/game/types.ts` describes the client's view of a room. The fields from `docs/room-api.md` and `docs/start-api.md` are implemented by the backend. The gameplay fields inside `game` (`node`, `speaker`, `speaker_order`, `ballots_cast`, `my_ballot`, `tie`, `last_result`, `history`, `ending_label`) are a **proposal for I01**, used only by the mock until the backend serves them. Ballots stay private until voting closes, and the client never receives authored outcomes ahead of time; only the mock reads them locally.
+`src/game/types.ts` describes the client view of a room. Fields from `docs/room-api.md` and `docs/start-api.md` are served by the backend. The gameplay fields inside `game` (`node`, `speaker`, `speaker_order`, `ballots_cast`, `my_ballot`, `tie`, `last_result`, `history`, `ending_label`) are a **proposal for I01**, used only by the mock until the backend serves them. Ballots stay private until voting closes, and the client never receives authored outcomes ahead of time; only the mock reads them locally.
 
 ## 3D assets
 
-- `public/models/characters/` holds characters 01–10, exported from the Mixamo-rigged FBX files in `assets/characters/mixamo_rigged/` by `tools/export_characters.py`. Each is about 0.8 MB with a 1024 px texture. `animations.glb` holds the shared clips `sit`, `talk`, `disbelief` and `typing`, retargeted from the Mixamo animation files, with hips translation converted from the animation rig's centimetre scale.
-- `public/models/props/` holds boardroom props generated from Nano Banana reference images with TRELLIS.2. `props.json` lists them. Without that folder the room uses simple placeholder furniture.
+1. `public/models/characters/` holds characters 01 to 10, exported by `tools/export_characters.py` from the Mixamo rigged FBX files in `assets/characters/mixamo_rigged/`. Each is about 0.8 MB with a 1024 px texture. `animations.glb` holds the shared clips `sit`, `talk`, `disbelief` and `typing`, retargeted from the Mixamo animation files. Hips translation is converted from the animation rig's centimetre scale and proportions.
+2. `public/models/props/` holds eight boardroom props generated from Nano Banana 2.1 reference images with TRELLIS.2 on Velocity job 20031, then scaled, decimated and given 1024 px JPEG textures in Blender. `props.json` lists sizes, triangle counts and source images (kept locally in `assets/props/images/`). The room uses the table, chairs, laptops, credenza, plants, speakerphone and clock. The wall display model is not used because the live canvas screen shows the phase and timer. Without the props folder the room falls back to simple placeholder furniture.
 
-Re-export the characters after changing a rig:
+Re export the characters after changing a rig:
 
 ```sh
 /Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup \
@@ -42,11 +42,15 @@ Re-export the characters after changing a rig:
 
 ## Behaviour in the room
 
-The active speaker plays the talking clip, and everyone else turns their head toward them. During the vote everyone types. A net-negative outcome triggers a disbelief reaction. The wall display shows the current decision and the countdown. Name tags show each player's role, and "voted" appears on your own seat only, because other ballots are private.
+1. Seats are 0.27 m from the table edge so the characters' arms reach the tabletop.
+2. Two bone arm IK rests both hands flat on the table beside the laptop with fingers relaxed. The talking clip's hand movement is layered on top as gestures. Typing uses the clip's own hands, which land on the keyboard, and the disbelief reaction fades the IK out so the hands can lift.
+3. The active speaker plays the talking clip and everyone else turns their head toward them. During the vote everyone types. A net negative outcome triggers the disbelief reaction.
+4. The wall display shows the current decision and countdown. Name tags show each player's role, and "voted" appears on your own seat only because other ballots are private.
 
 ## Known limits
 
-- Only 10 characters are rigged, so seats 11–30 are not drawn.
-- Free-text custom proposals (scenario `custom_action_policy`) and AI feedback have no screens yet.
-- There's no lip sync or facial animation; the faces are not rigged.
-- Checks so far were in desktop Chromium (Playwright) at 1440×880; mobile layouts are only roughly handled.
+1. Only 10 characters are rigged, so seats 11 to 30 are not drawn.
+2. Free text custom proposals (scenario `custom_action_policy`) and AI feedback have no screens yet.
+3. There is no lip sync or facial animation; the faces are not rigged.
+4. Hands can pass through each other or the laptop during large talking gestures; there is no collision.
+5. Checks so far were in desktop Chromium (Playwright) at 1440 by 880; mobile layouts are only roughly handled.

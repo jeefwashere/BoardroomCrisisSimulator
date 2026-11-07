@@ -39,8 +39,18 @@ export interface SceneState {
 }
 
 const MODELS = `${import.meta.env.BASE_URL}models/`
-const TABLE = { length: 4.2, width: 1.4, height: 0.75 }
+const TABLE = { length: 4.2, width: 1.4, height: 0.76 }
 const UP = new THREE.Vector3(0, 1, 0)
+/**
+ * Seat origin to table edge. The Mixamo seated clips put the shoulders about 5 cm in front of
+ * the seat origin with 0.46 m arms, and the typing clip's hands land 0.35 m forward at desk
+ * height, so the edge has to be close for hands to reach the tabletop.
+ */
+const EDGE_GAP = 0.27
+/** Where resting hands go, in seat space (+X is the character's left, +Z its front). */
+const HAND_REST = { x: 0.235, y: TABLE.height + 0.03, z: EDGE_GAP + 0.07 }
+/** How far resting fingers open from the clip's clasped pose toward the open bind pose. */
+const FINGER_RELAX = 0.6
 
 interface Seat {
   position: THREE.Vector3
@@ -49,8 +59,8 @@ interface Seat {
 
 /** Seat 0 is the head of the table nearest the camera, then around the table. */
 function makeSeats(): Seat[] {
-  const side = TABLE.width / 2 + 0.5
-  const end = TABLE.length / 2 + 0.55
+  const side = TABLE.width / 2 + EDGE_GAP
+  const end = TABLE.length / 2 + EDGE_GAP
   const xs = [1.5, 0.5, -0.5, -1.5]
   return [
     { position: new THREE.Vector3(end, 0, 0), yaw: -Math.PI / 2 },
@@ -102,7 +112,9 @@ class Avatar {
       action.time = Math.random() * clip.duration // keep characters out of step
       this.actions.set(clip.name as Mood, action)
     }
+    this.findArms()
     this.setMood('sit', 0)
+    this.measureRest()
   }
 
   setMood(mood: Mood, fade = 0.5) {
@@ -136,6 +148,142 @@ class Avatar {
   headPosition(out = new THREE.Vector3()) {
     return this.head ? this.head.getWorldPosition(out) : out.copy(this.group.position).setY(1.2)
   }
+
+  /** Remember where the seated clip puts each hand; talking gestures are offsets from it. */
+  measureRest() {
+    if (!this.mixer) return
+    this.animate(0)
+    for (const arm of this.arms) arm.rest = this.group.worldToLocal(arm.hand.getWorldPosition(new THREE.Vector3()))
+  }
+
+  /**
+   * Two-bone IK that rests the hands on the tabletop. Applied after the animation pose, so the
+   * talking clip's hand movement survives as gestures above the table. Typing already lands on
+   * the desk and the disbelief reaction lifts the hands, so those fade the IK out.
+   */
+  placeHands(dt: number) {
+    const want = this.mood === 'sit' || this.mood === 'talk' ? 1 : 0
+    this.handWeight = THREE.MathUtils.damp(this.handWeight, want, 5, dt)
+    const w = this.handWeight
+    if (w < 0.01) return
+    const toWorld = this.group.getWorldQuaternion(new THREE.Quaternion())
+    for (const arm of this.arms) {
+      const animated = this.group.worldToLocal(arm.hand.getWorldPosition(new THREE.Vector3()))
+      const target = new THREE.Vector3(HAND_REST.x * arm.side, HAND_REST.y, HAND_REST.z).add(animated.clone().sub(arm.rest))
+      target.y = Math.max(target.y, HAND_REST.y)
+      target.lerpVectors(animated, target, w)
+      const pole = new THREE.Vector3(0.6 * arm.side, -0.5, -0.6).normalize().applyQuaternion(toWorld)
+      solveTwoBone(arm, this.group.localToWorld(target), pole)
+      orientHand(arm, new THREE.Vector3(-0.25 * arm.side, -0.12, 1).normalize().applyQuaternion(toWorld), w)
+    }
+    for (const finger of this.fingers) finger.bone.quaternion.slerp(finger.open, FINGER_RELAX * w)
+  }
+
+  arms: Arm[] = []
+  handWeight = 1
+  private overridden: THREE.Bone[] = []
+  private animatedPose: THREE.Quaternion[] = []
+
+  /**
+   * Advance the animation. three.js only writes a bone when its animated value changes, so a
+   * constant clip like `sit` would leave last frame's IK and head turn in place and they would
+   * compound. Restoring the animated pose of the overridden bones first prevents that.
+   */
+  animate(dt: number) {
+    if (!this.mixer) return
+    this.overridden.forEach((bone, i) => bone.quaternion.copy(this.animatedPose[i]))
+    this.mixer.update(dt)
+    this.overridden.forEach((bone, i) => this.animatedPose[i].copy(bone.quaternion))
+    this.group.updateMatrixWorld(true)
+  }
+
+  findArms() {
+    const bones = new Map<string, THREE.Bone>()
+    this.model?.traverse((o) => {
+      if ((o as THREE.Bone).isBone) bones.set(o.name.replace(/^mixamorig\d*/, ''), o as THREE.Bone)
+    })
+    this.arms = (['Left', 'Right'] as const).flatMap((side) => {
+      const upper = bones.get(`${side}Arm`)
+      const fore = bones.get(`${side}ForeArm`)
+      const hand = bones.get(`${side}Hand`)
+      const middle = bones.get(`${side}HandMiddle1`)
+      const index = bones.get(`${side}HandIndex1`)
+      const pinky = bones.get(`${side}HandPinky1`)
+      if (!upper || !fore || !hand || !middle || !index || !pinky) return []
+      return [{ side: side === 'Left' ? 1 : -1, upper, fore, hand, middle, index, pinky, rest: new THREE.Vector3() } as Arm]
+    })
+    // Called before any clip plays, so current rotations are the open-handed bind pose.
+    this.fingers = [...bones.entries()]
+      .filter(([name]) => /^(Left|Right)Hand(Thumb|Index|Middle|Ring|Pinky)[1-3]$/.test(name))
+      .map(([, bone]) => ({ bone, open: bone.quaternion.clone() }))
+    this.overridden = [
+      ...this.arms.flatMap((arm) => [arm.upper, arm.fore, arm.hand]),
+      ...this.fingers.map((f) => f.bone),
+      ...(this.head ? [this.head] : []),
+    ]
+    this.animatedPose = this.overridden.map((bone) => bone.quaternion.clone())
+  }
+
+  private fingers: { bone: THREE.Bone; open: THREE.Quaternion }[] = []
+}
+
+interface Arm {
+  /** +1 for the character's left (its +X), -1 for its right. */
+  side: 1 | -1
+  upper: THREE.Bone
+  fore: THREE.Bone
+  hand: THREE.Bone
+  middle: THREE.Bone
+  index: THREE.Bone
+  pinky: THREE.Bone
+  rest: THREE.Vector3
+}
+
+const position = (bone: THREE.Object3D) => bone.getWorldPosition(new THREE.Vector3())
+
+/** Rotate a bone in world space, keeping the result as a local rotation. */
+function rotateWorld(bone: THREE.Object3D, rotation: THREE.Quaternion) {
+  const world = bone.getWorldQuaternion(new THREE.Quaternion()).premultiply(rotation)
+  const parent = bone.parent!.getWorldQuaternion(new THREE.Quaternion())
+  bone.quaternion.copy(parent.invert().multiply(world))
+  bone.updateMatrixWorld(true)
+}
+
+function aim(bone: THREE.Object3D, from: THREE.Vector3, to: THREE.Vector3) {
+  rotateWorld(bone, new THREE.Quaternion().setFromUnitVectors(from.normalize(), to.normalize()))
+}
+
+function solveTwoBone(arm: Arm, target: THREE.Vector3, pole: THREE.Vector3) {
+  const a = position(arm.upper)
+  const b = position(arm.fore)
+  const c = position(arm.hand)
+  const l1 = a.distanceTo(b)
+  const l2 = b.distanceTo(c)
+  const toTarget = target.clone().sub(a)
+  const d = THREE.MathUtils.clamp(toTarget.length(), Math.abs(l1 - l2) + 1e-3, (l1 + l2) * 0.999)
+  const dir = toTarget.normalize()
+  const cos = THREE.MathUtils.clamp((l1 * l1 + d * d - l2 * l2) / (2 * l1 * d), -1, 1)
+  const bend = pole.clone().addScaledVector(dir, -pole.dot(dir)).normalize()
+  const elbow = a.clone().addScaledVector(dir, l1 * cos).addScaledVector(bend, l1 * Math.sqrt(1 - cos * cos))
+  aim(arm.upper, b.clone().sub(a), elbow.clone().sub(a))
+  const b2 = position(arm.fore)
+  aim(arm.fore, position(arm.hand).sub(b2), a.clone().addScaledVector(dir, d).sub(b2))
+}
+
+/** Point the fingers forward and turn the palm down, blended by weight. */
+function orientHand(arm: Arm, forward: THREE.Vector3, weight: number) {
+  const hand = position(arm.hand)
+  const current = position(arm.middle).sub(hand).normalize()
+  rotateWorld(arm.hand, new THREE.Quaternion().slerp(new THREE.Quaternion().setFromUnitVectors(current, forward), weight))
+  const dir = position(arm.middle).sub(position(arm.hand)).normalize()
+  const across = position(arm.index).sub(position(arm.pinky))
+  const palm = across.cross(dir).multiplyScalar(-arm.side)
+  const down = new THREE.Vector3(0, -1, 0)
+  const flat = (v: THREE.Vector3) => v.addScaledVector(dir, -v.dot(dir)).normalize()
+  const p = flat(palm)
+  const q = flat(down)
+  const angle = Math.atan2(dir.dot(p.clone().cross(q)), p.dot(q))
+  rotateWorld(arm.hand, new THREE.Quaternion().setFromAxisAngle(dir, angle * weight))
 }
 
 export class Boardroom {
@@ -273,8 +421,9 @@ export class Boardroom {
       const response = await fetch(`${MODELS}props/props.json`)
       if (!response.ok || !response.headers.get('content-type')?.includes('json')) return
       type Entry = { file: string }
-      const manifest = (await response.json()) as Entry[] | { props: Entry[] | Record<string, Entry> }
-      const entries: Entry[] = Array.isArray(manifest) ? manifest : Object.values(manifest.props)
+      // props.json: { conventions: { front: "+Z", origin: base at Y=0 }, models: [{ id, file, ... }] }
+      const manifest = (await response.json()) as { models: Entry[] }
+      const entries = manifest.models
       const find = (word: string) => entries.find((entry) => entry.file.toLowerCase().includes(word))
       const load = async (word: string) => {
         const entry = find(word)
@@ -294,8 +443,9 @@ export class Boardroom {
         this.placeProp(await load('credenza'), new THREE.Vector3(0, 0, -3.15), 0),
         this.placeProp(await load('plant'), new THREE.Vector3(-4.6, 0, -2.9), 0),
         this.placeProp((await load('plant'))?.clone() ?? null, new THREE.Vector3(-4.6, 0, 2.9), 0),
-        this.placeProp(await load('clock'), new THREE.Vector3(2.2, 2.25, -3.37), 0),
+        this.placeProp(await load('clock'), new THREE.Vector3(2.0, 1.95, -3.56), 0),
         this.placeProp(await load('speaker'), new THREE.Vector3(0, TABLE.height, 0), 0),
+        // The TRELLIS wall display is not used: the live canvas screen shows phase and timer.
         this.swapLaptops(await load('laptop')),
       ])
     } catch (error) {
@@ -324,8 +474,8 @@ export class Boardroom {
     if (!model) return
     this.chairs.forEach((chair, index) => {
       const replacement = model.clone()
-      // Chair models face -Z in glTF terms after export (backrest at +Z); turn to face the table.
-      replacement.rotation.y = this.avatars[index].seat.yaw + Math.PI
+      // Props face +Z, like the characters, so a chair takes its seat's yaw.
+      replacement.rotation.y = this.avatars[index].seat.yaw
       replacement.position.copy(chair.position)
       chair.removeFromParent()
       this.scene.add(replacement)
@@ -463,7 +613,8 @@ export class Boardroom {
       lid.rotation.x = -0.25
       laptop.add(base2, lid)
       const toward = new THREE.Vector3(0, 0, 1).applyAxisAngle(UP, avatar.seat.yaw)
-      laptop.position.copy(avatar.seat.position).addScaledVector(toward, 0.72).setY(TABLE.height + 0.008)
+      // Keyboard edge just past the table edge, where the typing clip's hands land.
+      laptop.position.copy(avatar.seat.position).addScaledVector(toward, EDGE_GAP + 0.18).setY(TABLE.height + 0.008)
       laptop.rotation.y = avatar.seat.yaw + Math.PI
       laptop.traverse((o) => (o.castShadow = true))
       this.laptops.push(laptop)
@@ -533,8 +684,8 @@ export class Boardroom {
 
     for (const [index, avatar] of this.avatars.entries()) {
       if (!avatar.mixer || !avatar.group.visible) continue
-      avatar.mixer.update(dt)
-      avatar.group.updateMatrixWorld(true)
+      avatar.animate(dt)
+      avatar.placeHands(dt)
       const target = avatar === speaker ? this.camera.position : speakerHead
       avatar.lookAt(state?.seats[index]?.mood === 'typing' ? null : target, dt)
     }

@@ -118,6 +118,12 @@ The user assigned Jeff the pages before game start and Ricardo the backend. Keep
 
   Owner: unassigned. Status: `available`. Acceptance: the same member returns to the same seat and existing vote while the meeting and clocks continue; refresh does not add a voter or replay a decision. Requires B02, B04, and B05. Supports F09. Server restart recovery is deferred.
 
+## Experimental application
+
+* [ ] X01 Build an isolated local model and speech playtest.
+
+  Owner: Arjun Codex agent. Status: `in_progress`. Branch: `experiment/ai-voice-playtest`. Scope: minimal browser UI, independent member identities, authored multiplayer voting, local model suggestions and extraction, bounded ElevenLabs recording and playback, and executable verification. Preserve Ricardo and Jeff implementation ownership and all production task states. Authorized speech cap: 10,000 ElevenLabs credits for this test build, using a persistent conservative reservation ledger. Next action: implement in `playtest/`, verify offline boundaries and three live HTTP clients, test enabled providers, and publish the side branch. Browser and microphone checks will be reported separately from HTTP checks.
+
 ## Integration and verification
 
 * [ ] I01 Publish the frontend API and snapshot contract with examples.

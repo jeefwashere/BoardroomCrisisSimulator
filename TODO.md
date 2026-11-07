@@ -40,9 +40,9 @@ Status values: `available`, `in_progress`, `waiting`, `done`, `optional`, `defer
 
   Owner: unassigned. Status: `available`. Acceptance: record the team's choices for speaking duration, total session duration, vote replacement and visibility, CEO absence, custom action limits and outcome mapping, and scoring. Preserve unsettled choices as proposed.
 
-* [ ] P02 Supply and validate one complete scenario package.
+* [x] P02 Supply and validate one complete scenario package.
 
-  Owner: unassigned. Status: `available`. Acceptance: one background, role list, decision sequence, prepared choices, consequences, allowed custom outcomes, no decision outcome, and ending are available with a fixed version. Do not invent supposedly existing team content.
+  Owner: coordinating Codex agent. Status: `done`. Acceptance: one background, role list, decision sequence, prepared choices, consequences, allowed custom outcomes, no decision outcome, and ending are available with a fixed version. The published material is an explicitly fictional English cybersecurity draft with static validation, not previously supplied team content or a human playtested game. Evidence: completion record 6.
 
 ## Backend
 
@@ -76,7 +76,7 @@ Status values: `available`, `in_progress`, `waiting`, `done`, `optional`, `defer
 
 * [ ] B08 Implement sequential speaking and speaker deadlines.
 
-  Owner: unassigned. Status: `available`. Acceptance: one active speaker at a time, selected duration and skip policy, repeated or old timers cannot skip extra players, and voting begins after speaking. Requires B04 and B05. Supports F03. Audio transport is a separate optional feature.
+  Owner: unassigned. Status: `available`. Acceptance: include the selected scenario's reading period and shared discussion budget, one active speaker at a time, selected duration and skip policy, protection against repeated or old timers, and voting after speaking. Requires B04 and B05. Supports F03. Audio transport is a separate optional feature.
 
 * [ ] B09 Implement custom action proposals and frozen voting choices.
 
@@ -141,5 +141,7 @@ Status values: `available`, `in_progress`, `waiting`, `done`, `optional`, `defer
 4. D06. Owner: Codex documentation agent. Work commit: [cef3091](https://github.com/jeefwashere/BoardroomCrisisSimulator/commit/cef30910ad2a0a6644d6e4a81a712ac84386c956). Remote branch: `main`. Verification: after a successful push, `git ls-remote --heads origin main` returned `cef30910ad2a0a6644d6e4a81a712ac84386c956`, matching `git rev-parse HEAD`. A Unicode scan found no Chinese characters in the eight current project files. Local link and prose typography checks passed, all 27 existing task states were preserved, and GitHub's Markdown API rendered the translated guide and checklist successfully. Publication status: directly published on `main`. Product scope and application implementation status remain unchanged.
 
 5. D07. Owner: Arjun Codex agent. Work commit: [d728cb6](https://github.com/jeefwashere/BoardroomCrisisSimulator/commit/d728cb61afebc42f56bac1f636baa690a35aa4e5). Remote branch: `main`. After a successful push, `git ls-remote --heads origin main` returned `d728cb61afebc42f56bac1f636baa690a35aa4e5`, matching the local work commit. The latest English translation and all previous completion records were preserved. Verification: 21 tests passed with `python3 -m unittest discover -s tests -v`; `python3 -m rehearsal demo` passed with three participants; TypeScript checking, site production build, Markdown link checks, task ID uniqueness, credential scanning, and `git diff --cached --check` passed. Sites version 2 was deployed successfully from site source commit `2d0a9e625ff1309894bd5dc0fc16fcf41e941f13`. Both hosted Markdown files returned HTTP 200 and matched their source bytes, and `/api/status` reported the model worker online. Publication: directly on `main` and at [the team model lab](https://rehearsal-gpu-lab-team22.arjunb3hl.chatgpt.site). Browser visual QA remained unavailable. This verifies documentation publication and the existing prototype source; it does not complete multiplayer, paid speech, or live microphone acceptance tasks.
+
+6. P02. Owner: coordinating Codex agent. Work commit: [f20de37](https://github.com/jeefwashere/BoardroomCrisisSimulator/commit/f20de3781e373c707523215c1922413c83bf1050). Branch: `Ricardo`, verified through `git ls-remote --heads origin Ricardo` after push. Verification: `python3 -m json.tool scenarios/cybersecurity_demo/v1/scenario.json --no-ensure-ascii` passed; the local validator at `/Users/gz/work/boardroom-architecture/validate-cyber-scenario.py` also passed all 64 prepared and no decision paths, references, meter bounds, evidence carryover, English content, document links, and timing arithmetic. Published results: `scenarios/cybersecurity_demo/v1/validation.json`. The draft is about 18 minutes, or 19.5 minutes with three CEO ties; a 15 minute profile is included. Merge status at this record: pushed feature branch. While incorporating the latest `main`, `python3 -m unittest discover -s tests -v` passed 21 existing tests and `python3 -m rehearsal demo --output /Users/gz/work/boardroom-architecture/scenario-merge-demo.json` passed in authored offline mode. These additional checks verify the existing prototype, not integration of this new scenario. Application schema compatibility, AI quality, backend execution of this package, multiplayer behavior, and human timing remain unverified. B03 and all other backend tasks stay unchecked.
 
 For new completions, append task ID, owner, remote branch, work commit or PR link, verification command and result, plus merge status if known. Leave incomplete tasks unchecked.

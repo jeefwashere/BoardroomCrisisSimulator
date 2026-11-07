@@ -34,8 +34,8 @@ At the initial design review, remote `main` contained only the initial README an
 1. The host selects an available scenario version, creates a room, and receives a room code and a host seat.
 2. Players enter that code and a display name. The backend assigns a stable member identity. The frontend opens the room event connection and renders the returned snapshot.
 3. The host assigns roles in the lobby. Proposed: exactly one CEO must exist before start. The host and CEO are separate permissions, even if one person holds both.
-4. Starting validates the scenario, CEO, settings, and 3 to 20 connected members. The scenario version and initial roster are fixed for this session.
-5. Each round presents the current situation and public materials. The backend announces one speaker at a time and the speaker deadline.
+4. Starting validates the scenario, CEO, settings, and 3 to 20 connected members. The scenario version and initial roster are fixed for this session. A selected scenario may begin with a timed public briefing.
+5. Each round presents the current situation and public materials with its own reading period before timed discussion. The backend then announces one speaker at a time and the speaker deadline, within the selected discussion budget.
 6. Players can submit a custom action during speaking. Prepared choices remain available. Proposed: one editable custom proposal per player, with a maximum of 1,000 characters. At most 20 custom proposals therefore enter a round.
 7. When speaking finishes, the backend freezes the choices and opens a 60 second vote.
 8. At the deadline, the backend resolves the most voted option, or requests a CEO decision among the tied leaders.
@@ -62,6 +62,8 @@ Every scenario package supplies:
 Validate IDs, references, reachable endings, metric bounds, and at least one prepared choice per decision node before exposing a package for play. Proposed: the initial package format uses JSON plus Markdown background documents. An editor UI is optional.
 
 An AI drafted package remains a draft until these checks pass and the team accepts its content. The document generation feature is separate from runtime decision evaluation.
+
+A newly authored fictional example is available in [the English cybersecurity script](scenarios/cybersecurity-18-minute.md), with [draft scenario data](../scenarios/cybersecurity_demo/v1/scenario.json). Its 18 minute schedule includes separate reading, discussion, voting, and result budgets. It is not previously supplied team content, a running game, or a human playtested duration.
 
 ## 5. Rooms, roles, and identity
 

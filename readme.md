@@ -8,6 +8,7 @@ Multiplayer crisis simulation. The multiplayer backend is specified and designed
 4. [Shared task list](TODO.md)
 5. [Agent collaboration instructions](AGENTS.md)
 6. [Agent communication setup](docs/agent-board-setup.md)
+7. [Fictional cybersecurity scenario: about 18 minutes](docs/scenarios/cybersecurity-18-minute.md)
 
 Agents working on this repository should read `AGENTS.md` and update their own task in `TODO.md` after verifying and pushing completed work.
 

@@ -26,9 +26,9 @@ Status values: `available`, `in_progress`, `waiting`, `done`, `optional`, `defer
 
   Owner: Codex documentation agent. Status: `done`. Acceptance: teammates can configure a shared issue, authenticate separately, exchange a message, and understand agent waiting and shared branch coordination. Publish the guide on `main` and verify the remote commit. Evidence: completion record 3. No live board installation or message delivery is implied by document publication.
 
-* [ ] D06 Translate the remaining project documentation into English.
+* [x] D06 Translate the remaining project documentation into English.
 
-  Owner: Codex documentation agent. Status: `in_progress`. Acceptance: all tracked project documents use English prose, the translated backend guide has an English filename, local links resolve, and the changes are verified on remote `main`. Preserve task IDs, completion history, and product requirements.
+  Owner: Codex documentation agent. Status: `done`. Acceptance: all tracked project documents use English prose, the translated backend guide has an English filename, local links resolve, and the changes are verified on remote `main`. Preserve task IDs, completion history, and product requirements. Evidence: completion record 4.
 
 ## Product and content
 
@@ -133,5 +133,7 @@ Status values: `available`, `in_progress`, `waiting`, `done`, `optional`, `defer
 2. D03 and D04. Owner: coordinating Codex agent. Work commit: [318d14c](https://github.com/jeefwashere/BoardroomCrisisSimulator/commit/318d14c6171af0c9870ae5601c6fcfd374c6ea16). Branch: `Ricardo`. Verification: `git ls-remote --heads origin Ricardo` returned the same full commit as `git rev-parse HEAD` after a successful push. `git diff --cached --check` passed before that commit. The GitHub Markdown API rendered all 26 checkboxes, and local link and typography checks passed. Merge status at this completion record: pushed feature branch; the accompanying pull request records the final merge status. No implementation task was marked complete.
 
 3. D05. Owner: Codex documentation agent. Work commit: [88ecac4](https://github.com/jeefwashere/BoardroomCrisisSimulator/commit/88ecac4a54c91c782ec39005d1f874387d217e83). Remote branch: `main`. Verification: after a successful push, `git ls-remote --heads origin main` returned `88ecac4a54c91c782ec39005d1f874387d217e83`, matching `git rev-parse HEAD`. Local link, English prose, typography, and Bash syntax checks passed for all seven Bash examples. GitHub's Markdown API rendered ten headings and ten code blocks. `git diff --cached --check` passed. Publication status: directly published on `main`. These checks verify the guide, not a live board installation or agent message exchange.
+
+4. D06. Owner: Codex documentation agent. Work commit: [cef3091](https://github.com/jeefwashere/BoardroomCrisisSimulator/commit/cef30910ad2a0a6644d6e4a81a712ac84386c956). Remote branch: `main`. Verification: after a successful push, `git ls-remote --heads origin main` returned `cef30910ad2a0a6644d6e4a81a712ac84386c956`, matching `git rev-parse HEAD`. A Unicode scan found no Chinese characters in the eight current project files. Local link and prose typography checks passed, all 27 existing task states were preserved, and GitHub's Markdown API rendered the translated guide and checklist successfully. Publication status: directly published on `main`. Product scope and application implementation status remain unchanged.
 
 For new completions, append task ID, owner, remote branch, work commit or PR link, verification command and result, plus merge status if known. Leave incomplete tasks unchecked.

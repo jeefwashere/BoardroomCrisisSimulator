@@ -12,7 +12,7 @@ In practice, begin with one FastAPI service. The backend maintains one authorita
 
 ## 2. Frontend usage first
 
-Latest confirmed handoff: Jeff's frontend generates the room code and handles role selection. The host submits the room code, players, and roles together on Start. Start requires at least 3 participants, the capacity is 30, and admission after start is required. Each browser registers its own membership before Start. Late arrivals first participate in the next round. The implemented code accepts the frontend code and initializes briefing through the host Start operation, documented in [start-api.md](start-api.md).
+Latest confirmed handoff: Jeff's frontend generates the room code and handles role selection. The host submits the room code, players, and roles together on Start. Start requires at least 3 participants, the capacity is 30, and admission after start is required. Each player tab registers its own private session and membership before Start. Late arrivals first participate in the next round. The implemented code accepts the frontend code and initializes briefing through the host Start operation, documented in [start-api.md](start-api.md).
 
 The following is a proposed contract, not a claim that these endpoints exist.
 
@@ -36,7 +36,7 @@ Response: accepted receipt and room_version
 
 The example scenario ID and durations are illustrative, not supplied content or accepted defaults. Every state changing request carries a `command_id`. Phase specific actions also carry the current `round_id` and `phase_id`.
 
-The browser receives membership through a same origin cookie, then connects to `/ws/rooms/{room_id}`. A reconnect gets a complete snapshot for the same member. The display name is never an authentication credential.
+The interactive tab receives a private server issued session and sends its header with authenticated HTTP requests. Legacy cookie clients remain supported. The proposed `/ws/rooms/{room_id}` transport is not implemented. Refresh and polling recover the same tab member. A name change updates the existing seat without changing identity; the display name is never an authentication credential.
 
 ## 3. Proposed module map
 
@@ -186,7 +186,7 @@ A slow client gets a bounded outgoing queue. On overflow, close that connection 
 
 The timer checks a monotonic internal clock. Snapshots expose UTC deadlines and server time for display. Each timer captures its room, round, phase ID, and expected deadline. A stale callback is a no op. A wakeup is only a reminder to recheck time, not authority to advance whichever round happens to be current.
 
-The eligibility roster and final choices are immutable during voting. At the cutoff, count accepted ballots, then choose the unique leader, CEO tie phase, or explicit no decision outcome. An old socket, an extra browser tab, or a retried request cannot create another vote.
+The eligibility roster and final choices are immutable during voting. At the cutoff, count accepted ballots, then choose the unique leader, CEO tie phase, or explicit no decision outcome. An old socket or retried request cannot duplicate a vote for the same member. The confirmed independent tab model treats a separately registered player tab as its own seat; refreshing or renaming that seat creates no additional voting identity.
 
 ## 8. AI job lifecycle
 

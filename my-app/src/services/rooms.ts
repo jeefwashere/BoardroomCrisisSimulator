@@ -1,3 +1,6 @@
+import { browserTabSession } from './tabSession.ts'
+import type { TabSession } from './tabSession.ts'
+
 export type CreateRoomInput = {
     command_id: string
     room_code: string
@@ -174,19 +177,33 @@ function aborted(error: unknown, signal?: AbortSignal): boolean {
     return signal?.aborted === true || (error instanceof Error && error.name === 'AbortError')
 }
 
-export function createRoomApi(options: { baseUrl?: string; fetch?: typeof globalThis.fetch } = {}): RoomApi {
+export function createRoomApi(options: { baseUrl?: string; fetch?: typeof globalThis.fetch; session?: TabSession } = {}): RoomApi {
     const environment = (import.meta as ImportMeta & { env?: { VITE_API_BASE_URL?: string } }).env
     const baseUrl = (options.baseUrl ?? environment?.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000').replace(/\/+$/, '')
     const fetchRequest = options.fetch ?? globalThis.fetch.bind(globalThis)
 
-    async function request<T>(path: string, validate: (value: unknown) => value is T, signal?: AbortSignal, body?: object): Promise<T> {
+    const session = options.session ?? browserTabSession()
+
+    async function sessionToken(): Promise<string> {
+        return session.token(async (previous) => {
+            const result = await request('/api/tab-sessions', (value): value is { status: 'ready'; session_token: string } =>
+                record(value) && value.status === 'ready' && typeof value.session_token === 'string' && value.session_token.length > 0,
+                undefined, { session_token: previous }, false)
+            return result.session_token
+        })
+    }
+
+    async function request<T>(path: string, validate: (value: unknown) => value is T, signal?: AbortSignal, body?: object, authenticated = true): Promise<T> {
+        const token = authenticated ? await sessionToken() : undefined
+        signal?.throwIfAborted()
         let response: Response
         try {
             response = await fetchRequest(`${baseUrl}${path}`, {
                 method: body === undefined ? 'GET' : 'POST',
                 credentials: 'include',
                 signal,
-                ...(body === undefined ? {} : { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
+                headers: { ...(token ? { 'X-Boardroom-Session': token } : {}), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
+                ...(body === undefined ? {} : { body: JSON.stringify(body) }),
             })
         } catch (error) {
             if (aborted(error, signal)) throw error
@@ -207,9 +224,10 @@ export function createRoomApi(options: { baseUrl?: string; fetch?: typeof global
 
     return {
         async initializeSession(signal) {
-            await request('/api/session', (value): value is { status: 'ready' } => record(value) && value.status === 'ready', signal)
+            await sessionToken()
+            signal?.throwIfAborted()
         },
-        scenarios: (signal) => request('/api/scenarios', (value): value is Scenario[] => Array.isArray(value) && value.every(scenario), signal),
+        scenarios: (signal) => request('/api/scenarios', (value): value is Scenario[] => Array.isArray(value) && value.every(scenario), signal, undefined, false),
         create: (input, signal) => request('/api/rooms', snapshot, signal, input),
         join: (input, signal) => request('/api/rooms/join', snapshot, signal, input),
         snapshot: (roomId, signal) => request(`/api/rooms/${encodeURIComponent(roomId)}`, snapshot, signal),

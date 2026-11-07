@@ -9,16 +9,17 @@ from uuid import UUID
 from fastapi import Depends, FastAPI, Request, Response, Security
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.security import APIKeyCookie
+from fastapi.security import APIKeyCookie, APIKeyHeader
 
 from .models import (ContributionBody, ContributionView, CreateRoom, DeliveryBody, ErrorResponse,
                      EvaluationEvidenceView, JoinRoom, MediaView, RoomView, ScenarioView, StartRoom,
-                     ValidationErrorResponse)
+                     TabSessionBody, TabSessionView, ValidationErrorResponse)
 from .narration import NarrationService
 from .rooms import RoomError, Rooms, StartSpec
 from .scenarios import ScenarioCatalog
 
 COOKIE_NAME = "boardroom_session"
+SESSION_HEADER = "X-Boardroom-Session"
 
 
 def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] | None = None,
@@ -39,7 +40,7 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     app = FastAPI(title="Boardroom narrative and evidence API", version="0.3.0")
     app.add_middleware(
         CORSMiddleware, allow_origins=origins, allow_credentials=True,
-        allow_methods=["GET", "POST"], allow_headers=["Content-Type"],
+        allow_methods=["GET", "POST"], allow_headers=["Content-Type", SESSION_HEADER],
     )
 
     @app.middleware("http")
@@ -61,9 +62,11 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
         }})
 
     cookie = APIKeyCookie(name=COOKIE_NAME, auto_error=False)
+    tab_header = APIKeyHeader(name=SESSION_HEADER, auto_error=False)
 
-    async def session(value: Annotated[str | None, Security(cookie)]) -> str:
-        return rooms.authenticate(value)
+    async def session(request: Request, value: Annotated[str | None, Security(cookie)],
+                      tab_value: Annotated[str | None, Security(tab_header)]) -> str:
+        return rooms.authenticate(tab_value if SESSION_HEADER in request.headers else value)
 
     authenticated = Annotated[str, Depends(session)]
     errors = {status: {"model": ErrorResponse} for status in (401, 403, 404, 409, 410)}
@@ -78,6 +81,11 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
         token = rooms.session(request.cookies.get(COOKIE_NAME))
         response.set_cookie(COOKIE_NAME, token, httponly=True, secure=secure, samesite="lax", path="/api")
         return {"status": "ready"}
+
+    @app.post("/api/tab-sessions", response_model=TabSessionView,
+              summary="Initialize or resume an independent tab's private guest session")
+    async def initialize_tab_session(body: TabSessionBody):
+        return {"status": "ready", "session_token": rooms.session(body.session_token)}
 
     @app.get("/api/scenarios", response_model=list[ScenarioView])
     async def scenarios():

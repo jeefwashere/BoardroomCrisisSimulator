@@ -27,11 +27,11 @@ Confirmed means selected in the user's latest discussion. Proposed means an arch
 11. Deferred: advanced database recovery and server restart recovery.
 12. Provisional: AI can prepare three scenario documents. Cybersecurity was mentioned as an example. The other topics and document structure are not confirmed. Three documents must not silently become three implemented game modes.
 13. Confirmed: the room creator is the host and occupies one of the 30 seats.
-14. Confirmed: display names are unique within a room after trimming surrounding whitespace and case insensitive comparison. Names never prove seat ownership.
+14. Confirmed: display names are unique within a room after trimming surrounding whitespace and case insensitive comparison. Names never prove seat ownership. Confirmed update: different tabs may register as independent players, refresh resumes the same player, and the same authenticated player may rename its seat during active gameplay without changing its member ID, roles, eligibility or committed records. Ended evidence remains frozen.
 15. Confirmed: full room and member details are available only to joined members, including the host.
 16. Confirmed for the initial delivery: rooms live in one backend process. Backend restart loses rooms; browser refresh preserves membership while that process lives.
 17. Confirmed for the initial delivery: approximately two second polling is acceptable for lobby updates before WebSocket delivery.
-18. Confirmed update: Jeff generates room codes and owns lobby role selection. The host submits room code, players, and selected roles together on Start. The backend validates the handoff. Lobby browsers register through the authenticated create and join flow before that Start handoff.
+18. Confirmed update: Jeff generates room codes and owns lobby role selection. The host submits room code, players, and selected roles together on Start. The backend validates the handoff. Player tabs register through the authenticated create and join flow before that Start handoff.
 19. Confirmed update: new participants may join after start, up to capacity 30. New members first participate from the next round; they do not expand the current electorate or replace the CEO.
 20. Confirmed update: remove fixed numerical gameplay meters. Use narrative consequences and carried facts. Preserve every individual answer, typed chat, and reviewed speech transcript for later AI evaluation, including unselected answers.
 21. Confirmed update: this unit implements the internally verified narrative engine first. Nonterminal consequences use a 30 second presentation guard; terminal consequences end immediately. Display what happened as text, then narrate that same committed text. Real media calls remain subject to the existing speech budget rule.
@@ -79,11 +79,11 @@ A newly authored fictional example is available in [the English cybersecurity sc
 
 ## 5. Rooms, roles, and identity
 
-The confirmed first delivery uses a private browser session cookie, a host seat, unique display names, member only snapshots, and polling. See [the room API](room-api.md) for the implemented contract. The remaining role and gameplay defaults below are proposed.
+The current interactive client uses a server issued private session per tab, a host seat, unique display names, member only snapshots, and polling. Legacy browser cookie clients remain supported. See [the room API](room-api.md) for the implemented contract. The remaining role and gameplay defaults below are proposed.
 
 1. The host chooses display settings and roles before start. A room code locates a room; the display name does not prove ownership of an existing seat.
 2. Creating or joining establishes a server issued membership credential. Rejoin uses that credential, not another entry of the same nickname.
-3. Use a same origin deployment with a membership cookie for HTTP and WebSocket authentication. Validate membership for every operation and WebSocket connection. The frontend receives only its own seat and permissions.
+3. Use authenticated player sessions for HTTP and future WebSocket access. Interactive tabs use their private server issued session header; legacy cookie clients remain supported. Validate membership for every operation and WebSocket connection. The frontend receives only its own seat and permissions.
 4. New seats may join during the lobby and after start, subject to the 30 member capacity. New members first participate in the next round and select an available non CEO perspective. Existing seats can reconnect in any phase, including after the room drops below three connected players.
 5. Start requires three connected players, but the meeting does not automatically stop when someone disconnects afterward.
 6. Role changes are locked after start, apart from an explicitly recorded CEO reassignment when the CEO is absent during a tie.

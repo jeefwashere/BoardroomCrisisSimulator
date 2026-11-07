@@ -4,9 +4,9 @@ This capability accepts Jeff's generated room code and the host's final role sel
 
 ## Frontend sequence
 
-1. Each browser calls `GET /api/session` with `credentials: "include"`.
+1. Each application tab calls `POST /api/tab-sessions` with its saved `session_token`, or `{}` for a new participant, and retains the returned credential for that tab. Send `X-Boardroom-Session` on authenticated requests. Legacy `GET /api/session` cookie clients remain supported. See [room-api.md](room-api.md) for refresh and duplication behavior.
 2. Jeff generates six ASCII letters or digits. The host calls `POST /api/rooms` with that `room_code`, its `display_name`, and a UUID `command_id`. Codes are trimmed and uppercased. A collision returns `409 room_code_taken`; generate another code and use a new command ID.
-3. Each other browser calls `POST /api/rooms/join` with its own cookie, `room_code`, `display_name`, and command ID. The backend assigns its public `member_id`.
+3. Each other tab calls `POST /api/rooms/join` with its own private credential, `room_code`, `display_name`, and command ID. The backend assigns its public `member_id`.
 4. Poll the authenticated room snapshot approximately every two seconds. Collect role choices in Jeff's lobby. The backend receives those choices together when the host clicks Start, not through a separate role edit endpoint.
 5. The host submits the exact registered member roster and one selected role per member. Names, client host flags, and arbitrary IDs cannot replace registered membership.
 6. All browsers continue querying the same room. A successful Start returns `phase: "briefing"` and public briefing material under `game`.
@@ -23,7 +23,7 @@ Version 3 removes fixed numerical gameplay meters and retains executable narrati
 
 ## Start request
 
-`POST /api/rooms/{room_id}/start`, with the host's private cookie:
+`POST /api/rooms/{room_id}/start`, with the host's private tab header or legacy cookie:
 
 ```json
 {
@@ -44,7 +44,7 @@ The UUIDs are illustrative; use actual member IDs returned by registration. The 
 
 Start validates these conditions atomically:
 
-1. The cookie belongs to this room's host.
+1. The authenticated credential belongs to this room's host.
 2. The room is in the lobby and the supplied code matches.
 3. The scenario version and timing profile are admitted.
 4. Every registered member appears exactly once, including inactive seats. No extra or omitted member IDs are accepted.
@@ -70,7 +70,7 @@ The response is the same for every member apart from `self_member_id`. Presence 
 
 ## Joining after Start
 
-A new browser initializes its own cookie and sends:
+A new participant initializes a separate tab credential and sends:
 
 ```json
 {
@@ -83,7 +83,7 @@ A new browser initializes its own cookie and sends:
 
 During briefing, the new seat receives `eligible_from_round: 2` and `eligible_current_round: false`. In later active phases its first eligible round is the current round plus one. It can read released room information immediately, while the current electorate and CEO stay unchanged. Capacity remains 30 including the host and all registered seats. A role is required for new admission after Start; `ceo` is unavailable. Lobby joins omit roles because the host submits them together on Start.
 
-An existing browser can rejoin with its original name and omit `role_id`, keeping the same seat, role, and eligibility even when the room is full. Supplying a different role is rejected. A missing cookie cannot reclaim another member by name. After ending, existing members can still rejoin, while new seats receive `409 game_ended`.
+An existing participant can rejoin using its original credential and omit `role_id`, keeping the same seat, role, and eligibility even when the room is full. A new display name renames that same seat during the lobby or active game; it does not create another participant, change the CEO, or expand the electorate. Supplying a different role is rejected before mutation. A missing or unrelated credential cannot reclaim another member by name. After ending, existing members can still rejoin with the unchanged name, while new seats and name changes receive `409 game_ended` to preserve final evidence.
 
 Internal narrative transitions now freeze each new electorate from eligible assignments. Current round membership remains unchanged. Actual speaking and ballot participation still require the later voting and timer modules. See [narrative-engine.md](narrative-engine.md).
 

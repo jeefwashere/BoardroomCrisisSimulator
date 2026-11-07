@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createRoomApi, RoomApiError } from '../src/services/rooms.ts'
+import { createRoomApi as makeRoomApi, RoomApiError } from '../src/services/rooms.ts'
+import { createTabSession } from '../src/services/tabSession.ts'
 import type { RoomSnapshot, Scenario, StartRoomInput } from '../src/services/rooms.ts'
+
+const createRoomApi = (options: Parameters<typeof makeRoomApi>[0] = {}) => makeRoomApi({ session: { token: async () => 'test-tab-token' }, ...options })
 
 const lobby: RoomSnapshot = {
     room_id: 'room-1', room_code: 'ABC123', room_version: 1, capacity: 30,
@@ -21,22 +24,17 @@ function json(payload: unknown, status = 200) {
     return new Response(JSON.stringify(payload), { status, headers: { 'Content-Type': 'application/json' } })
 }
 
-test('session and catalog requests include browser credentials and forward abort signals', async () => {
-    const calls: { url: string; init: RequestInit | undefined }[] = []
+test('public catalog forwards cancellation without a player credential', async () => {
     const signal = new AbortController().signal
     const api = createRoomApi({ baseUrl: 'http://local.test:8000/', fetch: async (url, init) => {
-        calls.push({ url: String(url), init })
-        return json(String(url).endsWith('/session') ? { status: 'ready' } : catalog)
-    } })
-    assert.equal(await api.initializeSession(signal), undefined)
-    assert.deepEqual(await api.scenarios(signal), catalog)
-    assert.deepEqual(calls.map((call) => call.url), ['http://local.test:8000/api/session', 'http://local.test:8000/api/scenarios'])
-    for (const { init } of calls) {
+        assert.equal(String(url), 'http://local.test:8000/api/scenarios')
         assert.equal(init?.credentials, 'include')
         assert.equal(init?.method, 'GET')
         assert.equal(init?.signal, signal)
-        assert.equal(init?.body, undefined)
-    }
+        assert.deepEqual(init?.headers, {})
+        return json(catalog)
+    } })
+    assert.deepEqual(await api.scenarios(signal), catalog)
 })
 
 test('create, join, and Start preserve the exact caller body and command ID on explicit retries', async () => {
@@ -60,7 +58,7 @@ test('create, join, and Start preserve the exact caller body and command ID on e
     for (const { init } of calls) {
         assert.equal(init?.credentials, 'include')
         assert.equal(init?.method, 'POST')
-        assert.deepEqual(init?.headers, { 'Content-Type': 'application/json' })
+        assert.deepEqual(init?.headers, { 'X-Boardroom-Session': 'test-tab-token', 'Content-Type': 'application/json' })
     }
 })
 
@@ -155,4 +153,39 @@ test('non JSON HTTP failures retain status without exposing arbitrary response c
         assert.doesNotMatch(error.message, /sensitive/)
         return true
     })
+})
+
+test('every authenticated operation includes the selected tab credential', async () => {
+    const calls: RequestInit[] = []
+    const api = createRoomApi({ fetch: async (_url, init) => { calls.push(init!); return json(lobby) } })
+    await api.snapshot('room-1')
+    await api.join({ command_id: 'rename-intent', room_code: 'ABC123', display_name: 'Updated Host' })
+    assert.equal(calls.length, 2)
+    for (const call of calls) assert.equal(new Headers(call.headers).get('X-Boardroom-Session'), 'test-tab-token')
+    assert.deepEqual(JSON.parse(String(calls[1].body)), { command_id: 'rename-intent', room_code: 'ABC123', display_name: 'Updated Host' })
+})
+
+test('concurrent room commands await one tab bootstrap before sending the original bodies', async () => {
+    const calls: { url: string; init?: RequestInit }[] = []
+    let finishBootstrap: (() => void) | undefined
+    const wait = new Promise<void>((resolve) => { finishBootstrap = resolve })
+    const api = makeRoomApi({ baseUrl: '', session: createTabSession({ randomId: () => 'fresh-tab' }), fetch: async (url, init) => {
+        calls.push({ url: String(url), init })
+        if (String(url) === '/api/tab-sessions') {
+            await wait
+            return json({ status: 'ready', session_token: 'fresh-tab-credential' })
+        }
+        return json(lobby)
+    } })
+    const input = { command_id: 'explicit-intent', room_code: 'ABC123', display_name: 'Host' }
+    const pending = [api.create(input), api.join(input)]
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    assert.deepEqual(calls.map((call) => call.url), ['/api/tab-sessions'])
+    finishBootstrap!()
+    await Promise.all(pending)
+    assert.deepEqual(calls.map((call) => call.url), ['/api/tab-sessions', '/api/rooms', '/api/rooms/join'])
+    for (const call of calls.slice(1)) {
+        assert.equal(new Headers(call.init?.headers).get('X-Boardroom-Session'), 'fresh-tab-credential')
+        assert.deepEqual(JSON.parse(String(call.init?.body)), input)
+    }
 })

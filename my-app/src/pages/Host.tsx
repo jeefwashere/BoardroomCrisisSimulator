@@ -8,10 +8,11 @@ import { roomMembers, startInput, startProblem } from '../features/rooms/roomSta
 import type { RoleDraft } from '../features/rooms/roomState'
 import type { StartRoomInput } from '../services/rooms'
 import Game from './Game'
+import RoomNameEditor from '../features/rooms/RoomNameEditor'
 import './Host.css'
 
 function Host({ roomId }: { roomId: string }) {
-    const { room, scenarios, error, starting, start } = useRoom(roomId)
+    const { room, scenarios, error, starting, start, rename } = useRoom(roomId)
     const [draft, setDraft] = useState<RoleDraft>({})
     const [selectedScenario, setSelectedScenario] = useState('')
     const [selectedTiming, setSelectedTiming] = useState('')
@@ -39,14 +40,14 @@ function Host({ roomId }: { roomId: string }) {
     }
 
     if (!room) return <main className="room-loading"><h1>Opening boardroom</h1><p role={error ? 'alert' : 'status'}>{error || 'Connecting to the room server…'}</p><button onClick={() => { window.location.hash = '/' }}>Back home</button></main>
-    if (room.phase !== 'lobby') return <Game room={room} scenarios={scenarios} error={error} />
+    if (room.phase !== 'lobby') return <Game room={room} scenarios={scenarios} error={error} rename={rename} />
     const problem = startProblem(room, scenario, draft)
     const members = roomMembers(room, isHost ? draft : {})
 
     return <MotionConfig reducedMotion="user">
         <div className="host-lobby">
             <header className="lobby-toolbar">
-                <button className="lobby-leave-button" type="button" title="Stop viewing. Your registered seat remains in this room." onClick={() => { window.location.hash = '/' }}>Leave</button>
+                <div className="room-personal-controls"><button className="lobby-leave-button" type="button" title="Stop viewing. Your registered seat remains in this room." onClick={() => { window.location.hash = '/' }}>Leave</button><RoomNameEditor room={room} rename={rename} disabled={starting} /></div>
                 <button className="lobby-room-code" type="button" onClick={() => void copyRoomCode()} aria-label={`Copy room code ${room.room_code}`} title="Copy room code"><span>Room code</span><strong>{room.room_code}</strong></button>
                 {isHost ? <DocumentUpload roomCode={room.room_code} onContextChange={(context) => setDocumentNotice(`${context} This upload is not processed or used by the briefing.`)} /> : <span className="lobby-waiting">Waiting for the host</span>}
             </header>

@@ -2,6 +2,10 @@
 
 Current application instructions, November 7, 2026. This guide describes the isolated `experiment/ai-voice-playtest` branch. Expected answers below are reviewer checks, not material to upload into agent retrieval.
 
+## Quick single window test
+
+The latest meeting UI is at <http://127.0.0.1:8788/meeting>. Click Run 90s scripted demo to control three test seats in one window and see a short discussion, prepared votes, simultaneous live character reviews and debrief. The 90 second mechanics profile uses a labelled 15 second vote; choose the five minute profile for the full 60 second vote. Scripted participant lines are explicitly distinguished from live model replies. Optional speech remains manual and uses the same shared credit cap. Read [the measured results](MEETING_REPORT.md) for latency and quality findings. The detailed per report instructions below still apply to preparation retrieval.
+
 ## What you can test now
 
 Open <http://127.0.0.1:8788> on the Mac running the test server. Join or create a room with a display name. One person is enough for preparation questions and character previews; starting the five minute game requires three participants.

@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Rehearsal · AI playtest</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head>
 <body>
 <header><div><span class="eyebrow">EXPERIMENTAL BRANCH · ROUTE A</span><h1>Rehearsal</h1><p>A small room for testing decisions, local agents, and voice.</p></div><div id="health" class="status" aria-live="polite">Checking providers…</div></header>
-<main>
+<main><p><a href="/meeting">Open the single window meeting lab →</a></p>
 <div id="notice" role="status" aria-live="polite"></div>
 <section id="entry"><h2>Take a seat</h2><p>Create a room, then open two more independent tabs or share the code with clients connected to this server. At least three people are required.</p><form id="joinForm"><label>Your display name<input id="name" maxlength="40" required autocomplete="nickname" placeholder="Arjun"></label><label>Room code <span class="muted">Leave empty to create</span><input id="code" maxlength="6" placeholder="ABC234" autocomplete="off"></label><button type="submit">Enter rehearsal</button></form><p class="muted">This test server runs on this Mac. Rooms disappear on server restart. Refresh keeps your seat in this tab.</p><p id="rejoinHelp" class="muted"></p></section>
 <div id="room" hidden>

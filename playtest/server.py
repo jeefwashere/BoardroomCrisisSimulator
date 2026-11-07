@@ -110,6 +110,18 @@ def create_app(engine=None, provider=None, speech=None, port=8788):
     def css():
         return FileResponse(STATIC / 'style.css', media_type='text/css')
 
+    @app.get('/meeting')
+    def meeting():
+        return FileResponse(STATIC / 'meeting.html')
+
+    @app.get('/meeting.js')
+    def meeting_script():
+        return FileResponse(STATIC / 'meeting.js', media_type='text/javascript')
+
+    @app.get('/meeting.css')
+    def meeting_style():
+        return FileResponse(STATIC / 'meeting.css', media_type='text/css')
+
     @app.get('/api/health')
     def health():
         return {'ok': True, 'storage': 'single process memory', 'models': agents.status,
@@ -125,7 +137,7 @@ def create_app(engine=None, provider=None, speech=None, port=8788):
     def state(request: Request):
         snapshot = engine.snapshot(token(request))
         # Never expose provider identifiers, prompts or application credentials.
-        snapshot['jobs'] = [{k: j[k] for k in ('id', 'kind', 'member', 'status', 'round', 'error')} for j in snapshot['jobs']]
+        snapshot['jobs'] = [{k: j.get(k) for k in ('id', 'kind', 'member', 'status', 'round', 'error', 'submitted_at', 'completed_at', 'timing', 'question', 'review')} for j in snapshot['jobs']]
         if snapshot['speech']:
             snapshot['speech'].pop('path', None)
         return snapshot

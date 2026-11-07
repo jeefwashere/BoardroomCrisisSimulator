@@ -384,6 +384,21 @@ class RecoveryAndFiveMinuteTests(unittest.TestCase):
         self.assertFalse(Engine().allow_name_rejoin)
         self.assertEqual(self.e.snapshot(self.a['token'])['self'], self.r['host'])
 
+    def test_quick_meeting_has_one_ninety_second_round_and_fifteen_second_vote(self):
+        self.cmd(self.a, 'start', profile='quick_90')
+        self.assertEqual(self.r['total_deadline'] - self.clock(), 90)
+        self.advance(45)
+        self.assertEqual(self.r['phase'], 'voting')
+        self.assertEqual(self.r['deadline'] - self.clock(), 15)
+        self.cmd(self.a, 'vote', option_id=self.r['options'][0]['id'])
+        self.advance(15)
+        self.assertEqual(self.r['phase'], 'result')
+        self.advance(29.999)
+        self.assertEqual(self.r['phase'], 'result')
+        self.advance(.001)
+        self.assertEqual(self.r['end_reason'], 'round_complete')
+        self.assertEqual(len(self.r['history']), 1)
+
     def test_five_minutes_keeps_full_vote_and_ends_with_exactly_one_result(self):
         start = self.clock()
         self.cmd(self.a, 'start')
@@ -531,6 +546,35 @@ class HTTPTests(unittest.TestCase):
         response = self.client.post('/api/agent/facilitator',
             json={'command_id':uuid.uuid4().hex,'text':'Test'}, headers=self.auth)
         self.assertEqual(response.status_code, 409)
+        self.client.app.state.agents.close()
+
+    def test_post_round_review_requires_explicit_mode_and_exposes_only_public_timing(self):
+        import time
+        body={'command_id':uuid.uuid4().hex,'text':'What was decided?','review':True}
+        self.assertEqual(self.client.post('/api/agent/it',json=body,headers=self.auth).status_code,409)
+        self.command('start',profile='quick_90')
+        self.clock.now += 90
+        state=self.client.get('/api/state',headers=self.auth).json()
+        self.assertEqual(state['phase'],'ended')
+        for role in ('facilitator','it','journalist'):
+            result=self.client.post('/api/agent/'+role,json={**body,'command_id':uuid.uuid4().hex},headers=self.auth)
+            self.assertEqual(result.status_code,200,result.text)
+            jid=result.json()['id']
+            for _ in range(200):
+                state=self.client.get('/api/state',headers=self.auth).json()
+                job=next(j for j in state['jobs'] if j['id']==jid)
+                if job['timing'] is not None:break
+                time.sleep(.01)
+            self.assertEqual(job['status'],'done')
+            self.assertGreaterEqual(job['timing']['total_ms'],0)
+            self.assertGreaterEqual(job['timing']['provider_roundtrip_ms'],0)
+            self.assertNotIn('_queued',job)
+            self.assertNotIn('intent',job)
+            self.assertNotIn('prompt',job)
+        self.assertEqual(len(state['history']),1)
+        self.assertEqual(len(state['suggestions']),3)
+        for path in ('/meeting','/meeting.js','/meeting.css'):
+            self.assertEqual(self.client.get(path).status_code,200)
         self.client.app.state.agents.close()
 
     def test_http_leave_rejoin_and_five_minute_default(self):

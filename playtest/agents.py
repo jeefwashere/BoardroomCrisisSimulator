@@ -72,9 +72,11 @@ class Agents:
         with self.engine.lock:
             r, mid = self.engine.identity(token)
             require(kind in ('facilitator', 'it', 'journalist', 'tracker', 'debrief', 'preparation'), 'Unknown agent', 422)
-            require(kind not in ('facilitator', 'it', 'journalist') or r['phase'] != 'ended',
+            require(kind not in ('facilitator', 'it', 'journalist') or r['phase'] != 'ended' or data.get('review') is True,
                     'This exercise has ended. Generate a debrief to review it.')
             require(kind != 'debrief' or r['phase'] == 'ended', 'Debrief is available after the exercise')
+            require(data.get('review') is not True or (kind in ('facilitator', 'it', 'journalist') and r['phase'] == 'ended'),
+                    'Post round review requires an ended exercise')
             cid = data.get('command_id')
             require(isinstance(cid, str) and 8 <= len(cid) <= 80, 'A command_id is required', 422)
             intent = json.dumps([kind, data], sort_keys=True)
@@ -92,13 +94,15 @@ class Agents:
         model, prompt, context = self.prompt(r, kind, data)
         require(len(prompt) <= 4000, 'Model context is too large', 422)
         r['jobs'][jid] = {'id': jid, 'kind': kind, 'member': mid, 'status': 'pending', 'round': r['round'],
-            'node': r['node'], 'request_id': data.get('command_id'), 'intent': intent, 'error': None}
+            'node': r['node'], 'request_id': data.get('command_id'), 'intent': intent, 'error': None,
+            'submitted_at': self.engine.clock(), '_queued': time.perf_counter(), 'timing': None,
+            'question': str(data.get('text', ''))[:500], 'review': data.get('review') is True}
         self.pool.submit(self.run, r['code'], jid, model, prompt, context)
 
     def prompt(self, r, kind, data):
         e = self.engine
         node = e.nodes[r['node']]
-        context = {'node': r['node'], 'round': r['round']}
+        context = {'node': r['node'], 'round': r['round'], 'review': data.get('review') is True}
         if kind == 'preparation':
             question = bounded_text(data.get('text'), 500)
             pack, evidence = self.references.evidence(data.get('pack_id'), question)
@@ -152,6 +156,7 @@ class Agents:
         return 'lfm3', prompt, context
 
     def run(self, code, jid, model, prompt, context):
+        started = time.perf_counter()
         try:
             provider = self.provider or HostedModels()
             result = provider.run(prompt, model=model, timeout=120)
@@ -166,6 +171,15 @@ class Agents:
                     r['ai_ticket'] = None
                     self.engine.phase(r, 'resolution_failed', r['resolution_deadline'])
                 self.engine.event(r, 'model_failed', job=jid, agent_kind=job['kind'])
+        finally:
+            finished = time.perf_counter()
+            with self.engine.lock:
+                job = self.engine.rooms[code]['jobs'][jid]
+                queued = job.get('_queued', started)
+                job['timing'] = {'total_ms': round((finished-queued)*1000, 1),
+                    'local_queue_ms': round(max(0, started-queued)*1000, 1),
+                    'provider_roundtrip_ms': round((finished-started)*1000, 1)}
+                job['completed_at'] = self.engine.clock()
 
     def complete(self, r, jid, result, context):
         e = self.engine
@@ -211,7 +225,7 @@ class Agents:
                           'note': 'LFM3 selected authored reflections linked to committed history. The full decision record remains authoritative.'}
             r['feedback'] = suggestion
         else:
-            if r['node'] != context['node'] or r['round'] != context['round'] or r['phase'] == 'ended':
+            if r['node'] != context['node'] or r['round'] != context['round'] or (r['phase'] == 'ended' and not context.get('review')):
                 job['status'] = 'discarded'
                 return
             ids = parse_object(result['text']).get('evidence_ids')
@@ -220,6 +234,6 @@ class Agents:
             require(all(i in evidence for i in ids), 'Unknown evidence reference')
             suggestion = {'kind': kind, 'text': '\n'.join(evidence[i] for i in ids) or 'The released evidence does not answer that. Record it as unknown.',
                           'evidence_ids': ids, 'note': 'LFM3 selected released evidence. Wording is authored, not invented.'}
-        suggestion.update(id=jid, round=context['round'], at=e.clock())
+        suggestion.update(id=jid, round=context['round'], at=e.clock(), question=job.get('question', ''), review=context.get('review', False))
         r['suggestions'].append(suggestion)
         e.event(r, 'model_result', job=jid, agent_kind=kind)

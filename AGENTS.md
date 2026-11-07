@@ -42,3 +42,5 @@ This checklist is maintained by the agents through normal commits. It is not an 
 4. The requested local test defaults to one five minute round. `--allow-name-rejoin` explicitly enables recovering an inactive seat by name and room; leave releases immediately, closed tabs require 30 seconds of inactivity, and the old token is revoked. Keep this exception within the localhost experiment and preserve production identity rules.
 
 5. [The manual test guide](playtest/TEST_GUIDE.md) documents current controls, agent responsibilities and reviewer checks for each participant pack. Keep its expected answers outside participant retrieval and update it when the implemented controls change.
+
+6. The latest user test uses `/meeting`: three explicitly labelled test memberships in one window, a 90 second scripted mechanics demo, real local agent replies and simultaneous post round review. This supersedes the separate window preference for this mode only. See [the measured evaluation](playtest/MEETING_REPORT.md). Preserve the distinction between scripted seats, model replies and enforced authored evidence.

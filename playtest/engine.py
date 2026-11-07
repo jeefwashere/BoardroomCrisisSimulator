@@ -155,12 +155,15 @@ class Engine:
             require(all(now - m['seen'] < 30 for m in r['members'].values()), 'All lobby members must be connected')
             require(sum(m['role'] == 'ceo' for m in r['members'].values()) == 1, 'Exactly one CEO is required')
             profile = d.get('profile', 'single_5')
-            require(profile in ('standard_18', 'fast_15', 'test_3', 'single_5'), 'Unknown timing profile', 422)
-            require(profile != 'single_5' or self.round_limit == 1, 'Five minute profile requires one round', 422)
+            require(profile in ('standard_18', 'fast_15', 'test_3', 'single_5', 'quick_90'), 'Unknown timing profile', 422)
+            require(profile not in ('single_5', 'quick_90') or self.round_limit == 1, 'Meeting profile requires one round', 422)
             r['profile'] = profile
             if profile == 'single_5':
                 r['timing'] = dict(briefing=15, reading=30, discussion=135, vote=60,
                                    result=60, tie=15, total=300, speaker=35)
+            elif profile == 'quick_90':
+                r['timing'] = dict(briefing=5, reading=5, discussion=35, vote=15,
+                                   result=30, tie=10, total=90, speaker=10)
             elif profile == 'test_3':
                 r['timing'] = dict(briefing=4, reading=4, discussion=12, vote=8, result=4, tie=5, total=180, speaker=4)
             else:
@@ -168,7 +171,7 @@ class Engine:
                 r['timing'] = dict(briefing=p['briefing_seconds'], reading=p['reading_seconds_per_round'],
                     discussion=p['discussion_seconds_per_round'], vote=60, result=p['result_seconds_per_round'],
                     tie=30, total=p['gameplay_ceiling_from_briefing_start_seconds'], speaker=p['speaker_max_seconds'])
-            if self.round_limit == 1 and profile != 'single_5':
+            if self.round_limit == 1 and profile not in ('single_5', 'quick_90'):
                 t = r['timing']
                 t['total'] = sum(t[k] for k in ('briefing', 'reading', 'discussion', 'vote', 'tie')) + max(30, t['result']) + 5
             r['total_deadline'] = now + r['timing']['total']
@@ -270,10 +273,10 @@ class Engine:
         if now >= r['total_deadline']:
             # Resolve elapsed phases first so a delayed poll still commits a prepared vote.
             # Every phase below has a bounded deadline within the five minute profile.
-            if r.get('profile') != 'single_5':
+            if r.get('profile') not in ('single_5', 'quick_90'):
                 self.end(r, 'total_timeout')
                 return
-        if r.get('profile') == 'single_5' and now >= r['total_deadline'] and r['phase'] == 'result':
+        if r.get('profile') in ('single_5', 'quick_90') and now >= r['total_deadline'] and r['phase'] == 'result':
             self.end(r, 'round_complete')
             return
         # Advance all expired phases using their old deadlines, never extend time on reconnect.
@@ -334,7 +337,7 @@ class Engine:
             option = next(o for o in r['options'] if o['id'] == option_id)
             r['unresolved'] = {'node': r['node'], 'round': r['round'], 'option': deepcopy(option), 'reason': reason}
             r['attempts'] = 0
-            r['resolution_deadline'] = at + 30
+            r['resolution_deadline'] = min(at + 30, r['total_deadline'])
             self.begin_resolution(r, at)
         else:
             outcome = next((o['outcome_id'] for o in node['options'] if o['id'] == option_id), node['no_decision_outcome_id'])
@@ -363,7 +366,7 @@ class Engine:
         r['unresolved'], r['ai_ticket'] = None, None
         r['next_node'] = outcome['next_node_id']
         deadline = r['resolution_deadline'] if explanation is not None else at + r['timing']['result']
-        if r.get('profile') == 'single_5':
+        if r.get('profile') in ('single_5', 'quick_90'):
             deadline = r['total_deadline']
         self.phase(r, 'result', deadline)
 

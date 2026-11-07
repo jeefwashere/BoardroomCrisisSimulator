@@ -1,0 +1,284 @@
+{
+  "room": "KRF6TY",
+  "profile": "quick_90",
+  "rounds": 1,
+  "history": [
+    {
+      "round": 1,
+      "node": "containment",
+      "option_id": "contain_targeted",
+      "outcome_id": "targeted_containment",
+      "summary": "The investigation boundary narrows. At least 160 customer records were exported before access was suspended. The incident is still under investigation.",
+      "metrics_before": {
+        "service_continuity": 60,
+        "data_protection": 60,
+        "public_trust": 60
+      },
+      "metrics_after": {
+        "service_continuity": 55,
+        "data_protection": 80,
+        "public_trust": 60
+      },
+      "facts": {
+        "verified_export_records": 160,
+        "export_status": "confirmed_minimum_scope_incomplete",
+        "containment": "targeted",
+        "service_condition": "storefront_monitored_finance_isolated",
+        "communication_status": "none",
+        "recovery_status": "not_started"
+      },
+      "reason": "vote",
+      "tally": {
+        "contain_targeted": 3
+      },
+      "at": 1794093096.344295,
+      "ai_explanation": null
+    }
+  ],
+  "contributions": [
+    {
+      "id": "e8",
+      "type": "contribution",
+      "at": 1794093047.4736981,
+      "member": "d2704c94bdea41c7b4ce09cb43f51e58",
+      "text": "Jeff will call IT before 3 PM. Is the backup verified?",
+      "source": "typed",
+      "round": 1
+    },
+    {
+      "id": "e11",
+      "type": "contribution",
+      "at": 1794093048.405783,
+      "member": "ab2f43c7849141e1b809ff878ce049f8",
+      "text": "Preserve the logs and isolate the affected finance device.",
+      "source": "typed",
+      "round": 1
+    },
+    {
+      "id": "e14",
+      "type": "contribution",
+      "at": 1794093049.336778,
+      "member": "d4bc22833b3148e2a82dd86aecfbaf4b",
+      "text": "We should separate confirmed facts from unknowns before an update.",
+      "source": "typed",
+      "round": 1
+    }
+  ],
+  "jobs": [
+    {
+      "id": "4d361c9fd9094311bf1b45107600587a",
+      "kind": "tracker",
+      "member": "d2704c94bdea41c7b4ce09cb43f51e58",
+      "status": "done",
+      "round": 1,
+      "error": null,
+      "submitted_at": 1794093047.553591,
+      "completed_at": 1794093050.780042,
+      "timing": {
+        "total_ms": 3226.4,
+        "local_queue_ms": 0.4,
+        "provider_roundtrip_ms": 3226
+      },
+      "question": "",
+      "review": false
+    },
+    {
+      "id": "5fd6d03e91f64b49a3422f24d7fb9a12",
+      "kind": "facilitator",
+      "member": "d2704c94bdea41c7b4ce09cb43f51e58",
+      "status": "done",
+      "round": 1,
+      "error": null,
+      "submitted_at": 1794093047.6237068,
+      "completed_at": 1794093052.926644,
+      "timing": {
+        "total_ms": 5302.9,
+        "local_queue_ms": 0.2,
+        "provider_roundtrip_ms": 5302.7
+      },
+      "question": "What should we clarify before deciding?",
+      "review": false
+    },
+    {
+      "id": "6f243f4a181945479fb3960c754520b0",
+      "kind": "facilitator",
+      "member": "d2704c94bdea41c7b4ce09cb43f51e58",
+      "status": "done",
+      "round": 1,
+      "error": null,
+      "submitted_at": 1794093127.506233,
+      "completed_at": 1794093133.543186,
+      "timing": {
+        "total_ms": 6036.9,
+        "local_queue_ms": 0.9,
+        "provider_roundtrip_ms": 6036
+      },
+      "question": "What did the board decide in decision_1, and what should it clarify next?",
+      "review": true
+    },
+    {
+      "id": "08e817eb673648c2a8128716c6252e32",
+      "kind": "it",
+      "member": "d2704c94bdea41c7b4ce09cb43f51e58",
+      "status": "done",
+      "round": 1,
+      "error": null,
+      "submitted_at": 1794093127.506803,
+      "completed_at": 1794093133.519858,
+      "timing": {
+        "total_ms": 6013,
+        "local_queue_ms": 0.3,
+        "provider_roundtrip_ms": 6012.8
+      },
+      "question": "What technical outcome is recorded in decision_1?",
+      "review": true
+    },
+    {
+      "id": "99140cd9019d4e3a85701105bda0095a",
+      "kind": "journalist",
+      "member": "d2704c94bdea41c7b4ce09cb43f51e58",
+      "status": "done",
+      "round": 1,
+      "error": null,
+      "submitted_at": 1794093127.508188,
+      "completed_at": 1794093130.544329,
+      "timing": {
+        "total_ms": 3035.9,
+        "local_queue_ms": 1.8,
+        "provider_roundtrip_ms": 3034
+      },
+      "question": "Which verified consequence in decision_1 can we communicate publicly?",
+      "review": true
+    },
+    {
+      "id": "9738e6a5ac564ff196db937071149230",
+      "kind": "debrief",
+      "member": "d2704c94bdea41c7b4ce09cb43f51e58",
+      "status": "done",
+      "round": 1,
+      "error": null,
+      "submitted_at": 1794093134.599939,
+      "completed_at": 1794093137.366271,
+      "timing": {
+        "total_ms": 2766.3,
+        "local_queue_ms": 0.1,
+        "provider_roundtrip_ms": 2766.2
+      },
+      "question": "",
+      "review": false
+    }
+  ],
+  "replies": [
+    {
+      "kind": "tracker",
+      "text": "Extracted spans require human review.",
+      "spans": [
+        {
+          "label": "person",
+          "start": 0,
+          "end": 4,
+          "text": "Jeff",
+          "raw_score": 0.9994309544563293
+        },
+        {
+          "label": "deadline",
+          "start": 25,
+          "end": 29,
+          "text": "3 PM",
+          "raw_score": 0.9884478449821472
+        },
+        {
+          "label": "action",
+          "start": 10,
+          "end": 17,
+          "text": "call IT",
+          "raw_score": 0.5883210897445679
+        }
+      ],
+      "contribution_id": "e8",
+      "classification": "question",
+      "id": "4d361c9fd9094311bf1b45107600587a",
+      "round": 1,
+      "at": 1794093050.780006,
+      "question": "",
+      "review": false
+    },
+    {
+      "kind": "facilitator",
+      "text": "Three finance laptops display ransom demands. The finance integration account has attempted an unusual customer export. Checkout works, but the investigation is incomplete. A promotion begins at 15:00. Choose the first coordinated action.\nWho owns the incident and the continuity assumptions?",
+      "evidence_ids": [
+        "current_situation",
+        "question_2"
+      ],
+      "note": "LFM3 selected released evidence. Wording is authored, not invented.",
+      "id": "5fd6d03e91f64b49a3422f24d7fb9a12",
+      "round": 1,
+      "at": 1794093052.926605,
+      "question": "What should we clarify before deciding?",
+      "review": false
+    },
+    {
+      "kind": "journalist",
+      "text": "The investigation boundary narrows. At least 160 customer records were exported before access was suspended. The incident is still under investigation.",
+      "evidence_ids": [
+        "decision_1"
+      ],
+      "note": "LFM3 selected released evidence. Wording is authored, not invented.",
+      "id": "99140cd9019d4e3a85701105bda0095a",
+      "round": 1,
+      "at": 1794093130.544061,
+      "question": "Which verified consequence in decision_1 can we communicate publicly?",
+      "review": true
+    },
+    {
+      "kind": "it",
+      "text": "The investigation boundary narrows. At least 160 customer records were exported before access was suspended. The incident is still under investigation.",
+      "evidence_ids": [
+        "decision_1"
+      ],
+      "note": "LFM3 selected released evidence. Wording is authored, not invented.",
+      "id": "08e817eb673648c2a8128716c6252e32",
+      "round": 1,
+      "at": 1794093133.519819,
+      "question": "What technical outcome is recorded in decision_1?",
+      "review": true
+    },
+    {
+      "kind": "facilitator",
+      "text": "The investigation boundary narrows. At least 160 customer records were exported before access was suspended. The incident is still under investigation.",
+      "evidence_ids": [
+        "decision_1"
+      ],
+      "note": "LFM3 selected released evidence. Wording is authored, not invented.",
+      "id": "6f243f4a181945479fb3960c754520b0",
+      "round": 1,
+      "at": 1794093133.543051,
+      "question": "What did the board decide in decision_1, and what should it clarify next?",
+      "review": true
+    },
+    {
+      "kind": "debrief",
+      "text": "Round 1: The investigation boundary narrows. At least 160 customer records were exported before access was suspended. The incident is still under investigation. Reflection: Which facts are confirmed?",
+      "evidence_ids": [
+        "round_1"
+      ],
+      "note": "LFM3 selected authored reflections linked to committed history. The full decision record remains authoritative.",
+      "id": "9738e6a5ac564ff196db937071149230",
+      "round": 1,
+      "at": 1794093137.366226,
+      "question": "",
+      "review": false
+    }
+  ],
+  "quality_reviews": {},
+  "voice": [
+    {
+      "operation": "tts",
+      "total_ms": 6110,
+      "cached": false,
+      "captions": "Round 1: The investigation boundary narrows. At least 160 customer records were exported before access was suspended. The incident is still under investigation. Reflection: Which facts are confirmed?"
+    }
+  ],
+  "simulation": "Scripted participant contributions and prepared votes; live model replies",
+  "timing_note": "Request to response includes network, hosted queue and polling. Not GPU inference time."
+}

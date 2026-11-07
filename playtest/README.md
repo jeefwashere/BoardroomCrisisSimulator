@@ -4,6 +4,14 @@ This isolated experiment adds a minimal FastAPI browser application on branch `e
 
 Use [the manual test guide](TEST_GUIDE.md) for copyable T01, T02 and T03 questions, expected evidence, the agent roster, the five minute procedure and a results sheet.
 
+## Single window meeting lab
+
+Open <http://127.0.0.1:8788/meeting> for the requested meeting style UI. One window owns three explicitly labelled test memberships. Click Run 90s scripted demo to create a fresh room, submit three scripted contributions and prepared votes, and automatically request simultaneous character reviews after the round. The local model replies are live; scripted seats are not autonomous AI participants. Click a seat to control it manually, or use Start manual round with either the 90 second mechanics profile or the normal five minute profile. The short profile has a clearly labelled 15 second ballot. The normal profile retains 60 seconds.
+
+The page displays actual model request timings, cited replies, manual quality review fields and a JSON export. Total time includes hosted queue, network and polling. The shared worker does not run three large models in parallel. Post round character review requires an ended room and an explicit review request. Optional voice controls use the same persistent speech ledger; the demo does not generate speech automatically. Provider keys remain on the backend. This is a meeting style test interface, not video conferencing.
+
+The measurement and quality findings are in [the meeting evaluation report](MEETING_REPORT.md). Run `python -m playtest.meeting_benchmark` with an online local model service to repeat the text evaluation. Its `--resume-round` option preserves saved preparation results after an interrupted harness run and starts a fresh room for the round. `python -m playtest.meeting_voice_benchmark --allow-paid-speech` explicitly opts into the short speech round trip under the existing shared cap.
+
 ## Start it
 
 Use Python 3.12 or newer. The existing backend dependency lock is reused.

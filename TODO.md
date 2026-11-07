@@ -84,19 +84,27 @@ The user now owns frontend implementation and backend integration, retaining Jef
 
 * [ ] B05 Implement HTTP commands and live room snapshots.
 
-  Owner: unassigned. Status: `available`. Acceptance: authenticated clients receive the current phase, members, speaker, choices, deadlines, and allowed actions; snapshot versions never move a client backward. Requires B02 and B04. Supports F07.
+  Owner: timed gameplay Codex agent. Status: `waiting`. Acceptance: authenticated clients receive the current phase, members, speaker, choices, deadlines, and allowed actions; snapshot versions never move a client backward. Requires B02 and B04. Supports F07.
+
+  Harness: Goal is the prepared gameplay HTTP flow. Success is actual multi client completion and concurrency, replay, cutoff and reconnect checks. Max is 30 minutes from November 7 at 23:44:07 UTC through November 8 at 00:14:07 UTC. Progress: source audit complete, published tab identity branch incorporated. Checks: baseline 87 backend tests and 15 scenario tests pass. Next action: confirm remaining gameplay policies and implement within the existing room authority.
 
 * [ ] B06 Implement the 60 second equal weight vote.
 
-  Owner: unassigned. Status: `available`. Acceptance: one ballot per eligible member, no duplicate votes from retries or refresh of the same player session, cutoff checked by the server, deterministic tally, and selected change and visibility rules applied. Requires B03 through B05. Supports F04.
+  Owner: timed gameplay Codex agent. Status: `waiting`. Acceptance: one ballot per eligible member, no duplicate votes from retries or refresh of the same player session, cutoff checked by the server, deterministic tally, and selected change and visibility rules applied. Requires B03 through B05. Supports F04.
+
+  Harness: Goal is the prepared gameplay HTTP flow. Success is actual multi client completion and concurrency, replay, cutoff and reconnect checks. Max is 30 minutes from November 7 at 23:44:07 UTC through November 8 at 00:14:07 UTC. Progress: source audit complete, published tab identity branch incorporated. Checks: baseline 87 backend tests and 15 scenario tests pass. Next action: confirm remaining gameplay policies and implement within the existing room authority.
 
 * [ ] B07 Implement CEO tie decisions and no decision outcomes.
 
-  Owner: unassigned. Status: `available`. Acceptance: only the CEO chooses among tied leaders, zero votes follow the authored no decision outcome, and the selected CEO absence policy is explicit. Requires B06. Supports F05.
+  Owner: timed gameplay Codex agent. Status: `waiting`. Acceptance: only the CEO chooses among tied leaders, zero votes follow the authored no decision outcome, and the selected CEO absence policy is explicit. Requires B06. Supports F05.
+
+  Harness: Goal is the prepared gameplay HTTP flow. Success is actual multi client completion and concurrency, replay, cutoff and reconnect checks. Max is 30 minutes from November 7 at 23:44:07 UTC through November 8 at 00:14:07 UTC. Progress: source audit complete, published tab identity branch incorporated. Checks: baseline 87 backend tests and 15 scenario tests pass. Next action: confirm remaining gameplay policies and implement within the existing room authority.
 
 * [ ] B08 Implement sequential speaking and speaker deadlines.
 
-  Owner: unassigned. Status: `available`. Acceptance: include the selected scenario's reading period and shared discussion budget, one active speaker at a time, selected duration and skip policy, protection against repeated or old timers, and voting after speaking. Requires B04 and B05. Supports F03. Audio transport is a separate optional feature.
+  Owner: timed gameplay Codex agent. Status: `waiting`. Acceptance: include the selected scenario's reading period and shared discussion budget, one active speaker at a time, selected duration and skip policy, protection against repeated or old timers, and voting after speaking. Requires B04 and B05. Supports F03. Audio transport is a separate optional feature.
+
+  Harness: Goal is the prepared gameplay HTTP flow. Success is actual multi client completion and concurrency, replay, cutoff and reconnect checks. Max is 30 minutes from November 7 at 23:44:07 UTC through November 8 at 00:14:07 UTC. Progress: source audit complete, published tab identity branch incorporated. Checks: baseline 87 backend tests and 15 scenario tests pass. Next action: confirm remaining gameplay policies and implement within the existing room authority.
 
 * [ ] B09 Implement custom action proposals and frozen voting choices.
 
@@ -108,7 +116,9 @@ The user now owns frontend implementation and backend integration, retaining Jef
 
 * [ ] B11 Implement automatic progression and session ending.
 
-  Owner: unassigned. Status: `available`. Acceptance: one resolved decision advances exactly once, authored endings and total timeout work, selected deadline precedence applies, and post ending AI results cannot change gameplay. Requires B03, B04, B06, and B07. Supports F03 and F08.
+  Owner: timed gameplay Codex agent. Status: `waiting`. Acceptance: one resolved decision advances exactly once, authored endings and total timeout work, selected deadline precedence applies, and post ending AI results cannot change gameplay. Requires B03, B04, B06, and B07. Supports F03 and F08.
+
+  Harness: Goal is the prepared gameplay HTTP flow. Success is actual multi client completion and concurrency, replay, cutoff and reconnect checks. Max is 30 minutes from November 7 at 23:44:07 UTC through November 8 at 00:14:07 UTC. Progress: source audit complete, published tab identity branch incorporated. Checks: baseline 87 backend tests and 15 scenario tests pass. Next action: confirm remaining gameplay policies and implement within the existing room authority.
 
 * [ ] B12 Implement decision history, results, and final AI feedback.
 
@@ -116,9 +126,11 @@ The user now owns frontend implementation and backend integration, retaining Jef
 
 * [ ] B13 Implement basic disconnect and rejoin.
 
-  Owner: unassigned. Status: `available`. Acceptance: the same member returns to the same seat and existing vote while the meeting and clocks continue; refresh does not add a voter or replay a decision. Requires B02, B04, and B05. Supports F09. Server restart recovery is deferred.
+  Owner: timed gameplay Codex agent. Status: `waiting`. Acceptance: the same member returns to the same seat and existing vote while the meeting and clocks continue; refresh does not add a voter or replay a decision. Requires B02, B04, and B05. Supports F09. Server restart recovery is deferred.
 
 ## Integration and verification
+
+  Harness: Goal is the prepared gameplay HTTP flow. Success is actual multi client completion and concurrency, replay, cutoff and reconnect checks. Max is 30 minutes from November 7 at 23:44:07 UTC through November 8 at 00:14:07 UTC. Progress: source audit complete, published tab identity branch incorporated. Checks: baseline 87 backend tests and 15 scenario tests pass. Next action: confirm remaining gameplay policies and implement within the existing room authority.
 
 * [ ] I01 Publish the frontend API and snapshot contract with examples.
 

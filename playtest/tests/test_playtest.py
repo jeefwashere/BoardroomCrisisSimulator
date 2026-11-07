@@ -503,6 +503,36 @@ class HTTPTests(unittest.TestCase):
         self.assertNotIn(self.code,json.dumps(otherstate))
         self.assertEqual(self.command('start',profile='test_3').status_code,200)
         self.assertEqual(self.client.post('/api/command/end',json={'command_id':uuid.uuid4().hex},headers={'Authorization':'Bearer '+self.b['token']}).status_code,403)
+    def test_lobby_character_questions_work_without_start_or_state_mutation(self):
+        import time
+        for kind in ('facilitator', 'it', 'journalist'):
+            response = self.client.post('/api/agent/'+kind,
+                json={'command_id':uuid.uuid4().hex,'text':'What should we clarify before deciding?'}, headers=self.auth)
+            self.assertEqual(response.status_code, 200, response.text)
+            jid = response.json()['id']
+            for _ in range(200):
+                snapshot = self.client.get('/api/state', headers=self.auth).json()
+                job = next(j for j in snapshot['jobs'] if j['id'] == jid)
+                if job['status'] != 'pending': break
+                time.sleep(.01)
+            self.assertEqual(job['status'], 'done', job)
+            reply = next(x for x in snapshot['suggestions'] if x['id'] == jid)
+            self.assertEqual(reply['evidence_ids'], ['current_situation'])
+            self.assertEqual(snapshot['phase'], 'lobby')
+            self.assertEqual(snapshot['history'], [])
+            self.assertEqual(snapshot['round'], 0)
+            self.assertNotIn('preferred_option_id', str(snapshot))
+        for kind, status in (('tracker',422),('debrief',409)):
+            response = self.client.post('/api/agent/'+kind,
+                json={'command_id':uuid.uuid4().hex,'text':'Test'}, headers=self.auth)
+            self.assertEqual(response.status_code, status, response.text)
+        self.command('start')
+        self.command('end')
+        response = self.client.post('/api/agent/facilitator',
+            json={'command_id':uuid.uuid4().hex,'text':'Test'}, headers=self.auth)
+        self.assertEqual(response.status_code, 409)
+        self.client.app.state.agents.close()
+
     def test_http_leave_rejoin_and_five_minute_default(self):
         self.engine.allow_name_rejoin = True
         self.assertTrue(self.client.get('/api/health').json()['test_name_rejoin'])

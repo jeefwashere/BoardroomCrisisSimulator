@@ -1,0 +1,34 @@
+{
+  "task": "X05",
+  "root_cause": "Lobby disabled every agent button without explaining the prerequisites.",
+  "checks": {
+    "playtest_tests": 32,
+    "existing_tests": 31,
+    "prototype_demo": true,
+    "javascript_syntax": true,
+    "dom_references": true
+  },
+  "browser": {
+    "room": "37K4YE",
+    "phase": "lobby",
+    "user": "Test 01",
+    "question": "What should we clarify before deciding?",
+    "observed": [
+      "All three character buttons enabled before Start",
+      "Waiting status displayed after click",
+      "Live facilitator reply appeared",
+      "Buttons enabled again after completion",
+      "Extraction and debrief prerequisites visible"
+    ],
+    "reply_evidence": [
+      "current_situation",
+      "question_2"
+    ]
+  },
+  "provider_calls": {
+    "live_local_facilitator": 1,
+    "paid_speech": 0
+  },
+  "speech_reserved_credits": 638,
+  "limitations": "Character responses select released evidence. Extract requires a committed contribution; debrief requires ended gameplay."
+}

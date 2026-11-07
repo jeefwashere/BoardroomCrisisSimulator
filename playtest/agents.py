@@ -72,7 +72,8 @@ class Agents:
         with self.engine.lock:
             r, mid = self.engine.identity(token)
             require(kind in ('facilitator', 'it', 'journalist', 'tracker', 'debrief', 'preparation'), 'Unknown agent', 422)
-            require(kind == 'preparation' or r['phase'] != 'lobby', 'Start the exercise before requesting a gameplay agent')
+            require(kind not in ('facilitator', 'it', 'journalist') or r['phase'] != 'ended',
+                    'This exercise has ended. Generate a debrief to review it.')
             require(kind != 'debrief' or r['phase'] == 'ended', 'Debrief is available after the exercise')
             cid = data.get('command_id')
             require(isinstance(cid, str) and 8 <= len(cid) <= 80, 'A command_id is required', 422)

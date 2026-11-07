@@ -5,6 +5,7 @@ let state = null, roleDraft = {}, roomKey = '', audioLease = null, audioURL = nu
 let clip = null, recording = null, transcriptSource = 'typed', polling = false;
 const busy = new Set();
 let chatVersion = "";
+let agentRequestId = null, agentSending = false;
 const uid = () => crypto.randomUUID();
 function notice(text) { $('notice').textContent = text; }
 function node(tag, text, className) { const el=document.createElement(tag); if(text !== undefined) el.textContent=text; if(className) el.className=className; return el; }
@@ -36,8 +37,12 @@ function renderControls(){
  $('record').disabled=!canContribute()||!!recording;$('transcribe').disabled=!clip||!canContribute();
  $('read').disabled=s.phase==='lobby'||!!s.speech;
  $('retry').hidden=!(host&&s.phase==='resolution_failed');
- document.querySelectorAll('[data-agent]').forEach(b=>b.disabled=s.phase==='lobby'||(b.dataset.agent==='debrief'&&s.phase!=='ended'));
- $('extract').disabled=!s.contributions.length;
+ const agentWaiting=agentSending||s.jobs.some(j=>j.id===agentRequestId&&j.status==='pending');
+ document.querySelectorAll('[data-agent]').forEach(b=>{const unavailable=b.dataset.agent==='debrief'?s.phase!=='ended':s.phase==='ended';b.disabled=agentWaiting||unavailable;});
+ $('extract').disabled=agentWaiting||!s.contributions.length;
+ $('agentHelp').textContent=s.phase==='ended'?'The round has ended. Generate a debrief to review the result.':s.phase==='lobby'?'Ask Facilitator, IT or Journalist now to preview the opening scenario. Starting the exercise is not required.':'Type a question, then choose Facilitator, IT or Journalist. Press Enter to ask Facilitator.';
+ $('extractHelp').textContent=s.contributions.length?'Extraction uses the latest committed contribution.':'Extraction unlocks after someone commits a timed contribution during discussion.';
+ $('debriefHelp').textContent=s.phase==='ended'?'Debrief is ready to request.':'Debrief unlocks when the five minute round ends.';
  $('stopRecord').disabled=!recording;
  for(const id of busy)$(id).disabled=true;
 }
@@ -68,6 +73,8 @@ function render(){
  const referenceReply=s.suggestions.filter(x=>x.kind==='preparation'&&x.pack_id===$('referencePack').value).at(-1);
  if(referenceReply)$('referenceAnswer').textContent=referenceReply.text+'\n'+referenceReply.note;
  $('jobs').replaceChildren(...s.jobs.slice(-6).map(j=>node('p',`${j.kind}: ${j.status}${j.error?' · '+j.error:''}`,'job')));
+ const agentJob=s.jobs.find(j=>j.id===agentRequestId);
+ if(agentJob)$('agentStatus').textContent=agentJob.status==='pending'?'Waiting for '+agentJob.kind+'… Your request is queued.':agentJob.status==='done'?agentJob.kind+' replied below.':agentJob.status==='discarded'?'The exercise changed while this answer was being prepared. Ask again for the current phase.':agentJob.kind+' could not answer: '+(agentJob.error||'Please try again.');
  $('suggestions').replaceChildren(...s.suggestions.slice(-8).reverse().map(x=>{const el=node('div',undefined,'item');el.append(node('strong',`${x.kind} · round ${x.round}`),node('p',x.text,'prewrap'));if(x.note)el.append(node('p',x.note,'muted'));if(x.evidence_ids)el.append(node('p','Evidence: '+x.evidence_ids.join(', '),'muted'));if(x.spans)x.spans.forEach(span=>el.append(node('span',`${span.label}: ${span.text}`,'tag')));if(x.classification)el.append(node('p',`Advisory class: ${x.classification}. Raw span scores are not calibrated confidence.`,'muted'));const b=node('button','Generate response audio','secondary');b.disabled=x.round!==s.round||!!s.speech;b.onclick=()=>speak('suggestion',x.id).catch(e=>notice(e.message));el.append(b);return el;}));
  $('history').replaceChildren(...s.history.map(h=>{const el=node('div',undefined,'item');el.append(node('strong',`Round ${h.round} · ${h.reason.replaceAll('_',' ')}`),node('p',h.summary));if(h.ai_explanation)el.append(node('p','AI mapping explanation: '+h.ai_explanation,'muted'));return el;}));
  $('ending').textContent=s.phase==='ended'?`Exercise ended: ${s.end_reason.replaceAll('_',' ')}. ${s.unresolved?'A voted action is unresolved. ':''}The records below remain available even if AI feedback fails.`:'Actual decisions will appear here.';
@@ -85,8 +92,16 @@ handle('submit',async()=>{await act('contribute',{text:$('contribution').value,s
 handle('finish',()=>act('finish'));handle('skip',()=>act('skip'));handle('retry',()=>act('retry'));
 handle('propose',()=>act('propose',{text:$('proposal').value}));
 handle('forget',async()=>{if(recording)await stopRecording();stopLocalAudio();const code=state?.code||'';try{await api('/api/command/leave',{command_id:uid()});}catch(e){if(e.status!==401)throw e;}token='';sessionStorage.removeItem('rehearsal_playtest_token');location.href='/?room='+encodeURIComponent(code);});
-for(const button of document.querySelectorAll('[data-agent]'))button.onclick=async()=>{try{notice('');await api('/api/agent/'+button.dataset.agent,{command_id:uid(),text:$('question').value});await refresh();}catch(e){notice(e.message);}};
-handle('extract',async()=>{await api('/api/agent/tracker',{command_id:uid(),contribution_id:state.contributions.at(-1).id});await refresh();});
+async function askAgent(kind,data={}){
+ if(agentSending||state?.jobs.some(j=>j.id===agentRequestId&&j.status==='pending'))return;
+ agentSending=true;agentRequestId=null;$('agentStatus').textContent='Sending your question…';renderControls();
+ try{const result=await api('/api/agent/'+kind,{command_id:uid(),text:$('question').value,...data});agentRequestId=result.id;$('agentStatus').textContent='Request queued. Waiting for '+kind+'…';await refresh();}
+ catch(e){$('agentStatus').textContent='Could not send: '+e.message;}
+ finally{agentSending=false;if(state)renderControls();}
+}
+for(const button of document.querySelectorAll('[data-agent]'))button.onclick=()=>askAgent(button.dataset.agent);
+$('question').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();$('askFacilitator').click();}});
+handle('extract',()=>askAgent('tracker',{contribution_id:state.contributions.at(-1).id}));
 async function speak(source,id){stopLocalAudio();notice('Generating speech. Captions remain visible.');const result=await api('/api/speak',{command_id:uid(),source,id});audioLease=result.id;const blob=await api('/api/audio/'+result.id,undefined,{blob:true});audioURL=URL.createObjectURL(blob);$('audio').src=audioURL;$('audio').hidden=false;notice('Audio ready. Press Play in the player.');await refresh();await health();}
 handle('read',()=>speak('inject'));
 handle('stopSpeech',async()=>{stopLocalAudio();await api('/api/speech/stop',{});await refresh();});

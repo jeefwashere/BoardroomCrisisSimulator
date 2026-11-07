@@ -1,1 +1,39 @@
+# Local environment variables and secrets
 .env
+.env.*
+!.env.example
+
+# Dependencies and virtual environments
+node_modules/
+.venv/
+venv/
+
+# Generated output and caches
+dist/
+build/
+coverage/
+.next/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Logs
+*.log
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Rehearsal session state, audio, and local test output
+.local/
+artifacts/
+
+.board/
+queue-config.json
+model-token
+queue-outbox.json
+*.sqlite
+*.sqlite-*
+
+# Legacy managed agent experiment, not the selected architecture
+/elevenlabs-agent.json

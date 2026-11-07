@@ -1,0 +1,3 @@
+import {sqliteTable,text,integer,index} from 'drizzle-orm/sqlite-core';
+export const jobs=sqliteTable('jobs',{id:text('id').primaryKey(),owner:text('owner').notNull(),model:text('model').notNull(),prompt:text('prompt').notNull(),status:text('status').notNull(),result:text('result'),error:text('error'),created:integer('created').notNull(),started:integer('started'),finished:integer('finished'),lease:text('lease')},t=>[index('jobs_owner').on(t.owner,t.created),index('jobs_queue').on(t.status,t.created)]);
+export const workers=sqliteTable('workers',{id:text('id').primaryKey(),seen:integer('seen').notNull()});

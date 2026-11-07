@@ -1,0 +1,10 @@
+import {identity,sameOrigin,db,reply,body,online,MODELS,END} from '@/lib/lab';
+export async function GET(r:Request){const owner=await identity(r);if(!owner)return reply({error:'Unauthorized'},401);const id=new URL(r.url).searchParams.get('id');const columns='id,model,prompt,status,result,error,created,finished';const q=id?db().prepare(`SELECT ${columns} FROM jobs WHERE owner=? AND id=?`).bind(owner,id):db().prepare(`SELECT ${columns} FROM jobs WHERE owner=? ORDER BY created DESC LIMIT 30`).bind(owner);return reply({jobs:(await q.all()).results});}
+export async function POST(r:Request){
+ const owner=await identity(r);if(!owner)return reply({error:'Unauthorized'},401);if(!sameOrigin(r))return reply({error:'Origin rejected'},403);
+ try{const b=await body(r);if(typeof b.prompt!=='string'||!b.prompt.trim()||b.prompt.length>4000||!MODELS.some(m=>m.id===b.model&&m.ready)||typeof b.request_id!=='string'||!/^[a-zA-Z0-9_-]{16,80}$/.test(b.request_id))return reply({error:'Supply an enabled model, prompt (1–4000 characters), and unique request_id (16–80 characters).'},400);
+ const old=await db().prepare('SELECT owner,model,prompt FROM jobs WHERE id=?').bind(b.request_id).first();if(old){if(old.owner===owner&&old.model===b.model&&old.prompt===b.prompt)return reply({id:b.request_id},202);return reply({error:'Request ID conflict'},409);}
+ if(Date.now()>=END)return reply({error:'GPU allocation ended'},503);if(!await online())return reply({error:'GPU worker is offline. Try again when it reconnects.'},503);
+ const result=await db().prepare("INSERT INTO jobs(id,owner,model,prompt,status,created) SELECT ?,?,?,?,'queued',? WHERE (SELECT COUNT(*) FROM jobs WHERE owner=? AND status IN ('queued','running'))<3 AND (SELECT COUNT(*) FROM jobs WHERE owner=? AND created>?)<60").bind(b.request_id,owner,b.model,b.prompt,Date.now(),owner,owner,Date.now()-3600000).run();if(!result.meta.changes)return reply({error:'Limit reached: 3 pending requests or 60 requests per hour.'},429);return reply({id:b.request_id},202);
+ }catch{return reply({error:'Invalid request'},400);}
+}

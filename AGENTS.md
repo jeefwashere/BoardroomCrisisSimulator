@@ -2,7 +2,7 @@
 
 These instructions apply to agents working in this repository.
 
-1. Read `TODO.md`, `docs/backend-spec.md`, and `docs/backend-architecture.md` before changing project files. `docs/backend-guide.zh.md` explains the same function scope in Chinese.
+1. Read `TODO.md`, `docs/backend-spec.md`, `docs/backend-architecture.md`, and `docs/ai-architecture.md` before changing project files. `docs/backend-guide.md` provides a readable overview of the same function scope.
 2. Use the existing task IDs in `TODO.md`. When assigned a task, record your agent name as owner and set its status to `in_progress` before editing its files. Check the latest remote changes before claiming work another agent may own.
 3. Keep changes within the assigned task. Preserve other agents' edits and completed task records. Do not overwrite the whole checklist to update one item.
 4. A task is complete only when its acceptance criteria have been checked and its implementation commit has been pushed successfully to the named remote branch. Verify the remote contains that commit. Local edits, a local commit, a proposed design, and a queued push do not count as completed implementation.
@@ -13,3 +13,16 @@ These instructions apply to agents working in this repository.
 9. Write ordinary prose without horizontal dash characters. Use numbered lists and `*` task checkbox syntax. Exact paths, identifiers, URLs, and code syntax retain their original spelling.
 
 This checklist is maintained by the agents through normal commits. It is not an installed automatic completion detector.
+
+## Required AI implementation direction
+
+1. Follow [docs/ai-architecture.md](docs/ai-architecture.md): Route A uses ElevenLabs for speech, LFM3 for local conversation, GLiNER for extraction, and the application backend for authority. Read [docs/agent-integration.md](docs/agent-integration.md) before connecting an application.
+2. Use the existing hosted HTTPS model API. Teammates and their application users do not need Velocity or ChatGPT accounts. Do not request the owner's SSH credentials or grant teammates cluster access. Only explicitly authorized cluster operators may use [GPU_ACCESS.d](GPU_ACCESS.d).
+3. Keep all keys on the backend. Never print or commit `.env.local`, use `NEXT_PUBLIC_` for credentials, or give teammates the whole environment file. Application credentials do not grant separate end user identities; enforce membership and job ownership in the application.
+4. Preserve the confirmed multiplayer voting and CEO rules. The older chair confirmation demo is a prototype, not a replacement for those requirements. The hosted model queue is not the game controller.
+5. Do not substitute OpenRouter, a commercial hosted LLM, the legacy managed ElevenLabs mood agent, or Route B without an explicit user decision. Do not infer permission from the presence of a provider key.
+6. Keep the eight logical responsibilities in the architecture document. Coordination, timers, permissions, and final state changes remain code. Models provide bounded suggestions and cannot cast votes, confirm decisions, assign roles, or rewrite history.
+7. Only `lfm3` and `gliner-base` are enabled. Other downloads are candidates requiring runtime and quality validation. Check service health and allocation expiry before live tests. Do not start duplicate workers or models.
+8. Voice spending defaults to zero. Preserve typed input and captions. Require a known price and authorized budget before paid calls; never mint an unmetered client token as a workaround.
+9. After relevant changes, run the prototype tests and demo described in [docs/prototype-guide.md](docs/prototype-guide.md). Keep production acceptance checks separate. A published model lab is not evidence that the FastAPI multiplayer or voice flow is complete.
+10. The hosted model lab lives in `sites/rehearsal-lab`. Reuse its `.openai/hosting.json` project ID, preserve its current audience, and follow the Sites publishing workflow when changing it. Keep completed response outboxes intact during worker recovery.

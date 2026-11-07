@@ -154,6 +154,8 @@ Demo happy path: A, with C accepted as a coherent alternative when the team expl
 7. Map the proposal to a prepared outcome only when its substance fits. An honest alternative need not use the facilitator's preferred wording. If it fits none of the authored outcomes, return `unable_to_map` for review rather than fabricate a new story edge.
 8. Invalid output, provider failure, or an unmappable choice remains visibly unresolved. The room may use its remaining permitted retry time or finish with a partial record. A late response cannot change an ended session.
 
+Integration follows the selected [AI architecture](../ai-architecture.md). This content package does not change the chosen providers or connect itself to the existing rehearsal prototype. The 15 second AI attempt budget is a proposed gameplay limit, not a verified latency of the shared model queue. The future adapter must send compact current evidence and allowed outcome IDs within the service's input limits rather than sending this entire facilitator script.
+
 ## 8. Happy path and debrief
 
 The prepared A, A, A sequence ends with service 75, protection 95, and trust 90. These values measure this game's authored tradeoffs only. The team has a controlled recovery plan, a verified export of at least 160 records, and an ongoing incident that still requires real work in the fictional world.

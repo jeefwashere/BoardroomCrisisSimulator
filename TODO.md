@@ -52,7 +52,7 @@ The user assigned Jeff the pages before game start and Ricardo the backend. Keep
 
 * [ ] D10 Establish the shared GitHub issue board for Ricardo and Jeff's coding agents.
 
-  Owner: Ricardo's Codex agent. Status: `in_progress`. Acceptance: one shared issue exists, a connection request is published, and the actual board link and read and reply commands are documented on `main`. Keep channel setup distinct from a verified reply by Jeff's agent. Progress: checked the current repository and found no existing issue board. Checks: Issues enabled and repository write access confirmed. Next action: create the board, publish the setup instructions, and check for a reply.
+  Owner: Ricardo's Codex agent. Status: `in_progress`. Acceptance: issue 6 exists, the connection request is published, and a local watcher automatically delivers peer comments to an exact existing Codex session using `codex queue --resume`, with deduplication and documented startup for each teammate. Keep local trigger verification distinct from a verified reply by Jeff's agent. Progress: the pinned issue and initial request are live; the automatic watcher and startup guide are implemented. Checks: 10 focused tests passed, including stale state and shared worktree regressions from an independent review; actual background startup, duplicate exclusion, and graceful stop passed. A real existing explanation session resumed and replied `BOARD_TRIGGER_OK`; the actual watcher delivery function then delivered explicitly synthetic data and received `BOARD_WATCHER_TRIGGER_OK`. Guide checks passed. Next action: publish the code, activate Ricardo's listener, and give Jeff the one time startup instructions. No reply from Jeff's agent has been observed.
 
 ## Product and content
 

@@ -51,6 +51,8 @@ const EDGE_GAP = 0.27
 const HAND_REST = { x: 0.235, y: TABLE.height + 0.03, z: EDGE_GAP + 0.07 }
 /** How far resting fingers open from the clip's clasped pose toward the open bind pose. */
 const FINGER_RELAX = 0.6
+/** Share of the clip's hand movement kept on top of the resting hands. Low keeps hands calm. */
+const GESTURE_SCALE = 0.15
 
 interface Seat {
   position: THREE.Vector3
@@ -157,19 +159,18 @@ class Avatar {
   }
 
   /**
-   * Two-bone IK that rests the hands on the tabletop. Applied after the animation pose, so the
-   * talking clip's hand movement survives as gestures above the table. Typing already lands on
-   * the desk and the disbelief reaction lifts the hands, so those fade the IK out.
+   * Two bone IK that keeps the hands resting on the tabletop in every mood, applied after the
+   * animation pose. The body still plays the full clip; only a small share of the clip's hand
+   * movement (GESTURE_SCALE) is kept, so the hands stay calm.
    */
-  placeHands(dt: number) {
-    const want = this.mood === 'sit' || this.mood === 'talk' ? 1 : 0
-    this.handWeight = THREE.MathUtils.damp(this.handWeight, want, 5, dt)
+  placeHands(_dt: number) {
     const w = this.handWeight
     if (w < 0.01) return
     const toWorld = this.group.getWorldQuaternion(new THREE.Quaternion())
     for (const arm of this.arms) {
       const animated = this.group.worldToLocal(arm.hand.getWorldPosition(new THREE.Vector3()))
-      const target = new THREE.Vector3(HAND_REST.x * arm.side, HAND_REST.y, HAND_REST.z).add(animated.clone().sub(arm.rest))
+      const gesture = animated.clone().sub(arm.rest).multiplyScalar(GESTURE_SCALE)
+      const target = new THREE.Vector3(HAND_REST.x * arm.side, HAND_REST.y, HAND_REST.z).add(gesture)
       target.y = Math.max(target.y, HAND_REST.y)
       target.lerpVectors(animated, target, w)
       const pole = new THREE.Vector3(0.6 * arm.side, -0.5, -0.6).normalize().applyQuaternion(toWorld)

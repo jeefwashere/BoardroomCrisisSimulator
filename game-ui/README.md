@@ -43,7 +43,7 @@ Re export the characters after changing a rig:
 ## Behaviour in the room
 
 1. Seats are 0.27 m from the table edge so the characters' arms reach the tabletop.
-2. Two bone arm IK rests both hands flat on the table beside the laptop with fingers relaxed. The talking clip's hand movement is layered on top as gestures. Typing uses the clip's own hands, which land on the keyboard, and the disbelief reaction fades the IK out so the hands can lift.
+2. Two bone arm IK keeps both hands resting flat on the table beside the laptop, with relaxed fingers, in every mood. The body plays the full clip, but only 15 percent of the clip's hand movement is kept (`GESTURE_SCALE` in `src/scene/Boardroom.ts`) so the hands stay calm.
 3. The active speaker plays the talking clip and everyone else turns their head toward them. During the vote everyone types. A net negative outcome triggers the disbelief reaction.
 4. The wall display shows the current decision and countdown. Name tags show each player's role, and "voted" appears on your own seat only because other ballots are private.
 
@@ -52,5 +52,5 @@ Re export the characters after changing a rig:
 1. Only 10 characters are rigged, so seats 11 to 30 are not drawn.
 2. Free text custom proposals (scenario `custom_action_policy`) and AI feedback have no screens yet.
 3. There is no lip sync or facial animation; the faces are not rigged.
-4. Hands can pass through each other or the laptop during large talking gestures; there is no collision.
+4. Arm and hand motion is intentionally minimal for now; there are no expressive gestures or hand collision.
 5. Checks so far were in desktop Chromium (Playwright) at 1440 by 880; mobile layouts are only roughly handled.

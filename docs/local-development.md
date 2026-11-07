@@ -1,6 +1,6 @@
 # Local development
 
-The merged application is running locally from `main` commit `affa5db7b66a0606bb51291e3579025a81f7ad93`, which includes PR 11. This guide covers the local development runtime only. Frontend room flows and the full multiplayer connection remain separate work under I04.
+The initial local runtime was verified from `main` commit `affa5db7b66a0606bb51291e3579025a81f7ad93`, which includes PR 11. Read the active source commit and process IDs from the ignored `.local/local-dev/processes.json` and PID files, and verify them against the running processes after each restart. This guide covers the local development runtime only. Frontend room flows and the full multiplayer connection remain separate work under I04.
 
 ## Open the application
 
@@ -16,7 +16,7 @@ There is one active backend application worker, supervised by the development re
 
 ## Current processes and logs
 
-At verification on November 7, 2026 at 22:44 UTC, the frontend PID was `58922`, the backend reloader PID was `58923`, and its current application worker PID was `59054`. The worker PID changes on reload. The services were launched as detached process sessions and remained reachable from subsequent independent commands.
+At verification on November 7, 2026 at 22:44 UTC, the frontend PID was `58922`, the backend reloader PID was `58923`, and its application worker PID was `59054`. The worker PID changes on reload. The services were launched as detached process sessions and remained reachable from subsequent independent commands.
 
 The ignored `.local/local-dev/` directory contains `frontend.pid`, `backend.pid`, both log files, and `processes.json`. The JSON records the original launch, exact commands, owner thread, and verified worker PID. Treat it as a snapshot after later manual restarts. The PID files below are refreshed by the restart commands.
 
@@ -76,7 +76,7 @@ curl --fail http://127.0.0.1:8000/docs
 1. HTTP requests to the frontend, API documentation, and health endpoint returned 200. Health returned `{"status":"ok","storage":"memory"}`. The existing Python environment passed `pip check`, and the frontend dependencies installed with `npm ci` from the app lock file.
 2. An actual Chrome page observed a temporary Home text marker through a Vite `js-update` frame. A window sentinel survived and the document did not navigate. The original text returned after restoration. Original source bytes and SHA256 were identical afterward, and the probe files had no Git diff.
 3. A harmless mtime touch of `backend/app/main.py` replaced worker PID `58925` with `59054` while reloader PID `58923` stayed alive. Health returned 200 afterward. The Python source bytes and SHA256 stayed unchanged.
-4. Local evidence is in `.local/local-dev/hmr-verification.json` and `.local/local-dev/backend-reload-verification.json`. The task owned browser target was closed and its exact lease released. The HTTP servers remain running.
+4. Local evidence is in `.local/local-dev/hmr-verification.json` and `.local/local-dev/backend-reload-verification.json`. The task owned browser target was closed and its exact lease released. The HTTP servers remained running at that initial verification.
 5. These checks verify local automatic updates. They do not verify frontend room API integration, gameplay WebSockets, microphone capture, transcription, paid speech, complete multiplayer play, cloud hosting, or durable state. I04 remains unchecked.
 
 [Vite documents its development server and HMR](https://vite.dev/guide/). The installed Uvicorn CLI was checked with `backend/.venv/bin/python -m uvicorn --help` for `--reload`, `--reload-dir`, and the worker restriction. [Uvicorn documents development reload settings](https://www.uvicorn.org/settings/#development).

@@ -24,6 +24,10 @@ Status values: `available`, `in_progress`, `waiting`, `done`, `optional`, `defer
 
   Owner: coordinating Codex agent. Status: `done`. Acceptance: agents can find the checklist, task IDs, ownership, acceptance criteria, and completion evidence rules from the repository root. Evidence: completion record 2.
 
+* [ ] D05 Publish the English agent board setup guide.
+
+  Owner: Codex documentation agent. Status: `in_progress`. Acceptance: teammates can configure a shared issue, authenticate separately, exchange a message, and understand agent waiting and shared branch coordination. Publish the guide on `main` and verify the remote commit. No live board installation or message delivery is implied by document publication.
+
 ## Product and content 产品与剧本
 
 * [ ] P01 Record the remaining product choices. 记录尚未确定的玩法规则。

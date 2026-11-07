@@ -1,8 +1,8 @@
 function BoardroomIcon() {
     return (
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <rect x="4" y="7" width="16" height="10" rx="4" />
-            <path d="M8 4v3m8-3v3M8 17v3m8-3v3M1 12h3m16 0h3" />
+        <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <rect x="10" y="5" width="12" height="22" rx="5" />
+            <path d="M5 9v4m0 6v4M27 9v4m0 6v4M14 1h4m-4 30h4" />
         </svg>
     )
 }

@@ -1,6 +1,6 @@
 # MapleCart: a cybersecurity crisis in 18 minutes
 
-Version 1. Fictional scenario draft for the Boardroom Crisis Simulator. Recommended group: 3 to 6 players. The current application capacity is 30. The immutable version 1 data retains its original 20 seat planning metadata; it is not the current application capacity rule. A revised scenario version is needed before using that metadata for the new Start handoff. This is a playable script and data draft, not a running backend or a validated training programme.
+Version 2. Fictional scenario draft for the Boardroom Crisis Simulator. Recommended group: 3 to 6 players. Version 2 carries the current application capacity of 30 and is admitted for the Start handoff. Immutable version 1 remains available as historical content. This is a playable script and data draft, not a running backend or a validated training programme.
 
 ## 1. Research behind the format
 
@@ -39,9 +39,9 @@ For 30 players, the 150 second speaking pool allows 5 seconds per person. If all
 
 Share these documents with every player:
 
-1. [Company and role briefing](../../scenarios/cybersecurity_demo/v1/briefing.md).
-2. [Initial evidence](../../scenarios/cybersecurity_demo/v1/initial-evidence.md).
-3. [Service and recovery notes](../../scenarios/cybersecurity_demo/v1/operations.md).
+1. [Company and role briefing](../../scenarios/cybersecurity_demo/v2/briefing.md).
+2. [Initial evidence](../../scenarios/cybersecurity_demo/v2/initial-evidence.md).
+3. [Service and recovery notes](../../scenarios/cybersecurity_demo/v2/operations.md).
 
 The company, records, deadlines, incident facts, and outcomes are fictional. No real attack or live system action is performed. Initial meters are service continuity 60, data protection 60, and public trust 60, each bounded from 0 to 100. These are educational game values chosen for this draft.
 
@@ -172,6 +172,6 @@ For AI feedback, use the committed record and these rubric dimensions. Do not ge
 
 ## 9. Data artifact and validation boundary
 
-The proposed data representation is [scenario.json](../../scenarios/cybersecurity_demo/v1/scenario.json). Its `schema_version` is explicitly `draft.1` because the application loader has not been implemented. It contains the timing profiles, public documents, role combinations, three nodes, options, permitted outcomes, carried facts, and expected happy path.
+The proposed data representation is [scenario.json](../../scenarios/cybersecurity_demo/v2/scenario.json). Its `schema_version` is explicitly `draft.1` because the application loader has not been implemented. It contains the timing profiles, public documents, role combinations, three nodes, options, permitted outcomes, carried facts, and expected happy path.
 
 Static validation checks all references, the three step decision sequence, all 64 prepared and no decision combinations, metric bounds, expected happy path meters, and timing arithmetic. It does not establish playtest duration, AI quality, API compatibility, or live multiplayer behavior.

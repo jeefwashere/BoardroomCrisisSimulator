@@ -1,10 +1,10 @@
-# First FastAPI room capability
+# FastAPI room registration and snapshots
 
-Status: implemented lobby scope. This delivery supports creating a room, joining by code, and reading its member snapshot. Jeff owns the frontend pages before game start. This change supplies their backend contract and does not edit those pages.
+Status: room registration, snapshots, batch Start, and initial briefing are implemented. See [start-api.md](start-api.md) for the new Start operation and late admission contract. Jeff owns the frontend pages before game start. This change supplies their backend contract and does not edit those pages.
 
 ## Confirmed decisions
 
-Updated product direction: Jeff generates the room code and owns lobby role selection. The host submits the room code, members, and selected roles together when clicking Start. At least 3 participants are required to start, capacity is 30, and new participants may join after start. The current published lobby API does not yet implement the Start handoff or gameplay admission. Identity handoff and late join participation timing remain under clarification.
+Updated product direction: Jeff generates the room code and owns lobby role selection. The host submits the room code, members, and selected roles together when clicking Start. At least 3 participants are required to start, capacity is 30, and new participants may join after start. Lobby clients register their individual identities before Start. The Start handoff and late admission are now implemented; new arrivals first participate in round 2. Speaking, voting, and subsequent phase advancement remain later work.
 
 1. The creator is the host and occupies one of the 30 seats.
 2. Names are trimmed, then compared using Unicode case folding within each room. The trimmed spelling is displayed. Names contain 1 to 40 printable characters. The same name may exist in different rooms.
@@ -43,12 +43,15 @@ One browser profile has one seat per room. Tabs sharing the cookie share that se
 3. `POST /api/rooms`: authenticated create, returns `201` with the room snapshot and host seat.
 4. `POST /api/rooms/join`: authenticated join, returns `200` with the caller's snapshot.
 5. `GET /api/rooms/{room_id}`: authenticated member snapshot, returns `200`.
+6. `GET /api/scenarios`: public admitted scenario references, roles, and timing profiles.
+7. `POST /api/rooms/{room_id}/start`: authenticated host submits the complete roster and selected roles. See [start-api.md](start-api.md).
 
 Create body:
 
 ```json
 {
   "command_id": "79fc9905-0060-4ac4-8636-0ffdd3308437",
+  "room_code": "K7MPQ2",
   "display_name": "Ricardo"
 }
 ```
@@ -63,7 +66,7 @@ Join body:
 }
 ```
 
-Codes contain six characters from `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`. Input codes accept lowercase and surrounding whitespace. The example code is illustrative; use the actual create response.
+Jeff generates codes before calling create. Codes contain six ASCII letters or digits, normalized to uppercase after trimming. Create requires the supplied code, and a collision returns `409 room_code_taken` so the frontend can generate another. The backend does not generate a replacement. The example code is illustrative; use the actual create response.
 
 Every successful room response has this shape:
 
@@ -74,32 +77,42 @@ Every successful room response has this shape:
   "room_version": 2,
   "phase": "lobby",
   "capacity": 30,
+  "presence_window_seconds": 30,
+  "game": null,
   "host_member_id": "9d716cd1-a7c8-4e73-a8ac-a05634972559",
   "self_member_id": "4d9f5d4a-a9b9-412a-9bf4-dd673cabef79",
   "members": [
     {
       "member_id": "9d716cd1-a7c8-4e73-a8ac-a05634972559",
       "display_name": "Ricardo",
-      "is_host": true
+      "is_host": true,
+      "connected": true,
+      "role_id": null,
+      "eligible_from_round": null,
+      "eligible_current_round": false
     },
     {
       "member_id": "4d9f5d4a-a9b9-412a-9bf4-dd673cabef79",
       "display_name": "Jeff",
-      "is_host": false
+      "is_host": false,
+      "connected": true,
+      "role_id": null,
+      "eligible_from_round": null,
+      "eligible_current_round": false
     }
   ]
 }
 ```
 
-Member IDs and host flags are server assigned. Clients cannot submit them. The snapshot contains all joined seats, not live connection presence. It does not claim a connected count or start eligibility. Host authority does not imply CEO authority. Roles are not assigned in this capability.
+Member IDs and host flags are server assigned. Clients cannot submit them. The snapshot contains all joined seats and server observed activity. A member is connected while its last authenticated room activity is less than 30 seconds old. This is polling presence; it does not instantly detect closed tabs. Host authority does not imply CEO authority. Roles remain null in the lobby and are assigned atomically on Start. See [start-api.md](start-api.md).
 
 ## Retries and polling
 
 Generate a UUID `command_id` once for each user intent. Retain that ID and body for transport retries. A different intent needs a new ID. IDs are scoped to the browser session across create and join commands. An exact successful retry returns the original snapshot without another room or seat. Reusing an ID with a different normalized body returns `409 command_conflict`. Failed attempts are not saved as successful receipts.
 
-Rejoining the same room with the same browser and equivalent name returns the existing seat even with a new command ID or when the room is full. Entering a different name from that browser returns `409 already_joined`; rename and switching seats are not implemented. Clearing the cookie does not release its old seat. Room capacity counts joined seats, including disconnected browsers, until a later lifecycle capability provides removal.
+Rejoining the same room with the same browser and equivalent name returns the existing seat even with a new command ID or when the room is full. After Start it also retains the assigned role and eligibility; a different role is rejected. A new member joining after Start must supply an allowed non CEO `role_id`. Entering a different name from that browser returns `409 already_joined`; rename and switching seats are not implemented. Clearing the cookie does not release its old seat. Room capacity counts joined seats, including disconnected browsers, until a later lifecycle capability provides removal.
 
-After create or join, poll `GET /api/rooms/{room_id}` about every two seconds. Permit one outstanding poll at a time and stop polling when leaving the page. For the same room, discard a response with a lower `room_version` than the latest rendered snapshot. Exact command retries intentionally return their original version, which may now be older. A new join increments the version once; reads and duplicate joins do not.
+After create or join, poll `GET /api/rooms/{room_id}` about every two seconds. Permit one outstanding poll at a time and stop polling when leaving the page. For the same room, discard a response with a lower `room_version` than the latest rendered snapshot. Exact command retries intentionally return their original version, which may now be older. A new join or successful Start increments the version once; reads and duplicate commands do not. Activity may change at the same version, so apply current GET responses even if the version is equal. Successful retries refresh their caller's activity but return the unchanged historical receipt.
 
 ## Frontend example for Jeff
 
@@ -126,7 +139,9 @@ async function request(path, body) {
 await request("/api/session");
 
 // Host form. Keep this body unchanged when retrying a failed connection.
+const generatedRoomCode = "K7MPQ2"; // Example; use the code generated by the lobby.
 const createBody = {
+  room_code: generatedRoomCode,
   command_id: crypto.randomUUID(),
   display_name: "Ricardo",
 };
@@ -168,7 +183,8 @@ Domain errors use this envelope:
 6. `409 room_full`: a new seat would exceed 30.
 7. `409 already_joined`: this browser already owns a differently named seat in that room.
 8. `409 command_conflict`: a successful command ID was reused for a different intent.
-9. `422`: FastAPI validation errors use its normal `detail` array, including missing UUIDs, malformed codes, invalid names, and unexpected fields.
+9. `409 room_code_taken`: choose another frontend generated code. Start and late join errors are listed in [start-api.md](start-api.md).
+10. `422`: FastAPI validation errors use its normal `detail` array, including missing UUIDs, malformed codes, invalid names, and unexpected fields.
 
 ## Verification
 
@@ -178,7 +194,7 @@ In another terminal while the server above is running:
 backend/.venv/bin/python -m backend.smoke
 ```
 
-This creates one room using three separate HTTP clients, joins two players, checks the shared snapshot, replays a join, and rejects an unrelated session. It also requests health, `/docs`, and `/openapi.json`. Its result describes the local lobby only.
+This registers three distinct clients, rejects an unrelated session and a CEO attempting to start, starts through the host, replays Start, and admits a fourth client with round 2 eligibility. It also requests health, `/docs`, `/openapi.json`, and the scenario catalog. The original first round electorate stays at three. Its result describes initial briefing only.
 
 Automated checks:
 
@@ -192,4 +208,4 @@ The lobby tests cover authorization, host capacity, normalized names, duplicate 
 
 ## Remaining work
 
-B01 is eligible for completion after startup and publication verification. B02 remains partial because roles, connected presence, minimum start count, and start are not implemented. I01 remains partial because the complete game contract is not implemented. Polling, refresh, and these local clients do not complete B05, B13, I02, I03, or deployment I04. Scenario selection, speaking, voting, CEO ties, AI, and WebSocket delivery follow in separate capabilities.
+B02 acceptance now covers code based registration, capacity 30, polling presence, host controlled Start, and distinct CEO authority. Completion still requires verified publication under [TODO.md](../TODO.md). B03 and I01 remain partial: consequence execution and the complete game contract are not implemented. Polling, refresh, and these local clients do not complete B05, B13, I02, I03, or deployment I04. Speaking, voting, CEO ties, AI, WebSocket delivery, and automatic phase advancement follow separately.

@@ -1,9 +1,26 @@
+@font-face {
+  font-family: 'Figtree';
+  src: url('./assets/fonts/Figtree-Variable.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 300 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Figtree';
+  src: url('./assets/fonts/Figtree-Italic-Variable.ttf') format('truetype');
+  font-style: italic;
+  font-weight: 300 900;
+  font-display: swap;
+}
+
 :root {
   --paper: #f6f5ef;
   --ink: #213c32;
   --muted: #687065;
   --accent: #ae5238;
   --border: #dedfd5;
+  --font-heading: 'Figtree', 'Segoe UI', Arial, sans-serif;
 
   font-family: 'Segoe UI', Arial, sans-serif;
   color: var(--ink);
@@ -20,6 +37,8 @@
 body { min-width: 320px; margin: 0; }
 
 button { font: inherit; }
+
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); }
 
 p { margin: 0; }
 

@@ -118,6 +118,16 @@ The user assigned Jeff the pages before game start and Ricardo the backend. Keep
 
   Owner: unassigned. Status: `available`. Acceptance: the same member returns to the same seat and existing vote while the meeting and clocks continue; refresh does not add a voter or replay a decision. Requires B02, B04, and B05. Supports F09. Server restart recovery is deferred.
 
+## Game client and 3D assets
+
+* [ ] G01 Build the in game screens and a browser 3D boardroom with the ten rigged characters.
+
+  Owner: Arjun's Claude agent. Status: `in_progress`. Branch: `arjun/game-ui-3d`. Progress: branch created from `main` at `b5d6fcb`. Scope: briefing, speaking turns, the 60 second vote, the CEO tie decision, results and debrief, plus a three.js boardroom with characters `01` to `10` seated and animated from their Mixamo rigs. Jeff's pre game pages on `website` are not changed. Gameplay endpoints are not implemented yet, so the screens use a mock adapter shaped to the documented room API. Checks: none yet. Next action: export the ten rigged characters for the web, then build the screens.
+
+* [ ] G02 Generate boardroom set and prop models with Nano Banana images and TRELLIS.2.
+
+  Owner: Arjun's Claude agent. Status: `in_progress`. Progress: the user assigned Velocity job 20031 for this work. Its GPU also serves the hosted LFM3 API, so free GPU memory is checked before any TRELLIS.2 run. Checks: none yet. Next action: generate reference images, run TRELLIS.2 on job 20031, and optimize the meshes for the browser.
+
 ## Integration and verification
 
 * [ ] I01 Publish the frontend API and snapshot contract with examples.

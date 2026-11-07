@@ -1,6 +1,6 @@
 # Local AI and voice playtest
 
-This isolated experiment adds a minimal FastAPI browser application on branch `experiment/ai-voice-playtest`. It does not replace Ricardo's `backend/app`, Jeff's frontend, or the shared model lab. Production task IDs remain open.
+This isolated experiment adds a minimal FastAPI browser application on branch `experiment/ai-voice-playtest`. It does not replace Ricardo's `backend/app`, Jeff's frontend, or the shared model lab. Production task states and ownership are preserved.
 
 ## Start it
 
@@ -44,7 +44,7 @@ The application uses one process and one worker. Rooms, credentials, command rec
 6. LFM3 mapping of the winning custom action to an allowed outcome. Output must contain only `outcome_id` and `explanation`; code applies the authored metrics and next node. Invalid or late results do not change a decision. One explicit retry is available within the original 30 second resolution window, only after the earlier provider job settles. Failure stays visible and ends with an unresolved action.
 7. Facilitator, IT character, and journalist replies selected by LFM3 from currently released evidence. The published wording is authored evidence, which prevents invented facts and prevents future outcome leakage. These roles are intentionally narrower than unrestricted conversation.
 8. GLiNER extraction from a selected committed contribution. Exact offsets and source text are validated. Extracted owners, deadlines, relations, and classes remain suggestions. Mentioning an owner does not record acceptance.
-9. A deterministic decision checker, observed participation counts and question counts, and an optional LFM3 debrief based on committed history. No emotional, personality, competence, or psychological scoring is produced.
+9. A deterministic decision checker, observed participation counts and question counts, and an optional LFM3 selection of authored debrief reflections tied to committed history. No emotional, personality, competence, or psychological scoring is produced.
 10. Explicit ElevenLabs audio generation, single device playback leases, shared cancellation, short microphone or WAV transcription, editable provisional text, and explicit contribution commitment.
 
 The eight logical responsibilities map to authored preparation, LFM3 facilitation, LFM3 evaluation plus factual fallback, code turn coordination, GLiNER tracking, code timekeeping, code decision checking, and observational climate feedback. They do not require eight independently loaded models. Only `lfm3` and `gliner-base` are enabled. No OpenRouter, commercial LLM fallback, or legacy managed ElevenLabs mood agent is used.
@@ -63,7 +63,7 @@ Generated audio is limited to 500 characters. Captions are the exact generated p
 
 ## Scenario and protocol boundaries
 
-The immutable authored MapleCart v1 package supplies the scenario. This experiment explicitly overrides its older 20 seat metadata to use the current required 30 seat room capacity; the original package is unchanged and the override appears in snapshots. Only the current situation, public documents, visible choices, and already committed history reach clients. Outcomes and custom rubrics stay on the server until the applicable decision.
+The immutable authored MapleCart v2 package supplies the scenario, including its updated 30 seat capacity. The branch includes the latest production Start delivery from `main` at `b5d6fcb`; the experiment remains a separate application. Only the current situation, public documents, visible choices, and already committed history reach clients. Outcomes and custom rubrics stay on the server until the applicable decision.
 
 The three new fixture packs in the supplied revision use two eligible votes plus chair confirmation, conflicting with the selected production majority and CEO tie policy. They are not silently installed as alternative production game modes here. Arbitrary document ingestion, streaming audio, WebSocket delivery, long term recovery, shared Internet hosting, and the seven downloaded but disabled models remain outside this test build. One second polling supplies the minimal UI.
 
@@ -99,3 +99,5 @@ The explicitly paid speech smoke requires an enabled server credit cap and an ex
 ```
 
 Reports go to ignored `artifacts/`. These HTTP checks do not establish human microphone capture or visual browser quality. The current hosted GPU allocation ends November 8, 2026 at 15:46:25 UTC, which is 10:46:25 AM Toronto. The app remains usable for authored play when models are unavailable; custom outcomes and AI feedback explicitly report failure. This branch does not start, stop, or release any GPU job.
+
+An observed live quality failure shaped the final debrief boundary: unrestricted LFM3 prose incorrectly described an exported minimum as a final scope and treated a breach detail as a strength. The final implementation therefore lets LFM3 select authored, evidence linked reflections and publishes their exact wording. It does not publish unrestricted debrief prose.

@@ -212,6 +212,21 @@ class AgentJobTests(unittest.TestCase):
     advance = GameTests.advance
     discussion = GameTests.discussion
     # Keep job completion checks at the actual run boundary, including event recording.
+    def test_unrestricted_debrief_claims_are_rejected(self):
+        self.discussion()
+        self.cmd(self.a, 'end')
+        provider = FakeProvider()
+        agents = Agents(self.e, provider)
+        model, prompt, context = agents.prompt(self.r, 'debrief', {})
+        jid = uuid.uuid4().hex
+        self.r['jobs'][jid] = {'id':jid,'kind':'debrief','status':'pending','error':None}
+        with patch.object(provider, 'run', return_value={'text':'The minimum export count is final and recovery is complete.'}):
+            agents.run(self.code, jid, model, prompt, context)
+        self.assertEqual(self.r['jobs'][jid]['status'], 'failed')
+        self.assertIsNone(self.r['feedback'])
+        self.assertEqual(self.r['suggestions'], [])
+        agents.close()
+
     def test_character_tracker_debrief_jobs_finish_and_failures_are_visible(self):
         self.discussion()
         self.cmd(self.a, 'contribute', text='Jeff will call IT by 3 PM.')
@@ -222,7 +237,7 @@ class AgentJobTests(unittest.TestCase):
                     return {'kind':'proposal','spans':[{'start':0,'end':4,'text':'Jeff','label':'person','raw_score':.9},
                                                        {'start':0,'end':4,'text':'FAKE','label':'person'}]}
                 if 'debrief' in prompt:
-                    return {'text':'No completed decision is in the record yet.'}
+                    return {'text':'{"evidence_ids":["no_decision"]}'}
                 return {'text':'{"evidence_ids":["current_situation"]}'}
         agents = Agents(self.e, Provider())
         for kind in ('facilitator','it','journalist','tracker','debrief'):

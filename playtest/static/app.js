@@ -3,6 +3,7 @@ const $ = id => document.getElementById(id);
 let token = sessionStorage.getItem('rehearsal_playtest_token') || '';
 let state = null, roleDraft = {}, roomKey = '', audioLease = null, audioURL = null;
 let clip = null, recording = null, transcriptSource = 'typed', polling = false;
+const busy = new Set();
 const uid = () => crypto.randomUUID();
 function notice(text) { $('notice').textContent = text; }
 function node(tag, text, className) { const el=document.createElement(tag); if(text !== undefined) el.textContent=text; if(className) el.className=className; return el; }
@@ -15,7 +16,7 @@ async function api(path, body, options={}) {
   return options.blob ? res.blob() : res.json();
 }
 async function act(action, data={}) {await api('/api/command/'+action,{...data,command_id:uid()}); await refresh();}
-function handle(id, fn) {$(id).addEventListener('click', async event => {const button=event.currentTarget; button.disabled=true; try {notice(''); await fn();} catch(e){notice(e.message);} finally{button.disabled=false; if(state) renderControls();}});}
+function handle(id, fn) {$(id).addEventListener('click', async event => {const button=event.currentTarget; if(busy.has(id))return; busy.add(id); button.disabled=true; try {notice(''); await fn();} catch(e){notice(e.message);} finally{busy.delete(id); button.disabled=false; if(state) renderControls();}});}
 function name(mid) {return state?.members.find(m=>m.id===mid)?.name || 'Member';}
 function stopLocalAudio(){const a=$('audio');a.pause();a.removeAttribute('src');a.hidden=true;if(audioURL) URL.revokeObjectURL(audioURL);audioURL=null;audioLease=null;}
 function canContribute(){return state?.phase==='discussion' && state.electorate.includes(state.self) && (!state.speaker || state.speaker===state.self);}
@@ -36,6 +37,8 @@ function renderControls(){
  $('retry').hidden=!(host&&s.phase==='resolution_failed');
  document.querySelectorAll('[data-agent]').forEach(b=>b.disabled=s.phase==='lobby'||(b.dataset.agent==='debrief'&&s.phase!=='ended'));
  $('extract').disabled=!s.contributions.length;
+ $('stopRecord').disabled=!recording;
+ for(const id of busy)$(id).disabled=true;
 }
 function render(){
  const s=state; $('entry').hidden=true;$('room').hidden=false;

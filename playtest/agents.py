@@ -107,11 +107,21 @@ class Agents:
                                   'rubric': node['custom_rubric'], 'allowed': choices}, ensure_ascii=False))
             return 'lfm3', prompt, context
         if kind == 'debrief':
-            records = [{'round': h['round'], 'summary': h['summary'], 'reason': h['reason']} for h in r['history']]
-            prompt = ('Give a short board exercise debrief: one strength, one risk, one next practice. '
-                      'Use only these committed records. Distinguish plans from completed work. Never grade emotions.\n' +
-                      json.dumps({'decisions': records, 'unresolved': r['unresolved'], 'ended': r['end_reason']}))
-            return 'lfm3', prompt[:4000], context
+            evidence = []
+            for record in r['history']:
+                question = e.nodes[record['node']]['study_questions'][0]
+                evidence.append({'id': 'round_' + str(record['round']),
+                                 'text': f"Round {record['round']}: {record['summary']} Reflection: {question}"})
+            if r['unresolved']:
+                evidence.append({'id': 'unresolved', 'text': 'A voted custom action remains unresolved. No outcome or score was invented. Review why resolution did not finish.'})
+            if not evidence:
+                evidence.append({'id': 'no_decision', 'text': 'No decisions were committed before the exercise ended. Practise completing a discussion and vote within the available time.'})
+            context['evidence'] = evidence
+            prompt = ('Select up to three useful debrief reflections from the committed exercise record. '
+                      'Output JSON only: {"evidence_ids":["id"]}. Select only listed IDs. '
+                      'Do not generate new claims or treat a verified minimum export count as a final scope.\n' +
+                      json.dumps({'evidence': evidence}, ensure_ascii=False))
+            return 'lfm3', prompt, context
         question = bounded_text(data.get('text', 'What should we clarify next?'), 500)
         evidence = [{'id': 'current_situation', 'text': e.inject(r)}]
         evidence += [{'id': f'question_{i}', 'text': q} for i, q in enumerate(node['study_questions'])]
@@ -166,8 +176,13 @@ class Agents:
             suggestion = {'kind': kind, 'text': 'Extracted spans require human review.', 'spans': spans,
                           'contribution_id': context['contribution']['id'], 'classification': str(result.get('kind', 'unknown'))[:100]}
         elif kind == 'debrief':
-            suggestion = {'kind': kind, 'text': bounded_text(result.get('text'), 5000),
-                          'note': 'AI practice suggestions. The committed decision history is authoritative.'}
+            ids = parse_object(result['text']).get('evidence_ids')
+            evidence = {x['id']: x['text'] for x in context['evidence']}
+            require(isinstance(ids, list) and 1 <= len(ids) <= 3 and
+                    all(isinstance(i, str) and i in evidence for i in ids), 'Invalid debrief references')
+            suggestion = {'kind': kind, 'text': '\n\n'.join(evidence[i] for i in dict.fromkeys(ids)),
+                          'evidence_ids': ids,
+                          'note': 'LFM3 selected authored reflections linked to committed history. The full decision record remains authoritative.'}
             r['feedback'] = suggestion
         else:
             if r['node'] != context['node'] or r['round'] != context['round'] or r['phase'] == 'ended':

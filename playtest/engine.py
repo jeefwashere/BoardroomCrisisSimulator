@@ -11,7 +11,7 @@ import time
 import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
-SCENARIO = ROOT / 'scenarios/cybersecurity_demo/v1/scenario.json'
+SCENARIO = ROOT / 'scenarios/cybersecurity_demo/v2/scenario.json'
 
 
 class RuleError(Exception):
@@ -345,7 +345,7 @@ class Engine:
                 'speaker': r.get('speaker') if r['phase'] == 'discussion' else None,
                 'speaker_deadline': r.get('speaker_deadline') if r['phase'] == 'discussion' else None,
                 'electorate': r['electorate'], 'roles': self.scenario['roles'],
-                'scenario': {'id': self.scenario['scenario_id'], 'version': self.scenario['version'], 'experimental_capacity_override': 30},
+                'scenario': {'id': self.scenario['scenario_id'], 'version': self.scenario['version']},
                 'title': self.scenario['title'], 'node_title': node['title'] if active else None,
                 'inject': self.inject(r) if active else '', 'study_questions': node['study_questions'] if active else [],
                 'options': (r.get('options', []) + (list(r['proposals'].values()) if r['phase'] == 'discussion' else [])),

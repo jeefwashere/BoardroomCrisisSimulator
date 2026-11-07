@@ -4,6 +4,7 @@ let token = sessionStorage.getItem('rehearsal_playtest_token') || '';
 let state = null, roleDraft = {}, roomKey = '', audioLease = null, audioURL = null;
 let clip = null, recording = null, transcriptSource = 'typed', polling = false;
 const busy = new Set();
+let chatVersion = "";
 const uid = () => crypto.randomUUID();
 function notice(text) { $('notice').textContent = text; }
 function node(tag, text, className) { const el=document.createElement(tag); if(text !== undefined) el.textContent=text; if(className) el.className=className; return el; }
@@ -42,6 +43,10 @@ function renderControls(){
 }
 function render(){
  const s=state; $('entry').hidden=true;$('room').hidden=false;
+ document.title=`${name(s.self)} · ${s.code} · Rehearsal`;
+ $('chatLabel').textContent=`Message as ${name(s.self)}`;
+ const nextChatVersion=s.code+':'+(s.chat?.at(-1)?.id||'empty');
+ if(chatVersion!==nextChatVersion){chatVersion=nextChatVersion;$('chatMessages').replaceChildren(...(s.chat||[]).map(m=>{const el=node('div',undefined,'item');el.append(node('strong',name(m.member)),node('p',m.text,'prewrap'));return el;}));$('chatMessages').scrollTop=$('chatMessages').scrollHeight;}
  $('roomLabel').textContent=`ROOM ${s.code} · ${s.members.length}/30 · YOU ARE ${name(s.self)}`;
  $('phase').textContent=s.phase.replaceAll('_',' ');$('phase').style.textTransform='capitalize';
  $('newTab').href='/?room='+s.code;$('newTab').textContent='Open another seat';
@@ -51,7 +56,7 @@ function render(){
  $('metrics').replaceChildren(...Object.entries(s.metrics).map(([key,value])=>{const el=node('div',key.replaceAll('_',' '),'metric');el.append(node('strong',value));return el;}));
  const peopleKey=s.phase+JSON.stringify(s.members.map(m=>[m.id,m.role,m.connected]));
  if(roomKey!==peopleKey&&!$('people').contains(document.activeElement)){
-   roomKey=peopleKey; $('people').replaceChildren(...s.members.map(m=>{const el=node('div',undefined,'person');el.append(node('strong',`${m.name}${m.id===s.host?' · host':''}${m.connected?'':' · away'}`));if(s.phase==='lobby'&&s.self===s.host){const select=node('select');select.setAttribute('aria-label',m.name+' role');s.roles.forEach(r=>{const opt=node('option',r.name);opt.value=r.id;select.append(opt);});select.value=roleDraft[m.id]||m.role;select.onchange=()=>roleDraft[m.id]=select.value;el.append(select);}else{el.append(node('span',m.role.replaceAll('_',' '),'muted'));}return el;}));
+   roomKey=peopleKey; $('people').replaceChildren(...s.members.map(m=>{const el=node('div',undefined,'person');el.append(node('strong',`${m.name}${m.id===s.host?' · host':''}${m.connected?'':' · away'}`));el.append(node('span','ID '+m.id.slice(0,8),'muted'));if(s.phase==='lobby'&&s.self===s.host){const select=node('select');select.setAttribute('aria-label',m.name+' role');s.roles.forEach(r=>{const opt=node('option',r.name);opt.value=r.id;select.append(opt);});select.value=roleDraft[m.id]||m.role;select.onchange=()=>roleDraft[m.id]=select.value;el.append(select);}else{el.append(node('span',m.role.replaceAll('_',' '),'muted'));}return el;}));
  }
  $('eligibility').textContent=s.phase==='lobby'?'Exactly one CEO. Every eligible participant has one equal vote.':s.electorate.includes(s.self)?'You are eligible in this round.':'You join speaking and voting next round.';
  $('turn').textContent=s.phase==='discussion'?(s.speaker?`Speaking now: ${name(s.speaker)}`:'Open discussion: anyone eligible may contribute.'):'Contributions open during discussion. Draft text stays here between phases.';
@@ -105,3 +110,6 @@ health();if(token)loadRoom().catch(e=>notice(e.message));
 setInterval(refresh,1000);setInterval(health,15000);setInterval(renderClock,250);
 
 handle('checkDecision',async()=>{const result=await api('/api/command/check_decision',{command_id:uid()});$('decisionCheck').textContent=result.text+'\nEvidence: '+result.evidence+'\n'+result.ownership_note;});
+
+handle('sendChat',async()=>{await act('chat',{text:$('chatText').value});$('chatText').value='';});
+$('chatText').addEventListener('keydown',event=>{if(event.key==='Enter'&&(event.ctrlKey||event.metaKey)){event.preventDefault();$('sendChat').click();}});

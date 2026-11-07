@@ -72,7 +72,7 @@ class Engine:
                 while code in self.rooms:
                     code = ''.join(secrets.choice('ABCDEFGHJKLMNPQRSTUVWXYZ23456789') for _ in range(6))
                 self.rooms[code] = {'code': code, 'members': {}, 'host': None, 'phase': 'lobby',
-                    'version': 0, 'events': [], 'history': [], 'contributions': [], 'suggestions': [],
+                    'version': 0, 'events': [], 'history': [], 'contributions': [], 'suggestions': [], 'chat': [],
                     'jobs': {}, 'node': self.scenario['initial_node_id'], 'round': 0,
                     'metrics': deepcopy(self.scenario['initial_metrics']),
                     'facts': deepcopy(self.scenario['initial_facts']), 'votes': {}, 'proposals': {},
@@ -144,6 +144,12 @@ class Engine:
         elif action == 'end':
             require(host and phase not in ('lobby', 'ended'), 'Only the host can end a running exercise', 403)
             self.end(r, 'host_ended')
+        elif action == 'chat':
+            text = bounded_text(d.get('text'))
+            require(len(r['chat']) < 300, 'Room text chat limit reached', 429)
+            event = self.event(r, 'chat', member=mid, text=text, source='typed', round=r['round'])
+            r['chat'].append(event)
+            return {'ok': True, 'message_id': event['id']}
         elif action == 'contribute':
             require(phase == 'discussion' and mid in r['electorate'], 'Contributions are open during your eligible round')
             require(r.get('speaker') in (None, mid), 'Another participant has the speaking turn')
@@ -352,7 +358,7 @@ class Engine:
                 'own_vote': r['votes'].get(mid), 'ties': r['ties'],
                 'tally': r.get('tally', {}) if r['phase'] in ('tie_break', 'resolving', 'resolution_failed', 'result', 'ended') else {},
                 'metrics': r['metrics'], 'facts': r['facts'] if active else {}, 'history': r['history'],
-                'contributions': r['contributions'], 'suggestions': r['suggestions'],
+                'contributions': r['contributions'], 'suggestions': r['suggestions'], 'chat': r['chat'],
                 'jobs': list(r['jobs'].values()), 'unresolved': r['unresolved'], 'feedback': r['feedback'],
                 'end_reason': r.get('end_reason'), 'events': r['events'][-100:],
                 'climate': {'contributions_by_member': dict(counts), 'questions_recorded': len(questions),

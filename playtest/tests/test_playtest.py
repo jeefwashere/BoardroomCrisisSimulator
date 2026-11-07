@@ -344,6 +344,32 @@ class HTTPTests(unittest.TestCase):
         self.client.post('/api/speech/stop',json={},headers={'Authorization':'Bearer '+self.b['token']})
         self.assertEqual(self.client.get('/api/audio/'+sid,headers=self.auth).status_code,404)
         self.assertGreater(self.speech.budget.status()['reserved'],0)
+    def test_text_chat_authentication_isolation_and_no_game_authority(self):
+        headers = {'Authorization':'Bearer '+self.b['token']}
+        body = {'command_id':uuid.uuid4().hex,'text':'Test 02 can type in the lobby.',
+                'member_id':self.engine.identities[self.a['token']][1]}
+        self.assertEqual(self.client.post('/api/command/chat',json=body).status_code,401)
+        first = self.client.post('/api/command/chat',json=body,headers=headers)
+        self.assertEqual(first.status_code,200)
+        self.assertEqual(self.client.post('/api/command/chat',json=body,headers=headers).json(),first.json())
+        state = self.client.get('/api/state',headers=self.auth).json()
+        self.assertEqual(len(state['chat']),1)
+        self.assertEqual(state['chat'][0]['member'],self.engine.identities[self.b['token']][1])
+        self.assertEqual(state['contributions'],[])
+        self.assertEqual(state['history'],[])
+        other = self.client.post('/api/join',json={'name':'Other room'}).json()
+        self.assertEqual(self.client.get('/api/state',headers={'Authorization':'Bearer '+other['token']}).json()['chat'],[])
+        self.command('start',profile='test_3')
+        self.clock.now += 8
+        self.assertEqual(self.client.post('/api/command/chat',json={'command_id':uuid.uuid4().hex,'text':'Text outside my speaking turn'},headers=headers).status_code,200)
+        self.assertEqual(self.room['contributions'],[])
+        self.command('end')
+        self.assertEqual(self.command('chat',text='Post exercise discussion').status_code,200)
+        self.assertEqual(self.command('chat',text=' ').status_code,422)
+        self.assertEqual(self.command('chat',text='x'*1001).status_code,422)
+        self.assertEqual(self.speech.calls,0)
+        self.assertEqual(self.speech.budget.status()['reserved'],0)
+
     def test_transcription_is_provisional_and_idempotent(self):
         self.command('start',profile='test_3')
         self.clock.now += 8

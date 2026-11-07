@@ -101,3 +101,9 @@ The explicitly paid speech smoke requires an enabled server credit cap and an ex
 Reports go to ignored `artifacts/`. These HTTP checks do not establish human microphone capture or visual browser quality. The current hosted GPU allocation ends November 8, 2026 at 15:46:25 UTC, which is 10:46:25 AM Toronto. The app remains usable for authored play when models are unavailable; custom outcomes and AI feedback explicitly report failure. This branch does not start, stop, or release any GPU job.
 
 An observed live quality failure shaped the final debrief boundary: unrestricted LFM3 prose incorrectly described an exported minimum as a final scope and treated a breach detail as a strength. The final implementation therefore lets LFM3 select authored, evidence linked reflections and publishes their exact wording. It does not publish unrestricted debrief prose.
+
+## Three window text testing
+
+Open three separate Chrome windows at <http://127.0.0.1:8788>. Create a room as Test 01, then join its code as Test 02 and Test 03 in the other windows. Each window stores its own member credential; there is no shared identity selector. Window titles show the active name and room code, and People lists each public member ID. Do not duplicate an existing authenticated tab, since browsers may copy its session storage; use a fresh window instead.
+
+**Room text chat** works in the lobby, during speaking and voting, and after the exercise. Messages are authenticated as the sending window's participant and shared only within that room. Chat never casts a ballot, commits a decision, or changes the timed contribution history. Use **Timed contribution** for official discussion entries during your turn, and **Ask the local agents by text** for model replies. Text chat does not use ElevenLabs or consume speech credits. Press Ctrl+Enter or Command+Enter in the chat field to send.

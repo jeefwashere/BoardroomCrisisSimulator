@@ -253,6 +253,10 @@
 .lobby-role-select:hover { color: var(--lobby-accent); }
 
 .lobby-context {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
   min-width: 0;
   padding-block: 20px max(22px, env(safe-area-inset-bottom));
   text-align: center;
@@ -271,6 +275,43 @@
 }
 
 .lobby-context p > span { color: #655244; }
+
+.lobby-start-button {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 48px;
+  padding: 8px 28px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-heading);
+  font-size: 25px;
+  font-weight: 750;
+  font-style: italic;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 150ms ease;
+}
+
+.lobby-start-button::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  transform: skewX(-7deg);
+  background: var(--lobby-accent);
+  opacity: 0;
+  content: '';
+  transition: opacity 150ms ease;
+}
+
+.lobby-start-button:hover:not(:disabled), .lobby-start-button:focus-visible { color: #fff; }
+.lobby-start-button:hover:not(:disabled)::before, .lobby-start-button:focus-visible::before { opacity: 1; }
+.lobby-start-button:disabled { opacity: 0.4; cursor: wait; }
+.lobby-start-button svg { width: 16px; height: 16px; }
 
 .lobby-visually-hidden {
   position: absolute;
@@ -319,6 +360,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .lobby-start-button,
+  .lobby-start-button::before,
   .lobby-leave-button::before,
   .lobby-upload-button,
   .lobby-room-code strong { transition: none; }

@@ -8,6 +8,7 @@
 ## Planned work
 
 * Integrate the static pages and UI with the upcoming 3D models.
+* Keep the future 3D scene visible behind the main menu with blur, then remove the blur when Start begins the game. The current Start button opens a temporary 2D player grid.
 * Add a document reader to the lobby screen.
 * Prepare the frontend connection to pass document content through the application backend to an agent API, giving the agent context.
 

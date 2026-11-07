@@ -3,6 +3,8 @@ import { MotionConfig } from 'motion/react'
 import PlayerRoster from '../features/lobby/PlayerRoster'
 import DocumentUpload from '../features/lobby/DocumentUpload'
 import { useSessionName } from '../features/identity/useSessionName'
+import LobbyIcon from '../features/lobby/LobbyIcon'
+import Game from './Game'
 import { addLobbyMember, assignLobbyRole, LOBBY_ROLES, MAX_LOBBY_MEMBERS } from '../features/lobby/lobbyModel'
 import type { LobbyMember } from '../features/lobby/lobbyModel'
 import './Host.css'
@@ -17,6 +19,8 @@ function Host() {
     const [roomCode] = useState(() => crypto.randomUUID().replaceAll('-', '').slice(0, 6).toUpperCase())
     const [roomContext, setRoomContext] = useState('Upload a document to set the room context.')
     const [notice, setNotice] = useState('')
+    const [isStarted, setIsStarted] = useState(false)
+    const [isDocumentUploading, setIsDocumentUploading] = useState(false)
     const displayedMembers = members.map((member) => member.isHost ? { ...member, name: sessionName || member.name } : member)
     const [previewTarget] = useState(() => {
         // Opt-in animation/scroll demo: #/host?preview=30. Normal lobbies start with just the host.
@@ -25,7 +29,7 @@ function Host() {
     })
 
     useEffect(() => {
-        if (members.length >= previewTarget) return
+        if (isStarted || members.length >= previewTarget) return
         const timer = window.setTimeout(() => {
             setMembers((current) => {
                 const index = current.length - 1
@@ -39,7 +43,7 @@ function Host() {
             })
         }, 450)
         return () => window.clearTimeout(timer)
-    }, [members.length, previewTarget])
+    }, [members.length, previewTarget, isStarted])
 
     function assignRole(memberId: string, role: string) {
         try {
@@ -61,6 +65,10 @@ function Host() {
         }
     }
 
+    if (isStarted) {
+        return <Game members={displayedMembers} roomCode={roomCode} roomContext={roomContext} onReturnToLobby={() => setIsStarted(false)} />
+    }
+
     return (
         <MotionConfig reducedMotion="user">
             <div className="host-lobby">
@@ -72,7 +80,7 @@ function Host() {
                         <span>Room code</span>
                         <strong>{roomCode}</strong>
                     </button>
-                    <DocumentUpload roomCode={roomCode} onContextChange={setRoomContext} />
+                    <DocumentUpload roomCode={roomCode} onContextChange={setRoomContext} onUploadingChange={setIsDocumentUploading} />
                 </header>
 
                 <main className="lobby-main" aria-labelledby="lobby-title">
@@ -81,6 +89,9 @@ function Host() {
                 </main>
 
                 <footer className="lobby-context">
+                    <button className="lobby-start-button" type="button" disabled={isDocumentUploading} onClick={() => setIsStarted(true)} title={isDocumentUploading ? 'Wait for the document upload to finish' : 'Open the 2D game preview'}>
+                        Start <LobbyIcon name="play" />
+                    </button>
                     <p id="room-context" role="status" aria-live="polite" aria-atomic="true" title={roomContext}>
                         <span>Context:</span> {roomContext}
                     </p>

@@ -6,9 +6,10 @@ import LobbyIcon from './LobbyIcon'
 type DocumentUploadProps = {
     roomCode: string
     onContextChange: (context: string) => void
+    onUploadingChange?: (uploading: boolean) => void
 }
 
-function DocumentUpload({ roomCode, onContextChange }: DocumentUploadProps) {
+function DocumentUpload({ roomCode, onContextChange, onUploadingChange }: DocumentUploadProps) {
     const [status, setStatus] = useState<'idle' | 'uploading' | 'received' | 'error'>('idle')
     const inputRef = useRef<HTMLInputElement>(null)
     const requestRef = useRef<AbortController | null>(null)
@@ -28,6 +29,7 @@ function DocumentUpload({ roomCode, onContextChange }: DocumentUploadProps) {
         const controller = new AbortController()
         requestRef.current = controller
         setStatus('uploading')
+        onUploadingChange?.(true)
         onContextChange(`Uploading ${file.name}…`)
 
         try {
@@ -41,6 +43,8 @@ function DocumentUpload({ roomCode, onContextChange }: DocumentUploadProps) {
                 setStatus('error')
                 onContextChange(error instanceof Error ? error.message : 'Upload failed. Please try again.')
             }
+        } finally {
+            if (!controller.signal.aborted) onUploadingChange?.(false)
         }
     }
 

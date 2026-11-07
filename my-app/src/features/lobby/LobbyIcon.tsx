@@ -6,6 +6,7 @@ const paths = {
     plus: 'M12 5v14M5 12h14',
     back: 'm10 5-7 7 7 7M3 12h18',
     check: 'm5 12 4 4L19 6',
+    play: 'm8 4 12 8-12 8V4Z',
 } as const
 
 function LobbyIcon({ name, className }: { name: keyof typeof paths; className?: string }) {

@@ -107,6 +107,27 @@ export const ROLE_NAMES: Record<RoleId, string> = {
   communications_privacy: 'Comms & privacy lead',
 }
 
+/** Role colours; keep in step with the .role-* rules in styles.css. */
+export const ROLE_COLORS: Record<string, string> = {
+  ceo: '#ae5238',
+  security: '#2f5d8a',
+  technology: '#5b4b8a',
+  finance: '#3f7d5c',
+  operations: '#a87522',
+  communications_privacy: '#8a4b6b',
+  none: '#687065',
+}
+
+/** Short labels for the 3D name tags. */
+export const ROLE_SHORT: Record<RoleId, string> = {
+  ceo: 'CEO',
+  security: 'Security',
+  technology: 'Technology',
+  finance: 'Finance',
+  operations: 'Operations',
+  communications_privacy: 'Comms & privacy',
+}
+
 export const METRIC_NAMES: Record<string, string> = {
   service_continuity: 'Service continuity',
   data_protection: 'Data protection',

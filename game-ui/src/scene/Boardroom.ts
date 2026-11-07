@@ -9,7 +9,8 @@
 import * as THREE from 'three'
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js'
+import { SeatTags } from './SeatTags'
+import { ROLE_COLORS } from '../game/types'
 
 export const CHARACTER_IDS = [
   '01-coo', '02-cfo', '03-cto', '04-general-counsel', '05-head-of-hr',
@@ -23,6 +24,7 @@ export interface SeatState {
   memberId: string
   name: string
   role: string
+  roleId: string
   isSelf: boolean
   connected: boolean
   voted: boolean
@@ -33,6 +35,8 @@ export interface SeatState {
 export interface SceneState {
   seats: SeatState[]
   speakerId: string | null
+  /** Player hovered in the HUD list; their tag and seat are highlighted. */
+  highlightId: string | null
   screenTitle: string
   screenSubtitle: string
   deadline: number | null
@@ -74,8 +78,6 @@ function makeSeats(): Seat[] {
 
 class Avatar {
   readonly group = new THREE.Group()
-  readonly label: CSS2DObject
-  readonly labelEl: HTMLDivElement
   model: THREE.Object3D | null = null
   mixer: THREE.AnimationMixer | null = null
   actions = new Map<Mood, THREE.AnimationAction>()
@@ -87,11 +89,6 @@ class Avatar {
   constructor(readonly seat: Seat) {
     this.group.position.copy(seat.position)
     this.group.rotation.y = seat.yaw
-    this.labelEl = document.createElement('div')
-    this.labelEl.className = 'seat-label empty'
-    this.label = new CSS2DObject(this.labelEl)
-    this.label.position.set(0, 1.45, 0)
-    this.group.add(this.label)
   }
 
   attach(gltf: GLTF, clips: THREE.AnimationClip[]) {
@@ -289,7 +286,10 @@ function orientHand(arm: Arm, forward: THREE.Vector3, weight: number) {
 
 export class Boardroom {
   private renderer: THREE.WebGLRenderer
-  private labels: CSS2DRenderer
+  private tags: SeatTags
+  private speakerRing: THREE.Mesh
+  private highlightRing: THREE.Mesh
+  private size = { width: 1, height: 1 }
   private scene = new THREE.Scene()
   private camera = new THREE.PerspectiveCamera(42, 1, 0.05, 60)
   private controls: OrbitControls
@@ -317,12 +317,14 @@ export class Boardroom {
     this.renderer.toneMappingExposure = 1.05
     container.appendChild(this.renderer.domElement)
 
-    this.labels = new CSS2DRenderer()
-    this.labels.domElement.className = 'scene-labels'
-    container.appendChild(this.labels.domElement)
+    this.tags = new SeatTags(CHARACTER_IDS.length)
+    container.appendChild(this.tags.element)
+    this.speakerRing = makeRing(0.95)
+    this.highlightRing = makeRing(0.7)
+    this.scene.add(this.speakerRing, this.highlightRing)
 
     this.camera.position.set(5.6, 2.7, 0.0)
-    this.controls = new OrbitControls(this.camera, this.labels.domElement)
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement)
     this.controls.target.copy(this.focus)
     this.controls.enableDamping = true
     this.controls.minDistance = 2.2
@@ -368,18 +370,20 @@ export class Boardroom {
       if (this.laptops[index]) this.laptops[index].visible = Boolean(seat)
       if (!seat) return
       avatar.setMood(seat.mood)
-      avatar.labelEl.className = [
-        'seat-label',
-        seat.speaking && 'speaking',
-        seat.isSelf && 'self',
-        !seat.connected && 'away',
-      ].filter(Boolean).join(' ')
-      avatar.labelEl.innerHTML = ''
-      const name = document.createElement('strong')
-      name.textContent = seat.isSelf ? `${seat.name} (you)` : seat.name
-      const role = document.createElement('span')
-      role.textContent = seat.voted ? `${seat.role} · voted` : seat.role
-      avatar.labelEl.append(name, role)
+    })
+    this.avatars.forEach((_, index) => {
+      const seat = state.seats[index]
+      // Your own character sits in front of the camera, so it needs no tag.
+      this.tags.set(index, seat && !seat.isSelf ? {
+        name: seat.name,
+        initial: seat.name.charAt(0).toUpperCase(),
+        role: seat.role,
+        roleId: seat.roleId,
+        speaking: seat.speaking,
+        highlighted: seat.memberId === state.highlightId,
+        voted: seat.voted,
+        away: !seat.connected,
+      } : null)
     })
   }
 
@@ -637,7 +641,7 @@ export class Boardroom {
     const { clientWidth: w, clientHeight: h } = this.container
     if (!w || !h) return
     this.renderer.setSize(w, h)
-    this.labels.setSize(w, h)
+    this.size = { width: w, height: h }
     this.camera.aspect = w / h
     const dx = (this.insets.left - this.insets.right) / 2
     const dy = (this.insets.top - this.insets.bottom) / 2
@@ -697,9 +701,53 @@ export class Boardroom {
     this.controls.target.copy(this.focus)
     this.controls.update()
     if (this.frame % 6 === 0) this.drawScreen()
+
+    // Floor rings under the speaker and the player hovered in the HUD.
+    const pulse = 1 + Math.sin(performance.now() / 260) * 0.05
+    this.placeRing(this.speakerRing, speakerIndex, pulse)
+    if (speakerIndex >= 0) (this.speakerRing.material as THREE.MeshBasicMaterial).color.set(ROLE_COLORS[state!.seats[speakerIndex].roleId] ?? ROLE_COLORS.none)
+    const highlightIndex = state?.highlightId ? state.seats.findIndex((s) => s.memberId === state.highlightId) : -1
+    this.placeRing(this.highlightRing, highlightIndex === speakerIndex ? -1 : highlightIndex, 1)
+    if (highlightIndex >= 0) (this.highlightRing.material as THREE.MeshBasicMaterial).color.set(ROLE_COLORS[state!.seats[highlightIndex].roleId] ?? ROLE_COLORS.none)
+
     this.renderer.render(this.scene, this.camera)
-    this.labels.render(this.scene, this.camera)
+    this.camera.updateMatrixWorld()
+    const anchors = this.avatars.map((avatar) => (avatar.model && avatar.group.visible ? avatar.headPosition().add(new THREE.Vector3(0, 0.27, 0)) : null))
+    this.tags.layout(anchors, this.camera, this.size.width, this.size.height)
   }
+
+  private placeRing(ring: THREE.Mesh, index: number, scale: number) {
+    ring.visible = index >= 0
+    if (index < 0) return
+    ring.position.copy(this.chairPosition(this.avatars[index])).setY(0.012)
+    ring.scale.setScalar(scale)
+  }
+}
+
+/** A soft glowing ring on the floor, drawn from a white radial gradient and tinted per role. */
+function makeRing(strength: number) {
+  const canvas = document.createElement('canvas')
+  canvas.width = canvas.height = 256
+  const ctx = canvas.getContext('2d')!
+  const rgb = '255, 255, 255'
+  const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128)
+  gradient.addColorStop(0, `rgba(${rgb}, 0)`)
+  gradient.addColorStop(0.55, `rgba(${rgb}, ${0.12 * strength})`)
+  gradient.addColorStop(0.8, `rgba(${rgb}, ${0.85 * strength})`)
+  gradient.addColorStop(0.88, `rgba(${rgb}, ${0.35 * strength})`)
+  gradient.addColorStop(1, `rgba(${rgb}, 0)`)
+  ctx.fillStyle = gradient
+  ctx.fillRect(0, 0, 256, 256)
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.colorSpace = THREE.SRGBColorSpace
+  const ring = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.25, 1.25),
+    new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false, toneMapped: false }),
+  )
+  ring.rotation.x = -Math.PI / 2
+  ring.renderOrder = 1
+  ring.visible = false
+  return ring
 }
 
 function wrap(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, width: number, lineHeight: number, maxLines: number) {

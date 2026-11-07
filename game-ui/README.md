@@ -45,7 +45,8 @@ Re export the characters after changing a rig:
 1. Seats are 0.27 m from the table edge so the characters' arms reach the tabletop.
 2. Two bone arm IK keeps both hands resting flat on the table beside the laptop, with relaxed fingers, in every mood. The body plays the full clip, but only 15 percent of the clip's hand movement is kept (`GESTURE_SCALE` in `src/scene/Boardroom.ts`) so the hands stay calm.
 3. The active speaker plays the talking clip and everyone else turns their head toward them. During the vote everyone types. A net negative outcome triggers the disbelief reaction.
-4. The wall display shows the current decision and countdown. Name tags show each player's role, and "voted" appears on your own seat only because other ballots are private.
+4. The wall display shows the current decision and countdown.
+5. Name tags (`src/scene/SeatTags.ts`) are laid out in screen space each frame: anchored above each head, scaled by distance, and pushed apart so they never overlap, with a stem back to the character. They use role colours shared with the player list. The speaker's tag fills with their colour and shows a sound wave, and a glowing ring in that colour marks their seat. Hovering a player in the list highlights their tag and seat. Your own character has no tag because it sits in front of the camera, and a check mark appears on your own seat only, because other ballots are private.
 
 ## Known limits
 

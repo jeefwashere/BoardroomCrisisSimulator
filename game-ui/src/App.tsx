@@ -3,7 +3,7 @@ import { Boardroom, CHARACTER_IDS, type SceneState } from './scene/Boardroom'
 import { Hud, memberMood } from './ui/Hud'
 import { MockGameClient } from './game/mockGame'
 import { HttpGameClient } from './game/httpGame'
-import { ROLE_NAMES, type GameClient, type RoomSnapshot } from './game/types'
+import { ROLE_SHORT, type GameClient, type RoomSnapshot } from './game/types'
 
 /**
  * Query parameters:
@@ -27,6 +27,7 @@ export default function App() {
   const client = useMemo(createClient, [])
   const [room, setRoom] = useState<RoomSnapshot | null>(null)
   const [progress, setProgress] = useState({ loaded: 0, total: 1 })
+  const [hovered, setHovered] = useState<string | null>(null)
   const stage = useRef<HTMLDivElement>(null)
   const boardroom = useRef<Boardroom | null>(null)
 
@@ -52,8 +53,8 @@ export default function App() {
 
   useEffect(() => {
     if (!room || !boardroom.current) return
-    boardroom.current.update(toSceneState(room))
-  }, [room])
+    boardroom.current.update(toSceneState(room, hovered))
+  }, [room, hovered])
 
   // Keep the table centred in the area the HUD panels leave clear (desktop layout).
   const phase = room?.phase
@@ -83,12 +84,12 @@ export default function App() {
           </span>
         </div>
       )}
-      {room?.game ? <Hud room={room} client={client} /> : <div className="waiting panel">Waiting for the host to start the game…</div>}
+      {room?.game ? <Hud room={room} client={client} onHover={setHovered} /> : <div className="waiting panel">Waiting for the host to start the game…</div>}
     </div>
   )
 }
 
-function toSceneState(room: RoomSnapshot): SceneState {
+function toSceneState(room: RoomSnapshot, hovered: string | null): SceneState {
   const game = room.game
   const voted = new Set<string>()
   // Ballots stay private; only the caller's own vote is known to the client.
@@ -96,7 +97,8 @@ function toSceneState(room: RoomSnapshot): SceneState {
   const seats = room.members.slice(0, CHARACTER_IDS.length).map((m) => ({
     memberId: m.member_id,
     name: m.display_name,
-    role: m.role_id ? ROLE_NAMES[m.role_id] : '',
+    role: m.role_id ? ROLE_SHORT[m.role_id] : '',
+    roleId: m.role_id ?? 'none',
     isSelf: m.member_id === room.self_member_id,
     connected: m.connected,
     voted: room.phase === 'voting' && voted.has(m.member_id),
@@ -115,6 +117,7 @@ function toSceneState(room: RoomSnapshot): SceneState {
   return {
     seats,
     speakerId: game?.speaker?.member_id ?? null,
+    highlightId: hovered,
     screenTitle: room.phase === 'result' ? game?.last_result?.option_label ?? 'No decision' : game?.node?.title ?? game?.scenario.title ?? '',
     screenSubtitle: subtitle[room.phase] ?? room.phase,
     deadline: game?.deadline_at ?? null,

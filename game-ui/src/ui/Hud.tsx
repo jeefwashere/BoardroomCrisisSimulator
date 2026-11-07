@@ -19,7 +19,7 @@ const DOC_TITLES: Record<string, string> = {
   operations: 'Operations',
 }
 
-export function Hud({ room, client }: { room: RoomSnapshot; client: GameClient }) {
+export function Hud({ room, client, onHover }: { room: RoomSnapshot; client: GameClient; onHover: (memberId: string | null) => void }) {
   const game = room.game!
   const [error, setError] = useState<string | null>(null)
   const act = (promise: Promise<void>) => promise.then(() => setError(null), (e: Error) => setError(e.message))
@@ -27,7 +27,7 @@ export function Hud({ room, client }: { room: RoomSnapshot; client: GameClient }
     <div className={`hud phase-${room.phase}`}>
       <TopBar room={room} game={game} />
       <SidePanel room={room} game={game} />
-      <MembersPanel room={room} game={game} />
+      <MembersPanel room={room} game={game} onHover={onHover} />
       <Dock room={room} game={game} client={client} act={act} />
       {error && (
         <div className="toast" role="alert" onClick={() => setError(null)}>
@@ -141,7 +141,7 @@ function SidePanel({ room, game }: { room: RoomSnapshot; game: GameView }) {
   )
 }
 
-function MembersPanel({ room, game }: { room: RoomSnapshot; game: GameView }) {
+function MembersPanel({ room, game, onHover }: { room: RoomSnapshot; game: GameView; onHover: (memberId: string | null) => void }) {
   const speaking = game.speaker?.member_id
   return (
     <aside className="members panel" aria-label="Players">
@@ -150,8 +150,16 @@ function MembersPanel({ room, game }: { room: RoomSnapshot; game: GameView }) {
       </h3>
       <ul>
         {room.members.map((m) => (
-          <li key={m.member_id} className={[m.member_id === speaking && 'speaking', !m.connected && 'away'].filter(Boolean).join(' ')}>
-            <span className="avatar-dot">{m.display_name.charAt(0)}</span>
+          <li
+            key={m.member_id}
+            className={[`role-${m.role_id ?? 'none'}`, m.member_id === speaking && 'speaking', !m.connected && 'away'].filter(Boolean).join(' ')}
+            onMouseEnter={() => onHover(m.member_id)}
+            onMouseLeave={() => onHover(null)}
+          >
+            <span className="avatar-dot">
+              {m.display_name.charAt(0)}
+              <span className={`presence ${m.connected ? 'on' : ''}`} aria-label={m.connected ? 'Connected' : 'Away'} />
+            </span>
             <span className="who">
               <strong>
                 {m.display_name}
@@ -160,8 +168,11 @@ function MembersPanel({ room, game }: { room: RoomSnapshot; game: GameView }) {
               <span>{m.role_id ? ROLE_NAMES[m.role_id] : 'No role'}</span>
             </span>
             <span className="badges">
-              {m.role_id === 'ceo' && <span className="badge">CEO</span>}
-              {m.member_id === speaking && <span className="badge live">Live</span>}
+              {m.member_id === speaking && (
+                <span className="badge live">
+                  <span className="mini-wave" aria-hidden="true"><i /><i /><i /></span>Live
+                </span>
+              )}
             </span>
           </li>
         ))}

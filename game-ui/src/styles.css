@@ -99,17 +99,22 @@ h1, h2, h3, h4, p { margin: 0; }
 .members { position: absolute; top: 112px; right: 14px; width: 248px; max-height: calc(100% - 330px); overflow-y: auto; padding: 12px; }
 .members h3 { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; margin: 0 4px 8px; }
 .members ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
-.members li { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 8px; padding: 6px; border-radius: 10px; font-size: 13px; transition: background 0.2s; }
-.members li.speaking { background: rgba(174, 82, 56, 0.12); }
+.members li { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 9px; padding: 6px 7px; border-radius: 10px; font-size: 13px; transition: background 0.2s; cursor: default; }
+.members li:hover { background: rgba(33, 60, 50, 0.06); }
+.members li.speaking { background: color-mix(in srgb, var(--role) 13%, transparent); }
 .members li.away { opacity: 0.45; }
-.avatar-dot { width: 30px; height: 30px; border-radius: 50%; background: var(--ink); color: var(--paper); display: grid; place-items: center; font-weight: 700; font-size: 13px; }
-.speaking .avatar-dot { background: var(--accent); box-shadow: 0 0 0 3px rgba(174, 82, 56, 0.25); }
+.avatar-dot { position: relative; width: 30px; height: 30px; border-radius: 50%; background: var(--role, var(--ink)); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+.presence { position: absolute; right: -1px; bottom: -1px; width: 9px; height: 9px; border-radius: 50%; background: #b9bdb4; border: 2px solid var(--paper); }
+.presence.on { background: #4f9a6a; }
+.speaking .avatar-dot { box-shadow: 0 0 0 3px color-mix(in srgb, var(--role) 30%, transparent); }
 .who { display: grid; line-height: 1.25; min-width: 0; }
 .who strong small { color: var(--accent); font-weight: 600; margin-left: 4px; }
-.who > span { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.who > span { color: var(--role, var(--muted)); font-weight: 600; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .badges { display: flex; gap: 4px; }
 .badge { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 6px; border-radius: 6px; background: var(--border); }
-.badge.live { background: var(--accent); color: white; }
+.badge.live { display: inline-flex; align-items: center; gap: 4px; background: var(--role, var(--accent)); color: white; }
+.mini-wave { display: inline-flex; align-items: center; gap: 1.5px; height: 9px; }
+.mini-wave i { width: 2px; height: 100%; color: #fff; }
 
 /* Phase dock */
 .dock {
@@ -167,19 +172,48 @@ h1, h2, h3, h4, p { margin: 0; }
 .timeline strong { display: block; font-size: 14px; margin-bottom: 4px; }
 .timeline p { font-size: 13.5px; color: var(--muted); line-height: 1.5; }
 
-/* 3D name tags */
-.seat-label {
-  display: grid; justify-items: center; padding: 3px 9px; border-radius: 8px; background: rgba(246, 245, 239, 0.88);
-  border: 1px solid var(--border); font-size: 11px; line-height: 1.25; white-space: nowrap; pointer-events: none;
-  transform: translateY(-6px); transition: background 0.2s, color 0.2s;
+/* Role colours, shared by the 3D tags and the player list. */
+.role-ceo { --role: #ae5238; }
+.role-security { --role: #2f5d8a; }
+.role-technology { --role: #5b4b8a; }
+.role-finance { --role: #3f7d5c; }
+.role-operations { --role: #a87522; }
+.role-communications_privacy { --role: #8a4b6b; }
+.role-none { --role: #687065; }
+
+/* 3D name tags (src/scene/SeatTags.ts positions them every frame) */
+.scene-labels { pointer-events: none; overflow: hidden; }
+.tag {
+  position: absolute; left: 0; top: 0; transform-origin: 0 0;
+  display: flex; align-items: center; gap: 7px;
+  padding: 3px 10px 3px 3px; border-radius: 999px;
+  background: rgba(250, 249, 244, 0.94);
+  box-shadow: 0 4px 14px rgba(20, 35, 28, 0.18), 0 0 0 1px rgba(33, 60, 50, 0.08);
+  white-space: nowrap; pointer-events: none;
+  transition: background 0.25s, box-shadow 0.25s, opacity 0.3s;
 }
-.seat-label.empty { display: none; }
-.seat-label strong { font-size: 12px; }
-.seat-label span { color: var(--muted); font-size: 10px; }
-.seat-label.self { border-color: var(--ink); }
-.seat-label.speaking { background: var(--accent); color: white; border-color: var(--accent); }
-.seat-label.speaking span { color: rgba(255, 255, 255, 0.85); }
-.seat-label.away { opacity: 0.5; }
+.tag-dot {
+  width: 24px; height: 24px; border-radius: 50%; flex: none;
+  display: grid; place-items: center;
+  background: var(--role); color: #fff; font-size: 11px; font-weight: 700;
+}
+.tag-body { display: grid; line-height: 1.15; }
+.tag-body strong { font-size: 12px; font-weight: 700; color: var(--ink); }
+.tag-body small { font-size: 10px; font-weight: 600; color: var(--role); letter-spacing: 0.02em; }
+.tag-check { width: 16px; height: 16px; border-radius: 50%; background: #3f7d5c; color: #fff; font-size: 10px; font-weight: 700; display: grid; place-items: center; }
+.tag.speaking { background: var(--role); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9), 0 6px 22px rgba(20, 35, 28, 0.35); }
+.tag.speaking .tag-dot { background: #fff; color: var(--role); }
+.tag.speaking .tag-body strong, .tag.speaking .tag-body small { color: #fff; }
+.tag.highlighted { box-shadow: 0 0 0 2px var(--role), 0 6px 20px rgba(20, 35, 28, 0.28); }
+.tag.away { opacity: 0.5; filter: grayscale(0.6); }
+.tag-wave { display: flex; align-items: center; gap: 2px; height: 14px; margin-left: 1px; }
+.tag-wave i, .mini-wave i { display: block; width: 3px; border-radius: 2px; background: currentColor; animation: wave 0.9s ease-in-out infinite; }
+.tag-wave i { color: #fff; height: 100%; }
+.tag-wave i:nth-child(2), .mini-wave i:nth-child(2) { animation-delay: -0.3s; }
+.tag-wave i:nth-child(3), .mini-wave i:nth-child(3) { animation-delay: -0.6s; }
+.tag-wave i:nth-child(4) { animation-delay: -0.15s; }
+@keyframes wave { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
+.tag-stem { position: absolute; left: 0; top: 0; width: 1.5px; margin-left: -0.75px; background: rgba(33, 60, 50, 0.35); pointer-events: none; }
 
 .toast { position: absolute; top: 112px; left: 50%; transform: translateX(-50%); background: var(--accent); color: white; padding: 10px 16px; border-radius: 10px; font-size: 14px; box-shadow: var(--shadow); cursor: pointer; }
 .loading { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: grid; gap: 8px; width: 220px; text-align: center; font-weight: 600; color: var(--ink); }

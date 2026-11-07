@@ -30,9 +30,9 @@ Status values: `available`, `in_progress`, `waiting`, `done`, `optional`, `defer
 
   Owner: unassigned. Status: `available`. Acceptance: record the team's choices for speaking duration, total session duration, vote replacement and visibility, CEO absence, custom action limits and outcome mapping, and scoring. Preserve unsettled choices as proposed.
 
-* [ ] P02 Supply and validate one complete scenario package. 提供并验证一个完整剧本。
+* [x] P02 Supply and validate one complete scenario package. 提供并验证一个完整剧本。
 
-  Owner: coordinating Codex agent. Status: `in_progress`. Acceptance: one background, role list, decision sequence, prepared choices, consequences, allowed custom outcomes, no decision outcome, and ending are available with a fixed version. The current assignment is to author an explicitly fictional cybersecurity draft, not represent it as previously supplied team content.
+  Owner: coordinating Codex agent. Status: `done`. Acceptance: one background, role list, decision sequence, prepared choices, consequences, allowed custom outcomes, no decision outcome, and ending are available with a fixed version. The published material is an explicitly fictional English cybersecurity draft with static validation, not previously supplied team content or a human playtested game. Evidence: completion record 3.
 
 ## Backend 后端实现
 
@@ -125,5 +125,7 @@ Status values: `available`, `in_progress`, `waiting`, `done`, `optional`, `defer
 1. D01 and D02. Owner: coordinating Codex agent. Work commit: [134661e](https://github.com/jeefwashere/BoardroomCrisisSimulator/commit/134661e7c8f77fa0be060c13987285022abb2686). Branch: `Ricardo`. Merged through [PR 1](https://github.com/jeefwashere/BoardroomCrisisSimulator/pull/1) into `main` at `86b94184226a6275023b2ce7feba4637de7d5627`. Verification: `git merge-base --is-ancestor 134661e7c8f77fa0be060c13987285022abb2686 origin/main` and `git diff --exit-code origin/main -- docs/backend-spec.md docs/backend-architecture.md` passed after fetch. This proves document publication, not backend functionality.
 
 2. D03 and D04. Owner: coordinating Codex agent. Work commit: [318d14c](https://github.com/jeefwashere/BoardroomCrisisSimulator/commit/318d14c6171af0c9870ae5601c6fcfd374c6ea16). Branch: `Ricardo`. Verification: `git ls-remote --heads origin Ricardo` returned the same full commit as `git rev-parse HEAD` after a successful push. `git diff --cached --check` passed before that commit. The GitHub Markdown API rendered all 26 checkboxes, and local link and typography checks passed. Merge status at this completion record: pushed feature branch; the accompanying pull request records the final merge status. No implementation task was marked complete.
+
+3. P02. Owner: coordinating Codex agent. Work commit: [f20de37](https://github.com/jeefwashere/BoardroomCrisisSimulator/commit/f20de3781e373c707523215c1922413c83bf1050). Branch: `Ricardo`, verified through `git ls-remote --heads origin Ricardo` after push. Verification: `python3 -m json.tool scenarios/cybersecurity_demo/v1/scenario.json --no-ensure-ascii` passed; the local validator at `/Users/gz/work/boardroom-architecture/validate-cyber-scenario.py` also passed all 64 prepared and no decision paths, references, meter bounds, evidence carryover, English content, document links, and timing arithmetic. Published results: `scenarios/cybersecurity_demo/v1/validation.json`. The draft is about 18 minutes, or 19.5 minutes with three CEO ties; a 15 minute profile is included. Merge status at this record: pushed feature branch. Application schema compatibility, AI quality, backend execution, multiplayer behavior, and human timing remain unverified. B03 and all other backend tasks stay unchecked.
 
 For new completions, append task ID, owner, remote branch, work commit or PR link, verification command and result, plus merge status if known. Leave incomplete tasks unchecked.

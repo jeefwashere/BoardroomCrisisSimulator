@@ -6,6 +6,12 @@ Status values: `available`, `in_progress`, `waiting`, `done`, `optional`, `defer
 
 Update the assigned entry at the beginning and end of every project work turn, even when the task is not finished. Record `Owner`, `Status`, `Progress`, `Checks`, and `Next action`. A completed entry also needs its pushed work commit or PR and verification evidence. Publish checklist changes with the authorized work; a failed push keeps the task unchecked and must be reported.
 
+## Current collaboration snapshot
+
+Reviewed Jeff Tieng's remote `website` branch at `85046a41a79b68a2f6f33572e87c61abc5a10631`. His pushed work is the React and Vite frontend under `my-app/`, including a landing page, Host and Join buttons, a sample crisis carousel, and styling. `Host.tsx`, `Join.tsx`, `Navbar.tsx`, and `BoardroomIcon.tsx` are empty placeholders at this snapshot. The entry component renders only Home; no API requests, WebSocket connections, lobby flow, or gameplay screens were found. This is source inspection, not a runtime test or proof of unpublished work.
+
+The user assigned Jeff the pages before game start and Ricardo the backend. Keep Jeff's frontend work separate from the FastAPI room, scenario, state, voting, and AI contracts. Gameplay frontend ownership remains unassigned. Agree the API and room snapshot contract under I01 rather than duplicating page work. The inspected `website` branch does not yet contain the shared `AGENTS.md` or `TODO.md`; Jeff needs to incorporate current `main` to receive those instructions.
+
 ## Documentation
 
 * [x] D01 Publish the English backend specification.
@@ -39,6 +45,10 @@ Update the assigned entry at the beginning and end of every project work turn, e
 * [x] D08 Require a TODO update during every assigned agent work turn.
 
   Owner: coordinating Codex agent. Status: `done`. Acceptance: repository instructions require an update at work start and before completion or handoff, preserve unchecked partial tasks, and require verified remote publication before checking completed work. Progress: rules and the shared entry format are published to `Ricardo`. Checks: English prose, whitespace, task ID uniqueness, existing P02 state, and remote work commit verification passed. Next action: no further work for this documentation task; agents apply these instructions when working in the repository. Evidence: completion record 7.
+
+* [ ] D09 Review Jeff's pushed branch and record the collaboration boundary.
+
+  Owner: coordinating Codex agent. Status: `in_progress`. Acceptance: record the checked branch and commit, actual frontend work and placeholders, integration gaps, and the recommended nonoverlapping backend scope. Progress: source review complete; publishing the shared snapshot. Checks: remote branches, commit authors, source paths, component contents, and integration call search were inspected. Next action: push the snapshot, then record publication evidence.
 
 ## Product and content
 

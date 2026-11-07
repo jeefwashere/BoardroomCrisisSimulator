@@ -9,7 +9,7 @@ Updated product direction: Jeff generates the room code and owns lobby role sele
 1. The creator is the host and occupies one of the 30 seats.
 2. Names are trimmed, then compared using Unicode case folding within each room. The trimmed spelling is displayed. Names contain 1 to 40 printable characters. The same name may exist in different rooms.
 3. Only the host and joined members can read full room and member details. Room codes locate rooms; display names do not authenticate members.
-4. Active rooms and membership credentials live in memory in one backend process. Refresh retains the seat through the browser cookie while this process lives. Restart, development reload, clearing cookies, or changing browser profiles loses access to the old membership. Restart also loses all rooms.
+4. Active rooms and membership credentials live in memory in one backend process. Each application tab retains its own server issued guest credential across refresh. Legacy clients may still use the browser cookie. Restart or development reload loses rooms and credentials; losing the tab credential loses access to that tab's seats.
 5. Lobby updates may use approximately two second frontend polling before WebSocket delivery is added.
 
 ## Local setup
@@ -30,11 +30,13 @@ Run exactly one worker. Separate workers have separate rooms and credentials. Th
 
 ## Browser identity
 
-Before submitting either form, call `GET /api/session` with credentials enabled. Wait for it to succeed before submitting concurrent actions. It sets an opaque `boardroom_session` cookie with `HttpOnly`, `SameSite=Lax`, and path `/api`. Repeated initialization retains a valid cookie. It returns only `{"status":"ready"}` and does not expose the secret to JavaScript.
+Before submitting either form, initialize the application tab with `POST /api/tab-sessions`, using JSON `{}` for a new participant or `{"session_token":"<saved credential>"}` to resume. A known credential is retained; an absent or unknown credential creates a fresh opaque server issued credential. The response is `{"status":"ready","session_token":"<private credential>"}` and never sets a cookie. Await initialization before room commands. Store the credential only for the current tab, retain it across refresh, and send it as `X-Boardroom-Session` on every authenticated request. A new tab must initialize a separate identity, including when browser duplication initially copies session storage.
 
-This small initialization request gives every subsequent command a stable identity, including a retry whose original create response was lost. It does not create a room or occupy a seat. A missing or unknown cookie yields `401` on room endpoints. After backend restart, initialize again and create or join a new room.
+An explicitly supplied header is authoritative. An invalid or empty header receives `401 session_required` even when the request also carries a valid browser cookie. Public member IDs, names, and room codes never serve as credentials. Keep credentials out of URLs, logs, rendered text, and shared room snapshots. This is private guest identity, without an account or provider login.
 
-One browser profile has one seat per room. Tabs sharing the cookie share that seat. Use separate browser profiles or independently managed cookie jars for distinct human players. A browser may have seats in multiple rooms. Store the selected `room_id` in the frontend route so refresh can query the same room. Do not try to reclaim a seat by matching its name.
+Legacy clients can still call `GET /api/session` with credentials enabled. It sets the existing opaque `boardroom_session` cookie with `HttpOnly`, `SameSite=Lax`, and path `/api`, retains a valid cookie, and returns only `{"status":"ready"}`. A request without the tab header falls back to this cookie. Cookie clients sharing a browser profile therefore still share a seat. Both initialization methods create an identity without occupying a seat.
+
+Distinct tab credentials create independent players, each counting toward the capacity of 30 and the minimum of 3 to start. Reusing a credential resumes its original seats. Store the selected `room_id` for the current tab so refresh can query the same room. After backend restart, initialize again and create or join a new room; a name cannot recover an old seat.
 
 ## Implemented endpoints
 
@@ -45,6 +47,7 @@ One browser profile has one seat per room. Tabs sharing the cookie share that se
 5. `GET /api/rooms/{room_id}`: authenticated member snapshot, returns `200`.
 6. `GET /api/scenarios`: public admitted scenario references, roles, and timing profiles.
 7. `POST /api/rooms/{room_id}/start`: authenticated host submits the complete roster and selected roles. See [start-api.md](start-api.md).
+8. `POST /api/tab-sessions`: initialize or resume a private tab guest identity without setting a cookie.
 
 Contribution ingestion, final evidence export, and consequence narration endpoints are also implemented. Their request bodies and phase rules are documented in [narrative-engine.md](narrative-engine.md).
 
@@ -110,15 +113,17 @@ Member IDs and host flags are server assigned. Clients cannot submit them. The s
 
 ## Retries and polling
 
-Generate a UUID `command_id` once for each user intent. Retain that ID and body for transport retries. A different intent needs a new ID. IDs are scoped to the browser session across create and join commands. An exact successful retry returns the original snapshot without another room or seat. Reusing an ID with a different normalized body returns `409 command_conflict`. Failed attempts are not saved as successful receipts.
+Generate a UUID `command_id` once for each user intent. Retain that ID and body for transport retries. A different intent needs a new ID. IDs are scoped to the authenticated session across create and join commands. An exact successful retry returns the original snapshot without another room or seat. Reusing an ID with a different normalized body returns `409 command_conflict`. Failed attempts are not saved as successful receipts.
 
-Rejoining the same room with the same browser and equivalent name returns the existing seat even with a new command ID or when the room is full. After Start it also retains the assigned role and eligibility; a different role is rejected. A new member joining after Start must supply an allowed non CEO `role_id`. Entering a different name from that browser returns `409 already_joined`; rename and switching seats are not implemented. Clearing the cookie does not release its old seat. Room capacity counts joined seats, including disconnected browsers, until a later lifecycle capability provides removal.
+Rejoining the same room with the same credential returns the existing seat even with a new command ID or when the room is full. Submit a new `display_name` through this same join endpoint to rename that seat. Names keep the existing trim, printable length, and Unicode case folding uniqueness rules. A successful spelling change increments `room_version` once while preserving the member ID, join time, host and CEO authority, role, round eligibility, electorate, contributions, and history. An unchanged name does not increment the version. Exact retries retain the original receipt and never reapply an earlier name over a later rename.
 
-After create or join, poll `GET /api/rooms/{room_id}` about every two seconds. Permit one outstanding poll at a time and stop polling when leaving the page. For the same room, discard a response with a lower `room_version` than the latest rendered snapshot. Exact command retries intentionally return their original version, which may now be older. A new join or successful Start increments the version once; reads and duplicate commands do not. Activity may change at the same version, so apply current GET responses even if the version is equal. Successful retries refresh their caller's activity but return the unchanged historical receipt.
+Rename is allowed in the lobby and active phases. After ending, names are frozen and a change returns `409 game_ended`; an unchanged name can still rejoin. Existing seats omit `role_id`, or retain their assigned role after Start; a different role is rejected before any name or presence change. A new member joining after Start must supply an allowed non CEO `role_id`. Losing a credential does not release its old seat. Room capacity counts all registered seats until a later lifecycle capability provides removal.
 
-## Frontend example for Jeff
+After create or join, poll `GET /api/rooms/{room_id}` about every two seconds. Permit one outstanding poll at a time and stop polling when leaving the page. For the same room, discard a response with a lower `room_version` than the latest rendered snapshot. Exact command retries intentionally return their original version, which may now be older. A new join, rename, or successful Start increments the version once; reads and duplicate commands do not. Activity may change at the same version, so apply current GET responses even if the version is equal. Successful retries refresh their caller's activity but return the unchanged historical receipt.
 
-This is an integration example, not a change to the frontend source. Use the same hostname for frontend and backend during local development, such as `localhost` for both. A Vite origin at port 5173 is allowed by default.
+## Legacy cookie integration example
+
+This example retains the supported cookie flow. The application uses the independent tab credential flow described above. Use the same hostname for frontend and backend during local development, such as `localhost` for both. A Vite origin at port 5173 is allowed by default.
 
 ```js
 const API = "http://localhost:8000";
@@ -183,7 +188,7 @@ Domain errors use this envelope:
 4. `404 room_not_found`: unknown code or room ID.
 5. `409 name_taken`: another seat has the normalized display name.
 6. `409 room_full`: a new seat would exceed 30.
-7. `409 already_joined`: this browser already owns a differently named seat in that room.
+7. `409 game_ended`: an ended game cannot admit a new seat or change an existing name.
 8. `409 command_conflict`: a successful command ID was reused for a different intent.
 9. `409 room_code_taken`: choose another frontend generated code. Start and late join errors are listed in [start-api.md](start-api.md).
 10. `422`: FastAPI validation errors use its normal `detail` array, including missing UUIDs, malformed codes, invalid names, and unexpected fields.

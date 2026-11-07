@@ -17,6 +17,17 @@ RoomCode = Annotated[str, BeforeValidator(normalize_code), StringConstraints(pat
 RoleId = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=64)]
 
 
+class TabSessionBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    session_token: str | None = None
+
+
+class TabSessionView(BaseModel):
+    status: Literal["ready"] = "ready"
+    session_token: str
+
+
 class CreateRoom(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

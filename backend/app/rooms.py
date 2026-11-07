@@ -274,7 +274,7 @@ class Rooms:
 
     def authenticate(self, cookie: str | None) -> str:
         if cookie not in self.sessions:
-            raise RoomError(401, "session_required", "Initialize GET /api/session first")
+            raise RoomError(401, "session_required", "Initialize a browser or tab session first")
         return cookie
 
     def retry(self, session: str, command_id: UUID, intent: tuple):
@@ -323,14 +323,21 @@ class Rooms:
                 return previous
             existing, now, phase = room.members.get(session), self.clock(), room.phase
             if existing is not None:
-                if existing.display_name.casefold() != display_name.casefold():
-                    raise RoomError(409, "already_joined", "This browser already has a seat; renaming is not supported")
                 assigned = next((item for item in phase.assignments if item.member_id == existing.member_id), None) if isinstance(phase, StartedGame) else None
                 if assigned is not None and role_id is not None and role_id != assigned.role_id:
                     raise RoomError(409, "role_locked", "Rejoining cannot change an assigned role")
                 if assigned is None and role_id is not None:
                     raise RoomError(422, "role_not_yet_allowed", "Submit lobby roles together on Start")
-                room.touch(session, now)
+                if existing.display_name != display_name:
+                    if isinstance(phase, StartedGame) and isinstance(phase.state.phase, sim.EndedPhase):
+                        raise RoomError(409, "game_ended", "Names are frozen after the game ends")
+                    if any(seat.member_id != existing.member_id and seat.display_name.casefold() == display_name.casefold()
+                           for seat in room.members.values()):
+                        raise RoomError(409, "name_taken", "Choose another display name")
+                    room.members[session] = replace(existing, display_name=display_name, last_seen=now)
+                    room.version += 1
+                else:
+                    room.touch(session, now)
             else:
                 if isinstance(phase, StartedGame) and isinstance(phase.state.phase, sim.EndedPhase):
                     raise RoomError(409, "game_ended", "New seats cannot join an ended game")

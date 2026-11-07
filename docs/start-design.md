@@ -2,11 +2,11 @@
 
 ## Usage
 
-Each browser initializes its cookie and registers through create or join. Jeff supplies the six character room code. The host submits one request to `POST /api/rooms/{room_id}/start` with `command_id`, `room_code`, `scenario_id`, `scenario_version`, `timing_profile`, and `players`, a list of `{member_id, role_id}` values from the registered roster. The response enters briefing with pinned public scenario material. A new player subsequently joins with a non CEO role and eligibility from round 2.
+Each interactive tab initializes its private player session and registers through create or join. Legacy cookie clients remain supported. Jeff supplies the six character room code. The host submits one request to `POST /api/rooms/{room_id}/start` with `command_id`, `room_code`, `scenario_id`, `scenario_version`, `timing_profile`, and `players`, a list of `{member_id, role_id}` values from the registered roster. The response enters briefing with pinned public scenario material. A new player subsequently joins with a non CEO role and eligibility from the following round.
 
 ## Existing ownership
 
-`main.py` authenticates HTTP, `models.py` validates the wire contract, and `Rooms` is the sole writer of live state and receipts. Private browser cookies identify seats. Public names, codes, and member UUIDs do not authorize another browser. Creation uses one registry lock; changes to an existing room use its lock. An exact successful retry returns its original snapshot, and GET returns current membership.
+`main.py` authenticates HTTP, `models.py` validates the wire contract, and `Rooms` is the sole writer of live state and receipts. Private server issued tab sessions identify interactive seats; legacy cookie sessions remain supported. Public names, codes, and member UUIDs do not authorize another player. Creation uses one registry lock; changes to an existing room use its lock. An exact successful retry returns its original snapshot, and GET returns current membership.
 
 ## Shape
 
@@ -29,7 +29,7 @@ class Rooms:
 
 These are the design signatures. Implemented code is in `backend/app`. Domain seats and snapshots remain independent of HTTP schemas. Public projection explicitly includes briefing documents and excludes authored outcomes, future nodes, and private credentials. The scenario catalog validates its explicit local packages at startup, so Start performs no file or provider operation while holding a room lock. The content digest covers the scenario JSON and public document bytes.
 
-Start validates the exact registered member set, at least 3 recently active members, capacity 30, allowed role IDs, exactly one CEO, the room code, and scenario and timing identity. Non CEO perspectives may be shared. Host and CEO remain distinct. Create, join, and authorized GET refresh only that browser's activity. Freshness means elapsed monotonic time strictly below 30 seconds; this is polling presence rather than immediate disconnect detection. Successful Start counts its caller as active. No failed command changes activity, roles, phase, version, or receipts.
+Start validates the exact registered member set, at least 3 recently active members, capacity 30, allowed role IDs, exactly one CEO, the room code, and scenario and timing identity. Non CEO perspectives may be shared. Host and CEO remain distinct. Create, join, and authorized GET refresh only that player session's activity. Freshness means elapsed monotonic time strictly below 30 seconds; this is polling presence rather than immediate disconnect detection. Successful Start counts its caller as active. No failed command changes activity, roles, phase, version, or receipts.
 
 ## Synthesis decision
 
@@ -49,4 +49,4 @@ A second mutable game manager was rejected because it would split membership, ad
 
 ## Implementation check
 
-Verify code collision races, permission and roster rejection, scenario admission, exact freshness cutoff, rollback, concurrent and repeated Start, shared perspectives, refresh, full capacity, and next round late admission. A local HTTP smoke must exercise Start with separate member cookies. These checks do not establish a complete playable game or deployed frontend integration.
+Verify code collision races, permission and roster rejection, scenario admission, exact freshness cutoff, rollback, concurrent and repeated Start, shared perspectives, refresh, full capacity, and next round late admission. A local HTTP smoke must exercise Start with separate member sessions. These checks do not establish a complete playable game or deployed frontend integration.

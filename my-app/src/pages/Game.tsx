@@ -4,8 +4,9 @@ import { roomMembers } from '../features/rooms/roomState'
 import LobbyIcon from '../features/lobby/LobbyIcon'
 import CallGrid from '../features/game/CallGrid'
 import './Game.css'
+import RoomNameEditor from '../features/rooms/RoomNameEditor'
 
-function Game({ room, scenarios, error }: { room: RoomSnapshot; scenarios: Scenario[]; error: string }) {
+function Game({ room, scenarios, error, rename }: { room: RoomSnapshot; scenarios: Scenario[]; error: string; rename: (name: string) => Promise<void> }) {
     if (!room.game) return null
     const game = room.game
     const scenario = scenarios.find((option) => option.scenario_id === game.scenario.scenario_id && option.version === game.scenario.version)
@@ -13,7 +14,7 @@ function Game({ room, scenarios, error }: { room: RoomSnapshot; scenarios: Scena
     return <MotionConfig reducedMotion="user">
         <div className="game-call-screen game-live-screen">
             <header className="game-call-header">
-                <button className="game-back-button" type="button" title="Stop viewing. Your registered seat remains in this room." onClick={() => { window.location.hash = '/' }}><LobbyIcon name="back" /><span>Leave room</span></button>
+                <div className="room-personal-controls"><button className="game-back-button" type="button" title="Stop viewing. Your registered seat remains in this room." onClick={() => { window.location.hash = '/' }}><LobbyIcon name="back" /><span>Leave room</span></button><RoomNameEditor room={room} rename={rename} /></div>
                 <div className="game-call-heading"><h1>Boardroom</h1><span>{room.phase} · {room.room_code}</span></div>
                 <span className="game-player-count" aria-label={`${room.members.length} of ${room.capacity} players`}>{room.members.length}<span> / {room.capacity}</span></span>
             </header>

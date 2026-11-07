@@ -130,17 +130,20 @@ class RoomApiTests(unittest.TestCase):
         request["room_code"] = "AAAAAA" if room["room_code"] != "AAAAAA" else "BBBBBB"
         self.assertEqual(player.post("/api/rooms/join", json=request).status_code, 409)
 
-    def test_refresh_extra_tab_and_new_join_command_keep_same_seat(self):
+    def test_legacy_cookie_tab_and_new_join_command_keep_same_seat(self):
         room = self.create()
         player = self.new_client()
         first = self.join(player, room, "Jeff").json()
         tab = self.enterContext(TestClient(self.app))
         tab.cookies.update(player.cookies)
-        response = self.join(tab, room, "  JEFF ")
+        response = self.join(tab, room, "  Jeff ")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), first)
         self.assertEqual(tab.get(f'/api/rooms/{room["room_id"]}').json(), first)
-        self.assertEqual(self.join(player, room, "Another").status_code, 409)
+        renamed = self.join(player, room, "Another")
+        self.assertEqual(renamed.status_code, 200)
+        self.assertEqual(renamed.json()["self_member_id"], first["self_member_id"])
+        self.assertEqual(renamed.json()["room_version"], first["room_version"] + 1)
 
     def test_capacity_includes_host_and_existing_member_can_rejoin_full_room(self):
         room = self.create()

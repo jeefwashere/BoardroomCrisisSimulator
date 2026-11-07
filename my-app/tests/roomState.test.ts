@@ -95,3 +95,31 @@ test('a poll failure is visible and a later cycle can recover', async () => {
     assert.equal(failures, 1)
     assert.equal(reads, 2)
 })
+
+test('returning to a tab refreshes immediately without overlapping an outstanding poll', async () => {
+    let resume: (() => void) | undefined
+    let unsubscribed = false
+    let reads = 0
+    let finish: ((room: RoomSnapshot) => void) | undefined
+    const stop = pollRoom(async () => {
+        reads++
+        return new Promise<RoomSnapshot>((resolve) => { finish = resolve })
+    }, () => {}, () => assert.fail('unexpected failure'), 60_000, (listener) => {
+        resume = listener
+        return () => { unsubscribed = true }
+    })
+    assert.equal(reads, 1)
+    resume!()
+    resume!()
+    assert.equal(reads, 1)
+    finish!(lobby())
+    await new Promise((resolve) => setTimeout(resolve, 10))
+    assert.equal(reads, 2)
+    finish!(lobby())
+    await new Promise((resolve) => setTimeout(resolve, 1))
+    resume!()
+    assert.equal(reads, 3)
+    stop()
+    assert.equal(unsubscribed, true)
+    finish!(lobby())
+})

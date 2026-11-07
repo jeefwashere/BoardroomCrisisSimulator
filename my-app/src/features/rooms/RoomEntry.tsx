@@ -61,7 +61,7 @@ function RoomEntry({ mode, initialCode = '' }: { mode: 'host' | 'join'; initialC
             <form className="room-entry-form" onSubmit={(event) => { event.preventDefault(); void submit() }}>
                 <label htmlFor="entry-code">Room code</label>
                 <input id="entry-code" className="home-menu__input" required pattern="[A-Za-z0-9]{6}" maxLength={6} autoCapitalize="characters" autoComplete="off" value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} disabled={busy} />
-                <p>Joining as {name || 'your selected name'}. Names stay fixed for this room.</p>
+                <p>Joining as {name || 'your selected name'}. You can edit your name inside the room.</p>
                 {mode === 'join' && needsRole && <>
                     <label htmlFor="join-role">Role for a room already in progress</label>
                     <select id="join-role" required value={role} onChange={(event) => setRole(event.target.value)} disabled={busy}>

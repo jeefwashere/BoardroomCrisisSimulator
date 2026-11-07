@@ -51,19 +51,35 @@ export function pollRoom(
     receive: (room: RoomSnapshot) => void,
     failed: (error: unknown) => void,
     interval = 2000,
+    subscribeResume?: (resume: () => void) => () => void,
 ): () => void {
     const controller = new AbortController()
     let timer: ReturnType<typeof setTimeout> | undefined
+    let running = false
+    let resumePending = false
     async function tick() {
+        if (controller.signal.aborted || running) return
+        running = true
         try {
             const room = await read(controller.signal)
             if (!controller.signal.aborted) receive(room)
         } catch (error) {
             if (!controller.signal.aborted) failed(error)
         } finally {
-            if (!controller.signal.aborted) timer = setTimeout(() => void tick(), interval)
+            running = false
+            if (!controller.signal.aborted) {
+                const delay = resumePending ? 0 : interval
+                resumePending = false
+                timer = setTimeout(() => void tick(), delay)
+            }
         }
     }
+    const unsubscribe = subscribeResume?.(() => {
+        if (controller.signal.aborted) return
+        clearTimeout(timer)
+        if (running) resumePending = true
+        else void tick()
+    })
     void tick()
-    return () => { controller.abort(); clearTimeout(timer) }
+    return () => { controller.abort(); clearTimeout(timer); unsubscribe?.() }
 }

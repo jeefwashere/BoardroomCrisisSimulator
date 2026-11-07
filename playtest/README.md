@@ -2,6 +2,8 @@
 
 This isolated experiment adds a minimal FastAPI browser application on branch `experiment/ai-voice-playtest`. It does not replace Ricardo's `backend/app`, Jeff's frontend, or the shared model lab. Production task states and ownership are preserved.
 
+Use [the manual test guide](TEST_GUIDE.md) for copyable T01, T02 and T03 questions, expected evidence, the agent roster, the five minute procedure and a results sheet.
+
 ## Start it
 
 Use Python 3.12 or newer. The existing backend dependency lock is reused.

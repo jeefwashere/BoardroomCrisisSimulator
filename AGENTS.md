@@ -40,3 +40,5 @@ This checklist is maintained by the agents through normal commits. It is not an 
 3. Only [participant-packs.json](playtest/fixtures/participant-packs.json) is loaded by the preparation reference service. The three packs support scoped document questions; their full timed branches are not implemented playable modes. Do not claim otherwise or silently replace the live voting rules with their different fixture rules.
 
 4. The requested local test defaults to one five minute round. `--allow-name-rejoin` explicitly enables recovering an inactive seat by name and room; leave releases immediately, closed tabs require 30 seconds of inactivity, and the old token is revoked. Keep this exception within the localhost experiment and preserve production identity rules.
+
+5. [The manual test guide](playtest/TEST_GUIDE.md) documents current controls, agent responsibilities and reviewer checks for each participant pack. Keep its expected answers outside participant retrieval and update it when the implemented controls change.

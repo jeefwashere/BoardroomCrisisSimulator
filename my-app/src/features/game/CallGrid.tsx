@@ -38,7 +38,7 @@ function CallGrid({ members }: { members: LobbyMember[] }) {
                         initial={{ opacity: 0, scale: 0.97 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.2, delay: Math.min(index * 0.015, 0.15) }}
-                        aria-label={`${member.name}, ${playerRoleLabel(member.role)}${member.isHost ? ', host' : ''}`}
+                        aria-label={`${member.name}, ${(member.roleLabel ?? playerRoleLabel(member.role))}${member.isHost ? ', host' : ''}`}
                     >
                         {member.isHost && <span className="game-host-indicator" title="Host"><LobbyIcon name="crown" /><span className="game-visually-hidden">Host</span></span>}
                         <div className="game-player-presence" aria-hidden="true">
@@ -48,11 +48,12 @@ function CallGrid({ members }: { members: LobbyMember[] }) {
                         </div>
                         <div className="game-player-caption">
                             <h2 title={member.name}>{member.name}</h2>
-                            <span title={playerRoleLabel(member.role)}>{playerRoleLabel(member.role)}</span>
+                            {member.connected !== undefined && <small>{member.connected ? 'Active' : 'Away'}</small>}
+                            <span title={(member.roleLabel ?? playerRoleLabel(member.role))}>{(member.roleLabel ?? playerRoleLabel(member.role))}</span>
                         </div>
                     </motion.article>
                 ))}
-                {members.length === 0 && <p className="game-empty-grid">No players in this preview.</p>}
+                {members.length === 0 && <p className="game-empty-grid">No participants in this room.</p>}
             </div>
         </div>
     )

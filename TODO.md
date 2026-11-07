@@ -30,6 +30,10 @@ Status values: `available`, `in_progress`, `waiting`, `done`, `optional`, `defer
 
   Owner: Codex documentation agent. Status: `done`. Acceptance: all tracked project documents use English prose, the translated backend guide has an English filename, local links resolve, and the changes are verified on remote `main`. Preserve task IDs, completion history, and product requirements. Evidence: completion record 4.
 
+* [ ] D07 Publish the selected ElevenLabs and local agent architecture with the existing prototype source.
+
+  Owner: Arjun Codex agent. Status: `in_progress`. Acceptance: preserve the confirmed multiplayer specification, document Route A and all eight logical roles, distinguish live models from downloaded candidates, publish the hosted API clients and tested prototype, and verify the work commit on `main`. This does not complete B01 through B13 or multiplayer integration tasks. Scope: documentation, agent instructions, existing `rehearsal/`, tests, clients, and the existing model lab source snapshot.
+
 ## Product and content
 
 * [ ] P01 Record the remaining product choices.

@@ -1,6 +1,6 @@
 # Backend specification
 
-Status: design proposal for team selection. Application implementation has not started.
+Status: multiplayer specification with confirmed requirements and explicitly proposed policies. The separate rehearsal prototype and model service now exist; this specification is not yet fully implemented. The selected speech and model stack is documented in [ai-architecture.md](ai-architecture.md).
 
 ## 1. Summary
 
@@ -8,7 +8,7 @@ Confirmed: a multiplayer crisis simulation with entry by room code and display n
 
 Proposed architecture: one FastAPI service maintains authoritative room state, accepts actions over HTTP, and synchronizes screens through WebSocket connections. Scenarios, choices, and prepared consequences use versioned scenario data. AI evaluates the winning custom action and returns an allowed outcome. Basic refresh and reconnect recovery are included; database recovery and server restart recovery remain later options.
 
-Unconfirmed values and policies are marked Proposed, including speaking duration, total game duration, role assignment, vote replacement, vote visibility, CEO absence, scoring details, and the AI provider. The team can select its delivery scope from this document's function catalog.
+Unconfirmed values and policies are marked Proposed, including speaking duration, total game duration, role assignment, vote replacement, vote visibility, CEO absence and scoring details. The AI and speech provider choices are now selected in [ai-architecture.md](ai-architecture.md). The team can select its delivery scope from this document's function catalog.
 
 ## 2. Evidence and decision status
 
@@ -89,7 +89,7 @@ Proposed defaults:
 4. A returning player remains eligible to vote in the current round if they were in its original roster.
 5. The server owns the speaker deadline; the frontend countdown is a display.
 
-Speaking time is a turn permission and timer requirement. In app microphone transport, recording, transcription, and voice generation were not selected. Their implementation is an optional feature, not an implied WebSocket capability.
+Speaking time is a turn permission and timer requirement. ElevenLabs has now been selected for speech input and output under [Route A](ai-architecture.md). Live microphone transport, recording policy, and the complete voice client remain separate integration work tracked by O02; a WebSocket connection alone does not implement them.
 
 At 20 players, 30 seconds each consumes 10 minutes before a vote. The lobby should show the estimated minimum duration for the configured roster and scenario. The exact speaker and total session durations remain team choices.
 
@@ -187,11 +187,11 @@ Recommended delivery order is one prepared scenario through F01, F02, F04, F05, 
 11. Separate rooms cannot see or mutate each other's members, votes, timers, or state.
 12. The final feedback agrees with committed decisions and end reason. If AI feedback fails, the factual result page still works.
 
-These are required future verification cases. They have not been executed against a backend because no backend exists yet.
+These are required future multiplayer verification cases. Prototype and model API tests do not establish that this complete game flow works.
 
 ## 13. Remaining choices, not blockers to drafting
 
-The team still chooses the actual scenario content and document topics, complete role roster, who supplies the scenario and AI integration, speaker and total session durations, scoring rubric, AI provider, delivery deadline, hosting target, simultaneous room target, and any changes to the marked Proposed policies. Prepared scenario files are still needed before a real scenario can be validated.
+The team still chooses the actual scenario content and document topics, complete role roster, who supplies the scenario and AI integration, speaker and total session durations, scoring rubric, delivery deadline, game backend hosting target, simultaneous room target, and any changes to the marked Proposed policies. Prepared scenario files are still needed before a real scenario can be validated.
 
 ## 14. Sources
 

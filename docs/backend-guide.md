@@ -109,3 +109,11 @@ See the architecture document for complete paths. The main groups are:
 The specification and architecture were published to `main` through [PR 1](https://github.com/jeefwashere/BoardroomCrisisSimulator/pull/1). That completes the documents. Backend functionality still requires implementation and verification before its tasks can be checked.
 
 The root `TODO.md` lists tasks and acceptance requirements by function. After completing and verifying a task, each agent confirms that its implementation commit has been pushed, checks the task, adds the commit link and verification result, and pushes the checklist update.
+
+## Selected speech and local model architecture
+
+Route A is now selected: the application backend owns room state and permissions, ElevenLabs handles speech recognition and generation, LFM3 handles local conversational inference, and GLiNER extracts information. The eight logical roles and their actual implementation status are recorded in [ai-architecture.md](ai-architecture.md). Do not substitute OpenRouter or the legacy managed ElevenLabs mood agent.
+
+Teammates call the hosted HTTPS API from their application server. They do not need the owner's Velocity account or SSH access. Application users need no ChatGPT account. Keep service credentials on the backend and do not distribute the developer's entire `.env.local`.
+
+The `rehearsal/` package is a tested experiment. Its chair confirmation, 15 minute fixture, and SQLite history do not replace the confirmed voting, CEO, and FastAPI room requirements. Two models are enabled; seven other checkpoints are downloaded only. Speech adapters exist, but paid audio and a live microphone client have not been verified. Keep production backend and multiplayer integration tasks open until their own acceptance criteria pass.

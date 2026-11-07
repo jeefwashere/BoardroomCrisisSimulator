@@ -1,0 +1,953 @@
+{
+  "started_at": "2026-11-07T18:49:23Z",
+  "job_id": "20031",
+  "models": [
+    {
+      "repo_id": "LiquidAI/LFM3-1.7B",
+      "revision": "0dc4268b561499c648c7ba7c9466bf3d8d01517a",
+      "path": "/home/abehl/worldmodel/runs/boardroom-local-models-2026-11-07/models/LiquidAI/LFM3-1.7B",
+      "status": "verified",
+      "files": [
+        {
+          "name": ".eval_results/LFM3-1.7B.yaml",
+          "size": 1553,
+          "sha256": null
+        },
+        {
+          "name": ".eval_results/ifbench.yaml",
+          "size": 192,
+          "sha256": null
+        },
+        {
+          "name": ".gitattributes",
+          "size": 1838,
+          "sha256": null
+        },
+        {
+          "name": "LICENSE",
+          "size": 10574,
+          "sha256": null
+        },
+        {
+          "name": "README.md",
+          "size": 54724,
+          "sha256": null
+        },
+        {
+          "name": "assets/icons/api.svg",
+          "size": 304,
+          "sha256": null
+        },
+        {
+          "name": "assets/icons/blog.svg",
+          "size": 329,
+          "sha256": null
+        },
+        {
+          "name": "assets/icons/docs.svg",
+          "size": 347,
+          "sha256": null
+        },
+        {
+          "name": "assets/icons/try.svg",
+          "size": 317,
+          "sha256": null
+        },
+        {
+          "name": "assets/lfm3-edge-inference.webp",
+          "size": 213860,
+          "sha256": "ac73ebf33a4ea9aa3191d64f28d10a3ed51531dfa5442390071b876ae1b37ea4"
+        },
+        {
+          "name": "assets/lfm3-gpu-throughput-b300.png",
+          "size": 85302,
+          "sha256": null
+        },
+        {
+          "name": "assets/lfm3-post-training-recipe.webp",
+          "size": 19342,
+          "sha256": null
+        },
+        {
+          "name": "assets/lfm3-pre-training-recipe.webp",
+          "size": 28860,
+          "sha256": null
+        },
+        {
+          "name": "assets/liquid-ai-banner.webp",
+          "size": 38172,
+          "sha256": null
+        },
+        {
+          "name": "chat_template.jinja",
+          "size": 12129,
+          "sha256": null
+        },
+        {
+          "name": "config.json",
+          "size": 1454,
+          "sha256": null
+        },
+        {
+          "name": "configuration_lfm3.py",
+          "size": 6113,
+          "sha256": null
+        },
+        {
+          "name": "generation_config.json",
+          "size": 328,
+          "sha256": null
+        },
+        {
+          "name": "lfm3_conv.py",
+          "size": 8532,
+          "sha256": null
+        },
+        {
+          "name": "model.safetensors",
+          "size": 3457635448,
+          "sha256": "135922caef64e81e52af88ede8b7c3ddaa9d6da220a9737fb3065275dbfb4330"
+        },
+        {
+          "name": "modeling_lfm3.py",
+          "size": 42359,
+          "sha256": null
+        },
+        {
+          "name": "special_tokens_map.json",
+          "size": 92,
+          "sha256": null
+        },
+        {
+          "name": "tokenizer.json",
+          "size": 17908635,
+          "sha256": "7e226e34bface23ccf6e495d157bf77186c1c30a7659880e1a8994db528c3701"
+        },
+        {
+          "name": "tokenizer_config.json",
+          "size": 1545,
+          "sha256": null
+        }
+      ],
+      "expected_bytes": 3476072349,
+      "attempt": 1,
+      "completed_at": "2026-11-07T18:49:45Z"
+    },
+    {
+      "repo_id": "openbmb/MiniCPM5-2B",
+      "revision": "f97400052a43d642bbc6e9975e2397e3ae6a6b52",
+      "path": "/home/abehl/worldmodel/runs/boardroom-local-models-2026-11-07/models/openbmb/MiniCPM5-2B",
+      "status": "verified",
+      "files": [
+        {
+          "name": ".gitattributes",
+          "size": 1519,
+          "sha256": null
+        },
+        {
+          "name": "README-cn.md",
+          "size": 110251,
+          "sha256": null
+        },
+        {
+          "name": "README.md",
+          "size": 112204,
+          "sha256": null
+        },
+        {
+          "name": "chat_template.jinja",
+          "size": 5435,
+          "sha256": null
+        },
+        {
+          "name": "config.json",
+          "size": 704,
+          "sha256": null
+        },
+        {
+          "name": "generation_config.json",
+          "size": 213,
+          "sha256": null
+        },
+        {
+          "name": "model-00000-of-00001.safetensors",
+          "size": 5033557096,
+          "sha256": "14fb8e7f0a18d53d1f239773758bf581cee7e456a4523a54622c3a245b64402c"
+        },
+        {
+          "name": "model.safetensors.index.json",
+          "size": 31378,
+          "sha256": null
+        },
+        {
+          "name": "special_tokens_map.json",
+          "size": 551,
+          "sha256": null
+        },
+        {
+          "name": "tokenizer.json",
+          "size": 9894271,
+          "sha256": null
+        },
+        {
+          "name": "tokenizer_config.json",
+          "size": 94391,
+          "sha256": null
+        }
+      ],
+      "expected_bytes": 5043808013,
+      "attempt": 1,
+      "completed_at": "2026-11-07T18:50:13Z"
+    },
+    {
+      "repo_id": "nvidia/NVIDIA-Nemotron-3.5-Bolt-E4B-BF16",
+      "revision": "49843eed8db1f1c616c47af75cfd36e07aec0667",
+      "path": "/home/abehl/worldmodel/runs/boardroom-local-models-2026-11-07/models/nvidia/NVIDIA-Nemotron-3.5-Bolt-E4B-BF16",
+      "status": "verified",
+      "files": [
+        {
+          "name": ".gitattributes",
+          "size": 1749,
+          "sha256": null
+        },
+        {
+          "name": "README.md",
+          "size": 65999,
+          "sha256": null
+        },
+        {
+          "name": "bias.md",
+          "size": 3254,
+          "sha256": null
+        },
+        {
+          "name": "bolt-smart-and-fast.png",
+          "size": 444073,
+          "sha256": "244b8a0f465c13fbfa81c8046b0bd4471d2202c275ea950c4845374788852145"
+        },
+        {
+          "name": "chat_template.jinja",
+          "size": 20161,
+          "sha256": null
+        },
+        {
+          "name": "config.json",
+          "size": 5144,
+          "sha256": null
+        },
+        {
+          "name": "explainability.md",
+          "size": 2674,
+          "sha256": null
+        },
+        {
+          "name": "generation_config.json",
+          "size": 208,
+          "sha256": null
+        },
+        {
+          "name": "handler.py",
+          "size": 7165,
+          "sha256": null
+        },
+        {
+          "name": "model-00001-of-00001.safetensors",
+          "size": 15882494698,
+          "sha256": "15006dbbfc99dbde9cc3fb5742b08976837b6ddc9db05b1ceb8b223de8cfc520"
+        },
+        {
+          "name": "model-frozen-shared-kv.safetensors",
+          "size": 110118048,
+          "sha256": "32aaa38402af5a51c6d6b27aeb8a26d3e6964e5590330f0e7b2f546608da4023"
+        },
+        {
+          "name": "model.safetensors.index.json",
+          "size": 217801,
+          "sha256": null
+        },
+        {
+          "name": "privacy.md",
+          "size": 1671,
+          "sha256": null
+        },
+        {
+          "name": "processor_config.json",
+          "size": 1689,
+          "sha256": null
+        },
+        {
+          "name": "reachy-bolt.gif",
+          "size": 29796429,
+          "sha256": "446ab42f5a52e2d9d2bb09a76efa4439d96929090eaab0f3d2fce4f9e330cd75"
+        },
+        {
+          "name": "safety.md",
+          "size": 2292,
+          "sha256": null
+        },
+        {
+          "name": "tokenizer.json",
+          "size": 32169626,
+          "sha256": "cc8d3a0ce36466ccc1278bf987df5f71db1719b9ca6b4118264f45cb627bfe0f"
+        },
+        {
+          "name": "tokenizer_config.json",
+          "size": 23725,
+          "sha256": null
+        }
+      ],
+      "expected_bytes": 16055376406,
+      "attempt": 1,
+      "completed_at": "2026-11-07T18:51:22Z"
+    },
+    {
+      "repo_id": "ibm-granite/granite-4.2-3b",
+      "revision": "4e9c275e232f10211ec88644d106a1f6a1b60e06",
+      "path": "/home/abehl/worldmodel/runs/boardroom-local-models-2026-11-07/models/ibm-granite/granite-4.2-3b",
+      "status": "verified",
+      "files": [
+        {
+          "name": ".gitattributes",
+          "size": 1519,
+          "sha256": null
+        },
+        {
+          "name": "README.md",
+          "size": 35640,
+          "sha256": null
+        },
+        {
+          "name": "chat_template.jinja",
+          "size": 9013,
+          "sha256": null
+        },
+        {
+          "name": "config.json",
+          "size": 905,
+          "sha256": null
+        },
+        {
+          "name": "generation_config.json",
+          "size": 207,
+          "sha256": null
+        },
+        {
+          "name": "granite_thinking_parser.py",
+          "size": 4649,
+          "sha256": null
+        },
+        {
+          "name": "merges.txt",
+          "size": 916646,
+          "sha256": null
+        },
+        {
+          "name": "model-00001-of-00002.safetensors",
+          "size": 5358533712,
+          "sha256": "db39eb2776b5404dbfd0696cf7fe5ec671f0dad0e0918c62c5aea9e2eb5825d7"
+        },
+        {
+          "name": "model-00002-of-00002.safetensors",
+          "size": 1960983408,
+          "sha256": "8fba6ea17551d5d129eac519dbd70237139221c7fd0b89623ef54d9711062505"
+        },
+        {
+          "name": "model.safetensors.index.json",
+          "size": 29893,
+          "sha256": null
+        },
+        {
+          "name": "model.sig",
+          "size": 10791,
+          "sha256": null
+        },
+        {
+          "name": "special_tokens_map.json",
+          "size": 563,
+          "sha256": null
+        },
+        {
+          "name": "tokenizer.json",
+          "size": 7153414,
+          "sha256": null
+        },
+        {
+          "name": "tokenizer_config.json",
+          "size": 17677,
+          "sha256": null
+        },
+        {
+          "name": "vocab.json",
+          "size": 1612694,
+          "sha256": null
+        }
+      ],
+      "expected_bytes": 7329310731,
+      "attempt": 1,
+      "completed_at": "2026-11-07T18:52:37Z"
+    },
+    {
+      "repo_id": "fastino/gliner2.5-small-v1",
+      "revision": "b5d42bf7dc7d01c40304ae4ed43c2f13c325a75b",
+      "path": "/home/abehl/worldmodel/runs/boardroom-local-models-2026-11-07/models/fastino/gliner2.5-small-v1",
+      "status": "verified",
+      "files": [
+        {
+          "name": ".gitattributes",
+          "size": 1637,
+          "sha256": null
+        },
+        {
+          "name": "GLiNER-2.5-Small-HF-Banner.png",
+          "size": 652676,
+          "sha256": "501aea9d83a1a105b7a95a7b613e4986d92bb727d681080b11ca3b8b91887237"
+        },
+        {
+          "name": "GitHub_new.jpg",
+          "size": 858002,
+          "sha256": "428f13aa08f1aa12370c4a644f235ddc46db85e429a1dee6a8d22ead095f2183"
+        },
+        {
+          "name": "README.md",
+          "size": 21883,
+          "sha256": null
+        },
+        {
+          "name": "SKILL.md",
+          "size": 6511,
+          "sha256": null
+        },
+        {
+          "name": "config.json",
+          "size": 4104,
+          "sha256": null
+        },
+        {
+          "name": "encoder_config/config.json",
+          "size": 856,
+          "sha256": null
+        },
+        {
+          "name": "model.safetensors",
+          "size": 295567700,
+          "sha256": "4ee982787ace270d4bf15dbcb28ced38e0aa201372347114ceedd6336055de2b"
+        },
+        {
+          "name": "tokenizer.json",
+          "size": 8341713,
+          "sha256": null
+        },
+        {
+          "name": "tokenizer_config.json",
+          "size": 645,
+          "sha256": null
+        }
+      ],
+      "expected_bytes": 305455727,
+      "attempt": 1,
+      "completed_at": "2026-11-07T18:52:43Z"
+    },
+    {
+      "repo_id": "fastino/gliner2.5-base-v1",
+      "revision": "07d99c0ba5d15cb3b24e0a236fa99bdd4ef87a5c",
+      "path": "/home/abehl/worldmodel/runs/boardroom-local-models-2026-11-07/models/fastino/gliner2.5-base-v1",
+      "status": "verified",
+      "files": [
+        {
+          "name": ".gitattributes",
+          "size": 1636,
+          "sha256": null
+        },
+        {
+          "name": "GLiNER-2.5-Base-HF-Banner.png",
+          "size": 658230,
+          "sha256": "299382c32c54af5f2374f02d4770a3772c2d579c1d81187a4083e11b66c9adf5"
+        },
+        {
+          "name": "GitHub_new.jpg",
+          "size": 858002,
+          "sha256": "428f13aa08f1aa12370c4a644f235ddc46db85e429a1dee6a8d22ead095f2183"
+        },
+        {
+          "name": "README.md",
+          "size": 21886,
+          "sha256": null
+        },
+        {
+          "name": "SKILL.md",
+          "size": 6511,
+          "sha256": null
+        },
+        {
+          "name": "config.json",
+          "size": 4103,
+          "sha256": null
+        },
+        {
+          "name": "encoder_config/config.json",
+          "size": 857,
+          "sha256": null
+        },
+        {
+          "name": "model.safetensors",
+          "size": 774366564,
+          "sha256": "7274094de2e0c2a37a386f55fc4e23061a954da5bd7a335e7dfe56f2743c277a"
+        },
+        {
+          "name": "tokenizer.json",
+          "size": 8341713,
+          "sha256": null
+        },
+        {
+          "name": "tokenizer_config.json",
+          "size": 645,
+          "sha256": null
+        }
+      ],
+      "expected_bytes": 784260147,
+      "attempt": 1,
+      "completed_at": "2026-11-07T18:52:52Z"
+    },
+    {
+      "repo_id": "fastino/GLiNER2.5-Decide",
+      "revision": "9d1bfb848cd16d93ee56ccbc59cd92bf0f284d90",
+      "path": "/home/abehl/worldmodel/runs/boardroom-local-models-2026-11-07/models/fastino/GLiNER2.5-Decide",
+      "status": "verified",
+      "files": [
+        {
+          "name": ".gitattributes",
+          "size": 1589,
+          "sha256": null
+        },
+        {
+          "name": "GLiNER-2.5-Decision-HF-Banner.png",
+          "size": 648274,
+          "sha256": "4997b9d9e7e84226dcda296409285eb6788567501ab4bec6c6a1d6bff4e1de5d"
+        },
+        {
+          "name": "README.md",
+          "size": 20089,
+          "sha256": null
+        },
+        {
+          "name": "SKILL.md",
+          "size": 6511,
+          "sha256": null
+        },
+        {
+          "name": "config.json",
+          "size": 1612,
+          "sha256": null
+        },
+        {
+          "name": "encoder_config/config.json",
+          "size": 920,
+          "sha256": null
+        },
+        {
+          "name": "model.safetensors",
+          "size": 1945828140,
+          "sha256": "40a5a23ff860dc3dff426cecd1048cacdd29c648c96db209dad818e9686dc997"
+        },
+        {
+          "name": "special_tokens_map.json",
+          "size": 2414,
+          "sha256": null
+        },
+        {
+          "name": "tokenizer.json",
+          "size": 8333952,
+          "sha256": null
+        },
+        {
+          "name": "tokenizer_config.json",
+          "size": 3356,
+          "sha256": null
+        }
+      ],
+      "expected_bytes": 1954846857,
+      "attempt": 1,
+      "completed_at": "2026-11-07T18:53:06Z"
+    },
+    {
+      "repo_id": "LiquidAI/d1-2B",
+      "revision": "652f920e544ea37f81e4b0ce89b81d4ed0da90b1",
+      "path": "/home/abehl/worldmodel/runs/boardroom-local-models-2026-11-07/models/LiquidAI/d1-2B",
+      "status": "verified",
+      "files": [
+        {
+          "name": ".eval_results/d1-2B.yaml",
+          "size": 201,
+          "sha256": null
+        },
+        {
+          "name": ".gitattributes",
+          "size": 1570,
+          "sha256": null
+        },
+        {
+          "name": "LICENSE",
+          "size": 10574,
+          "sha256": null
+        },
+        {
+          "name": "README.md",
+          "size": 43457,
+          "sha256": null
+        },
+        {
+          "name": "api.py",
+          "size": 11734,
+          "sha256": null
+        },
+        {
+          "name": "assets/icons/api.svg",
+          "size": 233,
+          "sha256": null
+        },
+        {
+          "name": "assets/icons/blog.svg",
+          "size": 258,
+          "sha256": null
+        },
+        {
+          "name": "assets/icons/docs.svg",
+          "size": 276,
+          "sha256": null
+        },
+        {
+          "name": "assets/icons/try.svg",
+          "size": 246,
+          "sha256": null
+        },
+        {
+          "name": "assets/liquid-ai-banner.webp",
+          "size": 38172,
+          "sha256": null
+        },
+        {
+          "name": "attention.py",
+          "size": 19450,
+          "sha256": null
+        },
+        {
+          "name": "box.py",
+          "size": 7747,
+          "sha256": null
+        },
+        {
+          "name": "calibration.json",
+          "size": 4924,
+          "sha256": null
+        },
+        {
+          "name": "calibration.py",
+          "size": 2867,
+          "sha256": null
+        },
+        {
+          "name": "chat_template.jinja",
+          "size": 12748,
+          "sha256": null
+        },
+        {
+          "name": "config.json",
+          "size": 2903,
+          "sha256": null
+        },
+        {
+          "name": "configuration_lfm3.py",
+          "size": 7136,
+          "sha256": null
+        },
+        {
+          "name": "configuration_lfm3_vl.py",
+          "size": 9892,
+          "sha256": null
+        },
+        {
+          "name": "depthwise.py",
+          "size": 3119,
+          "sha256": null
+        },
+        {
+          "name": "grid.py",
+          "size": 1714,
+          "sha256": null
+        },
+        {
+          "name": "image_processing_lfm3_vl.py",
+          "size": 13085,
+          "sha256": null
+        },
+        {
+          "name": "integrations_lfm3.py",
+          "size": 8739,
+          "sha256": null
+        },
+        {
+          "name": "json_spans.py",
+          "size": 2060,
+          "sha256": null
+        },
+        {
+          "name": "lfm3.py",
+          "size": 11046,
+          "sha256": null
+        },
+        {
+          "name": "media.py",
+          "size": 13064,
+          "sha256": null
+        },
+        {
+          "name": "model.safetensors",
+          "size": 3836417920,
+          "sha256": "b5e573687315e82ea80f4f7dd8d76b5cec3b6ee97e3509fd0493cfebb203719f"
+        },
+        {
+          "name": "modeling_d1.py",
+          "size": 3914,
+          "sha256": null
+        },
+        {
+          "name": "modeling_d1_lfm3_vl.py",
+          "size": 369,
+          "sha256": null
+        },
+        {
+          "name": "modeling_lfm3.py",
+          "size": 43385,
+          "sha256": null
+        },
+        {
+          "name": "modeling_lfm3_vl.py",
+          "size": 46052,
+          "sha256": null
+        },
+        {
+          "name": "native_lfm3.py",
+          "size": 1268,
+          "sha256": null
+        },
+        {
+          "name": "native_lfm3_vl.py",
+          "size": 1387,
+          "sha256": null
+        },
+        {
+          "name": "parsing.py",
+          "size": 16157,
+          "sha256": null
+        },
+        {
+          "name": "pointer.py",
+          "size": 7700,
+          "sha256": null
+        },
+        {
+          "name": "processing_lfm3_vl.py",
+          "size": 13012,
+          "sha256": null
+        },
+        {
+          "name": "processor_config.json",
+          "size": 1254,
+          "sha256": null
+        },
+        {
+          "name": "prompt.py",
+          "size": 34780,
+          "sha256": null
+        },
+        {
+          "name": "runner.py",
+          "size": 22405,
+          "sha256": null
+        },
+        {
+          "name": "slots.py",
+          "size": 2463,
+          "sha256": null
+        },
+        {
+          "name": "tokenizer.json",
+          "size": 17908258,
+          "sha256": "a39eed58008cbcbc09e5b629b81338a654269c64cd13348aaa6090f4db75c7e7"
+        },
+        {
+          "name": "tokenizer_config.json",
+          "size": 623,
+          "sha256": null
+        },
+        {
+          "name": "video_processing_lfm3_vl.py",
+          "size": 18210,
+          "sha256": null
+        }
+      ],
+      "expected_bytes": 3854766372,
+      "attempt": 1,
+      "completed_at": "2026-11-07T18:53:27Z"
+    },
+    {
+      "repo_id": "numind/NuExtract3",
+      "revision": "c99dc8f5641b866aa0192b6ea78f84bf9f3535f1",
+      "path": "/home/abehl/worldmodel/runs/boardroom-local-models-2026-11-07/models/numind/NuExtract3",
+      "status": "verified",
+      "files": [
+        {
+          "name": ".eval_results/extractbench.yaml",
+          "size": 1615,
+          "sha256": null
+        },
+        {
+          "name": ".eval_results/olmocrbench.yaml",
+          "size": 502,
+          "sha256": null
+        },
+        {
+          "name": ".gitattributes",
+          "size": 2163,
+          "sha256": null
+        },
+        {
+          "name": "LICENSE",
+          "size": 11343,
+          "sha256": null
+        },
+        {
+          "name": "README.md",
+          "size": 25492,
+          "sha256": null
+        },
+        {
+          "name": "TYPES.md",
+          "size": 4075,
+          "sha256": null
+        },
+        {
+          "name": "chat_template.jinja",
+          "size": 6752,
+          "sha256": null
+        },
+        {
+          "name": "config.json",
+          "size": 2897,
+          "sha256": null
+        },
+        {
+          "name": "extraction_performance_no_thinking.png",
+          "size": 257427,
+          "sha256": "873703147b4a8cc8195f9762399b9f1fc9f9e017ff3e73c702d420cebd3b6be3"
+        },
+        {
+          "name": "extraction_performance_thinking.png",
+          "size": 293480,
+          "sha256": "cc50cef0718e3ef1fd7324cb64c89d512cfd8a01940b17d6ea50b6cd4a382c82"
+        },
+        {
+          "name": "generation_config.json",
+          "size": 115,
+          "sha256": null
+        },
+        {
+          "name": "header.svg",
+          "size": 110409,
+          "sha256": null
+        },
+        {
+          "name": "logo.png",
+          "size": 1075138,
+          "sha256": "eacf669413cc39227da6b87a9a98276893ca6831ff413c3382789a7954e3dae7"
+        },
+        {
+          "name": "logo_nuextract.svg",
+          "size": 8902,
+          "sha256": null
+        },
+        {
+          "name": "markdown.png",
+          "size": 1117747,
+          "sha256": "b898b030d41e6b588832b5e8c4b09c5b425130db6e2b0f789fe75b6a2bfe172e"
+        },
+        {
+          "name": "markdown_base.png",
+          "size": 166240,
+          "sha256": "0475336139bd58b50f63791b6d6863661ed363394d0580b7db05596979e72c2e"
+        },
+        {
+          "name": "markdown_reasoning.png",
+          "size": 161495,
+          "sha256": "733f46ad4c82186626df2db2927f0eadd5d7089ba98cec4aabb9281a7b114285"
+        },
+        {
+          "name": "md2st.svg",
+          "size": 88565,
+          "sha256": null
+        },
+        {
+          "name": "model.safetensors",
+          "size": 9078620504,
+          "sha256": "aca0a9d61da5df4fa4b1475b68c0a7205e5f8f5f20beb5055fde0622991f9ed7"
+        },
+        {
+          "name": "model.safetensors.index.json",
+          "size": 56330,
+          "sha256": null
+        },
+        {
+          "name": "model_mtp.safetensors",
+          "size": 241200704,
+          "sha256": "7f993d7b896c6d3c72ee66fd446b28bcf316d5f5ce4a0427c0442dfe461cbe1b"
+        },
+        {
+          "name": "ocr_benchmark_specialized.png",
+          "size": 227613,
+          "sha256": "7c6e21084c03ec764f032ca38c60ae44fc8e650d7e3b95acc03ac5b8e016dd71"
+        },
+        {
+          "name": "ocr_preferences.svg",
+          "size": 71206,
+          "sha256": null
+        },
+        {
+          "name": "processor_config.json",
+          "size": 1191,
+          "sha256": null
+        },
+        {
+          "name": "st.svg",
+          "size": 39712,
+          "sha256": null
+        },
+        {
+          "name": "task_instructions_markdown.txt",
+          "size": 2748,
+          "sha256": null
+        },
+        {
+          "name": "task_instructions_structured.txt",
+          "size": 11021,
+          "sha256": null
+        },
+        {
+          "name": "tokenizer.json",
+          "size": 19989343,
+          "sha256": "87a7830d63fcf43bf241c3c5242e96e62dd3fdc29224ca26fed8ea333db72de4"
+        },
+        {
+          "name": "tokenizer_config.json",
+          "size": 1169,
+          "sha256": null
+        }
+      ],
+      "expected_bytes": 9343555898,
+      "attempt": 1,
+      "completed_at": "2026-11-07T18:54:57Z"
+    }
+  ],
+  "complete": true,
+  "expected_bytes": 48147452500,
+  "updated_at": "2026-11-07T18:54:57Z"
+}

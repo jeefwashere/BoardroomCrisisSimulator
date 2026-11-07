@@ -1,6 +1,6 @@
 # Backend architecture
 
-Status: proposed architecture, based on [the function specification](backend-spec.md). This document is a design artifact. Its type and interface sketches are not implemented application code.
+Status: proposed architecture, based on [the function specification](backend-spec.md). Its multiplayer type and interface sketches are not implemented application code. The existing prototype and hosted inference service are described in [ai-architecture.md](ai-architecture.md); their existence does not complete the room service.
 
 ## 1. Recommendation and rationale
 
@@ -188,7 +188,7 @@ The completion must still match the active room, round, phase, job, and attempt.
 
 Provider timeout and output failure enter a visible error state. An explicit retry creates a new attempt ID. Gameplay remains subject to the original total deadline. The final feedback request uses the frozen final record, so later AI prose cannot rewrite what happened.
 
-AI assessment is allowed to map a custom action to an authored outcome. That mapping policy is a Proposed product choice. Provider and model selection remain open; the design does not assume a particular vendor or extra agent framework.
+AI assessment is allowed to map a custom action to an authored outcome. That mapping policy is a Proposed product choice. Provider selection is now Route A: the hosted LFM3 and GLiNER service for local inference and ElevenLabs for speech. See [ai-architecture.md](ai-architecture.md) for the exact boundary. The generic model queue does not implement this typed custom outcome contract; B10 must validate and adapt its responses. No extra autonomous agent framework is required.
 
 ## 9. Proposed API catalog
 
@@ -211,7 +211,7 @@ AI assessment is allowed to map a custom action to an authored outcome. That map
 
 All state changing operations carry `command_id`; round operations carry `phase_id`. Use `401` for absent membership, `403` for wrong permission, `404` for unavailable rooms, `409` for stale phase or command reuse conflict, and `422` for malformed or invalid domain input. Exact error codes and response examples belong in the implementation's generated OpenAPI contract.
 
-For deferred media or authoring features, define their contract when the team selects them rather than attaching unimplemented endpoints to this catalog.
+ElevenLabs speech is selected under Route A, but live media endpoints and browser integration are still unimplemented. Define and test their contract under O02 rather than presenting proposed endpoints as working features.
 
 ## 10. Storage and deployment choices
 
@@ -253,4 +253,4 @@ Reject a client owned simulation because clients could disagree about deadlines 
 
 After architecture approval, the first unit is a pure room transition test fixture containing three members, one prepared scenario node, one 60 second vote, and a CEO tie case. Then expose creation, join, start, vote, and snapshots before extending to the full selected function set.
 
-The specification's acceptance examples define required implementation checks. This design has been reviewed against them, but no backend runtime, database, deployment, or AI request has been executed. The current deliverables are the specification and architecture, not a working application.
+The specification's acceptance examples define required multiplayer implementation checks. The separate prototype and hosted model service have executed tests and inference, but they do not implement this FastAPI room architecture. Keep B01 through B13 and the multiplayer integration tasks open until their own acceptance criteria are met.

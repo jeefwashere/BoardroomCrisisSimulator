@@ -239,3 +239,12 @@
     transition: none;
   }
 }
+
+.room-entry { max-width: 620px; }
+.room-entry h1 { color: #422820; font-size: clamp(30px, 5vw, 48px); }
+.room-entry-form { display: grid; gap: 14px; text-align: left; }
+.room-entry-form p { margin: 0; color: #796655; font-size: 14px; }
+.room-entry-form select { width: 100%; padding: 12px; border: 1px solid #bba38a; background: #fff9ee; color: #422820; font: inherit; }
+.room-entry-form [role="alert"] { color: #8b362c; }
+.room-text-button { border: 0; background: transparent; font: inherit; cursor: pointer; color: #422820; padding: 12px; }
+.room-loading { display: grid; place-content: center; gap: 16px; min-height: 100dvh; padding: 24px; color: #422820; }

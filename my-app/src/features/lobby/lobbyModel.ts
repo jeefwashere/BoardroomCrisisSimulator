@@ -12,13 +12,17 @@ export const LOBBY_ROLES = [
     { id: 'board-member', label: 'Board member' },
 ] as const
 
-export type LobbyRole = typeof LOBBY_ROLES[number]['id']
+export type LobbyRole = string
 
 export type LobbyMember = {
     id: string
     name: string
     role: LobbyRole
     isHost: boolean
+    roleLabel?: string
+    connected?: boolean
+    eligibleFromRound?: number | null
+    eligibleCurrentRound?: boolean
 }
 
 export function addLobbyMember(members: LobbyMember[], member: LobbyMember): LobbyMember[] {

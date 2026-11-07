@@ -1,0 +1,158 @@
+import assert from 'node:assert/strict'
+import test from 'node:test'
+import { createRoomApi, RoomApiError } from '../src/services/rooms.ts'
+import type { RoomSnapshot, Scenario, StartRoomInput } from '../src/services/rooms.ts'
+
+const lobby: RoomSnapshot = {
+    room_id: 'room-1', room_code: 'ABC123', room_version: 1, capacity: 30,
+    presence_window_seconds: 30, host_member_id: 'host-1', self_member_id: 'host-1',
+    phase: 'lobby', game: null,
+    members: [{
+        member_id: 'host-1', display_name: 'Host', is_host: true, connected: true,
+        role_id: null, eligible_from_round: null, eligible_current_round: false,
+    }],
+}
+const catalog: Scenario[] = [{
+    scenario_id: 'maplecart_cybersecurity', version: 3, title: 'MapleCart', content_sha256: 'digest',
+    roles: [{ role_id: 'ceo', name: 'CEO' }], timings: [{ profile_id: 'standard_18', briefing_seconds: 90 }],
+}]
+
+function json(payload: unknown, status = 200) {
+    return new Response(JSON.stringify(payload), { status, headers: { 'Content-Type': 'application/json' } })
+}
+
+test('session and catalog requests include browser credentials and forward abort signals', async () => {
+    const calls: { url: string; init: RequestInit | undefined }[] = []
+    const signal = new AbortController().signal
+    const api = createRoomApi({ baseUrl: 'http://local.test:8000/', fetch: async (url, init) => {
+        calls.push({ url: String(url), init })
+        return json(String(url).endsWith('/session') ? { status: 'ready' } : catalog)
+    } })
+    assert.equal(await api.initializeSession(signal), undefined)
+    assert.deepEqual(await api.scenarios(signal), catalog)
+    assert.deepEqual(calls.map((call) => call.url), ['http://local.test:8000/api/session', 'http://local.test:8000/api/scenarios'])
+    for (const { init } of calls) {
+        assert.equal(init?.credentials, 'include')
+        assert.equal(init?.method, 'GET')
+        assert.equal(init?.signal, signal)
+        assert.equal(init?.body, undefined)
+    }
+})
+
+test('create, join, and Start preserve the exact caller body and command ID on explicit retries', async () => {
+    const calls: { url: string; init: RequestInit | undefined }[] = []
+    const api = createRoomApi({ baseUrl: '', fetch: async (url, init) => {
+        calls.push({ url: String(url), init })
+        return json(lobby, 201)
+    } })
+    const create = Object.freeze({ command_id: 'create-id', room_code: 'ABC123', display_name: 'Host' })
+    const join = Object.freeze({ command_id: 'join-id', room_code: 'ABC123', display_name: 'Guest', role_id: 'finance' })
+    const start: StartRoomInput = {
+        command_id: 'start-id', room_code: 'ABC123', scenario_id: catalog[0].scenario_id,
+        scenario_version: 3, timing_profile: 'standard_18', players: [{ member_id: 'host-1', role_id: 'ceo' }],
+    }
+    await api.create(create)
+    await api.join(join)
+    await api.start('room/1', start)
+    await api.start('room/1', start)
+    assert.deepEqual(calls.map((call) => call.url), ['/api/rooms', '/api/rooms/join', '/api/rooms/room%2F1/start', '/api/rooms/room%2F1/start'])
+    assert.deepEqual(calls.map((call) => JSON.parse(String(call.init?.body))), [create, join, start, start])
+    for (const { init } of calls) {
+        assert.equal(init?.credentials, 'include')
+        assert.equal(init?.method, 'POST')
+        assert.deepEqual(init?.headers, { 'Content-Type': 'application/json' })
+    }
+})
+
+test('snapshot keeps equal room versions and current presence fields from the server', async () => {
+    const current = { ...lobby, members: [{ ...lobby.members[0], connected: false }] }
+    const api = createRoomApi({ fetch: async () => json(current) })
+    assert.deepEqual(await api.snapshot('room-1'), current)
+})
+
+test('accepts the real started projection and leaves released documents unchanged', async () => {
+    const started: RoomSnapshot = { ...lobby, phase: 'briefing', game: {
+        phase_id: 'phase-1', round_id: 'round-1', round_number: 1, started_at: '2026-11-07T23:00:00Z',
+        scenario: catalog[0], timing_profile: 'standard_18', briefing_seconds: 90, result_seconds: 30,
+        initial_node_id: 'incident', facts: { incident: true, count: 0, note: null },
+        public_documents: [{ id: 'briefing', text: 'Released briefing' }], eligible_member_ids: ['host-1'], ending_label: null,
+    } }
+    const api = createRoomApi({ fetch: async () => json(started) })
+    assert.deepEqual(await api.snapshot('room-1'), started)
+})
+
+test('preserves domain status, error code and actionable message', async () => {
+    const api = createRoomApi({ fetch: async () => json({ detail: { code: 'roster_changed', message: 'Refresh all registered members' } }, 409) })
+    await assert.rejects(api.snapshot('room-1'), (error: unknown) => {
+        assert.ok(error instanceof RoomApiError)
+        assert.equal(error.status, 409)
+        assert.equal(error.code, 'roster_changed')
+        assert.equal(error.message, 'Refresh all registered members')
+        return true
+    })
+})
+
+test('retains validation field details without submitted input or context', async () => {
+    const api = createRoomApi({ fetch: async () => json({ detail: [{
+        loc: ['body', 'players', 0, 'role_id'], type: 'missing', msg: 'Field required',
+        input: 'private supplied value', ctx: { sensitive: 'hidden' },
+    }] }, 422) })
+    await assert.rejects(api.snapshot('room-1'), (error: unknown) => {
+        assert.ok(error instanceof RoomApiError)
+        assert.equal(error.status, 422)
+        assert.equal(error.code, 'validation_error')
+        assert.deepEqual(error.details, [{ loc: ['body', 'players', 0, 'role_id'], type: 'missing', msg: 'Field required' }])
+        assert.match(error.message, /body.players.0.role_id: Field required/)
+        assert.doesNotMatch(JSON.stringify(error), /private|sensitive|hidden/)
+        return true
+    })
+})
+
+test('transport failures are explicit and never automatically retry a command', async () => {
+    let calls = 0
+    const api = createRoomApi({ fetch: async () => { calls += 1; throw new TypeError('Failed to fetch') } })
+    await assert.rejects(api.create({ command_id: 'same-id', room_code: 'ABC123', display_name: 'Host' }), (error: unknown) => {
+        assert.ok(error instanceof RoomApiError)
+        assert.equal(error.code, 'network_error')
+        assert.equal(error.status, null)
+        return true
+    })
+    assert.equal(calls, 1)
+})
+
+test('abort reaches fetch and preserves the original cancellation error', async () => {
+    const controller = new AbortController()
+    const cancellation = new DOMException('Cancelled', 'AbortError')
+    const api = createRoomApi({ fetch: async (_url, init) => {
+        assert.equal(init?.signal, controller.signal)
+        controller.abort()
+        throw cancellation
+    } })
+    await assert.rejects(api.snapshot('room-1', controller.signal), (error: unknown) => error === cancellation)
+})
+
+test('abort while reading a response is also preserved', async () => {
+    const cancellation = new DOMException('Cancelled', 'AbortError')
+    const response = json(lobby)
+    response.json = async () => { throw cancellation }
+    const api = createRoomApi({ fetch: async () => response })
+    await assert.rejects(api.snapshot('room-1'), (error: unknown) => error === cancellation)
+})
+
+test('malformed successful JSON and mismatched wire shapes report invalid_response', async () => {
+    for (const response of [new Response('<html>upstream failure</html>'), json({ room_id: 'missing-fields' }), json({ ...lobby, phase: 'unknown' })]) {
+        const api = createRoomApi({ fetch: async () => response })
+        await assert.rejects(api.snapshot('room-1'), (error: unknown) => error instanceof RoomApiError && error.code === 'invalid_response')
+    }
+})
+
+test('non JSON HTTP failures retain status without exposing arbitrary response content', async () => {
+    const api = createRoomApi({ fetch: async () => new Response('sensitive proxy debug response', { status: 502 }) })
+    await assert.rejects(api.snapshot('room-1'), (error: unknown) => {
+        assert.ok(error instanceof RoomApiError)
+        assert.equal(error.code, 'http_error')
+        assert.equal(error.status, 502)
+        assert.doesNotMatch(error.message, /sensitive/)
+        return true
+    })
+})

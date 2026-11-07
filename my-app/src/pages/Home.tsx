@@ -41,6 +41,7 @@ function Home() {
                             className="home-menu__button"
                             type="button"
                             disabled={!roomCode.trim()}
+                            onClick={() => { window.location.hash = `/join?code=${encodeURIComponent(roomCode.trim())}` }}
                         >
                             Join
                             <span className="home-menu__arrow" aria-hidden="true">›</span>

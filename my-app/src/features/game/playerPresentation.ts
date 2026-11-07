@@ -8,7 +8,7 @@ export function playerInitials(name: string): string {
 }
 
 export function playerRoleLabel(role: LobbyRole): string {
-    return role === 'unassigned' ? 'Unassigned' : LOBBY_ROLES.find((option) => option.id === role)?.label ?? 'Unassigned'
+    return role === 'unassigned' ? 'Unassigned' : LOBBY_ROLES.find((option) => option.id === role)?.label ?? role.replaceAll('_', ' ')
 }
 
 export function playerAvatarColor(memberId: string): string {

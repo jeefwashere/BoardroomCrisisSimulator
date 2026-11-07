@@ -8,11 +8,13 @@ import LobbyIcon from './LobbyIcon'
 type PlayerRosterProps = {
     members: LobbyMember[]
     onAssignRole: (memberId: string, role: string) => void
+    roles?: { id: string; label: string }[]
+    editable?: boolean
 }
 
 const layoutTransition = { type: 'spring' as const, stiffness: 310, damping: 32 }
 
-function PlayerRoster({ members, onAssignRole }: PlayerRosterProps) {
+function PlayerRoster({ members, onAssignRole, roles = [...LOBBY_ROLES], editable = true }: PlayerRosterProps) {
     const viewportRef = useRef<HTMLDivElement>(null)
     const { reboundY, scrollToLatest } = useElasticRosterScroll(viewportRef)
     const rows = getLobbyRows(members)
@@ -54,6 +56,7 @@ function PlayerRoster({ members, onAssignRole }: PlayerRosterProps) {
                                             </span>
                                             <div className="lobby-player-identity">
                                                 <h2 className="lobby-player-name" title={member.name}>{member.name}</h2>
+                                                {member.connected !== undefined && <span className="lobby-presence">{member.connected ? 'Active' : 'Away'}</span>}
                                                 {member.isHost && <span className="lobby-host-badge"><LobbyIcon name="crown" /> Host</span>}
                                             </div>
                                             <label className="lobby-visually-hidden" htmlFor={`role-${member.id}`}>Role for {member.name}</label>
@@ -62,9 +65,10 @@ function PlayerRoster({ members, onAssignRole }: PlayerRosterProps) {
                                                     id={`role-${member.id}`}
                                                     className="lobby-role-select"
                                                     value={member.role}
+                                                    disabled={!editable}
                                                     onChange={(event) => onAssignRole(member.id, event.target.value)}
                                                 >
-                                                    {LOBBY_ROLES.map((role) => <option key={role.id} value={role.id}>{role.label}</option>)}
+                                                    {roles.map((role) => <option key={role.id} value={role.id}>{role.label}</option>)}
                                                 </select>
                                                 <span aria-hidden="true">⌄</span>
                                             </span>

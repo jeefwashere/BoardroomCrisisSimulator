@@ -16,13 +16,13 @@ Status values: `available`, `in_progress`, `waiting`, `done`, `optional`, `defer
 
   Owner: coordinating Codex agent. Status: `done`. Acceptance: module ownership, state progression, API catalog, AI contract, and recovery boundary are published. Evidence: completion record 1.
 
-* [ ] D03 Publish the Chinese function guide. 发布中文功能说明。
+* [x] D03 Publish the Chinese function guide. 发布中文功能说明。
 
-  Owner: coordinating Codex agent. Status: `in_progress`. Acceptance: both English documents have a readable Chinese explanation that preserves confirmed, proposed, optional, and deferred distinctions.
+  Owner: coordinating Codex agent. Status: `done`. Acceptance: both English documents have a readable Chinese explanation that preserves confirmed, proposed, optional, and deferred distinctions. Evidence: completion record 2.
 
-* [ ] D04 Publish the shared checklist and agent update instructions. 发布共享清单与 agent 更新规则。
+* [x] D04 Publish the shared checklist and agent update instructions. 发布共享清单与 agent 更新规则。
 
-  Owner: coordinating Codex agent. Status: `in_progress`. Acceptance: agents can find the checklist, task IDs, ownership, acceptance criteria, and completion evidence rules from the repository root.
+  Owner: coordinating Codex agent. Status: `done`. Acceptance: agents can find the checklist, task IDs, ownership, acceptance criteria, and completion evidence rules from the repository root. Evidence: completion record 2.
 
 ## Product and content 产品与剧本
 
@@ -123,5 +123,7 @@ Status values: `available`, `in_progress`, `waiting`, `done`, `optional`, `defer
 ## Completion records 完成记录
 
 1. D01 and D02. Owner: coordinating Codex agent. Work commit: [134661e](https://github.com/jeefwashere/BoardroomCrisisSimulator/commit/134661e7c8f77fa0be060c13987285022abb2686). Branch: `Ricardo`. Merged through [PR 1](https://github.com/jeefwashere/BoardroomCrisisSimulator/pull/1) into `main` at `86b94184226a6275023b2ce7feba4637de7d5627`. Verification: `git merge-base --is-ancestor 134661e7c8f77fa0be060c13987285022abb2686 origin/main` and `git diff --exit-code origin/main -- docs/backend-spec.md docs/backend-architecture.md` passed after fetch. This proves document publication, not backend functionality.
+
+2. D03 and D04. Owner: coordinating Codex agent. Work commit: [318d14c](https://github.com/jeefwashere/BoardroomCrisisSimulator/commit/318d14c6171af0c9870ae5601c6fcfd374c6ea16). Branch: `Ricardo`. Verification: `git ls-remote --heads origin Ricardo` returned the same full commit as `git rev-parse HEAD` after a successful push. `git diff --cached --check` passed before that commit. The GitHub Markdown API rendered all 26 checkboxes, and local link and typography checks passed. Merge status at this completion record: pushed feature branch; the accompanying pull request records the final merge status. No implementation task was marked complete.
 
 For new completions, append task ID, owner, remote branch, work commit or PR link, verification command and result, plus merge status if known. Leave incomplete tasks unchecked.

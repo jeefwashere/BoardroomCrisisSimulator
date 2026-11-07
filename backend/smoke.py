@@ -33,7 +33,7 @@ def main():
         roles = ("security", "ceo", "finance")
         body = {
             "command_id": str(uuid4()), "room_code": room["room_code"],
-            "scenario_id": "maplecart_cybersecurity", "scenario_version": 2,
+            "scenario_id": "maplecart_cybersecurity", "scenario_version": 3,
             "timing_profile": "standard_18",
             "players": [{"member_id": member["member_id"], "role_id": role}
                         for member, role in zip(current["members"], roles)],

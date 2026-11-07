@@ -1,4 +1,4 @@
-"""Validate authored packages once and expose immutable briefing material."""
+"""Validate authored narrative packages once and retain immutable execution data."""
 
 from dataclasses import dataclass
 import hashlib
@@ -8,6 +8,10 @@ import re
 from types import MappingProxyType
 
 from .rules import MINIMUM_TO_START, ROOM_CAPACITY
+
+
+FactValue = str | int | bool | None
+Facts = tuple[tuple[str, FactValue], ...]
 
 
 @dataclass(frozen=True)
@@ -26,6 +30,35 @@ class Role:
 class Timing:
     profile_id: str
     briefing_seconds: int
+    result_seconds: int
+
+
+@dataclass(frozen=True)
+class PreparedOption:
+    option_id: str
+    label: str
+    outcome_id: str
+
+
+@dataclass(frozen=True)
+class Outcome:
+    outcome_id: str
+    summary: str
+    fact_updates: Facts
+    next_node_id: str | None
+    terminal: bool
+    ending_label: str | None
+
+
+@dataclass(frozen=True)
+class Node:
+    node_id: str
+    title: str
+    inject: str
+    study_questions: tuple[str, ...]
+    options: tuple[PreparedOption, ...]
+    outcomes: tuple[Outcome, ...]
+    no_decision_outcome_id: str
 
 
 @dataclass(frozen=True)
@@ -37,8 +70,9 @@ class Scenario:
     roles: tuple[Role, ...]
     timings: tuple[Timing, ...]
     initial_node_id: str
-    initial_metrics: tuple[tuple[str, int], ...]
     public_documents: tuple[PublicDocument, ...]
+    initial_facts: Facts
+    nodes: tuple[Node, ...]
 
 
 def _object(value, label):
@@ -98,29 +132,29 @@ def _facts(value, label):
     return value
 
 
-def _validate_metrics(data):
-    initial = _object(data.get("initial_metrics"), "initial_metrics")
-    bounds = _object(data.get("metric_bounds"), "metric_bounds")
-    if not initial or initial.keys() != bounds.keys():
-        raise ValueError("Metric bounds must match the initial metrics")
-    for name, initial_value in initial.items():
-        _text(name, "metric name")
-        limit = _object(bounds[name], f"metric_bounds.{name}")
-        lower = _integer(limit.get("minimum"), "metric minimum")
-        upper = _integer(limit.get("maximum"), "metric maximum")
-        value = _integer(initial_value, f"initial_metrics.{name}")
-        if lower >= upper or not lower <= value <= upper:
-            raise ValueError(f"Invalid initial value or bounds for metric {name}")
-    return initial, bounds
+def _reject_legacy_meters(value):
+    if type(value) is dict:
+        forbidden = {
+            "initial_metrics", "metric_bounds", "metric_deltas", "metric_semantics",
+            "expected_metrics", "metrics", "applied_deltas",
+        }
+        if forbidden.intersection(value):
+            raise ValueError("Legacy gameplay meter fields are not supported in draft.2")
+        for item in value.values():
+            _reject_legacy_meters(item)
+    elif type(value) is list:
+        for item in value:
+            _reject_legacy_meters(item)
 
 
-def _validate_nodes(data, initial, bounds):
+def _validate_nodes(data):
     nodes = _unique_objects(data.get("nodes"), "nodes")
     first = _text(data.get("initial_node_id"), "initial_node_id")
     if first not in nodes:
         raise ValueError("Initial node does not exist")
     facts = _facts(data.get("initial_facts"), "initial_facts")
     all_options, all_outcomes, edges = set(), set(), {}
+    node_values = []
     for node_id, node in nodes.items():
         for key in ("story_time", "title", "inject"):
             _text(node.get(key), f"nodes.{node_id}.{key}")
@@ -147,6 +181,7 @@ def _validate_nodes(data, initial, bounds):
         if len(set(custom)) != len(custom) or not set(custom) <= outcomes.keys() or no_decision in custom:
             raise ValueError(f"Invalid allowed custom outcomes in {node_id}")
         used = {no_decision, *custom}
+        option_values, outcome_values = [], []
         for option in options.values():
             if option.get("kind") != "prepared":
                 raise ValueError("Authored options must have kind prepared")
@@ -155,18 +190,14 @@ def _validate_nodes(data, initial, bounds):
             if target not in outcomes:
                 raise ValueError(f"Unknown option outcome in {node_id}")
             used.add(target)
+            option_values.append(PreparedOption(option["id"], option["label"], target))
         if used != outcomes.keys():
             raise ValueError(f"Unselectable outcome in {node_id}")
         edges[node_id] = set()
         for outcome in outcomes.values():
-            _text(outcome.get("summary"), "outcome summary")
-            deltas = _object(outcome.get("metric_deltas"), "metric_deltas")
-            if deltas.keys() != initial.keys():
-                raise ValueError("Outcome metric deltas must match initial metrics")
-            for name, delta in deltas.items():
-                delta = _integer(delta, f"metric_deltas.{name}")
-                if abs(delta) > bounds[name]["maximum"] - bounds[name]["minimum"]:
-                    raise ValueError(f"Metric delta exceeds bounds for {name}")
+            summary = _text(outcome.get("summary"), "outcome summary")
+            if len(summary) > 500:
+                raise ValueError("Outcome summary exceeds the 500 character narration limit")
             updates = _facts(outcome.get("fact_updates"), "fact_updates")
             if not updates.keys() <= facts.keys():
                 raise ValueError("Outcome updates an unknown fact")
@@ -185,7 +216,17 @@ def _validate_nodes(data, initial, bounds):
                 target = _text(target, "next_node_id")
                 if target not in nodes:
                     raise ValueError("Outcome references an unknown next node")
+                if outcome.get("ending_label") is not None:
+                    raise ValueError("Nonterminal outcome cannot have an ending label")
                 edges[node_id].add(target)
+            outcome_values.append(Outcome(
+                outcome["id"], summary, tuple(updates.items()), target,
+                terminal, outcome.get("ending_label"),
+            ))
+        node_values.append(Node(
+            node_id, node["title"], node["inject"], tuple(node["study_questions"]),
+            tuple(option_values), tuple(outcome_values), no_decision,
+        ))
 
     visiting, depth = set(), {}
 
@@ -201,7 +242,7 @@ def _validate_nodes(data, initial, bounds):
     rounds = visit(first)
     if depth.keys() != nodes.keys():
         raise ValueError("Scenario contains unreachable nodes")
-    return rounds
+    return rounds, tuple(facts.items()), tuple(node_values)
 
 
 def _validate_timings(data, rounds):
@@ -223,6 +264,8 @@ def _validate_timings(data, rounds):
             _integer(value.get(key), f"timing.{name}.{key}", positive=True)
         if value["voting_seconds_per_round"] != 60 or value["round_count"] != rounds:
             raise ValueError("Timing needs a 60 second vote and matching round count")
+        if value["result_seconds_per_round"] != 30:
+            raise ValueError("Timing needs a 30 second result presentation")
         base = value["briefing_seconds"] + value["debrief_seconds"] + rounds * sum(
             value[key] for key in (
                 "reading_seconds_per_round", "discussion_seconds_per_round",
@@ -243,7 +286,7 @@ def _validate_timings(data, rounds):
         _text(value.get("unused_speaking_seconds"), "unused_speaking_seconds")
         if type(value.get("result_window_includes_ai")) is not bool:
             raise ValueError("result_window_includes_ai must be boolean")
-        timings.append(Timing(name, value["briefing_seconds"]))
+        timings.append(Timing(name, value["briefing_seconds"], value["result_seconds_per_round"]))
     vote = _object(data.get("vote_policy"), "vote_policy")
     if type(vote.get("duration_seconds")) is not int or vote["duration_seconds"] != 60:
         raise ValueError("vote_policy must specify 60 seconds")
@@ -281,8 +324,9 @@ def _load(path):
         data = _object(json.loads(
             raw.decode("utf-8"), object_pairs_hook=_json_object, parse_constant=_reject_constant,
         ), "scenario")
-        if data.get("schema_version") != "draft.1":
+        if data.get("schema_version") != "draft.2":
             raise ValueError("Unsupported scenario schema")
+        _reject_legacy_meters(data)
         identity = _text(data.get("scenario_id"), "scenario_id")
         version = _integer(data.get("version"), "version", positive=True)
         title = _text(data.get("title"), "title")
@@ -295,15 +339,14 @@ def _load(path):
         if "ceo" not in roles:
             raise ValueError("Exactly one CEO role definition is required")
         role_values = tuple(Role(key, _text(item.get("name"), "role name")) for key, item in roles.items())
-        initial, bounds = _validate_metrics(data)
-        rounds = _validate_nodes(data, initial, bounds)
+        rounds, facts, nodes = _validate_nodes(data)
         timings = _validate_timings(data, rounds)
         digest = hashlib.sha256()
         digest.update(len(raw).to_bytes(8, "big"))
         digest.update(raw)
         documents = _documents(data, path.parent, digest)
         return Scenario(identity, version, title, digest.hexdigest(), role_values, timings,
-                        data["initial_node_id"], tuple(initial.items()), documents)
+                        data["initial_node_id"], documents, facts, nodes)
     except (OSError, UnicodeError, ValueError) as error:
         raise ValueError(f"Invalid scenario package {path}: {error}") from error
 
@@ -313,7 +356,7 @@ class ScenarioCatalog:
 
     def __init__(self, packages: tuple[Path, ...] | None = None):
         if packages is None:
-            packages = (Path(__file__).resolve().parents[2] / "scenarios/cybersecurity_demo/v2/scenario.json",)
+            packages = (Path(__file__).resolve().parents[2] / "scenarios/cybersecurity_demo/v3/scenario.json",)
         if type(packages) is not tuple or any(not isinstance(path, Path) for path in packages):
             raise ValueError("packages must be a tuple of scenario.json Paths")
         scenarios = {}

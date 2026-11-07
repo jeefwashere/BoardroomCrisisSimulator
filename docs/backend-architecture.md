@@ -88,9 +88,9 @@ Phase          = Lobby | Briefing | Reading | Speaking | Voting | TieBreak | Res
 
 Member         = {id, display_name, role_id, connection_ids}
 DecisionRecord = {id, round_id, node_id, selected_option, vote_tally,
-                  resolution_source, outcome_id, applied_deltas, resolved_at}
+                  resolution_source, outcome_id, facts_before, facts_after, contribution_ids, resolved_at}
 RoomState      = {id, code, room_version, scenario_version, members,
-                  host_member_id, phase, metrics, decisions, session_deadline}
+                  host_member_id, phase, facts, contributions, decisions, session_deadline}
 FeedbackState  = Pending | Ready | Failed
 ```
 
@@ -162,7 +162,7 @@ stateDiagram-v2
 
 The diagram shows principal paths. A permitted host end action can end any active phase. Ending is terminal for gameplay. Final feedback can complete afterward without reopening the room's gameplay state.
 
-Proposed: terminal outcomes enter `Ended` as soon as their decision record is committed, with the final record containing the result. The result display delay applies only when another decision node follows. This avoids waiting five extra seconds to recognize a completed scenario.
+Confirmed and implemented in the narrative foundation: terminal outcomes enter `Ended` as soon as their decision record is committed, retaining the final result. A nonterminal result has a 30 second presentation guard before the next decision. The full game diagram above remains a proposed orchestration design; its terminal edges must enter `Ended` directly.
 
 The selected scenario supplies briefing, reading, and discussion budgets. A zero duration briefing or reading stage can advance immediately, while an authored study window must remain available before speaking or voting. The new [cybersecurity draft](scenarios/cybersecurity-18-minute.md) proposes 90 seconds of briefing and, per round, 60 seconds of reading plus a 150 second shared discussion budget. These values are scenario proposals, not universal room defaults. For the final round, an ended room can display its result before the debrief without reopening gameplay.
 
@@ -190,7 +190,7 @@ The eligibility roster and final choices are immutable during voting. At the cut
 
 ## 8. AI job lifecycle
 
-A custom winner enters `Resolving`, which records a unique job and attempt ID. The request captures the scenario version, node, selected proposal, current metrics, rubric, and decision history. Network work runs outside the room lock.
+A custom winner enters `Resolving`, which records a unique job and attempt ID. The request captures the scenario version, node, selected proposal, committed narrative facts, rubric, and decision history. Network work runs outside the room lock.
 
 The provider returns an allowed `outcome_id`, narrative, and rubric assessment. Structured shape validation uses [Pydantic](https://docs.pydantic.dev/latest/concepts/models/). The application separately verifies outcome membership and the captured scenario and phase identity. Only then does the room apply the authored deltas and next node.
 
@@ -221,7 +221,7 @@ AI assessment is allowed to map a custom action to an authored outcome. That map
 
 All state changing operations carry `command_id`; round operations carry `phase_id`. Use `401` for absent membership, `403` for wrong permission, `404` for unavailable rooms, `409` for stale phase or command reuse conflict, and `422` for malformed or invalid domain input. Exact error codes and response examples belong in the implementation's generated OpenAPI contract.
 
-ElevenLabs speech is selected under Route A, but live media endpoints and browser integration are still unimplemented. Define and test their contract under O02 rather than presenting proposed endpoints as working features.
+ElevenLabs speech is selected under Route A. Authenticated narration status, preparation, audio delivery, and playback reports are implemented, with a separate browser player example. Actual paid speech, audible browser playback, microphone transport, and integration into Jeff's frontend remain unverified. The exact current contract and zero spending boundary are in [narrative-engine.md](narrative-engine.md).
 
 ## 10. Storage and deployment choices
 
@@ -232,12 +232,12 @@ Run one worker for this shape. A reverse proxy may serve the frontend and route 
 The target logical database model, if durable storage is selected later, contains:
 
 1. `scenario_versions`: immutable package identity, content, checksum, and publication status.
-2. `rooms`: scenario reference, settings, current phase, version, deadlines, metrics, and ending.
+2. `rooms`: scenario reference, settings, current phase, version, deadlines, narrative facts, and ending.
 3. `members`: room, display name, role, and membership credential reference. Unique seat identity is separate from display name.
 4. `rounds`: room, decision node, phase identity, frozen electorate, and deadlines.
 5. `options`: round, kind, author where applicable, frozen text, and prepared outcome reference where applicable.
 6. `votes`: round, member, selected option, and update time, unique by round and member.
-7. `decisions`: round resolution, selected option, outcome, applied metrics, and provenance, unique by round.
+7. `decisions`: round resolution, selected option, outcome, applied narrative facts, and provenance, unique by round.
 8. `command_receipts`: room, member, command ID, request hash, and prior response, unique within that command scope.
 9. `ai_jobs` and `reports`: attempt identity, status, frozen input reference, validated output, and final feedback.
 
@@ -261,6 +261,10 @@ Reject a client owned simulation because clients could disagree about deadlines 
 
 ## 12. Next implementation unit and evidence boundary
 
-The user selected a smaller first capability: browser identity initialization, room creation, code based joining, and authenticated lobby snapshots. Its contract and tests are documented in [room-api.md](room-api.md). The next implemented unit adds scenario admission, batch roles, Start, and late admission through initial briefing. Subsequent capabilities add timed progression, authored consequences, voting, and the CEO tie fixture. See [the Start design](start-design.md).
+The user selected a smaller first capability: browser identity initialization, room creation, code based joining, and authenticated lobby snapshots. Its contract and tests are documented in [room-api.md](room-api.md). Scenario admission, batch roles, Start, and late admission through initial briefing are implemented. The narrative foundation also executes authored consequences through internal events. Timed orchestration, voting, and the CEO tie fixture remain separate capabilities. See [the Start design](start-design.md).
 
 The specification's acceptance examples define required multiplayer implementation checks. The separate prototype and hosted model service have executed tests and inference, but they do not implement this FastAPI room architecture. Keep B01 through B13 and the multiplayer integration tasks open until their own acceptance criteria are met.
+
+## Narrative engine implementation update
+
+The accepted version 3 direction removes gameplay meters and records all answers and discussion for later AI evaluation. `simulation.py` computes immutable narrative replacements while `Rooms` alone publishes them under its lock. Internal events move briefing to decision, resolve prepared or no decision outcomes, hold nonterminal results for 30 seconds, and enter authored endings immediately. No public host resolution route is introduced. `narration.py` prepares optional audio outside room locks and every audio route rechecks membership and current narration. The exact contract, evidence format, synthesis decision, and verification boundary are in [narrative-engine.md](narrative-engine.md). Timed orchestration, actual voting, and final AI scoring remain separate modules.

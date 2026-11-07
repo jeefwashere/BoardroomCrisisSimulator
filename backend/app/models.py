@@ -95,17 +95,63 @@ class ScenarioView(ScenarioRef):
     timings: list[TimingView]
 
 
-class BriefingView(View):
+class VisibleOptionView(View):
+    option_id: str
+    label: str
+
+
+class CurrentNodeView(View):
+    node_id: str
+    title: str
+    situation: str
+    study_questions: list[str]
+    options: list[VisibleOptionView]
+
+
+FactValue = str | int | bool | None
+
+
+class DecisionView(View):
+    decision_id: UUID
+    round_id: UUID
+    round_number: int
+    node_id: str
+    question: str
+    selected_option_id: str | None
+    selected_option_label: str | None
+    resolution_kind: Literal["prepared", "no_decision"]
+    outcome_id: str
+    text: str
+    facts_before: dict[str, FactValue] = Field(validation_alias="facts_before_view")
+    facts_after: dict[str, FactValue] = Field(validation_alias="facts_after_view")
+    contribution_ids: list[UUID]
+    resolved_at: datetime
+
+
+class NarrationCaptionView(View):
+    narration_id: UUID
     phase_id: UUID
-    round_number: Literal[1]
+    text: str
+
+
+class GameView(View):
+    phase_id: UUID
+    round_id: UUID
+    round_number: int = Field(ge=1)
     started_at: datetime
     scenario: ScenarioRef
     timing_profile: str
     briefing_seconds: int
+    result_seconds: int
     initial_node_id: str
-    initial_metrics: dict[str, int]
+    facts: dict[str, FactValue]
     public_documents: list[PublicDocumentView]
     eligible_member_ids: list[UUID]
+    current_node: CurrentNodeView | None
+    history: list[DecisionView]
+    last_result: DecisionView | None
+    ending_label: str | None
+    narration: NarrationCaptionView | None
 
 
 class RoomFields(View):
@@ -125,8 +171,8 @@ class LobbyRoomView(RoomFields):
 
 
 class StartedRoomView(RoomFields):
-    phase: Literal["briefing"]
-    game: BriefingView
+    phase: Literal["briefing", "decision", "result", "ended"]
+    game: GameView
 
 
 RoomView = Annotated[LobbyRoomView | StartedRoomView, Field(discriminator="phase")]
@@ -143,3 +189,67 @@ class ErrorResponse(BaseModel):
 
 class ValidationErrorResponse(BaseModel):
     detail: list[dict[str, Any]]
+
+
+class ContributionBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    command_id: UUID
+    phase_id: UUID | None = None
+    kind: Literal["answer", "chat"]
+    source: Literal["typed", "speech"]
+    text: str = Field(min_length=1, max_length=4000)
+
+    @field_validator("text")
+    @classmethod
+    def require_text(cls, value):
+        if not value.strip():
+            raise ValueError("Submit final nonempty text")
+        return value
+
+
+class ContributionView(View):
+    contribution_id: UUID
+    sequence: int
+    member_id: UUID
+    role_id: str | None
+    phase_id: UUID | None
+    phase: str
+    round_id: UUID | None
+    round_number: int | None
+    node_id: str | None
+    kind: Literal["answer", "chat"]
+    source: Literal["typed", "speech"]
+    text: str
+    at: datetime
+
+
+class EvidenceMemberView(View):
+    member_id: UUID
+    display_name: str
+    role_id: str
+    eligible_from_round: int
+    joined_at: datetime
+
+
+class EvaluationEvidenceView(View):
+    room_id: UUID
+    scenario: ScenarioRef
+    started_at: datetime
+    ended_at: datetime
+    ending_label: str
+    members: list[EvidenceMemberView]
+    public_documents: list[PublicDocumentView]
+    decisions: list[DecisionView]
+    contributions: list[ContributionView]
+
+
+class MediaView(View):
+    status: Literal["disabled", "pending", "ready", "failed"]
+    text: str
+    error: str | None = None
+    audio_url: str | None = None
+
+
+class DeliveryBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    event: Literal["started", "completed", "failed"]

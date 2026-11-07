@@ -34,20 +34,18 @@ flowchart TD
 
 The hosted queue is an inference transport. Its database is not the multiplayer game's room database. The private worker uses outbound HTTPS, so the deployed model service does not depend on the owner's Mac, an exposed compute port, or a teammate's university login.
 
-For the current speech smoke tests, the caller selects a short WAV and receives a provisional transcript. Browser microphone capture, streaming transcription, temporary browser speech tokens, and a live audio playback client still need implementation. Do not claim that the diagram is a fully deployed voice UI.
+The existing prototype adapter can accept a selected short WAV and return a provisional transcript; this delivery makes no transcription call. Production microphone capture, transcription, original audio storage, and the complete voice client remain unimplemented. Temporary browser speech tokens are not enabled. Do not claim that the diagram is a fully deployed voice UI.
 
 ## 3. Agent roster and current implementation
 
-| Logical role | Responsibility | Selected engine | Current evidence and remaining work |
-| --- | --- | --- | --- |
-| Preparation agent | Review scenario materials and prepare source references | Authored fixture and code now; shared LFM3 and GLiNER for later drafts | `rehearsal/scenario.py` supplies a fictional fixture. Arbitrary document ingestion and generated scenario approval are not implemented. |
-| Facilitator agent | Give short updates and answer scoped questions | LFM3 plus backend validation | `TransformersSelector.select_facts` selects only allowed fact IDs for prototype characters. The controller renders authored facts. The lab's free text generation is separate. |
-| Evaluation agent | Explain the recorded outcome using evidence known at the time | Deterministic debrief now; LFM3 drafts only after validation | `Controller.debrief` cites actual records. Full multiplayer feedback and quality validation remain work under B12. |
-| Turn coordinator | Assign the floor and maintain the speaking queue | Code | Prototype coordination controls exist. The production sequential speaking and voting flow remains B08 and related tasks. |
-| Discussion tracker | Extract names, tasks, deadlines, and contribution types | GLiNER2.5 Base on CPU plus deterministic checks | `GlinerExtractor.extract` returns spans and advisory classes. Rule classifications are retained on disagreement; model output cannot confirm decisions. |
-| Timekeeper | Manage deadlines, pause state, and reminders | Code | Prototype ticker and deadline tests exist. Production room and phase deadline handling remains part of B04, B08, and B11. |
-| Decision checker | Validate required fields and warn about ambiguity | Code; LFM3 only for future advisory interpretation | Prototype proposal and chair confirmation checks exist. Production custom action outcome mapping is B10 and is not implemented by the generic model endpoint. |
-| Discussion climate observer | Suggest clarification, a recap, or inviting input | Code over discussion events | Prototype suggestions exist. No emotion, personality, competence, or psychological scoring is enabled. |
+1. Logical role: Preparation agent. Responsibility: Review scenario materials and prepare source references. Selected engine: Authored fixture and code now; shared LFM3 and GLiNER for later drafts. Current evidence and remaining work: `rehearsal/scenario.py` supplies a fictional fixture. Arbitrary document ingestion and generated scenario approval are not implemented..
+2. Logical role: Facilitator agent. Responsibility: Give short updates and answer scoped questions. Selected engine: LFM3 plus backend validation. Current evidence and remaining work: `TransformersSelector.select_facts` selects only allowed fact IDs for prototype characters. The controller renders authored facts. The lab's free text generation is separate..
+3. Logical role: Evaluation agent. Responsibility: Explain the recorded outcome using evidence known at the time. Selected engine: Deterministic debrief now; LFM3 drafts only after validation. Current evidence and remaining work: `Controller.debrief` cites actual records. Full multiplayer feedback and quality validation remain work under B12..
+4. Logical role: Turn coordinator. Responsibility: Assign the floor and maintain the speaking queue. Selected engine: Code. Current evidence and remaining work: Prototype coordination controls exist. The production sequential speaking and voting flow remains B08 and related tasks..
+5. Logical role: Discussion tracker. Responsibility: Extract names, tasks, deadlines, and contribution types. Selected engine: GLiNER2.5 Base on CPU plus deterministic checks. Current evidence and remaining work: `GlinerExtractor.extract` returns spans and advisory classes. Rule classifications are retained on disagreement; model output cannot confirm decisions..
+6. Logical role: Timekeeper. Responsibility: Manage deadlines, pause state, and reminders. Selected engine: Code. Current evidence and remaining work: Prototype ticker and deadline tests exist. Production room and phase deadline handling remains part of B04, B08, and B11..
+7. Logical role: Decision checker. Responsibility: Validate required fields and warn about ambiguity. Selected engine: Code; LFM3 only for future advisory interpretation. Current evidence and remaining work: Prototype proposal and chair confirmation checks exist. Production custom action outcome mapping is B10 and is not implemented by the generic model endpoint..
+8. Logical role: Discussion climate observer. Responsibility: Suggest clarification, a recap, or inviting input. Selected engine: Code over discussion events. Current evidence and remaining work: Prototype suggestions exist. No emotion, personality, competence, or psychological scoring is enabled..
 
 The initial fictional voices are the facilitator, IT support, and journalist. These are scoped personas using the same model and central speech queue. Staff and insurer personas are future content, not additional resident models.
 
@@ -57,17 +55,15 @@ The older Boardroom Mood Listener managed ElevenLabs agent and `ELEVENLABS_AGENT
 
 This is an implementation snapshot, not a benchmark or a guarantee that the allocation is still running. Check `GET /api/status` before live tests. Revisions and download checksums are recorded in [the download manifest](../cluster-downloads/download-status.json).
 
-| Repository | Serving status | Intended use |
-| --- | --- | --- |
-| `LiquidAI/LFM3-1.7B` | Enabled as `lfm3`; GPU | Short dialogue and bounded interpretation |
-| `fastino/gliner2.5-base-v1` | Enabled as `gliner-base`; CPU | Entity spans and advisory classification |
-| `fastino/gliner2.5-small-v1` | Downloaded only | Smaller extraction candidate |
-| `openbmb/MiniCPM5-2B` | Downloaded only | Reasoning comparison |
-| `nvidia/NVIDIA-Nemotron-3.5-Bolt-E4B-BF16` | Downloaded only | Conversational comparison |
-| `ibm-granite/granite-4.2-3b` | Downloaded only | Document and tool use comparison |
-| `fastino/GLiNER2.5-Decide` | Downloaded only | Contribution classification candidate |
-| `LiquidAI/d1-2B` | Downloaded only | Typed decision queries requiring a dedicated adapter |
-| `numind/NuExtract3` | Downloaded only | Document extraction candidate |
+1. Repository: `LiquidAI/LFM3-1.7B`. Serving status: Enabled as `lfm3`; GPU. Intended use: Short dialogue and bounded interpretation.
+2. Repository: `fastino/gliner2.5-base-v1`. Serving status: Enabled as `gliner-base`; CPU. Intended use: Entity spans and advisory classification.
+3. Repository: `fastino/gliner2.5-small-v1`. Serving status: Downloaded only. Intended use: Smaller extraction candidate.
+4. Repository: `openbmb/MiniCPM5-2B`. Serving status: Downloaded only. Intended use: Reasoning comparison.
+5. Repository: `nvidia/NVIDIA-Nemotron-3.5-Bolt-E4B-BF16`. Serving status: Downloaded only. Intended use: Conversational comparison.
+6. Repository: `ibm-granite/granite-4.2-3b`. Serving status: Downloaded only. Intended use: Document and tool use comparison.
+7. Repository: `fastino/GLiNER2.5-Decide`. Serving status: Downloaded only. Intended use: Contribution classification candidate.
+8. Repository: `LiquidAI/d1-2B`. Serving status: Downloaded only. Intended use: Typed decision queries requiring a dedicated adapter.
+9. Repository: `numind/NuExtract3`. Serving status: Downloaded only. Intended use: Document extraction candidate.
 
 One conversational model is resident on the assigned GPU. Do not load the remaining checkpoints concurrently, assume they share an interface, or list them as enabled before integration tests pass. Downloaded weights alone do not demonstrate suitability for custom action evaluation.
 
@@ -77,7 +73,7 @@ The confirmed multiplayer specification takes precedence for gameplay: 3 to 30 p
 
 The `rehearsal/` package is a working experimental controller with a three participant demo, an authored scenario, explicit chair confirmation, SQLite event history, and a local HTTP API. It is not the planned FastAPI room service, has no production vote implementation, and does not satisfy B01 through B13 by itself. Its 15 minute demo duration is not the production session default. Its fixture does not stand in for team approval of scenario package P02.
 
-Use the prototype's permission checks, evidence snapshots, isolation, and idempotency tests as implementation references. The future backend should validate any generated custom outcome against the captured scenario, room, round, phase, job, and attempt. It alone applies authored metric changes and next nodes. A late model response cannot change an ended game.
+Use the prototype's permission checks, evidence snapshots, isolation, and idempotency tests as implementation references. The future backend should validate any generated custom outcome against the captured scenario, room, round, phase, job, and attempt. It alone applies authored narrative fact updates and next nodes. A late model response cannot change an ended game.
 
 All human roles share the released scenario information required by the product specification. Scoped fictional character context and suppression of future unreleased events do not introduce private human player story facts.
 
@@ -111,3 +107,16 @@ Normal application agents use only the HTTPS model API. Only an agent explicitly
 The November 7 implementation run verified 21 Python tests, a three participant controller demo, both hosted model responses, Python and Node clients, rejected invalid credentials, request deduplication, and conflict handling. Browser visual QA was unavailable. These are service and prototype checks, not a full multiplayer or speech acceptance test.
 
 The next integration work belongs to the existing task IDs in [TODO.md](../TODO.md): B10 for validated custom action evaluation, B12 for final feedback, O02 for selected speech capability, and I01 through I04 for frontend contracts and real multiplayer verification. Keep those boxes unchecked until their own criteria pass and their implementation is published.
+
+## Latest production evidence requirement
+
+Production version 3 has no fixed numerical gameplay meters. The later evaluator must consider every committed individual answer, chat, reviewed speech transcript, and resolved or unresolved decision. Preserve unselected contributions, member identity, role at submission, round, phase, order, and source. The production evidence export is implemented; whole discussion AI scoring, context partitioning, and evaluation quality are not. The isolated playtest remains a separate prototype. Outcome captions and gated ElevenLabs narration integration are documented in [narrative-engine.md](narrative-engine.md); actual speech calls and audible playback still require the selected budget and client verification.
+
+
+## Confirmed speaking recording requirement
+
+Record every participant during their own speaking turn. While play continues, the application backend integrates ElevenLabs transcription and stores both the original audio and its transcript with authenticated member, room, round, speaking turn, and timestamps. The end screen shows the accumulated records and passes them to later AI evaluation. Participant identity comes from application membership and the authoritative turn, not a provider speaker label.
+
+The current contribution endpoint accepts final reviewed transcript text only. It neither captures a microphone nor runs production transcription or stores original recordings. This requirement is documented for later implementation; it does not claim those capabilities now exist. The exact capture transport and storage backend remain unselected. Permanent provider keys remain on the backend, and the zero spending default, verified price, and authorized positive budget still apply before any paid call.
+
+ElevenLabs documents both [file transcription](https://elevenlabs.io/docs/api-reference/speech-to-text/convert) and [speech recognition capabilities including realtime transcription](https://elevenlabs.io/docs/overview/capabilities/speech-to-text). These support the provider capability, without selecting this application's capture transport or storage design.

@@ -4,7 +4,7 @@ Status: room registration, snapshots, batch Start, and initial briefing are impl
 
 ## Confirmed decisions
 
-Updated product direction: Jeff generates the room code and owns lobby role selection. The host submits the room code, members, and selected roles together when clicking Start. At least 3 participants are required to start, capacity is 30, and new participants may join after start. Lobby clients register their individual identities before Start. The Start handoff and late admission are now implemented; new arrivals first participate in round 2. Speaking, voting, and subsequent phase advancement remain later work.
+Updated product direction: Jeff generates the room code and owns lobby role selection. The host submits the room code, members, and selected roles together when clicking Start. At least 3 participants are required to start, capacity is 30, and new participants may join after start. Lobby clients register their individual identities before Start. The Start handoff and late admission are now implemented; new arrivals first participate in the round after the current one. Arrival during briefing therefore begins eligibility in round 2. Internal narrative phase transitions are now implemented. Live speaking, voting, and automatic scheduling remain later work; see [narrative-engine.md](narrative-engine.md).
 
 1. The creator is the host and occupies one of the 30 seats.
 2. Names are trimmed, then compared using Unicode case folding within each room. The trimmed spelling is displayed. Names contain 1 to 40 printable characters. The same name may exist in different rooms.
@@ -46,6 +46,8 @@ One browser profile has one seat per room. Tabs sharing the cookie share that se
 6. `GET /api/scenarios`: public admitted scenario references, roles, and timing profiles.
 7. `POST /api/rooms/{room_id}/start`: authenticated host submits the complete roster and selected roles. See [start-api.md](start-api.md).
 
+Contribution ingestion, final evidence export, and consequence narration endpoints are also implemented. Their request bodies and phase rules are documented in [narrative-engine.md](narrative-engine.md).
+
 Create body:
 
 ```json
@@ -68,7 +70,7 @@ Join body:
 
 Jeff generates codes before calling create. Codes contain six ASCII letters or digits, normalized to uppercase after trimming. Create requires the supplied code, and a collision returns `409 room_code_taken` so the frontend can generate another. The backend does not generate a replacement. The example code is illustrative; use the actual create response.
 
-Every successful room response has this shape:
+A successful lobby response has this shape. Started responses retain the same room fields and expose the current game projection described in [start-api.md](start-api.md) and [narrative-engine.md](narrative-engine.md):
 
 ```json
 {
@@ -208,4 +210,4 @@ The lobby tests cover authorization, host capacity, normalized names, duplicate 
 
 ## Remaining work
 
-B02 acceptance now covers code based registration, capacity 30, polling presence, host controlled Start, and distinct CEO authority. Completion still requires verified publication under [TODO.md](../TODO.md). B03 and I01 remain partial: consequence execution and the complete game contract are not implemented. Polling, refresh, and these local clients do not complete B05, B13, I02, I03, or deployment I04. Speaking, voting, CEO ties, AI, WebSocket delivery, and automatic phase advancement follow separately.
+B02 acceptance now covers code based registration, capacity 30, polling presence, host controlled Start, and distinct CEO authority. Completion still requires verified publication under [TODO.md](../TODO.md). Version 3 narrative consequence execution is implemented through trusted internal events. I01 remains partial because the complete live game contract is not implemented. Polling, refresh, and these local clients do not complete B05, B13, I02, I03, or deployment I04. Speaking, voting, CEO ties, AI, WebSocket delivery, and automatic phase advancement follow separately.

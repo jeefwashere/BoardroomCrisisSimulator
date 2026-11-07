@@ -27,7 +27,7 @@ Confirmed means selected in the user's latest discussion. Proposed means an arch
 11. Deferred: advanced database recovery and server restart recovery.
 12. Provisional: AI can prepare three scenario documents. Cybersecurity was mentioned as an example. The other topics and document structure are not confirmed. Three documents must not silently become three implemented game modes.
 
-The latest checked remote `main` contains only the initial README and `.gitignore`. Existing story scripts have not been located in the repository. This specification defines their required shape without inventing their contents.
+At the initial design review, remote `main` contained only the initial README and `.gitignore`. Existing story scripts had not been located in the repository. This specification defines their required shape without inventing their contents.
 
 ## 3. Frontend usage and complete game flow
 

@@ -113,6 +113,7 @@ def create_app(engine=None, provider=None, speech=None, port=8788):
     @app.get('/api/health')
     def health():
         return {'ok': True, 'storage': 'single process memory', 'models': agents.status,
+                'test_name_rejoin': engine.allow_name_rejoin,
                 'speech': speech.budget.status(), 'speech_configured': bool(speech.adapter)}
 
     @app.post('/api/join')

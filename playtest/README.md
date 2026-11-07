@@ -12,16 +12,17 @@ python3.13 -m venv .venv
 .venv/bin/python -m playtest --env-file .env.local
 ```
 
-Open <http://127.0.0.1:8788>. Create a room and use **Open another seat** twice. Each new tab has its own member credential. Enter three distinct names, select roles, save the roles, and start. Refresh preserves the same seat within its tab. Closing the tab loses that credential; entering the same name cannot reclaim someone else's seat.
+Open <http://127.0.0.1:8788>. Create a room and use **Open another seat** twice. Each new tab has its own member credential. Enter three distinct names, select roles, save the roles, and start. Refresh preserves the same seat within its tab. For this local test, start with `--allow-name-rejoin` to reclaim an inactive seat using the same name and room code. Click Leave this tab for immediate rejoin; after closing a window, wait 30 seconds. The member ID, role, contributions and ballot remain unchanged, and the old credential is revoked. An active seat cannot be reclaimed. This flag is disabled by default and does not change production authentication.
 
-The playtest now runs exactly one MapleCart round. The host can select an approximately 6 or 7 minute round with a full 60 second vote. The explicitly labelled accelerated test profile uses 8 second votes and shorter speaking windows. It tests mechanics, not human rehearsal timing. Late arrivals become eligible at the next round boundary. The current electorate and CEO remain unchanged.
+The playtest now runs exactly one MapleCart round. The default profile runs for five minutes from Start: 15 seconds briefing, 30 seconds reading, 135 seconds discussion, 60 seconds voting, then up to 60 seconds for a consequence, any tie or custom outcome handling. Prepared outcomes remain visible until the five minute deadline. Model failure can end with an explicitly unresolved action. The host can also select an approximately 6 or 7 minute round with a full 60 second vote. The explicitly labelled accelerated test profile uses 8 second votes and shorter speaking windows. It tests mechanics, not human rehearsal timing. Late arrivals become eligible at the next round boundary. The current electorate and CEO remain unchanged.
 
 For the owner's authorized 10,000 credit speech test, the current separate worktree can run with:
 
 ```sh
 .venv/bin/python -m playtest \
   --env-file ../BoardroomCrisisSimulator/.env.local \
-  --speech-credit-cap 10000
+  --speech-credit-cap 10000 \
+  --allow-name-rejoin
 ```
 
 The application binds only to localhost. The URL on one laptop does not grant access from another laptop. This branch is not a public deployment. Ordinary application users do not need Velocity or ChatGPT credentials: the application backend calls the existing hosted model API. A later shared application deployment needs its own authenticated ingress, configured origin policy, and durable process lifecycle. Do not expose this development server publicly as a shortcut.
@@ -30,7 +31,7 @@ The application binds only to localhost. The URL on one laptop does not grant ac
 
 Configure `REHEARSAL_API_URL`, `REHEARSAL_SITE_TOKEN`, `REHEARSAL_APP_KEY`, and optionally `ELEVENLABS_API_KEY` in an ignored environment file on the server. Existing `rehearsal.adapters.load_env` reads that file without executing it. No provider keys enter JavaScript, HTML, URLs, exports, or Git.
 
-Member tokens live in `sessionStorage` and authenticate each HTTP action. The server validates membership, the active phase, the roster, and the host or CEO permission. A display name is never proof of identity. Provider jobs are scoped to the member's room; shared provider history is never exposed.
+Member tokens live in `sessionStorage` and authenticate each HTTP action. The server validates membership, the active phase, the roster, and the host or CEO permission. A display name is not production proof of identity. The explicitly enabled local test rejoin flag permits recovering only an inactive seat by name and room. Provider jobs are scoped to the member's room; shared provider history is never exposed.
 
 The application uses one process and one worker. Rooms, credentials, command receipts, and agent jobs live in memory. Browser refresh works while that process lives. Restarting the backend loses rooms. The ignored `.local/ai-playtest/` directory stores the persistent speech credit ledger and cached generated audio. Temporary uploaded recordings are deleted after transcription. ElevenLabs retention follows the provider account policy; this application does not claim provider zero retention.
 
@@ -117,6 +118,6 @@ Open three separate Chrome windows at <http://127.0.0.1:8788>. Create a room as 
 5. ElevenLabs Scribe v2 transcribes short optional recordings; Flash v2.5 speaks approved text. There is no managed ElevenLabs conversation agent controlling the game.
 6. Preparation documents, turn coordination, timekeeping, decision checks, and participation observations also have deterministic code responsibilities. Logical roles are not eight model instances.
 
-For a short test, join with three different windows, choose the accelerated one round timing in the host window, and start. Send room chat freely; submit timed contributions during each speaking turn. Vote once per user. A tied result goes to the CEO. After the one consequence is shown, the session ends with `round_complete`; click Generate debrief. The accelerated vote lasts eight seconds for mechanics checks only. Use the normal one round profile when testing human discussion and the full sixty second vote.
+For the requested human test, join with three different windows, leave the five minute one round timing selected in the host window, and start. Send room chat freely; submit timed contributions during each speaking turn. Vote once per user. A tied result goes to the CEO. After the one consequence is shown, the session ends with `round_complete`; click Generate debrief. The accelerated vote lasts eight seconds for mechanics checks only. Use the normal one round profile when testing human discussion and the full sixty second vote.
 
 The original supplied revision is archived at `fixtures/revision2-controller-reference.md` for developer review. It includes hidden schedules and expected outcomes and is never served or read by participant retrieval. The explicit allowlist is `fixtures/participant-packs.json`; `references.py` reads only that file. No future invoice, candidate response, or expected test answer is in that public set. These fixture documents preserve the supplied wording; trailing whitespace in the archived Markdown is normalized.

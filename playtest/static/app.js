@@ -13,7 +13,7 @@ async function api(path, body, options={}) {
   let payload=body;
   if(body && !(body instanceof Blob)) {headers['Content-Type']='application/json'; payload=JSON.stringify(body);}
   const res = await fetch(path, {method:body===undefined?'GET':'POST',headers,body:payload});
-  if(!res.ok) {let error; try {error=await res.json();}catch {error={};} throw new Error(error.error || error.detail || `Request failed (${res.status})`);}
+  if(!res.ok) {let error; try {error=await res.json();}catch {error={};} const failure=new Error(error.error || error.detail || `Request failed (${res.status})`);failure.status=res.status;throw failure;}
   return options.blob ? res.blob() : res.json();
 }
 async function act(action, data={}) {await api('/api/command/'+action,{...data,command_id:uid()}); await refresh();}
@@ -23,9 +23,9 @@ function stopLocalAudio(){const a=$('audio');a.pause();a.removeAttribute('src');
 function canContribute(){return state?.phase==='discussion' && state.electorate.includes(state.self) && (!state.speaker || state.speaker===state.self);}
 async function refresh(){
  if(!token || polling) return; polling=true;
- try {state=await api('/api/state'); state._received=Date.now()/1000; render();}catch(e){notice(e.message);}finally{polling=false;}
+ try {state=await api('/api/state'); state._received=Date.now()/1000; render();}catch(e){if(e.status===401){if(state){$('name').value=name(state.self);$('code').value=state.code;}token='';sessionStorage.removeItem('rehearsal_playtest_token');stopLocalAudio();if(recording)await stopRecording();state=null;$('entry').hidden=false;$('room').hidden=true;document.title='Rehearsal · AI playtest';notice('Your previous session ended. Enter your name and room code to rejoin, or leave the code empty to create a new room.');}else notice(e.message);}finally{polling=false;}
 }
-async function health(){try{const h=await api('/api/health'); $('health').textContent=`Local models: ${h.models.online?'online':'unavailable'} · Speech: ${h.speech_configured?'configured':'not configured'}\n${h.speech.remaining.toLocaleString()} / ${h.speech.cap.toLocaleString()} credits available (reserved estimate)`;}catch{$('health').textContent='Test server unavailable. Start the server, then refresh.';}}
+async function health(){try{const h=await api('/api/health'); $('health').textContent=`Local models: ${h.models.online?'online':'unavailable'} · Speech: ${h.speech_configured?'configured':'not configured'}\n${h.speech.remaining.toLocaleString()} / ${h.speech.cap.toLocaleString()} credits available (reserved estimate)`;$('rejoinHelp').textContent=h.test_name_rejoin?'Local test rejoin is enabled: use the same name and room code after leaving. If you close the window, wait 30 seconds before rejoining.':'Refresh keeps your seat in this tab. Returning to an existing seat requires its original session.';}catch{$('health').textContent='Test server unavailable. Start the server, then refresh.';}}
 function renderControls(){
  const s=state, host=s.self===s.host;
  $('hostLobby').hidden=!(host&&s.phase==='lobby');$('end').hidden=!host||['lobby','ended'].includes(s.phase);
@@ -50,7 +50,7 @@ function render(){
  $('roomLabel').textContent=`ROOM ${s.code} · ${s.members.length}/30 · YOU ARE ${name(s.self)}`;
  $('phase').textContent=s.phase.replaceAll('_',' ');$('phase').style.textTransform='capitalize';
  $('newTab').href='/?room='+s.code;$('newTab').textContent='Open another seat';
- $('roundLabel').textContent=s.round?`ROUND ${s.round} OF ${s.round_limit||1} · ${s.profile==='test_3'?'ACCELERATED TEST':s.profile}`:'PREPARATION';
+ $('roundLabel').textContent=s.round?`ROUND ${s.round} OF ${s.round_limit||1} · ${s.profile==='test_3'?'ACCELERATED TEST':s.profile==='single_5'?'5 MINUTE TEST':s.profile}`:'PREPARATION';
  $('situationTitle').textContent=s.node_title||s.title;$('inject').textContent=s.inject||'Read the documents and assign one CEO. The host starts when three people are connected.';
  $('questions').replaceChildren(...s.study_questions.map(q=>node('li',q)));
  $('metrics').replaceChildren(...Object.entries(s.metrics).map(([key,value])=>{const el=node('div',key.replaceAll('_',' '),'metric');el.append(node('strong',value));return el;}));
@@ -84,7 +84,7 @@ handle('start',()=>act('start',{profile:$('profile').value}));handle('end',()=>a
 handle('submit',async()=>{await act('contribute',{text:$('contribution').value,source:transcriptSource});$('contribution').value='';transcriptSource='typed';});
 handle('finish',()=>act('finish'));handle('skip',()=>act('skip'));handle('retry',()=>act('retry'));
 handle('propose',()=>act('propose',{text:$('proposal').value}));
-handle('forget',async()=>{if(recording)await stopRecording();stopLocalAudio();sessionStorage.removeItem('rehearsal_playtest_token');location.href='/';});
+handle('forget',async()=>{if(recording)await stopRecording();stopLocalAudio();const code=state?.code||'';try{await api('/api/command/leave',{command_id:uid()});}catch(e){if(e.status!==401)throw e;}token='';sessionStorage.removeItem('rehearsal_playtest_token');location.href='/?room='+encodeURIComponent(code);});
 for(const button of document.querySelectorAll('[data-agent]'))button.onclick=async()=>{try{notice('');await api('/api/agent/'+button.dataset.agent,{command_id:uid(),text:$('question').value});await refresh();}catch(e){notice(e.message);}};
 handle('extract',async()=>{await api('/api/agent/tracker',{command_id:uid(),contribution_id:state.contributions.at(-1).id});await refresh();});
 async function speak(source,id){stopLocalAudio();notice('Generating speech. Captions remain visible.');const result=await api('/api/speak',{command_id:uid(),source,id});audioLease=result.id;const blob=await api('/api/audio/'+result.id,undefined,{blob:true});audioURL=URL.createObjectURL(blob);$('audio').src=audioURL;$('audio').hidden=false;notice('Audio ready. Press Play in the player.');await refresh();await health();}

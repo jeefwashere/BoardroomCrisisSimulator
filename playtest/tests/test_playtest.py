@@ -324,6 +324,116 @@ class OneRoundAndReferenceTests(unittest.TestCase):
         agents.close()
 
 
+class RecoveryAndFiveMinuteTests(unittest.TestCase):
+    cmd = GameTests.cmd
+    advance = GameTests.advance
+
+    def setUp(self):
+        GameTests.setUp(self)
+        self.e.round_limit = 1
+        self.e.allow_name_rejoin = True
+
+    def test_leave_rejoin_preserves_host_role_vote_and_contribution(self):
+        self.cmd(self.a, 'start')
+        self.advance(45)
+        self.cmd(self.a, 'contribute', text='Keep the evidence.')
+        self.cmd(self.a, 'propose', text='Isolate the device.')
+        self.advance(135)
+        choice = self.r['options'][0]['id']
+        self.cmd(self.a, 'vote', option_id=choice)
+        before = self.e.snapshot(self.a['token'])
+        self.r['speech'] = {'member': before['self']}
+        self.cmd(self.a, 'leave')
+        with self.assertRaises(RuleError): self.e.snapshot(self.a['token'])
+        new = self.e.join(' ARJUN ', self.code)
+        after = self.e.snapshot(new['token'])
+        for key in ('self', 'host', 'electorate', 'own_vote', 'contributions', 'deadline', 'total_deadline', 'round'):
+            self.assertEqual(after[key], before[key], key)
+        self.assertEqual(len(after['members']), 3)
+        self.assertEqual(after['members'][0]['role'], 'ceo')
+        self.assertIn(before['self'], self.r['proposals'])
+        self.assertIsNone(self.r['speech'])
+        self.assertNotEqual(new['token'], self.a['token'])
+        self.advance(60)
+        self.assertEqual(self.r['history'][0]['tally'], {choice: 1})
+        self.advance(60)
+        self.cmd(new, 'leave')
+        ended = self.e.join('Arjun', self.code)
+        self.assertEqual(self.e.snapshot(ended['token'])['end_reason'], 'round_complete')
+
+    def test_closed_tab_recovers_at_thirty_seconds_and_only_once_at_capacity(self):
+        for i in range(27): self.e.join('Extra '+str(i), self.code)
+        self.advance(29.999)
+        with self.assertRaises(RuleError): self.e.join('Arjun', self.code)
+        self.advance(.001)
+        def recover(_):
+            try: return self.e.join('Arjun', self.code)
+            except RuleError: return None
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            results = list(pool.map(recover, range(2)))
+        self.assertEqual(sum(x is not None for x in results), 1)
+        self.assertEqual(len(self.r['members']), 30)
+        with self.assertRaises(RuleError): self.e.snapshot(self.a['token'])
+        other = self.e.join('Arjun')
+        self.assertNotEqual(other['code'], self.code)
+
+    def test_name_recovery_is_disabled_by_default_even_when_inactive(self):
+        self.e.allow_name_rejoin = False
+        self.advance(31)
+        with self.assertRaises(RuleError): self.e.join('Arjun', self.code)
+        self.assertFalse(Engine().allow_name_rejoin)
+        self.assertEqual(self.e.snapshot(self.a['token'])['self'], self.r['host'])
+
+    def test_five_minutes_keeps_full_vote_and_ends_with_exactly_one_result(self):
+        start = self.clock()
+        self.cmd(self.a, 'start')
+        self.assertEqual(self.r['profile'], 'single_5')
+        self.assertEqual(self.r['total_deadline'], start + 300)
+        self.advance(15)
+        self.assertEqual(self.r['phase'], 'reading')
+        self.advance(30)
+        self.assertEqual(self.r['phase'], 'discussion')
+        self.advance(135)
+        self.assertEqual(self.r['phase'], 'voting')
+        self.cmd(self.a, 'vote', option_id=self.r['options'][0]['id'])
+        self.advance(59.999)
+        self.assertEqual(self.r['phase'], 'voting')
+        self.advance(.001)
+        self.assertEqual(self.r['phase'], 'result')
+        self.advance(59.999)
+        self.assertEqual(self.r['phase'], 'result')
+        self.advance(.001)
+        self.assertEqual(self.r['phase'], 'ended')
+        self.assertEqual(self.r['end_reason'], 'round_complete')
+        self.assertEqual(len(self.r['history']), 1)
+
+    def test_five_minutes_tie_and_custom_result_fit_in_deadline(self):
+        self.cmd(self.a, 'start')
+        self.advance(45)
+        self.cmd(self.a, 'propose', text='Isolate the device.')
+        self.advance(135)
+        custom = self.r['options'][-1]['id']
+        self.cmd(self.a, 'vote', option_id=custom)
+        self.cmd(self.b, 'vote', option_id=self.r['options'][0]['id'])
+        self.advance(60)
+        self.assertEqual(self.r['phase'], 'tie_break')
+        self.advance(14)
+        self.cmd(self.a, 'tie', option_id=custom)
+        self.advance(10)
+        self.e.apply_outcome(self.r, 'targeted_containment', self.clock(), 'Scoped containment.')
+        self.assertEqual(self.r['deadline'], self.r['total_deadline'])
+        self.advance(36)
+        self.assertEqual(self.r['end_reason'], 'round_complete')
+        self.assertEqual(len(self.r['history']), 1)
+
+    def test_five_minutes_late_tick_still_applies_authored_no_vote_outcome(self):
+        self.cmd(self.a, 'start')
+        self.advance(301)
+        self.assertEqual(self.r['end_reason'], 'round_complete')
+        self.assertEqual(len(self.r['history']), 1)
+        self.assertEqual(self.r['history'][0]['reason'], 'zero_votes')
+
+
 class BudgetTests(unittest.TestCase):
     def test_concurrent_reservations_never_exceed_cap_and_persist(self):
         with tempfile.TemporaryDirectory() as d:
@@ -393,6 +503,22 @@ class HTTPTests(unittest.TestCase):
         self.assertNotIn(self.code,json.dumps(otherstate))
         self.assertEqual(self.command('start',profile='test_3').status_code,200)
         self.assertEqual(self.client.post('/api/command/end',json={'command_id':uuid.uuid4().hex},headers={'Authorization':'Bearer '+self.b['token']}).status_code,403)
+    def test_http_leave_rejoin_and_five_minute_default(self):
+        self.engine.allow_name_rejoin = True
+        self.assertTrue(self.client.get('/api/health').json()['test_name_rejoin'])
+        self.assertEqual(self.client.post('/api/join', json={'name':'Arjun','code':self.code}).status_code, 409)
+        self.assertEqual(self.command('start').status_code, 200)
+        before = self.client.get('/api/state', headers=self.auth).json()
+        self.assertEqual(before['total_deadline'] - before['server_time'], 300)
+        self.assertEqual(self.command('leave').status_code, 200)
+        self.assertEqual(self.client.get('/api/state', headers=self.auth).status_code, 401)
+        rejoin = self.client.post('/api/join', json={'name':' arjun ','code':self.code})
+        self.assertEqual(rejoin.status_code, 200)
+        after = self.client.get('/api/state', headers={'Authorization':'Bearer '+rejoin.json()['token']}).json()
+        for key in ('self','host','deadline','total_deadline'):
+            self.assertEqual(after[key], before[key])
+        self.assertEqual(len(after['members']), 3)
+
     def test_speech_idempotency_cancel_and_stale_audio(self):
         self.command('start',profile='test_3')
         body={'command_id':uuid.uuid4().hex,'source':'inject'}

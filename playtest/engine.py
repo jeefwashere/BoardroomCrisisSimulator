@@ -31,9 +31,10 @@ def bounded_text(value, limit=1000):
 
 
 class Engine:
-    def __init__(self, clock=time.time, round_limit=1):
+    def __init__(self, clock=time.time, round_limit=1, allow_name_rejoin=False):
         require(type(round_limit) is int and 1 <= round_limit <= 3, "Invalid round limit", 422)
         self.round_limit = round_limit
+        self.allow_name_rejoin = allow_name_rejoin
         self.clock = clock
         self.lock = threading.RLock()
         self.rooms, self.identities, self.receipts = {}, {}, {}
@@ -83,10 +84,21 @@ class Engine:
             require(isinstance(code, str) and code in self.rooms, 'Room code not found', 404)
             r = self.rooms[code]
             self.tick(r)
+            existing = next((m for m in r['members'].values() if m['name'].casefold() == name.casefold()), None)
+            if existing:
+                require(self.allow_name_rejoin,
+                        'That name already has a seat. Rejoin using the original browser tab.')
+                require(self.clock() - existing['seen'] >= 30,
+                        'That seat is active. Click Leave this tab there, or close it and wait 30 seconds before rejoining.')
+                mid = existing['id']
+                self.revoke_member(r, mid)
+                token = secrets.token_urlsafe(32)
+                self.identities[token] = (code, mid)
+                existing['seen'] = self.clock()
+                self.event(r, 'test_seat_rejoined', member=mid)
+                return {'token': token, 'code': code}
             require(r['phase'] != 'ended', 'This exercise has ended')
             require(len(r['members']) < 30, 'Room is full')
-            require(name.casefold() not in [m['name'].casefold() for m in r['members'].values()],
-                    'That name already has a seat. Rejoin using the original browser tab.')
             mid, token = uuid.uuid4().hex, secrets.token_urlsafe(32)
             r['members'][mid] = {'id': mid, 'name': name, 'role': 'operations',
                                  'seen': self.clock(), 'eligible_round': r['round'] + 1}
@@ -96,6 +108,13 @@ class Engine:
             self.identities[token] = (code, mid)
             self.event(r, 'joined', member=mid, name=name, eligible_round=r['round'] + 1)
             return {'token': token, 'code': code}
+
+    def revoke_member(self, r, mid):
+        for token, identity in list(self.identities.items()):
+            if identity == (r['code'], mid):
+                del self.identities[token]
+        if r['speech'] and r['speech']['member'] == mid:
+            r['speech'] = None
 
     def command(self, token, action, data):
         with self.lock:
@@ -117,7 +136,11 @@ class Engine:
         now = self.clock()
         host = mid == r['host']
         phase = r['phase']
-        if action == 'roles':
+        if action == 'leave':
+            self.revoke_member(r, mid)
+            r['members'][mid]['seen'] = now - 30
+            self.event(r, 'left', member=mid)
+        elif action == 'roles':
             require(host and phase == 'lobby', 'Only the host can assign lobby roles', 403)
             roles = d.get('roles')
             require(isinstance(roles, dict) and set(roles) == set(r['members']) and
@@ -131,17 +154,21 @@ class Engine:
             require(3 <= len(r['members']) <= 30, 'Start requires 3 to 30 participants')
             require(all(now - m['seen'] < 30 for m in r['members'].values()), 'All lobby members must be connected')
             require(sum(m['role'] == 'ceo' for m in r['members'].values()) == 1, 'Exactly one CEO is required')
-            profile = d.get('profile', 'standard_18')
-            require(profile in ('standard_18', 'fast_15', 'test_3'), 'Unknown timing profile', 422)
+            profile = d.get('profile', 'single_5')
+            require(profile in ('standard_18', 'fast_15', 'test_3', 'single_5'), 'Unknown timing profile', 422)
+            require(profile != 'single_5' or self.round_limit == 1, 'Five minute profile requires one round', 422)
             r['profile'] = profile
-            if profile == 'test_3':
+            if profile == 'single_5':
+                r['timing'] = dict(briefing=15, reading=30, discussion=135, vote=60,
+                                   result=60, tie=15, total=300, speaker=35)
+            elif profile == 'test_3':
                 r['timing'] = dict(briefing=4, reading=4, discussion=12, vote=8, result=4, tie=5, total=180, speaker=4)
             else:
                 p = self.scenario['timing_profiles'][profile]
                 r['timing'] = dict(briefing=p['briefing_seconds'], reading=p['reading_seconds_per_round'],
                     discussion=p['discussion_seconds_per_round'], vote=60, result=p['result_seconds_per_round'],
                     tie=30, total=p['gameplay_ceiling_from_briefing_start_seconds'], speaker=p['speaker_max_seconds'])
-            if self.round_limit == 1:
+            if self.round_limit == 1 and profile != 'single_5':
                 t = r['timing']
                 t['total'] = sum(t[k] for k in ('briefing', 'reading', 'discussion', 'vote', 'tie')) + max(30, t['result']) + 5
             r['total_deadline'] = now + r['timing']['total']
@@ -241,7 +268,13 @@ class Engine:
         if r['phase'] in ('lobby', 'ended'):
             return
         if now >= r['total_deadline']:
-            self.end(r, 'total_timeout')
+            # Resolve elapsed phases first so a delayed poll still commits a prepared vote.
+            # Every phase below has a bounded deadline within the five minute profile.
+            if r.get('profile') != 'single_5':
+                self.end(r, 'total_timeout')
+                return
+        if r.get('profile') == 'single_5' and now >= r['total_deadline'] and r['phase'] == 'result':
+            self.end(r, 'round_complete')
             return
         # Advance all expired phases using their old deadlines, never extend time on reconnect.
         for _ in range(100):
@@ -330,6 +363,8 @@ class Engine:
         r['unresolved'], r['ai_ticket'] = None, None
         r['next_node'] = outcome['next_node_id']
         deadline = r['resolution_deadline'] if explanation is not None else at + r['timing']['result']
+        if r.get('profile') == 'single_5':
+            deadline = r['total_deadline']
         self.phase(r, 'result', deadline)
 
     def end(self, r, reason):

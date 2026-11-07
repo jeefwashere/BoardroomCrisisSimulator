@@ -1,0 +1,33 @@
+{
+  "ok": true,
+  "live_http": [
+    "three clients joined",
+    "five minute default deadline",
+    "active seat rejected",
+    "explicit leave permits immediate same name recovery",
+    "old token revoked",
+    "member, host and deadlines preserved"
+  ],
+  "tests": {
+    "playtest": 31,
+    "existing": 31
+  },
+  "clock_tests": "Exact 300 second end, full 60 second ballot, tie and custom paths, inactivity boundary and concurrent recovery passed using a test clock.",
+  "paid_calls": 0,
+  "speech_reserved_credits": 638,
+  "browser": {
+    "room": "3EVQC3",
+    "users": [
+      "Test 01",
+      "Test 02",
+      "Test 03"
+    ],
+    "separate_windows": 3,
+    "verified": [
+      "Host left and rejoined with the same name and room",
+      "Three members shown in host lobby",
+      "Five minute one round profile selected"
+    ],
+    "left_in_lobby": true
+  }
+}

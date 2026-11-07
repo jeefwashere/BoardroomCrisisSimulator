@@ -6,6 +6,12 @@ Status values: `available`, `in_progress`, `waiting`, `done`, `optional`, `defer
 
 Update the assigned entry at the beginning and end of every project work turn, even when the task is not finished. Record `Owner`, `Status`, `Progress`, `Checks`, and `Next action`. A completed entry also needs its pushed work commit or PR and verification evidence. Publish checklist changes with the authorized work; a failed push keeps the task unchecked and must be reported.
 
+## Current collaboration snapshot
+
+Reviewed Jeff Tieng's remote `website` branch at `85046a41a79b68a2f6f33572e87c61abc5a10631`. His pushed work is the React and Vite frontend under `my-app/`, including a landing page, Host and Join buttons, a sample crisis carousel, and styling. `Host.tsx`, `Join.tsx`, `Navbar.tsx`, and `BoardroomIcon.tsx` are empty placeholders at this snapshot. The entry component renders only Home; no API requests, WebSocket connections, lobby flow, or gameplay screens were found. This is source inspection, not a runtime test or proof of unpublished work.
+
+The user assigned Jeff the pages before game start and Ricardo the backend. Keep Jeff's frontend work separate from the FastAPI room, scenario, state, voting, and AI contracts. Gameplay frontend ownership remains unassigned. Agree the API and room snapshot contract under I01 rather than duplicating page work. The inspected `website` branch does not yet contain the shared `AGENTS.md` or `TODO.md`; Jeff needs to incorporate current `main` to receive those instructions.
+
 ## Documentation
 
 * [x] D01 Publish the English backend specification.
@@ -39,6 +45,10 @@ Update the assigned entry at the beginning and end of every project work turn, e
 * [x] D08 Require a TODO update during every assigned agent work turn.
 
   Owner: coordinating Codex agent. Status: `done`. Acceptance: repository instructions require an update at work start and before completion or handoff, preserve unchecked partial tasks, and require verified remote publication before checking completed work. Progress: rules and the shared entry format are published to `Ricardo`. Checks: English prose, whitespace, task ID uniqueness, existing P02 state, and remote work commit verification passed. Next action: no further work for this documentation task; agents apply these instructions when working in the repository. Evidence: completion record 7.
+
+* [x] D09 Review Jeff's pushed branch and record the collaboration boundary.
+
+  Owner: coordinating Codex agent. Status: `done`. Acceptance: record the checked branch and commit, actual frontend work and placeholders, integration gaps, and the recommended nonoverlapping backend scope. Progress: source review and shared snapshot are published to `Ricardo`. Checks: remote branch and commit authors, source contents, integration call search, empty placeholder sizes, and remote publication were verified. Next action: use the recorded frontend and backend boundary; gameplay frontend ownership still needs assignment. Evidence: completion record 8.
 
 ## Product and content
 
@@ -153,3 +163,5 @@ Update the assigned entry at the beginning and end of every project work turn, e
 For new completions, append task ID, owner, remote branch, work commit or PR link, verification command and result, plus merge status if known. Leave incomplete tasks unchecked.
 
 7. D08. Owner: coordinating Codex agent. Work commit: [6dab711](https://github.com/jeefwashere/BoardroomCrisisSimulator/commit/6dab7114dacd524ba555cef81aa6c825e4a7680f). Branch: `Ricardo`. After a successful push, `git ls-remote --heads origin Ricardo` matched `git rev-parse HEAD` at the full work commit. Verification: `git diff --cached --check` passed for the work commit; English prose, whitespace, technical path exceptions, all 30 unique task IDs, and the existing checked P02 state were checked. Merge status at this record: pushed feature branch. The change strengthens agent instructions and checklist maintenance; application behavior is unchanged.
+
+8. D09. Owner: coordinating Codex agent. Work commit: [0c9a496](https://github.com/jeefwashere/BoardroomCrisisSimulator/commit/0c9a496fd1adda7033963d3391c1dbaecda1aa6e). Branch: `Ricardo`. `git ls-remote --heads origin Ricardo` matched `git rev-parse HEAD` after push. Source review checked Jeff Tieng's `website` commit `85046a41a79b68a2f6f33572e87c61abc5a10631`, still the latest remote commit at publication. `git cat-file -s` confirmed the four named placeholders are empty, and the source search found no application API or WebSocket integration. All preexisting task checkbox states were preserved. This is a static collaboration review; no frontend build or browser test was run, and Jeff's branch was not changed.

@@ -66,8 +66,10 @@ CustomOption   = {kind: "custom", id, text, author_member_id}
 Option         = PreparedOption | CustomOption
 
 Lobby          = {kind: "lobby"}
+Briefing       = {kind: "briefing", phase_id, briefing_deadline}
+Reading        = {kind: "reading", phase_id, round_id, reading_deadline}
 Speaking       = {kind: "speaking", phase_id, round_id, speaker_order,
-                  current_speaker_id, speaker_deadline, custom_proposals}
+                  current_speaker_id, speaker_deadline, discussion_deadline, custom_proposals}
 Voting         = {kind: "voting", phase_id, round_id, options,
                   eligible_member_ids, ballots_by_member, vote_deadline}
 TieBreak       = {kind: "tie_break", phase_id, round_id,
@@ -79,7 +81,7 @@ ResolutionFailed = {kind: "resolution_failed", phase_id, round_id,
 ShowingResult  = {kind: "showing_result", phase_id, round_id,
                   decision_id, display_deadline}
 Ended          = {kind: "ended", reason, ended_at, final_record}
-Phase          = Lobby | Speaking | Voting | TieBreak | Resolving |
+Phase          = Lobby | Briefing | Reading | Speaking | Voting | TieBreak | Resolving |
                  ResolutionFailed | ShowingResult | Ended
 
 Member         = {id, display_name, role_id, connection_ids}
@@ -131,7 +133,9 @@ These signatures are the design contract only. The provider interface uses produ
 ```mermaid
 stateDiagram-v2
     [*] --> Lobby
-    Lobby --> Speaking: Host starts a valid room
+    Lobby --> Briefing: Host starts a valid room
+    Briefing --> Reading: Public briefing finishes
+    Reading --> Speaking: Reading period finishes
     Speaking --> Speaking: Next speaker
     Speaking --> Voting: Speaking completes and choices freeze
     Voting --> TieBreak: Equal positive leading counts
@@ -142,8 +146,10 @@ stateDiagram-v2
     Resolving --> ShowingResult: Valid AI outcome applied
     Resolving --> ResolutionFailed: Invalid response or timeout
     ResolutionFailed --> Resolving: Host requests allowed retry
-    ShowingResult --> Speaking: Display finishes and next node exists
+    ShowingResult --> Reading: Display finishes and next node exists
     ShowingResult --> Ended: Terminal outcome
+    Briefing --> Ended: Total deadline
+    Reading --> Ended: Total deadline
     Speaking --> Ended: Total deadline
     Voting --> Ended: Total deadline
     TieBreak --> Ended: Total deadline
@@ -155,6 +161,8 @@ stateDiagram-v2
 The diagram shows principal paths. A permitted host end action can end any active phase. Ending is terminal for gameplay. Final feedback can complete afterward without reopening the room's gameplay state.
 
 Proposed: terminal outcomes enter `Ended` as soon as their decision record is committed, with the final record containing the result. The result display delay applies only when another decision node follows. This avoids waiting five extra seconds to recognize a completed scenario.
+
+The selected scenario supplies briefing, reading, and discussion budgets. A zero duration briefing or reading stage can advance immediately, while an authored study window must remain available before speaking or voting. The new [cybersecurity draft](scenarios/cybersecurity-18-minute.md) proposes 90 seconds of briefing and, per round, 60 seconds of reading plus a 150 second shared discussion budget. These values are scenario proposals, not universal room defaults. For the final round, an ended room can display its result before the debrief without reopening gameplay.
 
 ## 7. Command correctness and concurrency
 

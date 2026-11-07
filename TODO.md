@@ -32,7 +32,7 @@ Status values: `available`, `in_progress`, `waiting`, `done`, `optional`, `defer
 
 * [ ] P02 Supply and validate one complete scenario package. 提供并验证一个完整剧本。
 
-  Owner: unassigned. Status: `available`. Acceptance: one background, role list, decision sequence, prepared choices, consequences, allowed custom outcomes, no decision outcome, and ending are available with a fixed version. Do not invent supposedly existing team content.
+  Owner: coordinating Codex agent. Status: `in_progress`. Acceptance: one background, role list, decision sequence, prepared choices, consequences, allowed custom outcomes, no decision outcome, and ending are available with a fixed version. The current assignment is to author an explicitly fictional cybersecurity draft, not represent it as previously supplied team content.
 
 ## Backend 后端实现
 
@@ -66,7 +66,7 @@ Status values: `available`, `in_progress`, `waiting`, `done`, `optional`, `defer
 
 * [ ] B08 Implement sequential speaking and speaker deadlines. 实现轮流发言及发言倒计时。
 
-  Owner: unassigned. Status: `available`. Acceptance: one active speaker at a time, selected duration and skip policy, repeated or old timers cannot skip extra players, and voting begins after speaking. Requires B04 and B05. Supports F03. Audio transport is a separate optional feature.
+  Owner: unassigned. Status: `available`. Acceptance: include the selected scenario's reading period and shared discussion budget, one active speaker at a time, selected duration and skip policy, protection against repeated or old timers, and voting after speaking. Requires B04 and B05. Supports F03. Audio transport is a separate optional feature.
 
 * [ ] B09 Implement custom action proposals and frozen voting choices. 实现自定义行动提交与投票选项冻结。
 

@@ -1,0 +1,33 @@
+{
+  "validated_at": "2026-11-07T19:40:26.746214+00:00",
+  "scenario_sha256": "359ed0d7d1b7a562856a2ecf2ea2d71fe98b7d8a8f5ff26b7eb8ff519a36105f",
+  "schema": "draft.1",
+  "nodes": 3,
+  "prepared_options": 9,
+  "authored_outcomes": 12,
+  "paths_checked": 64,
+  "standard_minutes": 18,
+  "standard_all_ties_minutes": 19.5,
+  "fast_minutes": 15,
+  "large_group_with_30_second_slots_minutes": 40.5,
+  "checks": [
+    "JSON parse",
+    "unique IDs and valid references",
+    "three round termination",
+    "all prepared and no decision paths",
+    "metric clamps",
+    "happy path and alternative",
+    "conditional evidence carryover",
+    "timing and speaker allocation",
+    "public document links",
+    "English content and prose typography"
+  ],
+  "not_verified": [
+    "application schema compatibility",
+    "backend execution",
+    "AI provider quality",
+    "live multiplayer",
+    "human playtest duration"
+  ],
+  "status": "static_validation_passed"
+}

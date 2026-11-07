@@ -12,7 +12,7 @@ In practice, begin with one FastAPI service. The backend maintains one authorita
 
 ## 2. Frontend usage first
 
-Latest confirmed handoff: Jeff's frontend generates the room code and handles role selection. The host submits the room code, players, and roles together on Start. Start requires at least 3 participants, the capacity is 30, and admission after start is required. The identity registration boundary and first participating round for late arrivals are still being clarified. The existing lobby implementation does not yet accept a frontend generated code or provide the Start operation.
+Latest confirmed handoff: Jeff's frontend generates the room code and handles role selection. The host submits the room code, players, and roles together on Start. Start requires at least 3 participants, the capacity is 30, and admission after start is required. Each browser registers its own membership before Start. Late arrivals first participate in the next round. The implemented code accepts the frontend code and initializes briefing through the host Start operation, documented in [start-api.md](start-api.md).
 
 The following is a proposed contract, not a claim that these endpoints exist.
 
@@ -261,6 +261,6 @@ Reject a client owned simulation because clients could disagree about deadlines 
 
 ## 12. Next implementation unit and evidence boundary
 
-The user selected a smaller first capability: browser identity initialization, room creation, code based joining, and authenticated lobby snapshots. Its contract and tests are documented in [room-api.md](room-api.md). It excludes scenario loading, roles, start, and gameplay. Subsequent capabilities add those functions and the prepared vote and CEO tie fixture.
+The user selected a smaller first capability: browser identity initialization, room creation, code based joining, and authenticated lobby snapshots. Its contract and tests are documented in [room-api.md](room-api.md). The next implemented unit adds scenario admission, batch roles, Start, and late admission through initial briefing. Subsequent capabilities add timed progression, authored consequences, voting, and the CEO tie fixture. See [the Start design](start-design.md).
 
 The specification's acceptance examples define required multiplayer implementation checks. The separate prototype and hosted model service have executed tests and inference, but they do not implement this FastAPI room architecture. Keep B01 through B13 and the multiplayer integration tasks open until their own acceptance criteria are met.

@@ -1,0 +1,556 @@
+{
+  "schema_version": "draft.1",
+  "scenario_id": "maplecart_cybersecurity",
+  "version": 2,
+  "publication_status": "draft",
+  "language": "en",
+  "title": "MapleCart: the sale starts soon",
+  "fictional": true,
+  "provenance": "New fictional case authored for this project. Not previously supplied team material and not an official NCSC scenario. Version 2 updates room capacity to 30 and the large group timing note; authored decisions and outcomes are preserved from version 1.",
+  "recommended_players": {
+    "minimum": 3,
+    "maximum": 6
+  },
+  "room_constraints": {
+    "minimum_to_start": 3,
+    "capacity": 30
+  },
+  "timing_profiles": {
+    "standard_18": {
+      "briefing_seconds": 90,
+      "reading_seconds_per_round": 60,
+      "discussion_seconds_per_round": 150,
+      "voting_seconds_per_round": 60,
+      "result_seconds_per_round": 30,
+      "tie_seconds_per_round_max": 30,
+      "debrief_seconds": 90,
+      "round_count": 3,
+      "base_total_seconds": 1080,
+      "all_ties_total_seconds": 1170,
+      "experience_ceiling_seconds": 1200,
+      "gameplay_ceiling_from_briefing_start_seconds": 1110,
+      "gameplay_ceiling_after_briefing_seconds": 1020,
+      "speaker_max_seconds": 30,
+      "speaker_allocation": "min(speaker_max_seconds, floor(discussion_seconds_per_round / eligible_player_count))",
+      "unused_speaking_seconds": "open_discussion",
+      "result_window_includes_ai": true
+    },
+    "fast_15": {
+      "briefing_seconds": 90,
+      "reading_seconds_per_round": 30,
+      "discussion_seconds_per_round": 120,
+      "voting_seconds_per_round": 60,
+      "result_seconds_per_round": 30,
+      "tie_seconds_per_round_max": 30,
+      "debrief_seconds": 90,
+      "round_count": 3,
+      "base_total_seconds": 900,
+      "all_ties_total_seconds": 990,
+      "experience_ceiling_seconds": 1200,
+      "gameplay_ceiling_from_briefing_start_seconds": 1110,
+      "gameplay_ceiling_after_briefing_seconds": 1020,
+      "speaker_max_seconds": 30,
+      "speaker_allocation": "min(speaker_max_seconds, floor(discussion_seconds_per_round / eligible_player_count))",
+      "unused_speaking_seconds": "open_discussion",
+      "result_window_includes_ai": true
+    }
+  },
+  "large_group_note": "With 30 players, the standard discussion pool permits 5 second individual statements. Giving all 30 players 30 seconds in each of three rounds takes 3330 seconds including briefing and debrief, before ties. Do not claim both that speaking time and an 18 minute total.",
+  "public_documents": [
+    {
+      "id": "briefing",
+      "path": "briefing.md",
+      "unlock": "before_round_1"
+    },
+    {
+      "id": "initial_evidence",
+      "path": "initial-evidence.md",
+      "unlock": "before_round_1"
+    },
+    {
+      "id": "operations",
+      "path": "operations.md",
+      "unlock": "before_round_1"
+    }
+  ],
+  "facilitator_script": "../../../docs/scenarios/cybersecurity-18-minute.md",
+  "roles": [
+    {
+      "id": "ceo",
+      "name": "CEO",
+      "authority": "Choose among tied voting leaders; ordinary vote has equal weight."
+    },
+    {
+      "id": "security",
+      "name": "Security lead",
+      "authority": "Perspective only; no extra vote or private facts."
+    },
+    {
+      "id": "technology",
+      "name": "Technology lead",
+      "authority": "Perspective only; no extra vote or private facts."
+    },
+    {
+      "id": "finance",
+      "name": "Finance lead",
+      "authority": "Perspective only; no extra vote or private facts."
+    },
+    {
+      "id": "operations",
+      "name": "Operations lead",
+      "authority": "Perspective only; no extra vote or private facts."
+    },
+    {
+      "id": "communications_privacy",
+      "name": "Communications and privacy lead",
+      "authority": "Perspective only; no extra vote or private facts."
+    }
+  ],
+  "three_player_responsibilities": [
+    [
+      "ceo",
+      "finance"
+    ],
+    [
+      "security",
+      "technology"
+    ],
+    [
+      "operations",
+      "communications_privacy"
+    ]
+  ],
+  "larger_group_roles": "For more than six players, assign multiple players to a perspective while retaining exactly one CEO. Every person retains one equal vote. No private role information.",
+  "initial_metrics": {
+    "service_continuity": 60,
+    "data_protection": 60,
+    "public_trust": 60
+  },
+  "metric_bounds": {
+    "service_continuity": {
+      "minimum": 0,
+      "maximum": 100
+    },
+    "data_protection": {
+      "minimum": 0,
+      "maximum": 100
+    },
+    "public_trust": {
+      "minimum": 0,
+      "maximum": 100
+    }
+  },
+  "metric_semantics": "Fictional teaching values, not empirical protection levels, service availability percentages, or incident probabilities. Clamp after every applied consequence.",
+  "initial_facts": {
+    "verified_export_records": 0,
+    "export_status": "unconfirmed",
+    "containment": "not_decided",
+    "service_condition": "storefront_available_scope_unconfirmed",
+    "communication_status": "none",
+    "recovery_status": "not_started"
+  },
+  "initial_node_id": "containment",
+  "nodes": [
+    {
+      "id": "containment",
+      "story_time": "14:00",
+      "title": "Stop the spread without guessing",
+      "inject": "Three finance laptops display ransom demands. The finance integration account has attempted an unusual customer export. Checkout works, but the investigation is incomplete. A promotion begins at 15:00. Choose the first coordinated action.",
+      "study_questions": [
+        "Which facts are confirmed?",
+        "Which affected access can be restricted while preserving evidence?",
+        "Who owns the incident and the continuity assumptions?"
+      ],
+      "options": [
+        {
+          "id": "contain_targeted",
+          "kind": "prepared",
+          "label": "Isolate affected finance devices and bridge, suspend the suspicious account, preserve available logs, and appoint an incident lead. Keep the separate storefront under active monitoring.",
+          "outcome_id": "targeted_containment"
+        },
+        {
+          "id": "contain_wait",
+          "kind": "prepared",
+          "label": "Keep all systems running until the promotion finishes and investigate quietly in the background.",
+          "outcome_id": "delayed_containment"
+        },
+        {
+          "id": "contain_broad",
+          "kind": "prepared",
+          "label": "Disconnect all business systems immediately, suspend the promotion, and accept a broad outage while investigating the scope.",
+          "outcome_id": "broad_shutdown"
+        }
+      ],
+      "outcomes": [
+        {
+          "id": "targeted_containment",
+          "summary": "The investigation boundary narrows. At least 160 customer records were exported before access was suspended. The incident is still under investigation.",
+          "metric_deltas": {
+            "service_continuity": -5,
+            "data_protection": 20,
+            "public_trust": 0
+          },
+          "fact_updates": {
+            "verified_export_records": 160,
+            "export_status": "confirmed_minimum_scope_incomplete",
+            "containment": "targeted",
+            "service_condition": "storefront_monitored_finance_isolated"
+          },
+          "next_node_id": "communication",
+          "terminal": false
+        },
+        {
+          "id": "delayed_containment",
+          "summary": "At least 5000 customer records were exported. Finance disruption grows while the storefront remains available.",
+          "metric_deltas": {
+            "service_continuity": 5,
+            "data_protection": -25,
+            "public_trust": -10
+          },
+          "fact_updates": {
+            "verified_export_records": 5000,
+            "export_status": "confirmed_minimum_scope_incomplete",
+            "containment": "delayed",
+            "service_condition": "storefront_available_finance_disruption_growing"
+          },
+          "next_node_id": "communication",
+          "terminal": false
+        },
+        {
+          "id": "broad_shutdown",
+          "summary": "Checkout and support tools are offline. Investigators can confirm at least 160 exported records, but completeness is still uncertain.",
+          "metric_deltas": {
+            "service_continuity": -25,
+            "data_protection": 10,
+            "public_trust": -5
+          },
+          "fact_updates": {
+            "verified_export_records": 160,
+            "export_status": "confirmed_minimum_scope_incomplete",
+            "containment": "broad_shutdown",
+            "service_condition": "checkout_and_support_offline"
+          },
+          "next_node_id": "communication",
+          "terminal": false
+        },
+        {
+          "id": "containment_no_decision",
+          "summary": "No containment decision was made. At least 5000 customer records were exported and disruption grows.",
+          "metric_deltas": {
+            "service_continuity": -10,
+            "data_protection": -20,
+            "public_trust": -5
+          },
+          "fact_updates": {
+            "verified_export_records": 5000,
+            "export_status": "confirmed_minimum_scope_incomplete",
+            "containment": "no_decision",
+            "service_condition": "storefront_available_finance_disruption_growing"
+          },
+          "next_node_id": "communication",
+          "terminal": false
+        }
+      ],
+      "allowed_custom_outcome_ids": [
+        "targeted_containment",
+        "delayed_containment",
+        "broad_shutdown"
+      ],
+      "no_decision_outcome_id": "containment_no_decision",
+      "preferred_option_id": "contain_targeted",
+      "custom_rubric": [
+        "Proportionate containment based on stated dependencies",
+        "Preservation of available evidence",
+        "Named incident ownership",
+        "Explicit continuity and uncertainty assumptions"
+      ]
+    },
+    {
+      "id": "communication",
+      "story_time": "14:20",
+      "title": "Communicate what you actually know",
+      "inject": "The investigation confirms a customer export. The verified minimum is {{verified_export_records}} records; complete scope is still unknown. Current service condition: {{service_condition}}. A journalist asks whether customer information is safe. Marketing needs an update before the promotion.",
+      "study_questions": [
+        "What can we say based on verified evidence?",
+        "How do we communicate uncertainty without unsupported claims?",
+        "Who owns the next update and the privacy assessment?"
+      ],
+      "options": [
+        {
+          "id": "communicate_facts",
+          "kind": "prepared",
+          "label": "Publish a limited factual notice about service disruption and the data investigation, commit to another update in 30 simulated minutes, and assign privacy coordination.",
+          "outcome_id": "factual_update"
+        },
+        {
+          "id": "communicate_deny",
+          "kind": "prepared",
+          "label": "Describe the incident only as maintenance and state that customer data is definitely safe.",
+          "outcome_id": "unsupported_assurance"
+        },
+        {
+          "id": "communicate_silence",
+          "kind": "prepared",
+          "label": "Make no public statement until the investigation is complete, while briefing only major business partners.",
+          "outcome_id": "delayed_update"
+        }
+      ],
+      "outcomes": [
+        {
+          "id": "factual_update",
+          "summary": "Customers receive an accurate limited update with accountable follow through. The verified export count does not change.",
+          "metric_deltas": {
+            "service_continuity": 0,
+            "data_protection": 5,
+            "public_trust": 20
+          },
+          "fact_updates": {
+            "communication_status": "factual_update_and_owned_followup"
+          },
+          "next_node_id": "recovery",
+          "terminal": false
+        },
+        {
+          "id": "unsupported_assurance",
+          "summary": "The claim of complete safety conflicts with the verified export. Customers circulate the earlier statement and ask for a correction.",
+          "metric_deltas": {
+            "service_continuity": 5,
+            "data_protection": -5,
+            "public_trust": -25
+          },
+          "fact_updates": {
+            "communication_status": "unsupported_assurance_requires_correction"
+          },
+          "next_node_id": "recovery",
+          "terminal": false
+        },
+        {
+          "id": "delayed_update",
+          "summary": "Customers lack a consistent explanation while questions spread.",
+          "metric_deltas": {
+            "service_continuity": 0,
+            "data_protection": 0,
+            "public_trust": -10
+          },
+          "fact_updates": {
+            "communication_status": "public_update_delayed"
+          },
+          "next_node_id": "recovery",
+          "terminal": false
+        },
+        {
+          "id": "communication_no_decision",
+          "summary": "The planned communication window passes without a public decision.",
+          "metric_deltas": {
+            "service_continuity": 0,
+            "data_protection": 0,
+            "public_trust": -15
+          },
+          "fact_updates": {
+            "communication_status": "no_communication_decision"
+          },
+          "next_node_id": "recovery",
+          "terminal": false
+        }
+      ],
+      "allowed_custom_outcome_ids": [
+        "factual_update",
+        "unsupported_assurance",
+        "delayed_update"
+      ],
+      "no_decision_outcome_id": "communication_no_decision",
+      "preferred_option_id": "communicate_facts",
+      "custom_rubric": [
+        "Factual accuracy and visible uncertainty",
+        "Customer impact and realistic next update",
+        "Named communication ownership",
+        "Privacy assessment without invented legal deadlines"
+      ]
+    },
+    {
+      "id": "recovery",
+      "story_time": "14:40",
+      "title": "Recover deliberately",
+      "inject": "An isolated 13:00 backup exists. Validation and controlled recovery will take at least 45 simulated minutes. The original promotion time is 20 simulated minutes away. Support can accept a limited manual queue of 200 orders. Carry forward service condition {{service_condition}}, a verified minimum export of {{verified_export_records}} records, and communication status {{communication_status}}.",
+      "study_questions": [
+        "What prerequisites make a recovery trustworthy?",
+        "Which limited service can continue while validation happens?",
+        "Who owns recovery and the next progress report?"
+      ],
+      "options": [
+        {
+          "id": "recover_staged",
+          "kind": "prepared",
+          "label": "Begin staged recovery in a validated environment, address compromised access, use the limited manual process, and move the promotion with an owned recovery plan.",
+          "outcome_id": "staged_recovery_plan"
+        },
+        {
+          "id": "recover_rushed",
+          "kind": "prepared",
+          "label": "Reconnect the existing production environment immediately and use an unverified snapshot to meet the promotion deadline.",
+          "outcome_id": "rushed_recovery"
+        },
+        {
+          "id": "recover_rebuild",
+          "kind": "prepared",
+          "label": "Cancel the promotion, keep systems isolated, and conduct a full rebuild with a named owner, customer arrangements, and a 24 simulated hour planning horizon.",
+          "outcome_id": "extended_rebuild"
+        }
+      ],
+      "outcomes": [
+        {
+          "id": "staged_recovery_plan",
+          "summary": "A controlled recovery plan is authorized with reduced near term capacity. Recovery is still in progress, not proven complete.",
+          "metric_deltas": {
+            "service_continuity": 20,
+            "data_protection": 10,
+            "public_trust": 10
+          },
+          "fact_updates": {
+            "recovery_status": "staged_recovery_planned_not_completed"
+          },
+          "next_node_id": null,
+          "terminal": true,
+          "ending_label": "controlled_recovery_plan"
+        },
+        {
+          "id": "rushed_recovery",
+          "summary": "Immediate availability is prioritized while integrity and access risks remain unresolved. No fabricated second attack is required to explain this risk.",
+          "metric_deltas": {
+            "service_continuity": 25,
+            "data_protection": -25,
+            "public_trust": -15
+          },
+          "fact_updates": {
+            "recovery_status": "risky_restoration_authorized"
+          },
+          "next_node_id": null,
+          "terminal": true,
+          "ending_label": "high_risk_recovery_decision"
+        },
+        {
+          "id": "extended_rebuild",
+          "summary": "The team explicitly accepts a longer outage to prioritize recovery assurance and gives the plan an owner.",
+          "metric_deltas": {
+            "service_continuity": -15,
+            "data_protection": 15,
+            "public_trust": 5
+          },
+          "fact_updates": {
+            "recovery_status": "extended_rebuild_planned_not_completed"
+          },
+          "next_node_id": null,
+          "terminal": true,
+          "ending_label": "assurance_prioritized_delay"
+        },
+        {
+          "id": "recovery_no_decision",
+          "summary": "The exercise ends without an owned recovery decision.",
+          "metric_deltas": {
+            "service_continuity": -15,
+            "data_protection": -5,
+            "public_trust": -10
+          },
+          "fact_updates": {
+            "recovery_status": "no_recovery_decision"
+          },
+          "next_node_id": null,
+          "terminal": true,
+          "ending_label": "incomplete_recovery_decision"
+        }
+      ],
+      "allowed_custom_outcome_ids": [
+        "staged_recovery_plan",
+        "rushed_recovery",
+        "extended_rebuild"
+      ],
+      "no_decision_outcome_id": "recovery_no_decision",
+      "preferred_option_id": "recover_staged",
+      "custom_rubric": [
+        "Validation and access risk before restoration",
+        "Explicit limited continuity and capacity",
+        "Named owners and next updates",
+        "Realistic recovery timing and accepted business cost"
+      ]
+    }
+  ],
+  "vote_policy": {
+    "weight_per_member": 1,
+    "duration_seconds": 60,
+    "close_early": false,
+    "allow_replacement": true,
+    "visibility_before_close": "own_ballot_only",
+    "missing_vote": "abstain",
+    "zero_votes": "node.no_decision_outcome_id",
+    "tie": "ceo_selects_tied_leader",
+    "ceo_timeout_seconds": 30,
+    "ceo_absence": "Follow the selected room policy; timeout takes the explicit no decision outcome.",
+    "policy_status": "Scenario proposal except confirmed equal weights, 60 seconds, and CEO tie authority."
+  },
+  "custom_action_policy": {
+    "enabled": true,
+    "collection_phase": "discussion",
+    "max_proposals_per_member": 1,
+    "max_characters": 1000,
+    "freeze_before_vote": true,
+    "evaluate": "winning_custom_action_only",
+    "allowed_outcomes": "current_node.allowed_custom_outcome_ids",
+    "unable_to_map": "Visible unresolved choice and resolution failure handling, never a fabricated authored match.",
+    "attempt_timeout_seconds": 15,
+    "max_attempts": 2,
+    "retry_budget": "No more than remaining result window time; total deadline still takes precedence.",
+    "ai_may_modify_state_directly": false
+  },
+  "end_policy": {
+    "sequence": "A terminal outcome after round 3.",
+    "total_deadline": "End gameplay no later than 1110 seconds after briefing starts; reserve 90 seconds for debrief.",
+    "timeout_record": "Preserve committed decisions and identify any unresolved selected action.",
+    "feedback": "Factual history plus AI feedback, with a factual fallback."
+  },
+  "happy_path": {
+    "option_ids": [
+      "contain_targeted",
+      "communicate_facts",
+      "recover_staged"
+    ],
+    "expected_metrics": {
+      "service_continuity": 75,
+      "data_protection": 95,
+      "public_trust": 90
+    },
+    "expected_verified_export_records": 160,
+    "ending_label": "controlled_recovery_plan",
+    "residual_risk": "The incident and recovery are ongoing; exported records are a confirmed minimum, not a final scope."
+  },
+  "coherent_alternative": {
+    "option_ids": [
+      "contain_targeted",
+      "communicate_facts",
+      "recover_rebuild"
+    ],
+    "expected_metrics": {
+      "service_continuity": 40,
+      "data_protection": 100,
+      "public_trust": 85
+    },
+    "ending_label": "assurance_prioritized_delay"
+  },
+  "debrief_questions": [
+    "What was confirmed evidence, and what did we assume?",
+    "Which decision helped containment, accurate communication, or owned recovery?",
+    "What would we investigate next, and who would own it?"
+  ],
+  "research_sources": [
+    {
+      "title": "NCSC Responding to a ransomware attack micro exercise",
+      "url": "https://www.ncsc.gov.uk/sites/default/files/documents/responding-to-a-ransomware-attack-micro-exercise.pdf",
+      "supports": "15 to 30 minute micro exercise format and small group facilitation, not this exact game schedule."
+    },
+    {
+      "title": "Australian Signals Directorate Exercise in a Box",
+      "url": "https://www.cyber.gov.au/exercise-in-a-box",
+      "supports": "Distinction between 15 to 30 minute micro exercises and 30 to 120 minute discussion exercises."
+    }
+  ],
+  "validation_boundary": "Static data validation only. No application loader, live playtest, provider request, or multiplayer acceptance is implied."
+}

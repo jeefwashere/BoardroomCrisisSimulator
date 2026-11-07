@@ -8,7 +8,7 @@ Confirmed: a multiplayer crisis simulation with entry by room code and display n
 
 Proposed architecture: one FastAPI service maintains authoritative room state, accepts actions over HTTP, and synchronizes screens through WebSocket connections. Scenarios, choices, and prepared consequences use versioned scenario data. AI evaluates the winning custom action and returns an allowed outcome. Basic refresh and reconnect recovery are included; database recovery and server restart recovery remain later options.
 
-Unconfirmed values and policies are marked Proposed, including speaking duration, total game duration, role assignment, vote replacement, vote visibility, CEO absence and scoring details. The AI and speech provider choices are now selected in [ai-architecture.md](ai-architecture.md). The team can select its delivery scope from this document's function catalog.
+Unconfirmed values and policies are marked Proposed, including speaking duration, total game duration, vote replacement, vote visibility, CEO absence and scoring details. The AI and speech provider choices are now selected in [ai-architecture.md](ai-architecture.md). The team can select its delivery scope from this document's function catalog.
 
 ## 2. Evidence and decision status
 
@@ -31,10 +31,10 @@ Confirmed means selected in the user's latest discussion. Proposed means an arch
 15. Confirmed: full room and member details are available only to joined members, including the host.
 16. Confirmed for the initial delivery: rooms live in one backend process. Backend restart loses rooms; browser refresh preserves membership while that process lives.
 17. Confirmed for the initial delivery: approximately two second polling is acceptable for lobby updates before WebSocket delivery.
-18. Confirmed update: Jeff generates room codes and owns lobby role selection. The host submits room code, players, and selected roles together on Start. The backend validates the handoff. Its identity integration contract is still being clarified.
-19. Confirmed update: new participants may join after start, up to capacity 30. Their first eligible speaking and voting round remains to be selected.
+18. Confirmed update: Jeff generates room codes and owns lobby role selection. The host submits room code, players, and selected roles together on Start. The backend validates the handoff. Lobby browsers register through the authenticated create and join flow before that Start handoff.
+19. Confirmed update: new participants may join after start, up to capacity 30. New members first participate from the next round; they do not expand the current electorate or replace the CEO.
 
-The first implemented lobby contract is documented in [room-api.md](room-api.md). Scenario selection, roles, and start remain later capabilities.
+The implemented registration contract is documented in [room-api.md](room-api.md), with scenario admission, batch roles, Start, and next round eligibility in [start-api.md](start-api.md). The full game flow remains unimplemented.
 
 At the initial design review, remote `main` contained only the initial README and `.gitignore`. Existing story scripts had not been located in the repository. This specification defines their required shape without inventing their contents.
 
@@ -42,8 +42,8 @@ At the initial design review, remote `main` contained only the initial README an
 
 1. The host selects an available scenario version and creates a room through Jeff's frontend, which generates the room code. The host occupies a seat.
 2. Players enter that code and a display name. The backend assigns a stable member identity. The frontend opens the room event connection and renders the returned snapshot.
-3. Players choose roles in Jeff's lobby. The host submits the final selections together when clicking Start. Proposed: exactly one CEO must exist before start. The host and CEO are separate permissions, even if one person holds both.
-4. Starting validates the scenario, CEO, settings, and 3 to 30 connected members. The scenario version is fixed for this session. New participants may join after start; when they become eligible to speak and vote remains under clarification. A selected scenario may begin with a timed public briefing.
+3. Players choose roles in Jeff's lobby. The host submits the final selections together when clicking Start. The initial implementation requires exactly one CEO before start. The host and CEO are separate permissions, even if one person holds both.
+4. Starting validates the scenario, CEO, settings, and 3 to 30 connected members. The scenario version is fixed for this session. New participants may join after start; their speaking and voting eligibility begins with the next round. A selected scenario may begin with a timed public briefing.
 5. Each round presents the current situation and public materials with its own reading period before timed discussion. The backend then announces one speaker at a time and the speaker deadline, within the selected discussion budget.
 6. Players can submit a custom action during speaking. Prepared choices remain available. Proposed: one editable custom proposal per player, with a maximum of 1,000 characters. At most 30 custom proposals therefore enter a round.
 7. When speaking finishes, the backend freezes the choices and opens a 60 second vote.
@@ -72,7 +72,7 @@ Validate IDs, references, reachable endings, metric bounds, and at least one pre
 
 An AI drafted package remains a draft until these checks pass and the team accepts its content. The document generation feature is separate from runtime decision evaluation.
 
-A newly authored fictional example is available in [the English cybersecurity script](scenarios/cybersecurity-18-minute.md), with [draft scenario data](../scenarios/cybersecurity_demo/v1/scenario.json). Its 18 minute schedule includes separate reading, discussion, voting, and result budgets. It is not previously supplied team content, a running game, or a human playtested duration.
+A newly authored fictional example is available in [the English cybersecurity script](scenarios/cybersecurity-18-minute.md), with [admitted draft scenario data](../scenarios/cybersecurity_demo/v2/scenario.json). Its 18 minute schedule includes separate reading, discussion, voting, and result budgets. It is not previously supplied team content, a running game, or a human playtested duration.
 
 ## 5. Rooms, roles, and identity
 
@@ -81,7 +81,7 @@ The confirmed first delivery uses a private browser session cookie, a host seat,
 1. The host chooses display settings and roles before start. A room code locates a room; the display name does not prove ownership of an existing seat.
 2. Creating or joining establishes a server issued membership credential. Rejoin uses that credential, not another entry of the same nickname.
 3. Use a same origin deployment with a membership cookie for HTTP and WebSocket authentication. Validate membership for every operation and WebSocket connection. The frontend receives only its own seat and permissions.
-4. New seats may join during the lobby and after start, subject to the 30 member capacity. The participation boundary for new members remains to be confirmed. Existing seats can reconnect in any phase, including after the room drops below three connected players.
+4. New seats may join during the lobby and after start, subject to the 30 member capacity. New members first participate in the next round and select an available non CEO perspective. Existing seats can reconnect in any phase, including after the room drops below three connected players.
 5. Start requires three connected players, but the meeting does not automatically stop when someone disconnects afterward.
 6. Role changes are locked after start, apart from an explicitly recorded CEO reassignment when the CEO is absent during a tie.
 7. A second connection for the same member does not create a second voter. Presence means at least one authenticated connection remains live.
@@ -202,7 +202,7 @@ These are required future multiplayer verification cases. Prototype and model AP
 
 ## 13. Remaining choices, not blockers to drafting
 
-The team still chooses the actual scenario content and document topics, complete role roster, who supplies the scenario and AI integration, speaker and total session durations, scoring rubric, delivery deadline, game backend hosting target, simultaneous room target, and any changes to the marked Proposed policies. Prepared scenario files are still needed before a real scenario can be validated.
+The team still chooses the actual scenario content and document topics, complete role roster, who supplies the scenario and AI integration, speaker and total session durations, scoring rubric, delivery deadline, game backend hosting target, simultaneous room target, and any changes to the marked Proposed policies. The fictional version 2 package now passes startup admission and initializes briefing. Full consequence execution and human timing remain unverified.
 
 ## 14. Sources
 

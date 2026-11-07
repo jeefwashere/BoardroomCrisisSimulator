@@ -1,6 +1,7 @@
 """Acceptance checks for the first lobby capability, without provider calls."""
 
 import asyncio
+from itertools import count
 import unittest
 from uuid import uuid4
 
@@ -10,8 +11,11 @@ from fastapi.testclient import TestClient
 from backend.app.main import COOKIE_NAME, create_app
 
 
+code_counter = count()
+
+
 def command(name, **extra):
-    return {"command_id": str(uuid4()), "display_name": name, **extra}
+    return {"command_id": str(uuid4()), "display_name": name, "room_code": f"{next(code_counter):06d}", **extra}
 
 
 class RoomApiTests(unittest.TestCase):

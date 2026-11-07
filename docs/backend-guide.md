@@ -11,7 +11,7 @@ This guide summarizes the two backend design documents so the team can understan
 ## 2. Complete game flow
 
 1. The host selects a scenario and creates a room through Jeff's frontend, which generates the room code.
-2. Players join with the room code and a display name. Starting requires at least 3 players; capacity is 30. New participants may join after start, with their first participating round still to be confirmed.
+2. Players join with the room code and a display name. Starting requires at least 3 players; capacity is 30. New participants may join after start, with participation beginning in the next round.
 3. Players select roles in Jeff's lobby. The host submits the room code, players, and selected roles together on Start. Players can have different responsibilities, but private scenario information for individual roles is not required.
 4. Everyone reads the current crisis background, then speaks in sequence. There is one active speaker at a time, and the backend manages the countdown.
 5. The system presents prepared choices. Players can also submit their own action proposals during the allowed phase.

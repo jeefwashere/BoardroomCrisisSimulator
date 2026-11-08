@@ -37,9 +37,13 @@ export function moodExpression(context: FaceContext): FaceWeights {
             face.Frown = 0.1
             break
         case 'individual_decision':
-        case 'private_session':
             // Thinking it through alone.
             face.Frown = 0.35
+            break
+        case 'private_session':
+            // With the coach and the Round 3 quiz: composed, so answer reactions stand out and the face
+            // returns to a calm, neutral look between them.
+            face.Frown = 0.08
             break
         case 'voting':
         case 'tie_break':
@@ -50,10 +54,10 @@ export function moodExpression(context: FaceContext): FaceWeights {
             break
     }
     if (context.talking) {
-        // Engaged while speaking: a hint of warmth, no frown on top of the moving mouth.
-        face.Smile = Math.max(face.Smile, 0.12)
-        face.Frown = Math.min(face.Frown, 0.1)
-        face.BrowRaise = Math.max(face.BrowRaise, 0.1)
+        // Calm while speaking: the held expression softens and no frown sits on top of the moving mouth.
+        face.Smile = Math.min(face.Smile, 0.12)
+        face.Frown = Math.min(face.Frown, 0.05)
+        face.BrowRaise = Math.min(face.BrowRaise, 0.08)
     } else if (context.agentTalking) {
         // Listening to an expert or the coach: attentive and concentrating.
         face.BrowRaise = Math.max(face.BrowRaise, 0.2)
@@ -71,22 +75,74 @@ const smoothstep = (edge0: number, edge1: number, x: number) => {
     return t * t * (3 - 2 * t)
 }
 
+/** The most the mouth opens while speaking: a small, conversational opening, never a wide one. */
+export const SPEECH_MOUTH_MAX = 0.22
+/** The most a brow accent adds while speaking. */
+export const SPEECH_BROW_MAX = 0.06
+
 /**
  * Procedural speech mouth: syllables at about 4 to 5 per second, louder and quieter stretches,
- * and short pauses between phrases. `seed` keeps characters out of step. Returns 0 to 0.6.
+ * and short pauses between phrases. `seed` keeps characters out of step. Returns 0 to
+ * SPEECH_MOUTH_MAX, so the lips part a little instead of opening wide.
  * There is no audio level in the scene (audio stays with the stage hooks), so this is lip flap,
  * not lip sync.
  */
 export function speechMouth(time: number, seed: number): number {
     const syllable = Math.abs(Math.sin(time * 14.2 + seed)) * (0.65 + 0.35 * Math.sin(time * 3.7 + seed * 1.7))
-    const loudness = 0.7 + 0.3 * Math.sin(time * 1.3 + seed * 2.3)
+    const loudness = 0.75 + 0.25 * Math.sin(time * 1.3 + seed * 2.3)
     const phrase = smoothstep(-0.55, -0.15, Math.sin(time * 0.85 + seed * 3.1))
-    return Math.min(0.6, 0.04 + 0.56 * syllable * loudness * phrase)
+    return Math.min(SPEECH_MOUTH_MAX, 0.01 + (SPEECH_MOUTH_MAX - 0.01) * syllable * loudness * phrase)
 }
 
-/** Brief brow lifts that accent speech now and then. Returns 0 to 0.25. */
+/** Rare, slight brow lifts that accent speech. Returns 0 to SPEECH_BROW_MAX. */
 export function speechBrow(time: number, seed: number): number {
-    return 0.25 * Math.max(0, Math.sin(time * 1.7 + seed * 1.3)) ** 6
+    return SPEECH_BROW_MAX * Math.max(0, Math.sin(time * 1.7 + seed * 1.3)) ** 6
+}
+
+/** A short reaction to a Round 3 answer: a frown for a wrong answer, a smile for the best one. */
+export type FaceReaction = 'wrong' | 'partial' | 'best'
+/** How long a reaction lasts: it builds quickly, holds while the result shows, then eases away. */
+export const REACTION_SECONDS = 3
+const REACTION_RISE = 0.3
+const REACTION_FALL = 0.8
+
+const REACTION_FACES: Record<FaceReaction, Pick<FaceWeights, 'Smile' | 'Frown' | 'BrowRaise'>> = {
+    // Disappointed: a clear frown, brows level.
+    wrong: { Smile: 0, Frown: 0.85, BrowRaise: 0 },
+    // Partly right: a small, relieved smile.
+    partial: { Smile: 0.3, Frown: 0, BrowRaise: 0.1 },
+    // The best answer: a broad smile with lifted brows.
+    best: { Smile: 0.85, Frown: 0, BrowRaise: 0.3 },
+}
+
+/** How strongly a reaction shows `age` seconds after it started: 0 to 1, and 0 once it is over. */
+export function reactionStrength(age: number): number {
+    if (age < 0 || age >= REACTION_SECONDS) return 0
+    if (age < REACTION_RISE) return smoothstep(0, REACTION_RISE, age)
+    if (age > REACTION_SECONDS - REACTION_FALL) return 1 - smoothstep(REACTION_SECONDS - REACTION_FALL, REACTION_SECONDS, age)
+    return 1
+}
+
+/** The reaction's expression, for blending over the held one. */
+export function reactionFace(reaction: FaceReaction): Pick<FaceWeights, 'Smile' | 'Frown' | 'BrowRaise'> {
+    return { ...REACTION_FACES[reaction] }
+}
+
+type ReactionListener = (reaction: FaceReaction) => void
+const reactionListeners = new Set<ReactionListener>()
+
+/**
+ * The game reports answer results here and the 3D scene, which loads separately, listens.
+ * Returns the function that stops listening.
+ */
+export function onFaceReaction(listener: ReactionListener): () => void {
+    reactionListeners.add(listener)
+    return () => { reactionListeners.delete(listener) }
+}
+
+/** Shows `reaction` on your own character, if the 3D boardroom is open. */
+export function emitFaceReaction(reaction: FaceReaction) {
+    reactionListeners.forEach((listener) => listener(reaction))
 }
 
 const BLINK = { close: 0.07, hold: 0.04, open: 0.13 }
@@ -138,18 +194,27 @@ export function approach(current: number, target: number, rate: number, dt: numb
     return target + (current - target) * Math.exp(-rate * dt)
 }
 
+/** A reaction in progress: which one, and how many seconds ago it started. */
+export type ReactionState = { reaction: FaceReaction; age: number }
+
 /**
  * One frame of a character's face: ease the held expression, add the blink and, while talking,
- * the moving mouth and brow accents. `state` holds the eased values between frames.
+ * the moving mouth and brow accents. A reaction, while it lasts, blends over the held expression.
+ * `state` holds the eased values between frames.
  */
-export function faceFrame(state: FaceWeights, context: FaceContext, blink: number, time: number, seed: number, dt: number): FaceWeights {
+export function faceFrame(state: FaceWeights, context: FaceContext, blink: number, time: number, seed: number, dt: number, reaction: ReactionState | null = null): FaceWeights {
     const mood = moodExpression(context)
     for (const morph of ['Smile', 'Frown', 'BrowRaise'] as const) state[morph] = approach(state[morph], mood[morph], 3, dt)
     const mouthTarget = context.talking ? speechMouth(time, seed) : 0
-    // The mouth follows syllables quickly but closes gently when speech stops.
-    state.MouthOpen = approach(state.MouthOpen, mouthTarget, context.talking ? 22 : 8, dt)
+    // The mouth follows syllables smoothly and closes gently when speech stops.
+    state.MouthOpen = approach(state.MouthOpen, mouthTarget, context.talking ? 16 : 8, dt)
     const out: FaceWeights = { ...state }
     if (context.talking) out.BrowRaise = clamp01(out.BrowRaise + speechBrow(time, seed))
+    const strength = reaction ? reactionStrength(reaction.age) : 0
+    if (reaction && strength > 0) {
+        const face = reactionFace(reaction.reaction)
+        for (const morph of ['Smile', 'Frown', 'BrowRaise'] as const) out[morph] = out[morph] + (face[morph] - out[morph]) * strength
+    }
     out.Blink_L = blink
     out.Blink_R = blink
     return out

@@ -5,6 +5,7 @@ import {
     isClosed, outcomeTag, previousResult, previousResultText, questionHeading, quizOutcome, remainingMs, reviewQuestions, secondsLeft, totalText,
 } from './quizModel'
 import { playQuizSound, preloadQuizSounds } from './quizSounds'
+import { emitFaceReaction } from '../boardroom3d/faceExpressions'
 
 /** How long an answered question stays on screen, coloured by its result, before the next one shows. */
 const REVEAL_MS = 1800
@@ -107,8 +108,9 @@ export function QuizStage({ quiz, blocked, agentName, retryable, onChoose, onRet
     const inside = useRef(false)
     const focus = focusQuestion(quiz)
 
-    // When a question closes (a pick or a timeout), play its result sound and keep it on screen briefly, coloured red,
-    // amber or green, before the next question. Questions already closed when the stage mounts stay silent.
+    // When a question closes (a pick or a timeout), play its result sound, show your character's reaction in 3D and keep
+    // it on screen briefly, coloured red, amber or green, before the next question. Questions already closed when the
+    // stage mounts stay silent.
     const seen = useRef<Set<number> | null>(null)
     const [reveal, setReveal] = useState<number | null>(null)
     useEffect(() => { preloadQuizSounds() }, [])
@@ -121,7 +123,11 @@ export function QuizStage({ quiz, blocked, agentName, retryable, onChoose, onRet
         fresh.forEach((item) => known.add(item.step))
         const latest = fresh[fresh.length - 1]
         const outcome = quizOutcome(latest)
-        if (outcome) playQuizSound(outcome)
+        if (outcome) {
+            playQuizSound(outcome)
+            // In the 3D boardroom your own character frowns at a wrong answer and smiles at the best one.
+            emitFaceReaction(outcome)
+        }
         setReveal(latest.step)
     }, [quiz.questions])
     useEffect(() => {

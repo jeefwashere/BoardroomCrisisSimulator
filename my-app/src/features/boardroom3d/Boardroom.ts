@@ -18,7 +18,7 @@ import { ao } from 'three/examples/jsm/tsl/display/GTAONode.js'
 import { bloom } from 'three/examples/jsm/tsl/display/BloomNode.js'
 import { SeatTags } from './SeatTags'
 import type { BoardMood, BoardroomView } from './boardroomModel'
-import { Blinker, FACE_MORPHS, faceFrame, neutralFace, type FaceContext, type FaceMorph } from './faceExpressions'
+import { Blinker, FACE_MORPHS, REACTION_SECONDS, faceFrame, neutralFace, onFaceReaction, type FaceContext, type FaceMorph, type FaceReaction } from './faceExpressions'
 
 /**
  * Alex (CEO), Morgan (IT recovery lead), Sam (communications lead), in seat order. All three are
@@ -97,6 +97,8 @@ class Avatar {
   private blinker = new Blinker()
   private readonly faceSeed = Math.random() * 100
   faceContext: FaceContext = { phase: 'lobby', talking: false, memberTalking: false, agentTalking: false }
+  /** A Round 3 answer reaction in progress, and when it started (performance.now, ms). */
+  private reaction: { reaction: FaceReaction; startedAt: number } | null = null
 
   readonly seat: Seat
 
@@ -158,10 +160,17 @@ class Avatar {
   updateFace(dt: number, time: number) {
     if (this.morphs.size === 0) return
     const blink = this.blinker.update(dt, this.faceContext.talking)
-    const weights = faceFrame(this.face, this.faceContext, blink, time, this.faceSeed, dt)
+    const age = this.reaction ? (performance.now() - this.reaction.startedAt) / 1000 : 0
+    if (this.reaction && age >= REACTION_SECONDS) this.reaction = null
+    const weights = faceFrame(this.face, this.faceContext, blink, time, this.faceSeed, dt, this.reaction ? { reaction: this.reaction.reaction, age } : null)
     for (const [morph, slots] of this.morphs) {
       for (const slot of slots) slot.influences[slot.index] = weights[morph]
     }
+  }
+
+  /** Frown or smile at a Round 3 answer result for a few seconds. */
+  react(reaction: FaceReaction) {
+    this.reaction = { reaction, startedAt: performance.now() }
   }
 
   /** Turn the head toward a world point after the animation pose is applied. */
@@ -401,6 +410,10 @@ export class Boardroom {
   private hubPresence = 0
   private focus = new THREE.Vector3(-0.4, 0.95, 0)
   private userControlUntil = 0
+  /** While a Round 3 answer reaction shows (performance.now, ms), the camera frames your own character. */
+  private reactionShotUntil = 0
+  private reactionAvatar: Avatar | null = null
+  private stopReactions: () => void
   private frame = 0
   private resizeObserver: ResizeObserver
   private loader = new GLTFLoader()
@@ -444,6 +457,7 @@ export class Boardroom {
     this.controls.addEventListener('start', () => (this.userControlUntil = Infinity))
     this.controls.addEventListener('end', () => (this.userControlUntil = performance.now() + 10000))
     this.renderer.domElement.addEventListener('dblclick', () => this.resetView())
+    this.stopReactions = onFaceReaction((reaction) => this.react(reaction))
 
     this.screenCanvas.width = 1024
     this.screenCanvas.height = 676
@@ -530,6 +544,7 @@ export class Boardroom {
 
   dispose() {
     this.disposed = true
+    this.stopReactions()
     this.renderer.setAnimationLoop(null)
     this.resizeObserver.disconnect()
     this.controls.dispose()
@@ -581,6 +596,20 @@ export class Boardroom {
       agent: true,
     } : null)
     this.hubTarget.set(agent?.accent ?? AGENT_COLOR)
+  }
+
+  /**
+   * Your own character reacts to a Round 3 answer: a frown for a wrong one, a smile for the best
+   * one. Your character faces away from the overview camera, so the camera turns to face them for
+   * the reaction, then returns to the room.
+   */
+  react(reaction: FaceReaction) {
+    const index = this.view?.seats.findIndex((seat) => seat.isSelf) ?? -1
+    const avatar = index >= 0 ? this.avatars[index] : null
+    if (!avatar?.model) return
+    avatar.react(reaction)
+    this.reactionAvatar = avatar
+    this.reactionShotUntil = performance.now() + REACTION_SECONDS * 1000
   }
 
   // ---- loading ----
@@ -1075,12 +1104,14 @@ export class Boardroom {
     this.adaptQuality(rawDt)
     const view = this.view
     const time = performance.now() / 1000
+    const reacting = performance.now() < this.reactionShotUntil ? this.reactionAvatar : null
     const focusIndex = view?.focusId ? view.seats.findIndex((seat) => seat.id === view.focusId) : -1
-    const focus = focusIndex >= 0 ? this.avatars[focusIndex] : null
+    // A reaction takes the camera: the reacting character is presented and looks into it.
+    const focus = reacting ?? (focusIndex >= 0 ? this.avatars[focusIndex] : null)
     const focusHead = focus?.model ? focus.headPosition() : null
     this.animateHub(dt, time)
     // Everyone looks at whoever holds the floor: the agent's orb at the hub, or the member in focus.
-    const lookTarget = view?.agent ? this.hubAnchor() : focusHead
+    const lookTarget = view?.agent && !reacting ? this.hubAnchor() : focusHead
 
     for (const avatar of this.avatars) {
       if (!avatar.mixer || !avatar.group.visible) continue
@@ -1094,8 +1125,9 @@ export class Boardroom {
     // Presenter camera: glide to whoever is talking (a member or the hub agent) and back to the
     // overview between lines, unless the player is steering the camera themselves.
     if (performance.now() > this.userControlUntil) {
-      const shot = view?.agent ? this.hubShot() : this.presenterShot(focus, focusHead)
-      const k = 1 - Math.exp(-dt * 2.2)
+      const shot = view?.agent && !reacting ? this.hubShot() : this.presenterShot(focus, focusHead)
+      // Reactions are short, so the camera gets there faster.
+      const k = 1 - Math.exp(-dt * (reacting ? 4.5 : 2.2))
       this.camera.position.lerp(shot.position, k)
       this.focus.lerp(shot.target, k)
       this.controls.target.copy(this.focus)

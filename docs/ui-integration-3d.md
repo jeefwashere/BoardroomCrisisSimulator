@@ -170,11 +170,15 @@ instant. The button appears when the room has at most three members, since the 3
 * Moods: talking members play the talking clip, everyone types during individual decisions, and in private sessions
   Morgan and Sam work at their laptops. Heads turn toward the speaker or the hub.
 * Faces: the three characters (`01-coo` Alex, `03-cto` Morgan, `02-cfo` Sam) are face rigged with six morph targets
-  and a mouth interior. `features/boardroom3d/faceExpressions.ts` blinks every 2 to 6 seconds, moves the mouth and
-  brows while a member talks (procedural lip flap: the scene receives no audio level), raises listeners' brows while
-  a colleague or an AI agent talks, frowns in thought during individual decisions, private sessions and voting, looks
-  alert in the briefing and smiles in the lobby and at the end. `npm run dev` serves `/face-preview.html`, a dev only
-  page with the real scene and a fake room state for checking faces without a backend.
+  and a mouth interior. `features/boardroom3d/faceExpressions.ts` blinks every 2 to 6 seconds, parts the lips a
+  little and keeps the expression calm while a member talks (mouth at most 0.22 open; procedural lip flap, since the
+  scene receives no audio level), raises listeners' brows while a colleague or an AI agent talks, frowns in thought
+  during individual decisions and voting, stays composed in private sessions, looks alert in the briefing and smiles
+  in the lobby and at the end. In Round 3, `QuizStage` reports each closed question through `emitFaceReaction`: your
+  own character frowns at a wrong answer (or a timeout), smiles a little at a partly right one and smiles broadly at
+  the best one, while the camera turns to face them for three seconds and then returns to the room. `npm run dev`
+  serves `/face-preview.html`, a dev only page with the real scene and a fake room state (and, with Round 3 quiz on,
+  the real quiz card with fake questions) for checking faces without a backend.
 * No spoken text on the stage. The wall screen shows only the scenario title, the phase and the clock; name tags
   show names, roles and a talking indicator.
 

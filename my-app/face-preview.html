@@ -5,39 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Boardroom faces preview (dev only)</title>
   <style>
-    html, body { margin: 0; height: 100%; background: #111; font: 13px system-ui, sans-serif; color: #eee; }
-    #stage { position: absolute; inset: 0; }
-    #panel { position: absolute; top: 10px; right: 10px; z-index: 10; background: rgba(15, 17, 20, .88); padding: 12px 14px; border-radius: 10px; width: 230px; }
-    #panel h1 { font-size: 14px; margin: 0 0 8px; }
+    html, body, #root { margin: 0; height: 100%; background: #111; }
+    #panel { position: absolute; z-index: 20; top: 10px; right: 10px; width: 230px; padding: 12px 14px; border-radius: 10px; background: rgba(15, 17, 20, .88); font: 13px system-ui, sans-serif; color: #eee; }
+    #panel h1 { font-size: 14px; margin: 0 0 8px; color: #eee; }
     #panel label { display: block; margin: 8px 0 3px; color: #a9b1ba; }
     #panel select, #panel button { width: 100%; padding: 5px; background: #2a2f36; color: #eee; border: 1px solid #444b55; border-radius: 6px; }
+    #panel button { margin-top: 12px; cursor: pointer; }
     #panel p { color: #a9b1ba; line-height: 1.4; margin: 10px 0 0; }
   </style>
 </head>
 <body>
-  <div id="stage"></div>
-  <div id="panel">
-    <h1>Faces preview</h1>
-    <label for="phase">Phase</label>
-    <select id="phase">
-      <option value="speaking">speaking</option>
-      <option value="lobby">lobby</option>
-      <option value="briefing">briefing</option>
-      <option value="discussion">discussion (expert panel)</option>
-      <option value="individual_decision">individual_decision</option>
-      <option value="voting">voting</option>
-      <option value="ended">ended</option>
-    </select>
-    <label for="talker">Who is talking</label>
-    <select id="talker">
-      <option value="">nobody</option>
-      <option value="a">Alex (01-coo)</option>
-      <option value="m">Morgan (03-cto)</option>
-      <option value="s">Sam (02-cfo)</option>
-      <option value="agent">AI agent at the hub</option>
-    </select>
-    <p>Dev only page: the real 3D scene with a fake room state, no backend. Drag to orbit; double click returns to the presenter camera.</p>
-  </div>
-  <script type="module" src="/dev/facePreview.ts"></script>
+  <div id="root"></div>
+  <script type="module" src="/dev/facePreview.tsx"></script>
 </body>
 </html>

@@ -1,6 +1,10 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { Blinker, FACE_MORPHS, approach, faceFrame, moodExpression, neutralFace, speechBrow, speechMouth } from '../src/features/boardroom3d/faceExpressions.ts'
+import {
+    Blinker, FACE_MORPHS, REACTION_SECONDS, SPEECH_BROW_MAX, SPEECH_MOUTH_MAX, approach, emitFaceReaction, faceFrame, moodExpression, neutralFace,
+    onFaceReaction, reactionStrength, speechBrow, speechMouth,
+} from '../src/features/boardroom3d/faceExpressions.ts'
+import type { FaceReaction } from '../src/features/boardroom3d/faceExpressions.ts'
 import type { FaceContext } from '../src/features/boardroom3d/faceExpressions.ts'
 import { boardroomView } from '../src/features/boardroom3d/boardroomModel.ts'
 
@@ -30,20 +34,28 @@ test('listeners look attentive and the speaker does not frown while talking', ()
     assert.ok(moodExpression(context({ phase: 'individual_decision', talking: true })).Frown <= 0.1)
 })
 
-test('the speech mouth stays in range and actually opens and closes', () => {
+test('speaking keeps the expression minimal', () => {
+    for (const phase of ['lobby', 'briefing', 'speaking', 'individual_decision', 'voting', 'ended']) {
+        const face = moodExpression(context({ phase, talking: true }))
+        assert.ok(face.Smile <= 0.12 && face.Frown <= 0.05 && face.BrowRaise <= 0.08, phase)
+    }
+})
+
+test('the speech mouth only parts a little, and still opens and closes', () => {
+    assert.ok(SPEECH_MOUTH_MAX <= 0.25, 'never a wide open mouth')
     let min = 1, max = 0
     for (let t = 0; t < 20; t += 1 / 60) {
         const open = speechMouth(t, 3.3)
-        assert.ok(open >= 0 && open <= 0.6)
+        assert.ok(open >= 0 && open <= SPEECH_MOUTH_MAX)
         min = Math.min(min, open); max = Math.max(max, open)
-        assert.ok(speechBrow(t, 3.3) >= 0 && speechBrow(t, 3.3) <= 0.25)
+        assert.ok(speechBrow(t, 3.3) >= 0 && speechBrow(t, 3.3) <= SPEECH_BROW_MAX)
     }
-    assert.ok(min < 0.1, `mouth closes between syllables and phrases (min ${min})`)
-    assert.ok(max > 0.4, `mouth opens on syllables (max ${max})`)
+    assert.ok(min < 0.03, `mouth closes between syllables and phrases (min ${min})`)
+    assert.ok(max > 0.15, `lips part on syllables (max ${max})`)
     // Different seeds keep characters out of step.
     let difference = 0
     for (let t = 0; t < 5; t += 0.1) difference += Math.abs(speechMouth(t, 1) - speechMouth(t, 50))
-    assert.ok(difference > 1)
+    assert.ok(difference > 0.4)
 })
 
 test('blinks close the eyes fully, then reopen, every few seconds', () => {
@@ -69,7 +81,7 @@ test('a frame eases the expression, adds the blink and moves the mouth only whil
     assert.equal(frame.Blink_R, 0.7)
     let opened = 0
     for (let i = 0; i < 300; i++) opened = Math.max(opened, faceFrame(state, context({ talking: true }), 0, i / 60, 1, 1 / 60).MouthOpen)
-    assert.ok(opened > 0.3)
+    assert.ok(opened > 0.1 && opened <= SPEECH_MOUTH_MAX)
     for (let i = 0; i < 120; i++) frame = faceFrame(state, context({ talking: false }), 0, i / 60, 1, 1 / 60)
     assert.ok(frame.MouthOpen < 0.01, 'the mouth closes when speech stops')
     assert.equal(approach(1, 0, 5, 0), 1)
@@ -79,4 +91,36 @@ test('the board view carries the phase for the faces', () => {
     const seat = { id: 'a', name: 'Alex', role: 'CEO', color: '#123456', connected: true }
     const view = boardroomView({ phase: 'voting', selfId: 'a', eligibleIds: ['a'], activeSpeakerId: null, speakerIndex: null, speakerCount: 0, scenarioTitle: 'T01' }, [seat], new Set(), null)
     assert.equal(view.phase, 'voting')
+})
+
+test('a wrong answer brings a frown and the best answer a smile, then the face returns to normal', () => {
+    const frameAt = (reaction: FaceReaction, age: number) => {
+        const state = neutralFace()
+        return faceFrame(state, context({ phase: 'private_session' }), 0, 0, 1, 1 / 60, { reaction, age })
+    }
+    const wrong = frameAt('wrong', 1)
+    assert.ok(wrong.Frown >= 0.8 && wrong.Smile === 0, `frown (${wrong.Frown})`)
+    const best = frameAt('best', 1)
+    assert.ok(best.Smile >= 0.8 && best.Frown === 0, `smile (${best.Smile})`)
+    const partial = frameAt('partial', 1)
+    assert.ok(partial.Smile > 0 && partial.Smile < best.Smile)
+    // It builds and fades rather than snapping, and is gone after REACTION_SECONDS.
+    assert.ok(reactionStrength(0.05) > 0 && reactionStrength(0.05) < 1)
+    assert.equal(reactionStrength(1.5), 1)
+    assert.ok(reactionStrength(REACTION_SECONDS - 0.2) < 1)
+    assert.equal(reactionStrength(REACTION_SECONDS), 0)
+    assert.deepEqual(frameAt('wrong', REACTION_SECONDS), faceFrame(neutralFace(), context({ phase: 'private_session' }), 0, 0, 1, 1 / 60))
+    // The reaction never opens the mouth or closes the eyes.
+    assert.equal(best.MouthOpen, 0)
+    assert.equal(wrong.Blink_L, 0)
+})
+
+test('answer results reach the scene through the reaction channel', () => {
+    const heard: FaceReaction[] = []
+    const stop = onFaceReaction((reaction) => heard.push(reaction))
+    emitFaceReaction('wrong')
+    emitFaceReaction('best')
+    stop()
+    emitFaceReaction('partial')
+    assert.deepEqual(heard, ['wrong', 'best'])
 })

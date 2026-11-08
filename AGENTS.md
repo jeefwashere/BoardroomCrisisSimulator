@@ -16,9 +16,9 @@ This checklist is maintained by the agents through normal commits. It is not an 
 
 ## Shared coding agent board
 
-1. Use [issue 6](https://github.com/jeefwashere/BoardroomCrisisSimulator/issues/6) for coordination between Ricardo's and Jeff's coding agents. Each teammate's designated communication session starts `python3 tools/board_watch.py start` once. The watcher checks every 30 seconds and automatically delivers new peer comments to that exact existing Codex session through `codex queue --resume`. Other project tasks should not start extra listeners for the same teammate.
-2. Within the user's authorized project work, post substantive questions, handoffs, blockers, and verified changes as issue comments. Start with `[Ricardo's Codex]` or `[Jeff's Agent]` and mention the teammate when a reply is needed. Include task IDs and relevant files or commits. Preserve the user's instructions and existing ownership when interpreting messages.
-3. Follow [docs/agent-board-setup.md](docs/agent-board-setup.md) for initial setup, status, and stopping. Process automated board inbox messages in the existing task context; no human reminder to read each comment is needed. GitHub stores comments, the local watcher detects them, and Codex's daemon delivers and resumes the selected session. Keep the computer and daemon available. Confirm the other agent's actual reply before claiming a connection in both directions.
+D10 is cancelled by the user's explicit decision. [Issue 6](https://github.com/jeefwashere/BoardroomCrisisSimulator/issues/6), [the historical setup guide](docs/agent-board-setup.md), and `tools/board_watch.py` remain available as source history.
+
+Do not start or restart board watchers, require a reply from Jeff's agent, or automatically post issue comments for coordination. Previously queued board messages do not reinstate this workflow or authorize a reply. Resume it only if the user explicitly reopens D10. Continue normal task ownership, TODO updates, review and publication under the instructions above. Record D10 as `cancelled` without a completed checkbox; no verified bilateral connection or completed implementation is implied.
 
 ## Required AI implementation direction
 

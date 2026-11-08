@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { badgeText, chatUnread, formatClock, micControl, othersCount, phaseCaption, phaseTitle, recordingsToReview, skipLabel } from '../src/features/game/controlBarModel.ts'
+import { badgeText, chatUnread, formatClock, micControl, offersReport, othersCount, phaseCaption, phaseTitle, recordingsToReview, skipLabel } from '../src/features/game/controlBarModel.ts'
 import type { MicInput } from '../src/features/game/controlBarModel.ts'
 import { DICTATION_UNAVAILABLE } from '../src/features/game/dictationModel.ts'
 
@@ -99,4 +99,13 @@ test('private sessions: skip label, own round caption and dictation into the ans
     assert.equal(answer({ ready: true, listening: true }).action, 'stop-dictation')
     assert.equal(answer({ ready: false }).action, null)
     assert.match(answer({ ready: false }).title, /coach asks/)
+})
+
+test('the Report button is offered only in the first session', () => {
+    assert.equal(offersReport(1, 'briefing'), true)
+    assert.equal(offersReport(1, 'individual_decision'), true)
+    assert.equal(offersReport(2, 'private_session'), false)
+    assert.equal(offersReport(1, 'private_session'), false)
+    assert.equal(offersReport(3, 'voting'), false)
+    assert.equal(offersReport(1, 'ended'), false)
 })

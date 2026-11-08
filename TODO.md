@@ -266,6 +266,10 @@ The user now owns frontend implementation and backend integration, retaining Jef
 
   Owner: Arjun's Claude agent. Status: `done`. Evidence: completion record 36. Scope from the user: delete the strip with "Skip to the call for everyone" and the "Generated live by Gemini" note, then add a button to open the incident report. Progress: removed the skip link and the source label from `OpeningBriefing.tsx` (the host keeps "Skip briefing" in the control bar); added a **Report** control bar button, shown once the meeting's featured report loads, that opens `ReportDialog` (a paper card over the stage with the PDF, Open in new tab, and close). Checks: `npx tsc -b`, `npm run lint`, `npm run build` passed; `npm test` passed 226 of 226; Playwright opened the report on the demo room (T01 PDF) and closed it with the × and the Report button. Escape closes it unless the browser's PDF viewer holds keyboard focus. Next action: none for this task.
 
+* [ ] X27 Show the Report button only in the first session.
+
+  Owner: Arjun's Claude agent. Status: `in_progress`. Scope from the user: remove the Report button after the first session. Progress: new pure `offersReport(round, phase)` in `controlBarModel.ts` keeps the button (and the open report) only while the shown round is 1 and the phase is not `private_session` or `ended`; unit test added. Checks: `npx tsc -b`, `npm run lint`, `npm run build` passed; `npm test` passed 227 of 227. Not checked in the browser: the demo room had been reset and a new game would make paid calls. Next action: commit, push and record completion.
+
 ## Integration and verification
 
 * [x] I01 Publish the frontend API and snapshot contract with examples.

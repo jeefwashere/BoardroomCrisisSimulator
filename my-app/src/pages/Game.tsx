@@ -24,7 +24,7 @@ import { usePrivateAutoResponse } from '../features/game/usePrivateAutoResponse'
 import { ownPrivateRound } from '../features/game/privateSessionModel'
 import ControlBar from '../features/game/ControlBar'
 import ChatDrawer from '../features/game/ChatDrawer'
-import { chatUnread, micControl, othersCount, phaseCaption, skipLabel } from '../features/game/controlBarModel'
+import { chatUnread, micControl, offersReport, othersCount, phaseCaption, skipLabel } from '../features/game/controlBarModel'
 import { DICTATION_UNAVAILABLE } from '../features/game/dictationModel'
 import { useDictation } from '../features/game/useDictation'
 import { useTurnRecorder } from '../features/game/useTurnRecorder'
@@ -180,6 +180,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     // Games with private rounds also keep the call full width and end on the centered card.
     const centered = individual || Boolean(game.private_rounds)
     const ownRound = privatePhase ? ownPrivateRound(privateSession.session, game.private_progress, room.self_member_id) : null
+    const reportAvailable = offersReport(ownRound ?? game.round_number, room.phase)
     async function act(path: string, fields: Record<string, unknown> = {}) {
         if (pending) return false
         setPending(true); setNotice('')
@@ -314,14 +315,14 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
             chat={{ open: chatOpen, unread, onToggle: () => setChatOpen((open) => !open) }}
             captions={{ on: captions, onToggle: toggleCaptions }}
             stage={stageSwitch ? { threeD: show3d, onToggle: toggleView3d } : undefined}
-            report={report ? { open: reportOpen, onToggle: () => setReportOpen((open) => !open) } : undefined}
+            report={report && reportAvailable ? { open: reportOpen, onToggle: () => setReportOpen((open) => !open) } : undefined}
             autoResponse={autoControl}
             finishTurn={actions.includes('finish_speaking') ? () => void act(rounds + 'speaker/finish') : undefined}
             skip={actions.includes('skip_phase') ? { label: skipLabel(room.phase), onClick: () => void act(rounds + 'skip-phase') } : undefined}
             skipSpeaker={actions.includes('skip_speaker') ? () => void act(rounds + 'speaker/skip', { reason: 'Skipped by the host' }) : undefined}
             end={actions.includes('end') ? () => void act('end') : undefined}
         />
-        <ReportDialog report={report} open={reportOpen} onClose={closeReport} />
+        <ReportDialog report={report} open={reportOpen && reportAvailable} onClose={closeReport} />
         <TranscriptPanel entries={transcriptEntries} open={transcriptOpen} onClose={hideCaptions} dockRef={setDock} minimized={transcriptMinimized} onToggleMinimized={toggleTranscriptMinimized} />
         <ChatDrawer room={room} scenarios={scenarios} chat={chat} open={chatOpen} onClose={closeChat}
             pinned={individual && room.phase === 'individual_decision' ? <div className="game-briefing chat-decision"><p className="chat-decision-from">Facilitator · Round 1</p><IndividualDecisionPanel key={game.phase_id} room={room} pending={pending} act={act} notice={notice} dictation={dictation} attachDictation={attachDictation} /></div> : undefined} />

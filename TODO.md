@@ -60,6 +60,8 @@ The user now owns frontend implementation and backend integration, retaining Jef
 
   Owner: unassigned. Status: `available`. Acceptance: record the team's choices for speaking duration, total session duration, vote replacement and visibility, CEO absence, custom action limits and outcome mapping, and scoring. Preserve unsettled choices as proposed.
 
+  Current prepared gameplay choices are accepted and published in docs/gameplay-api.md. Custom proposal limits, AI outcome mapping, retry policy and evaluation rubric remain separate choices, so P01 stays open.
+
 * [x] P02 Supply and validate one complete scenario package.
 
   Owner: coordinating Codex agent. Status: `done`. Acceptance: one background, role list, decision sequence, prepared choices, consequences, allowed custom outcomes, no decision outcome, and ending are available with a fixed version. The published material is an explicitly fictional English cybersecurity draft with static validation, not previously supplied team content or a human playtested game. Evidence: completion record 6.

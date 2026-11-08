@@ -10,7 +10,7 @@ Confirmed: a multiplayer crisis simulation with entry by room code and display n
 
 Proposed architecture: one FastAPI service maintains authoritative room state, accepts actions over HTTP, and synchronizes screens through WebSocket connections. Scenarios, choices, and prepared consequences use versioned scenario data. AI evaluates the winning custom action and returns an allowed outcome. Basic refresh and reconnect recovery are included; database recovery and server restart recovery remain later options.
 
-Unconfirmed values and policies are marked Proposed, including speaking duration, total game duration, vote replacement, vote visibility, CEO absence and scoring details. The AI and speech provider choices are now selected in [ai-architecture.md](ai-architecture.md). The team can select its delivery scope from this document's function catalog.
+Remaining custom action and scoring policies are marked Proposed. Speaking allocation, scenario timing, replaceable hidden ballots, CEO absence and total expiry precedence are accepted for the current prepared backend delivery in the gameplay contract. The AI and speech provider choices are now selected in [ai-architecture.md](ai-architecture.md). The team can select its delivery scope from this document's function catalog.
 
 ## 2. Evidence and decision status
 
@@ -97,7 +97,7 @@ Host actions are room configuration, role assignment, start, and an explicit end
 
 Confirmed: each player has a speaking turn and turns happen sequentially.
 
-Proposed defaults:
+Accepted speaking policies for prepared gameplay:
 
 1. Use stable lobby seat order. Each round freezes its speaker order.
 2. Allow 30 seconds per player. The active speaker may finish early. The host may skip a speaker, and the reason is recorded.
@@ -113,7 +113,7 @@ At 30 players, 30 seconds each consumes 15 minutes before a vote. The lobby shou
 
 Confirmed: voting lasts 60 seconds and every eligible player has equal weight. The CEO decides a tie.
 
-Proposed exact policy:
+Accepted exact policy for prepared gameplay:
 
 1. Freeze the eligible member IDs and valid option IDs when the round begins. Freeze the final option content when voting opens.
 2. Each member has one current vote. They may replace it before the deadline. A new selection replaces their earlier vote rather than adding another vote.
@@ -155,7 +155,7 @@ The game has one server owned total deadline and a decision sequence defined by 
 4. A host end action records `host_ended`, so it cannot be mistaken for a completed scenario or a timeout.
 5. Final feedback generation is separate from gameplay completion. Clients can display the final factual record while feedback is pending.
 
-The total duration is deliberately configurable and has no silently selected default. The team must choose a value consistent with speaking time and the number of decision nodes.
+Start explicitly selects a validated scenario timing profile. Its gameplay ceiling governs total duration; no universal session duration is silently selected.
 
 ## 10. Rejoin and persistence boundary
 

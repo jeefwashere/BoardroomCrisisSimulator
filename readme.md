@@ -12,6 +12,7 @@ Multiplayer crisis simulation. The FastAPI backend supports frontend supplied ro
 8. [Run the FastAPI room API and connect the frontend](docs/room-api.md)
 9. [Submit the lobby JSON and enter briefing](docs/start-api.md)
 10. [Run the narrative engine and integrate evidence and narration](docs/narrative-engine.md)
+11. [Prepare a production Docker Compose deployment with Coolify on Vultr](docs/vultr-coolify-deployment.md)
 
 Agents working on this repository should read `AGENTS.md` and update their own task in `TODO.md` after verifying and pushing completed work.
 

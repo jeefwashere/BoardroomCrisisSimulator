@@ -250,8 +250,8 @@ function aborted(error: unknown, signal?: AbortSignal): boolean {
 }
 
 export function createRoomApi(options: { baseUrl?: string; fetch?: typeof globalThis.fetch; session?: TabSession } = {}): RoomApi {
-    const environment = (import.meta as ImportMeta & { env?: { VITE_API_BASE_URL?: string } }).env
-    const baseUrl = (options.baseUrl ?? environment?.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000').replace(/\/+$/, '')
+    const environment = (import.meta as ImportMeta & { env?: { VITE_API_BASE_URL?: string; PROD?: boolean } }).env
+    const baseUrl = (options.baseUrl ?? environment?.VITE_API_BASE_URL ?? (environment?.PROD ? '' : 'http://127.0.0.1:8000')).replace(/\/+$/, '')
     const fetchRequest = options.fetch ?? globalThis.fetch.bind(globalThis)
 
     const session = options.session ?? browserTabSession()

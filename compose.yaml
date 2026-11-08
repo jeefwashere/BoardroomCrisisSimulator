@@ -1,0 +1,89 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: deploy/frontend.Dockerfile
+    expose:
+      - "8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+        # Dependency is one-way; a frontend restart never restarts the backend.
+        restart: false
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:mode=1777,size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8080/healthz && wget -q -O /dev/null http://127.0.0.1:8080/api/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    networks:
+      - default
+      - api
+
+  backend:
+    build:
+      context: .
+      dockerfile: deploy/backend.Dockerfile
+    expose:
+      - "8000"
+    # Rooms and tab sessions are in memory. Do not scale this service.
+    deploy:
+      replicas: 1
+    environment:
+      BOARDROOM_ALLOWED_ORIGINS: ${BOARDROOM_ALLOWED_ORIGINS:?Set the exact public HTTPS origin in Coolify}
+      BOARDROOM_SECURE_COOKIE: "true"
+      # Safe only while this service is reachable exclusively by trusted proxies.
+      FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-*}
+      BOARDROOM_RECORDINGS_DIR: /data/recordings
+      BOARDROOM_TTS_LEDGER: /data/voice/ledger.sqlite
+      BOARDROOM_TTS_CACHE: /data/voice/tts-cache
+      REHEARSAL_API_URL: ${REHEARSAL_API_URL:-}
+      REHEARSAL_APP_KEY: ${REHEARSAL_APP_KEY:-}
+      REHEARSAL_SITE_TOKEN: ${REHEARSAL_SITE_TOKEN:-}
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
+      BOARDROOM_TTS_ENABLED: ${BOARDROOM_TTS_ENABLED:-false}
+      BOARDROOM_STT_ENABLED: ${BOARDROOM_STT_ENABLED:-false}
+      BOARDROOM_VOICE_BUDGET_USD: ${BOARDROOM_VOICE_BUDGET_USD:-0}
+      BOARDROOM_TTS_USD_PER_1K: ${BOARDROOM_TTS_USD_PER_1K:-0}
+      BOARDROOM_STT_USD_PER_MINUTE: ${BOARDROOM_STT_USD_PER_MINUTE:-0}
+      BOARDROOM_TTS_VOICE_ID: ${BOARDROOM_TTS_VOICE_ID:-}
+    volumes:
+      - recordings:/data/recordings
+      - voice:/data/voice
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
+    read_only: true
+    tmpfs:
+      - /tmp:mode=1777,size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "python", "-c", "import json, urllib.request; r = urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3); assert json.load(r)['status'] == 'ok'"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    networks:
+      - api
+
+volumes:
+  recordings:
+  voice:
+
+networks:
+  # Coolify attaches its public proxy to the frontend network.
+  default:
+  # No host port or public domain for the backend. Bridge networking retains
+  # outbound HTTPS to the existing model service and ElevenLabs.
+  api:

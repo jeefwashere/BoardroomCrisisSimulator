@@ -30,7 +30,13 @@ export type Consultation = {
     at: string
 }
 
-export type Facilitation = { opening: Opening | null; advisers: Adviser[]; consultations: Consultation[] }
+/** Incident report attached to a room (`GET /api/rooms/{id}/facilitation` → `documents`). */
+export type AttachedDocument = { document_id: string; title: string; pdf_url: string }
+
+/** Public catalog entry (`GET /api/documents`). */
+export type IncidentDocument = AttachedDocument & { filename: string; pack: string; default: boolean; summary: string }
+
+export type Facilitation = { opening: Opening | null; advisers: Adviser[]; consultations: Consultation[]; documents?: AttachedDocument[] }
 
 export type RecordingGroup = 'decision_guide' | 'participant' | 'facilitator' | 'adviser' | 'journalist' | 'discussion' | 'control' | 'reference'
 
@@ -78,6 +84,10 @@ export function createFacilitationApi(api: RoomApi) {
         recordings: async (signal?: AbortSignal) => json<RecordedClip[]>(await fetch(`${api.baseUrl}/api/recordings`, { signal })),
         /** Absolute URL usable directly as an <audio src>. */
         recordingUrl: (clip: RecordedClip) => `${api.baseUrl}${clip.audio_url}`,
+        /** Public catalog of the demo incident report PDFs. Throws FacilitationError (status 404) before the route exists. */
+        documents: async (signal?: AbortSignal) => json<IncidentDocument[]>(await fetch(`${api.baseUrl}/api/documents`, { signal })),
+        /** Absolute URL of the inline PDF, usable as a link href or viewer src. */
+        documentUrl: (document: Pick<AttachedDocument, 'pdf_url'>) => /^https?:\/\//i.test(document.pdf_url) ? document.pdf_url : `${api.baseUrl}${document.pdf_url}`,
     }
 }
 

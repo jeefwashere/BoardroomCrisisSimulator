@@ -65,12 +65,13 @@
   flex: 1 1 0;
   min-height: 40px;
   margin: 0;
-  padding: 8px 10px;
+  padding: 8px 4px;
   border: 0;
   border-radius: 7px;
   background: transparent;
   color: var(--fac-muted);
-  font-size: 13px;
+  font-size: 12.5px;
+  white-space: nowrap;
   font-weight: 600;
   transition: background-color 150ms ease, color 150ms ease;
 }
@@ -289,6 +290,27 @@
 }
 .facilitation-guide strong { font-size: 14.5px; }
 .facilitation-guide .facilitation-progress span { background: var(--fac-accent); }
+
+/* Incident report documents */
+.facilitation-documents { display: flex; flex-direction: column; gap: 12px; }
+.facilitation-document { display: flex; flex-direction: column; gap: 9px; padding: 11px 12px; border: 1px solid var(--fac-line-soft); border-radius: 10px; background: #fffdf8; }
+.facilitation-document.is-attached { border-color: var(--fac-green); box-shadow: inset 3px 0 0 var(--fac-green); }
+.facilitation-document-head { display: flex; align-items: flex-start; gap: 10px; }
+.facilitation-document-icon { display: grid; place-items: center; flex-shrink: 0; width: 34px; height: 34px; border-radius: 8px; background: var(--fac-paper-deep); color: var(--fac-green); }
+.facilitation-document-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.facilitation-document-text h4 { font-size: 13.5px; font-weight: 650; overflow-wrap: anywhere; }
+.facilitation-panel .facilitation-document-summary { color: var(--fac-ink); font-size: 12.5px; line-height: 1.45; }
+.facilitation-document-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.facilitation-panel .facilitation-document-open { display: inline-flex; align-items: center; gap: 5px; color: var(--fac-green); text-decoration: none; }
+.facilitation-panel .facilitation-document-open:hover { background: var(--fac-paper-deep); }
+.facilitation-panel .facilitation-document-open:focus-visible { outline: 2px solid #b58c28; outline-offset: 2px; }
+.facilitation-badge--attached { background: var(--fac-green); color: var(--fac-paper); }
+
+/* Inline PDF viewer (shared with the opening stage). */
+.pdf-frame { display: flex; flex-direction: column; gap: 6px; }
+.pdf-frame iframe { display: block; width: 100%; height: min(60vh, 560px); min-height: 320px; border: 1px solid #bba38a; border-radius: 8px; background: #fff; }
+.pdf-frame-fallback { margin: 0; color: #796655; font-size: 11.5px; }
+.pdf-frame-fallback a { color: inherit; }
 
 /* Spinner */
 .facilitation-spinner {

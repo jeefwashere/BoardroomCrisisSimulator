@@ -6,6 +6,7 @@ import type { Opening } from '../../services/facilitation'
 import { roomApi, errorMessage } from '../rooms/useRoom'
 import { pollRoom } from '../rooms/roomState'
 import Countdown from './Countdown'
+import IncidentReportCard from './IncidentReportCard'
 
 const facilitationApi = createFacilitationApi(roomApi)
 const TYPE_STEP = 2
@@ -122,6 +123,7 @@ export default function OpeningBriefing({ room }: { room: RoomSnapshot }) {
             {audio && audio.speechId === speechId && <audio className="opening-audio" controls autoPlay src={audio.url} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => setPlaying(false)} />}
             {voice.notice && <p className="opening-voice-notice" role="status">{voice.notice}</p>}
         </div>
+        <IncidentReportCard roomId={room.room_id} />
         <p className="opening-next">The call opens to every participant when the briefing ends.</p>
     </motion.section>
 }

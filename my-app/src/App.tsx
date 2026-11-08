@@ -5,6 +5,9 @@ import Host from './pages/Host.tsx'
 import Join from './pages/Join.tsx'
 import RoomEntry from './features/rooms/RoomEntry'
 import SessionNameProvider from './features/identity/SessionNameProvider'
+import DemoRoom from './features/demo/DemoRoom'
+import SeatNameProvider from './features/demo/SeatNameProvider'
+import { seatFromSearch } from './services/tabSession'
 import type { RoomSnapshot } from './services/rooms'
 
 function subscribeToLocation(onChange: () => void) {
@@ -25,11 +28,11 @@ function App() {
     setAdmittedRoom(room)
     window.location.hash = `/room/${room.room_id}`
   }, [])
-  return (
-    <SessionNameProvider>
-      {roomId ? <Host key={roomId} roomId={roomId} initialRoom={admittedRoom?.room_id === roomId ? admittedRoom : undefined} /> : route === '#/host' ? <RoomEntry mode="host" onEnter={enterRoom} /> : route === '#/join' ? <Join key={query} roomCode={new URLSearchParams(query).get('code') ?? ''} onEnter={enterRoom} /> : <Home onEnter={enterRoom} />}
-    </SessionNameProvider>
-  )
+  // A demo seat frame (`?seat=alex`) holds its own test membership and name.
+  const seat = seatFromSearch(window.location.search)
+  if (route === '#/demo' && !seat) return <DemoRoom />
+  const page = roomId ? <Host key={roomId} roomId={roomId} initialRoom={admittedRoom?.room_id === roomId ? admittedRoom : undefined} /> : route === '#/host' ? <RoomEntry mode="host" onEnter={enterRoom} /> : route === '#/join' ? <Join key={query} roomCode={new URLSearchParams(query).get('code') ?? ''} onEnter={enterRoom} /> : <Home onEnter={enterRoom} />
+  return seat ? <SeatNameProvider seat={seat}>{page}</SeatNameProvider> : <SessionNameProvider>{page}</SessionNameProvider>
 }
 
 export default App

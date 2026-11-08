@@ -8,6 +8,7 @@ export type ChoiceOption = {
     kind?: string
     member_id?: string | null
     description?: string | null
+    rationale?: string | null
 }
 
 export type TallyRow = { option_id: string; label: string; count: number; share: number; leading: boolean }
@@ -49,4 +50,21 @@ export function mergeLabels(known: Record<string, string>, options: ChoiceOption
     return options.some((option) => known[option.option_id] !== option.label)
         ? { ...known, ...Object.fromEntries(options.map((option) => [option.option_id, option.label])) }
         : null
+}
+
+/** Status line for agent drafted ballot options, or null when nothing should be shown. */
+export function aiOptionsNotice(game: { ballot_source?: string; options_source?: string; ai_options_status?: string } | null | undefined, phase: string): string | null {
+    if (!game || game.ballot_source !== 'ai') return null
+    const drafting = ['reading', 'speaking', 'discussion'].includes(phase)
+    if (drafting) {
+        if (game.ai_options_status === 'pending') return 'AI agents are drafting this round\'s voting options from the report and your discussion…'
+        if (game.ai_options_status === 'ready') return 'AI agents have drafted the voting options. They may refresh once discussion begins.'
+        if (game.ai_options_status === 'failed') return 'AI drafting failed; this round will use the scenario\'s prepared options.'
+        return null
+    }
+    if (phase === 'voting' || phase === 'tie_break') {
+        if (game.options_source === 'ai') return 'Options drafted by AI agents (Vertex Gemini). Only members vote.'
+        if (game.options_source === 'prepared_fallback') return 'AI options were not ready, so the scenario\'s prepared options are used.'
+    }
+    return null
 }

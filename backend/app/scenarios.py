@@ -44,6 +44,7 @@ class PreparedOption:
     option_id: str
     label: str
     outcome_id: str
+    description: str | None = None
 
 
 @dataclass(frozen=True)
@@ -198,7 +199,8 @@ def _validate_nodes(data):
             if target not in outcomes:
                 raise ValueError(f"Unknown option outcome in {node_id}")
             used.add(target)
-            option_values.append(PreparedOption(option["id"], option["label"], target))
+            option_values.append(PreparedOption(option["id"], option["label"], target,
+                                                option.get("description") if isinstance(option.get("description"), str) else None))
         if used != outcomes.keys():
             raise ValueError(f"Unselectable outcome in {node_id}")
         edges[node_id] = set()
@@ -370,7 +372,8 @@ class ScenarioCatalog:
 
     def __init__(self, packages: tuple[Path, ...] | None = None):
         if packages is None:
-            packages = (Path(__file__).resolve().parents[2] / "scenarios/cybersecurity_demo/v3/scenario.json",)
+            root = Path(__file__).resolve().parents[2] / "scenarios"
+            packages = (root / "cybersecurity_demo/v3/scenario.json", root / "cedar_bridge_t01/v1/scenario.json")
         if type(packages) is not tuple or any(not isinstance(path, Path) for path in packages):
             raise ValueError("packages must be a tuple of scenario.json Paths")
         scenarios = {}

@@ -43,6 +43,8 @@ export type StartRoomInput = {
     scenario_version: number
     timing_profile: string
     players: { member_id: string; role_id: string }[]
+    /** Optional: authored fixed choices or AI generated voting options. */
+    ballot_source?: 'ai' | 'authored'
 }
 
 type ScenarioReference = {
@@ -103,7 +105,10 @@ export type RoomGame = {
     vote_counts?: Record<string, number> | null
     tied_option_ids?: string[]
     allowed_actions?: string[]
-    current_node?: { node_id: string; title: string; situation: string; study_questions: string[]; options: { option_id: string; label: string }[] } | null
+    current_node?: { node_id: string; title: string; situation: string; study_questions: string[]; options: { option_id: string; label: string; kind?: 'prepared' | 'custom' | 'ai'; member_id?: string | null; description?: string | null; rationale?: string | null }[] } | null
+    ballot_source?: 'ai' | 'authored'
+    options_source?: 'ai' | 'prepared_fallback' | 'authored'
+    ai_options_status?: 'pending' | 'ready' | 'failed' | 'disabled'
     history?: Decision[]
     last_result?: Decision | null
     turns?: { member_id: string; phase_id: string; round_id: string; reason: string; started_at: string; ended_at: string }[]

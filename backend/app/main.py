@@ -24,7 +24,9 @@ from .scenarios import ScenarioCatalog
 from .recordings import Recordings
 from .feedback import Feedback
 from .custom_resolution import CustomResolver
-from .facilitation import Facilitation, RecordedClips
+from .facilitation import Facilitation, IncidentDocuments, RecordedClips
+from .ai_options import AiOptions
+from .vertex_text import VertexText
 
 COOKIE_NAME = "boardroom_session"
 SESSION_HEADER = "X-Boardroom-Session"
@@ -35,7 +37,9 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
                narration_service: NarrationService | None = None,
                recordings_service: Recordings | None = None,
                inference_provider=None, facilitation_service: Facilitation | None = None,
-               recorded_clips: RecordedClips | None = None) -> FastAPI:
+               recorded_clips: RecordedClips | None = None,
+               incident_documents: IncidentDocuments | None = None,
+               vertex_provider=None) -> FastAPI:
     if rooms is None:
         rooms = Rooms(ScenarioCatalog(), clock if clock is not None else time.monotonic)
     catalog = rooms.catalog
@@ -43,7 +47,13 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     recordings = recordings_service if recordings_service is not None else Recordings.from_env(rooms)
     feedback = Feedback(rooms, recordings, inference_provider)
     resolver = CustomResolver(rooms, inference_provider)
-    facilitation = facilitation_service if facilitation_service is not None else Facilitation(rooms, inference_provider, speech)
+    documents = incident_documents if incident_documents is not None else (
+        facilitation_service.documents if facilitation_service is not None else IncidentDocuments())
+    # Vertex Gemini (user approved Nov 7 2026) for advisory agents and agent drafted ballot options.
+    vertex = vertex_provider if vertex_provider is not None else VertexText.from_env()
+    facilitation = facilitation_service if facilitation_service is not None else Facilitation(
+        rooms, inference_provider, speech, documents, vertex=vertex)
+    ai_options = AiOptions(rooms, vertex, documents)
     clips = recorded_clips if recorded_clips is not None else RecordedClips()
     secure = secure_cookie if secure_cookie is not None else os.getenv("BOARDROOM_SECURE_COOKIE", "false").lower() == "true"
     origins = allowed_origins if allowed_origins is not None else [
@@ -57,6 +67,7 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
         while True:
             await rooms.tick()
             await resolver.tick()
+            await ai_options.tick()
             await feedback.tick()
             await asyncio.sleep(0.1)
 
@@ -71,6 +82,7 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
             with suppress(asyncio.CancelledError):
                 await task
             await resolver.close()
+            await ai_options.close()
             await feedback.close()
             await facilitation.close()
             await recordings.close()
@@ -78,6 +90,8 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     app = FastAPI(title="Boardroom gameplay and evidence API", version="0.4.0", lifespan=lifespan)
     app.state.feedback = feedback
     app.state.resolver = resolver
+    app.state.ai_options = ai_options
+    app.state.vertex = vertex
     app.state.recordings = recordings
     app.state.speech = speech
     app.state.facilitation = facilitation
@@ -156,7 +170,7 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     @app.post("/api/rooms/{room_id}/start", response_model=RoomView, responses=errors)
     async def start_room(room_id: UUID, body: StartRoom, member_session: authenticated):
         spec = StartSpec(body.room_code, body.scenario_id, body.scenario_version, body.timing_profile,
-                         tuple((player.member_id, player.role_id) for player in body.players))
+                         tuple((player.member_id, player.role_id) for player in body.players), body.ballot_source)
         return await rooms.start(member_session, room_id, body.command_id, spec)
 
     @app.get("/api/rooms/{room_id}", response_model=RoomView, responses=errors)
@@ -314,6 +328,16 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     @app.get("/api/recordings/{clip_id}/audio", response_class=Response, responses=errors)
     async def recorded_audio(clip_id: str):
         return Response(content=clips.audio(clip_id), media_type="audio/mpeg", headers={"Content-Disposition": "inline"})
+
+    @app.get("/api/documents", summary="Public catalog of demo incident report PDFs")
+    async def document_catalog():
+        return documents.listing()
+
+    @app.get("/api/documents/{document_id}/pdf", response_class=Response, responses=errors)
+    async def document_pdf(document_id: str):
+        raw, filename = documents.pdf(document_id)
+        return Response(content=raw, media_type="application/pdf",
+                        headers={"Content-Disposition": f'inline; filename="{filename}"'})
 
     return app
 

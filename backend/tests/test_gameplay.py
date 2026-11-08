@@ -3,6 +3,7 @@
 import asyncio
 from dataclasses import replace
 from datetime import datetime
+import os
 import unittest
 from uuid import UUID, uuid4
 
@@ -12,6 +13,9 @@ from backend.app.main import SESSION_HEADER, create_app
 from backend.app.rooms import Rooms
 from backend.app.scenarios import ScenarioCatalog
 from backend.app import simulation as sim
+
+# Automated tests never make paid Vertex calls; tests inject fakes explicitly.
+os.environ["BOARDROOM_VERTEX_ENABLED"] = "false"
 
 
 def command(**fields):

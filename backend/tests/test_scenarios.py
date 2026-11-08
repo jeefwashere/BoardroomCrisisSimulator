@@ -37,7 +37,8 @@ class ScenarioCatalogTests(unittest.TestCase):
         catalog = ScenarioCatalog()
         scenario = catalog.get("maplecart_cybersecurity", 3)
         self.assertIsNotNone(scenario)
-        self.assertEqual(catalog.all(), (scenario,))
+        # The active catalog admits cybersecurity v3 first, then the Cedar Bridge T01 demo package.
+        self.assertEqual(catalog.all(), (scenario, catalog.get("cedar_bridge_t01", 1)))
         self.assertEqual(scenario.initial_node_id, "containment")
         self.assertEqual(dict(scenario.initial_facts), self.data["initial_facts"])
         self.assertNotIn("initial_metrics", asdict(scenario))

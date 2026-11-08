@@ -7,11 +7,13 @@ import { decisionGuideClip, formatDuration } from './facilitationModel'
 import { useSharedAudio } from './useSharedAudio'
 import AdvisersTab from './AdvisersTab'
 import RecordingsTab from './RecordingsTab'
+import DocumentsTab from './DocumentsTab'
+import { useMeetingDocuments } from './useMeetingDocuments'
 import { PlayIcon, ProgressBar } from './ClipRow'
 import './Facilitation.css'
 
-type Tab = 'advisers' | 'recordings'
-const TABS: { id: Tab; label: string }[] = [{ id: 'advisers', label: 'AI facilitators' }, { id: 'recordings', label: 'Recorded audio' }]
+type Tab = 'advisers' | 'recordings' | 'documents'
+const TABS: { id: Tab; label: string }[] = [{ id: 'advisers', label: 'AI facilitators' }, { id: 'recordings', label: 'Recorded audio' }, { id: 'documents', label: 'Documents' }]
 
 export default function FacilitationPanel({ room }: { room: RoomSnapshot }) {
     const [tab, setTab] = useState<Tab>('advisers')
@@ -21,7 +23,8 @@ export default function FacilitationPanel({ room }: { room: RoomSnapshot }) {
     const [clipsLoading, setClipsLoading] = useState(true)
     const [clipsToken, setClipsToken] = useState(0)
     const { state: player, toggle, stop, audioProps } = useSharedAudio()
-    const tabRefs = useRef<Record<Tab, HTMLButtonElement | null>>({ advisers: null, recordings: null })
+    const tabRefs = useRef<Record<Tab, HTMLButtonElement | null>>({ advisers: null, recordings: null, documents: null })
+    const documents = useMeetingDocuments(room.room_id)
     const id = useId()
 
     useEffect(() => {
@@ -47,7 +50,8 @@ export default function FacilitationPanel({ room }: { room: RoomSnapshot }) {
     function onTabKey(event: KeyboardEvent<HTMLButtonElement>) {
         if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return
         event.preventDefault()
-        const next: Tab = tab === 'advisers' ? 'recordings' : 'advisers'
+        const index = TABS.findIndex((item) => item.id === tab)
+        const next = TABS[(index + (event.key === 'ArrowRight' ? 1 : TABS.length - 1)) % TABS.length].id
         setTab(next)
         tabRefs.current[next]?.focus()
     }
@@ -55,7 +59,7 @@ export default function FacilitationPanel({ room }: { room: RoomSnapshot }) {
     return <aside className={`facilitation-panel${open ? ' is-open' : ''}`} aria-label="Meeting facilitation">
         <audio {...audioProps} />
         <button type="button" className="facilitation-collapse" aria-expanded={open} aria-controls={`${id}-body`} onClick={() => setOpen((value) => !value)}>
-            <span>Facilitation & recorded audio</span>
+            <span>Facilitation, audio & documents</span>
             <span aria-hidden="true" className="facilitation-chevron">{open ? '−' : '+'}</span>
         </button>
 
@@ -87,6 +91,9 @@ export default function FacilitationPanel({ room }: { room: RoomSnapshot }) {
             </div>
             <div role="tabpanel" id={`${id}-panel-recordings`} aria-labelledby={`${id}-tab-recordings`} hidden={tab !== 'recordings'} className="facilitation-tabpanel">
                 <RecordingsTab clips={clips} error={clipsError} loading={clipsLoading} onRetry={retryClips} player={player} onToggle={toggle} />
+            </div>
+            <div role="tabpanel" id={`${id}-panel-documents`} aria-labelledby={`${id}-tab-documents`} hidden={tab !== 'documents'} className="facilitation-tabpanel">
+                <DocumentsTab entries={documents.entries} status={documents.status} error={documents.error} />
             </div>
         </div>
     </aside>

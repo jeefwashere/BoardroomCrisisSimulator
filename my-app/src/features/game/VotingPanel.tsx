@@ -3,7 +3,7 @@ import { motion } from 'motion/react'
 import type { RoomSnapshot } from '../../services/rooms'
 import Countdown from './Countdown'
 import { voteCountSummary } from './votePresentation'
-import { ballotProgress, mergeLabels, optionDescription, tallyRows } from './votingModel'
+import { aiOptionsNotice, ballotProgress, mergeLabels, optionDescription, tallyRows } from './votingModel'
 import type { ChoiceOption } from './votingModel'
 
 const RESULT_PHASES = ['resolving', 'resolution_failed', 'decision', 'result']
@@ -26,7 +26,10 @@ export default function VotingPanel({ room, pending, act }: { room: RoomSnapshot
     const isVoting = phase === 'voting'
     const isTie = phase === 'tie_break'
     const isResult = RESULT_PHASES.includes(phase)
-    if (!isVoting && !isTie && !isResult) return null
+    const aiNotice = aiOptionsNotice(game, phase)
+    if (!isVoting && !isTie && !isResult) {
+        return aiNotice ? <p className={`vote-ai-notice${game.ai_options_status === 'pending' ? ' is-pending' : ''}`} role="status">{aiNotice}</p> : null
+    }
 
     const known = { ...labels, ...(merged ?? {}) }
     const canVote = isVoting && actions.includes('vote')
@@ -57,6 +60,7 @@ export default function VotingPanel({ room, pending, act }: { room: RoomSnapshot
             <div>
                 <p className="vote-eyebrow">Round {game.round_number} decision</p>
                 <h3 id="vote-panel-title">{title}</h3>
+                {aiNotice && <p className="vote-ai-notice" role="status">{aiNotice}</p>}
             </div>
             {(isVoting || isTie) && <Countdown key={game.phase_id + (game.server_time ?? '')} deadline={game.phase_deadline} serverTime={game.server_time} className="vote-countdown" />}
         </header>
@@ -88,8 +92,9 @@ export default function VotingPanel({ room, pending, act }: { room: RoomSnapshot
                     >
                         <span className="vote-choice-mark" aria-hidden="true" />
                         <span className="vote-choice-body">
-                            <span className="vote-choice-label">{option.label}</span>
+                            <span className="vote-choice-label">{option.kind === 'ai' && <span className="vote-ai-badge">AI suggested</span>}{option.label}</span>
                             {description && <span className="vote-choice-description">{description}</span>}
+                            {option.kind === 'ai' && option.rationale && <span className="vote-choice-rationale">Why: {option.rationale}</span>}
                             {selfVote === option.option_id && !isTie && <span className="vote-choice-tag">Your current vote</span>}
                         </span>
                     </motion.button>

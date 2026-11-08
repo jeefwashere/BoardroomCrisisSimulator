@@ -5,6 +5,7 @@ import HoverWaveText from '../common/HoverWaveText'
 import EditableSessionName from '../features/identity/EditableSessionName'
 import { useSessionName } from '../features/identity/useSessionName'
 import { useRoomEntry } from '../features/rooms/useRoomEntry'
+import DemoEntryButton from '../features/demo/DemoEntryButton'
 import type { EntryMode } from '../features/rooms/directEntry'
 import type { RoomSnapshot } from '../services/rooms'
 import './Home.css'
@@ -75,6 +76,10 @@ function Home({ initialEntry, initialCode = '', onEnter }: HomeProps) {
                             Join
                             <span className="home-menu__arrow" aria-hidden="true">›</span>
                         </button>
+                    </motion.div>
+
+                    <motion.div variants={optionVariants}>
+                        <DemoEntryButton disabled={Boolean(entry.busy)} />
                     </motion.div>
                 </motion.div>
                 {entry.needsRole && <div className="home-menu__late-role">

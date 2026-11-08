@@ -3,7 +3,39 @@
 export const TAB_ID_KEY = 'boardroom.tabId'
 export const TAB_TOKEN_KEY = 'boardroom.tabSession'
 
-type StoragePort = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
+export type StoragePort = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
+
+// A seat lets several same origin frames in one browser tab hold separate
+// memberships, for the single window demo. Seats only namespace storage keys;
+// each frame still claims its own tab ID.
+const SEAT_PATTERN = /^[a-z0-9]{1,16}$/
+
+export function validSeat(value: string | null | undefined): string | null {
+    return typeof value === 'string' && SEAT_PATTERN.test(value) ? value : null
+}
+
+/** Reads `?seat=<name>` from a location search string; invalid seats are ignored. */
+export function seatFromSearch(search: string): string | null {
+    try { return validSeat(new URLSearchParams(search).get('seat')) } catch { return null }
+}
+
+/** Wraps storage so every key is suffixed with `.<seat>`. */
+export function seatStorage(storage: StoragePort, seat: string): StoragePort {
+    if (!validSeat(seat)) throw new Error('A seat uses 1 to 16 lowercase letters or digits.')
+    const key = (name: string) => `${name}.${seat}`
+    return {
+        getItem: (name) => storage.getItem(key(name)),
+        setItem: (name, value) => storage.setItem(key(name), value),
+        removeItem: (name) => storage.removeItem(key(name)),
+    }
+}
+
+/** Removes a seat's stored tab ID and credential. */
+export function clearSeatSession(storage: StoragePort, seat: string): void {
+    const seated = seatStorage(storage, seat)
+    seated.removeItem(TAB_ID_KEY)
+    seated.removeItem(TAB_TOKEN_KEY)
+}
 export type TabSession = {
     token(establish: (previous: string | null) => Promise<string>): Promise<string>
 }
@@ -101,6 +133,8 @@ export function browserTabSession(): TabSession {
     if (!browserIdentity) {
         let storage: StoragePort | null = null
         try { if (typeof window !== 'undefined') storage = window.sessionStorage } catch { /* Use memory. */ }
+        const seat = typeof window === 'undefined' ? null : seatFromSearch(window.location.search)
+        if (storage && seat) storage = seatStorage(storage, seat)
         browserIdentity = createTabSession({ storage, ...(typeof window === 'undefined' ? {} : { claim: browserClaim() }) })
     }
     return browserIdentity

@@ -1,0 +1,297 @@
+{
+  "schema_version": "draft.2",
+  "scenario_id": "cedar_bridge_t01",
+  "version": 1,
+  "publication_status": "draft",
+  "language": "en",
+  "title": "Cedar Bridge Community Services: service outage and unavailable director",
+  "fictional": true,
+  "provenance": "Fictional project scenario built only from the public T01 participant pack (playtest/fixtures/participant-packs.json), the three authored board choices in playtest/roundtable_scenario.py, and the T01 demo recording captions. The hidden controller reference was not used. One decision round, no fixed numerical gameplay meters; all individual answers and discussion are recorded for later AI evaluation.",
+  "recommended_players": {
+    "minimum": 3,
+    "maximum": 6
+  },
+  "room_constraints": {
+    "minimum_to_start": 3,
+    "capacity": 30
+  },
+  "timing_profiles": {
+    "standard_18": {
+      "briefing_seconds": 90,
+      "reading_seconds_per_round": 60,
+      "discussion_seconds_per_round": 150,
+      "voting_seconds_per_round": 60,
+      "result_seconds_per_round": 30,
+      "tie_seconds_per_round_max": 30,
+      "debrief_seconds": 90,
+      "round_count": 1,
+      "base_total_seconds": 480,
+      "all_ties_total_seconds": 510,
+      "experience_ceiling_seconds": 1200,
+      "gameplay_ceiling_from_briefing_start_seconds": 1110,
+      "gameplay_ceiling_after_briefing_seconds": 1020,
+      "speaker_max_seconds": 30,
+      "speaker_allocation": "min(speaker_max_seconds, floor(discussion_seconds_per_round / eligible_player_count))",
+      "unused_speaking_seconds": "open_discussion",
+      "result_window_includes_ai": false
+    },
+    "fast_15": {
+      "briefing_seconds": 90,
+      "reading_seconds_per_round": 30,
+      "discussion_seconds_per_round": 120,
+      "voting_seconds_per_round": 60,
+      "result_seconds_per_round": 30,
+      "tie_seconds_per_round_max": 30,
+      "debrief_seconds": 90,
+      "round_count": 1,
+      "base_total_seconds": 420,
+      "all_ties_total_seconds": 450,
+      "experience_ceiling_seconds": 1200,
+      "gameplay_ceiling_from_briefing_start_seconds": 1110,
+      "gameplay_ceiling_after_briefing_seconds": 1020,
+      "speaker_max_seconds": 30,
+      "speaker_allocation": "min(speaker_max_seconds, floor(discussion_seconds_per_round / eligible_player_count))",
+      "unused_speaking_seconds": "open_discussion",
+      "result_window_includes_ai": false
+    }
+  },
+  "timing_note": "Profile IDs and per round durations mirror maplecart_cybersecurity version 3 so existing clients can select them. This package has one decision round, so the base totals are shorter than the profile names suggest. The saved T01 participant clips last 14 to 18 seconds, within the 30 second speaker maximum.",
+  "large_group_note": "With 30 players, the standard discussion pool permits 5 second individual statements.",
+  "public_documents": [
+    {
+      "id": "briefing",
+      "path": "briefing.md",
+      "unlock": "before_round_1"
+    },
+    {
+      "id": "initial_evidence",
+      "path": "initial-evidence.md",
+      "unlock": "before_round_1"
+    },
+    {
+      "id": "operations",
+      "path": "operations.md",
+      "unlock": "before_round_1"
+    }
+  ],
+  "facilitator_script": "../../../playtest/ROUNDTABLE_GUIDE.md",
+  "roles": [
+    {
+      "id": "ceo",
+      "name": "CEO",
+      "authority": "Leads interim coordination discussion and chooses among tied voting leaders; ordinary vote has equal weight.",
+      "recording_perspective": "t01_leadership_turn"
+    },
+    {
+      "id": "technology",
+      "name": "IT recovery lead",
+      "authority": "Perspective only; no extra vote or private facts.",
+      "recording_perspective": "t01_recovery_turn"
+    },
+    {
+      "id": "communications",
+      "name": "Communications lead",
+      "authority": "Perspective only; no extra vote or private facts.",
+      "recording_perspective": "t01_communications_turn"
+    },
+    {
+      "id": "operations",
+      "name": "Service operations lead",
+      "authority": "Perspective only; no extra vote or private facts."
+    }
+  ],
+  "three_player_responsibilities": [
+    [
+      "ceo"
+    ],
+    [
+      "technology"
+    ],
+    [
+      "communications",
+      "operations"
+    ]
+  ],
+  "larger_group_roles": "For more than four players, assign multiple players to a perspective while retaining exactly one CEO. Every person retains one equal vote. No private role information.",
+  "initial_facts": {
+    "appointment_service": "unavailable",
+    "data_disclosure": "not_confirmed",
+    "backup_restorability": "not_checked",
+    "incident_coordinator": "director_unavailable_no_alternate_named",
+    "paper_appointments": "not_authorized",
+    "public_update": "none",
+    "restoration_promise": "none"
+  },
+  "initial_node_id": "t01_response",
+  "nodes": [
+    {
+      "id": "t01_response",
+      "story_time": "Opening update",
+      "title": "Respond to the outage without the director",
+      "inject": "Appointment software at Cedar Bridge Community Services is unavailable and IT has reported suspicious account activity. No data disclosure has been confirmed. Backup copies are listed, but their restorability has not been checked. The executive director is unavailable to coordinate the incident, and the continuity plan names no alternate. How should the board respond?",
+      "study_questions": [
+        "Who coordinates the incident while the director is unavailable?",
+        "Should the board authorize the approved paper appointment process now?",
+        "What must IT verify before anyone promises when appointments resume?",
+        "What can the next update say is confirmed, what is unknown, and when is the next update?"
+      ],
+      "options": [
+        {
+          "id": "controlled_continuity",
+          "kind": "prepared",
+          "label": "Controlled continuity",
+          "description": "Appoint an interim incident coordinator, authorize the approved paper appointment process, ask IT to verify backup usability, recovery dependencies and a restoration estimate before any restoration promise, and issue a factual update that separates confirmed facts from unknowns and states the next update time.",
+          "outcome_id": "continuity_with_checks"
+        },
+        {
+          "id": "technical_first",
+          "kind": "prepared",
+          "label": "Technical checks first",
+          "description": "Appoint an interim incident coordinator, keep appointments paused until IT verifies recovery, and issue a factual update that separates confirmed facts from unknowns and states the next update time.",
+          "outcome_id": "paused_for_checks"
+        },
+        {
+          "id": "wait_for_director",
+          "kind": "prepared",
+          "label": "Wait for the director",
+          "description": "Keep appointments paused and defer the interim coordinator appointment and paper appointment process while awaiting the director.",
+          "outcome_id": "coordination_gap"
+        }
+      ],
+      "outcomes": [
+        {
+          "id": "continuity_with_checks",
+          "summary": "The board appoints an interim incident coordinator and authorizes the approved paper appointment process, so the service manager can take appointments on paper. IT begins verifying backup usability, recovery dependencies and a restoration estimate. The update separates confirmed facts from unknowns and names the next update time. No restoration time is promised, and no data disclosure is confirmed.",
+          "fact_updates": {
+            "incident_coordinator": "interim_appointed",
+            "paper_appointments": "authorized",
+            "backup_restorability": "verification_requested",
+            "public_update": "factual_with_next_update_time"
+          },
+          "next_node_id": null,
+          "terminal": true,
+          "ending_label": "controlled_continuity_with_checks"
+        },
+        {
+          "id": "paused_for_checks",
+          "summary": "The board appoints an interim incident coordinator and keeps appointments paused while IT verifies backup usability, recovery dependencies and a restoration estimate. The update separates confirmed facts from unknowns and names the next update time. The paper process is not activated, so people who need appointments have no approved alternative until the checks finish.",
+          "fact_updates": {
+            "incident_coordinator": "interim_appointed",
+            "backup_restorability": "verification_requested",
+            "public_update": "factual_with_next_update_time"
+          },
+          "next_node_id": null,
+          "terminal": true,
+          "ending_label": "service_paused_pending_checks"
+        },
+        {
+          "id": "coordination_gap",
+          "summary": "Appointments stay paused and the board defers both the interim coordinator and the paper process until the director is available. Because the plan names no alternate, nobody is authorized to coordinate the response. No restoration checks or public update are assigned, so when appointments can resume remains unknown.",
+          "fact_updates": {
+            "incident_coordinator": "deferred_awaiting_director"
+          },
+          "next_node_id": null,
+          "terminal": true,
+          "ending_label": "coordination_gap_awaiting_director"
+        },
+        {
+          "id": "t01_no_decision",
+          "summary": "The board reaches no decision. Appointments remain unavailable, no interim coordinator is appointed, the paper process stays inactive, and no public update is approved.",
+          "fact_updates": {
+            "incident_coordinator": "no_board_decision"
+          },
+          "next_node_id": null,
+          "terminal": true,
+          "ending_label": "no_board_decision"
+        }
+      ],
+      "allowed_custom_outcome_ids": [
+        "continuity_with_checks",
+        "paused_for_checks",
+        "coordination_gap"
+      ],
+      "no_decision_outcome_id": "t01_no_decision",
+      "preferred_option_id": "controlled_continuity",
+      "custom_rubric": [
+        "Names interim incident coordination as the plan permits (BCP-1, BCP-2)",
+        "Addresses people who still need appointments, including whether to authorize the paper process (BCP-3)",
+        "Makes no restoration promise before IT verifies backups, dependencies and an estimate (BCP-4)",
+        "Separates confirmed facts from unknowns and states the next update time (BCP-5)"
+      ]
+    }
+  ],
+  "vote_policy": {
+    "weight_per_member": 1,
+    "duration_seconds": 60,
+    "close_early": false,
+    "allow_replacement": true,
+    "visibility_before_close": "own_ballot_only",
+    "missing_vote": "abstain",
+    "zero_votes": "node.no_decision_outcome_id",
+    "tie": "ceo_selects_tied_leader",
+    "ceo_timeout_seconds": 30,
+    "ceo_absence": "Follow the selected room policy; timeout takes the explicit no decision outcome.",
+    "policy_status": "Live game voting rules. The participant pack fixture rules (two affirmative votes plus chair confirmation) are not applied."
+  },
+  "custom_action_policy": {
+    "enabled": true,
+    "collection_phase": "discussion",
+    "max_proposals_per_member": 1,
+    "max_characters": 1000,
+    "freeze_before_vote": true,
+    "evaluate": "winning_custom_action_only",
+    "allowed_outcomes": "current_node.allowed_custom_outcome_ids",
+    "unable_to_map": "Visible unresolved choice and resolution failure handling, never a fabricated authored match.",
+    "attempt_timeout_seconds": 15,
+    "max_attempts": 2,
+    "retry_budget": "Deferred custom evaluation uses a separately bounded precommit budget and remaining total session time; it never consumes the full 30 second committed result presentation guard.",
+    "ai_may_modify_state_directly": false
+  },
+  "end_policy": {
+    "sequence": "A terminal outcome after round 1.",
+    "total_deadline": "End gameplay no later than 1110 seconds after briefing starts; reserve 90 seconds for debrief.",
+    "timeout_record": "Preserve committed decisions and identify any unresolved selected action.",
+    "feedback": "Complete attributed evidence and factual decision history for later AI evaluation of all answers and discussion, with a readable history available independently."
+  },
+  "happy_path": {
+    "option_ids": [
+      "controlled_continuity"
+    ],
+    "ending_label": "controlled_continuity_with_checks",
+    "residual_risk": "Appointment software remains unavailable, backup restorability is still being verified, and no data disclosure has been confirmed or ruled out."
+  },
+  "coherent_alternative": {
+    "option_ids": [
+      "technical_first"
+    ],
+    "ending_label": "service_paused_pending_checks"
+  },
+  "debrief_questions": [
+    "What was confirmed in the opening update, and what did we assume?",
+    "Who coordinated the response, and how did the plan allow that appointment?",
+    "What did our decision mean for people who still needed appointments?"
+  ],
+  "research_sources": [
+    {
+      "title": "T01 participant pack: Service outage and unavailable director",
+      "path": "playtest/fixtures/participant-packs.json",
+      "supports": "Organization, continuity plan version 1, insurance exercise excerpt, and opening update text."
+    },
+    {
+      "title": "Authored T01 board choices",
+      "path": "playtest/roundtable_scenario.py",
+      "supports": "The three prepared option IDs, labels and descriptions."
+    },
+    {
+      "title": "T01 demo recording captions",
+      "path": "playtest/fixtures/recordings.json",
+      "supports": "Leadership, recovery and communications perspectives and the decision guide wording."
+    }
+  ],
+  "validation_boundary": "Catalog admission and internal narrative engine validation only. No live playtest, provider request, or multiplayer acceptance is implied.",
+  "evaluation_policy": {
+    "during_game": "Authored narrative consequences and carried facts, without fixed numerical gameplay meters.",
+    "after_game": "A later AI evaluator considers every committed individual answer, chat, reviewed speech transcript, and resolved or unresolved decision. Preserve unselected contributions and cite their evidence IDs.",
+    "authority": "Evaluation does not alter the committed story, participant identities, votes, or deadlines."
+  }
+}

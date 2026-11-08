@@ -10,6 +10,7 @@ import Countdown from '../features/game/Countdown'
 import OpeningBriefing from '../features/game/OpeningBriefing'
 import VotingPanel from '../features/game/VotingPanel'
 import TurnMedia from '../features/game/TurnMedia'
+import SavedClipTurn from '../features/game/SavedClipTurn'
 import RoomNameEditor from '../features/rooms/RoomNameEditor'
 import { FacilitationPanel } from '../features/facilitation'
 import './Game.css'
@@ -76,6 +77,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary }: { room
                     {actions.includes('skip_speaker') && <button disabled={pending} onClick={() => { const reason = window.prompt('Reason for skipping this speaker'); if (reason?.trim()) void act(rounds + 'speaker/skip', { reason }) }}>Skip speaker</button>}
                     {actions.includes('reassign_ceo') && <><label>Replacement CEO<select value={ceo} onChange={(event) => setCeo(event.target.value)}><option value="">Choose a participant</option>{room.members.filter((member) => member.connected && member.eligible_current_round && member.role_id !== 'ceo').map((member) => <option key={member.member_id} value={member.member_id}>{member.display_name}</option>)}</select></label><button disabled={pending || !ceo} onClick={() => void act(rounds + 'ceo-reassignment', { member_id: ceo })}>Assign CEO</button></>}
                 </div>
+                <SavedClipTurn room={room} pending={pending} act={act} finishPath={rounds + 'speaker/finish'} />
                 <VotingPanel key={game.round_id} room={room} pending={pending} act={act} />
                 {['speaking', 'discussion'].includes(room.phase) && self?.eligible_current_round && <form onSubmit={(event) => { event.preventDefault(); void act('contributions', { kind: 'answer', source: 'typed', text }).then((ok) => { if (ok) setText('') }) }}><label>Your answer<textarea required maxLength={4000} value={text} onChange={(event) => setText(event.target.value)} /></label><button disabled={pending || !text.trim()}>Save answer</button></form>}
                 {actions.includes('proposal') && <form onSubmit={(event) => { event.preventDefault(); void act(rounds + 'proposal', { text: proposal }) }}><label>Custom action<textarea required value={proposal} onChange={(event) => setProposal(event.target.value)} /></label><button disabled={pending || !proposal.trim()}>Save custom action</button>{game.proposals?.some((item) => item.member_id === room.self_member_id) && <button type="button" disabled={pending} onClick={() => void act(rounds + 'proposal', { text: '' })}>Withdraw action</button>}</form>}

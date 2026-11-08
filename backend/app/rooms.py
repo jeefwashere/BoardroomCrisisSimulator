@@ -57,6 +57,7 @@ class StartSpec:
     scenario_version: int
     timing_profile: str
     players: tuple[tuple[UUID, str], ...]
+    ballot_source: str = "ai"
 
 
 @dataclass(frozen=True)
@@ -84,6 +85,8 @@ class VisibleOption:
     label: str
     kind: str = "prepared"
     member_id: UUID | None = None
+    description: str | None = None
+    rationale: str | None = None
 
 
 @dataclass(frozen=True)
@@ -141,6 +144,9 @@ class GameSnapshot:
     ended_at: datetime | None
     proposals: tuple[sim.Proposal, ...]
     resolution: sim.Resolution | None
+    options_source: str | None = None
+    ai_options_status: str = "disabled"
+    ballot_source: str = "ai"
 
     @property
     def facts(self) -> dict:
@@ -276,7 +282,9 @@ class Room:
                                         sim.ResolvingPhase, sim.ResolutionFailedPhase)):
                 node = sim.current_node(state)
                 current = CurrentNode(node.node_id, node.title, sim.render(node.inject, state.facts),
-                                      node.study_questions, tuple(VisibleOption(option.option_id, option.label, option.kind, option.member_id) for option in gameplay.options(state)))
+                                      node.study_questions, tuple(VisibleOption(option.option_id, option.label, option.kind, option.member_id,
+                                                                           option.description, option.rationale)
+                                                             for option in gameplay.options(state)))
             actions = []
             if not isinstance(state.phase, sim.EndedPhase):
                 if caller.member_id == self.host_member_id:
@@ -314,6 +322,7 @@ class Room:
                 None if isinstance(state.phase, sim.VotingPhase) else state.last_tally,
                 state.phase.leaders if isinstance(state.phase, sim.TiePhase) else (), tuple(actions),
                 state.turns, state.ceo_changes, state.ended_at, state.proposals, state.resolution,
+                gameplay.options_source(state), gameplay.ai_options_status(state), state.ballot_source,
             )
         members = []
         for seat in self.members.values():
@@ -338,6 +347,8 @@ class Rooms:
         self.receipts: dict[tuple[str, UUID], tuple[tuple, RoomSnapshot | Contribution | LeaveReceipt]] = {}
         self.internal_receipts: dict[tuple[UUID, UUID], tuple[tuple, sim.Game]] = {}
         self.creation_lock = asyncio.Lock()
+        # Set by the AI options service when a configured model can draft ballot options.
+        self.ai_options_enabled = False
 
     def reconcile(self, room: Room, now: float) -> None:
         if room.closed or not self.automatic or not isinstance(room.phase, StartedGame):
@@ -598,7 +609,7 @@ class Rooms:
 
     async def start(self, session: str, room_id: UUID, command_id: UUID, spec: StartSpec) -> RoomSnapshot:
         intent = ("start", room_id, spec.room_code, spec.scenario_id, spec.scenario_version,
-                  spec.timing_profile, tuple(sorted(spec.players)))
+                  spec.timing_profile, tuple(sorted(spec.players)), spec.ballot_source)
         room = self.require_room(room_id)
         async with room.lock:
             caller = room.member(session)
@@ -636,7 +647,11 @@ class Rooms:
                 Assignment(seat.member_id, roles[seat.member_id], 1) for seat in room.members.values()
             ), tuple(seat.member_id for seat in room.members.values()))
             if self.automatic:
-                phase = replace(phase, state=replace(phase.state, session_deadline=now + timing.session_seconds))
+                phase = replace(phase, state=replace(phase.state, session_deadline=now + timing.session_seconds,
+                                                     ai_options_enabled=self.ai_options_enabled))
+            if spec.ballot_source not in {"ai", "authored"}:
+                raise RoomError(422, "invalid_ballot_source", "Choose ai or authored ballot options")
+            phase = replace(phase, state=replace(phase.state, ballot_source=spec.ballot_source))
             candidate = replace(room, phase=phase, version=room.version + 1,
                                 members={**room.members, session: replace(caller, last_seen=now)})
             view = candidate.snapshot(session, now)

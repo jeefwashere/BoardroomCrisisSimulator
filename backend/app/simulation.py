@@ -110,8 +110,26 @@ class Proposal:
 class BallotOption:
     option_id: str
     label: str
-    kind: Literal["prepared", "custom"] = "prepared"
+    kind: Literal["prepared", "custom", "ai"] = "prepared"
     member_id: UUID | None = None
+    description: str | None = None
+    rationale: str | None = None
+    # Server validated authored consequence for "ai" options; never projected to players.
+    outcome_id: str | None = None
+
+
+@dataclass(frozen=True)
+class AiOptionSet:
+    """Agent drafted ballot options for one round. Results from other rounds or jobs are discarded."""
+    round_id: UUID
+    job_id: UUID                    # latest started job for this round
+    stage: Literal["speaking", "discussion"]
+    status: Literal["pending", "ready", "failed"]   # status of the latest job
+    jobs: tuple[UUID, ...] = ()     # every job started for this round
+    options: tuple[BallotOption, ...] = ()          # latest accepted ready set
+    ready_job_id: UUID | None = None
+    ready_stage: str | None = None
+    error: str | None = None
 
 
 @dataclass(frozen=True)
@@ -158,7 +176,7 @@ class DecisionRecord:
     question: str
     selected_option_id: str | None
     selected_option_label: str | None
-    resolution_kind: Literal["prepared", "no_decision", "custom"]
+    resolution_kind: Literal["prepared", "no_decision", "custom", "ai"]
     outcome_id: str
     text: str
     facts_before: Facts
@@ -205,6 +223,11 @@ class Game:
     proposals: tuple[Proposal, ...] = ()
     frozen_options: tuple[BallotOption, ...] = ()
     resolution: Resolution | None = None
+    ai_options_enabled: bool = False
+    ai_options: AiOptionSet | None = None
+    options_source: Literal["ai", "prepared_fallback", "authored"] | None = None
+    # Per room setting chosen at Start: agent drafted ballots or the authored prepared options.
+    ballot_source: Literal["ai", "authored"] = "ai"
 
 
 @dataclass(frozen=True)

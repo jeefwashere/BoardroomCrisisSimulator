@@ -1,10 +1,13 @@
 """Advisory facilitation never changes game state; recorded clips are a fixed public catalog."""
 
 import asyncio
+import tempfile
 import unittest
+from pathlib import Path
+from unittest import mock
 from uuid import uuid4
 
-from backend.app.facilitation import Facilitation, RecordedClips
+from backend.app.facilitation import Facilitation, IncidentDocuments, RecordedClips
 from backend.app.main import create_app
 from backend.app.narration import NarrationService
 from backend.tests import test_gameplay as fixture
@@ -91,6 +94,8 @@ class FacilitationTests(unittest.IsolatedAsyncioTestCase):
                 body = await self.settle()
                 self.assertEqual(body['consultations'][-1]['source'], 'offline')
                 self.assertIn('Offline it adviser note', body['consultations'][-1]['reply'])
+                self.assertIn('Attached incident report, Service outage and unavailable director', opening['text'])
+                self.assertIn('Attached incident report', body['consultations'][-1]['reply'])
                 speech = await self.clients[0].post(
                     self.facilitation_path + f"/speech/{opening['speech_id']}/prepare")
                 self.assertEqual(speech.json(), {'status': 'disabled', 'error': None})
@@ -136,6 +141,83 @@ class FacilitationTests(unittest.IsolatedAsyncioTestCase):
         invalid = await self.clients[0].post(self.facilitation_path + '/consult', json=fixture.command(
             kind='oracle', question='Vote for us'))
         self.assertEqual(invalid.status_code, 422)
+
+
+    async def test_default_report_attached_and_grounds_prompts(self):
+        await self.ready()
+        await self.clients[0].get(self.facilitation_path)
+        body = await self.settle()
+        self.assertEqual(body['documents'], [{'document_id': 't01_service_outage',
+                                              'title': 'Service outage and unavailable director',
+                                              'pdf_url': '/api/documents/t01_service_outage/pdf'}])
+        consult = await self.clients[1].post(self.facilitation_path + '/consult', json=fixture.command(
+            kind='it', question='x' * 1000))
+        self.assertEqual(consult.status_code, 200, consult.text)
+        await self.settle()
+        self.assertEqual(len(self.provider.prompts), 2)
+        for prompt in self.provider.prompts:
+            self.assertLessEqual(len(prompt), 4000)
+            self.assertIn('"label": "Attached incident report"', prompt)
+            self.assertIn('Cedar Bridge Community Services', prompt)
+            self.assertNotIn('controller', prompt.lower())
+        self.assertIn('BCP-4', self.provider.prompts[0])
+        self.assertIn('restorability has not been checked', self.provider.prompts[0])
+
+    def test_grounding_reads_only_participant_packs(self):
+        opened = []
+        for name in ('read_text', 'read_bytes'):
+            original = getattr(Path, name)
+            def record(path, *args, _original=original, **kwargs):
+                opened.append(str(path))
+                return _original(path, *args, **kwargs)
+            self.enterContext(mock.patch.object(Path, name, record))
+        documents = IncidentDocuments()
+        documents.pdf('t01_service_outage')
+        self.assertTrue(opened)
+        self.assertTrue(all('controller' not in path for path in opened), opened)
+        self.assertEqual({Path(path).name for path in opened}, {'participant-packs.json', 'demo-t01-service-outage.pdf'})
+        text = repr(documents.grounding())
+        self.assertIn('T01-BCP', text)
+        self.assertNotIn('T02', text)
+        self.assertNotIn('common three-person rules apply', text)
+
+
+class DocumentCatalogTests(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
+        await fixture.GameplayTests.asyncSetUp(self)
+
+    async def test_catalog_pdf_and_traversal(self):
+        client = await self.enterAsyncContext(fixture.httpx.AsyncClient(
+            transport=fixture.httpx.ASGITransport(app=self.app), base_url='http://test'))
+        catalog = await client.get('/api/documents', headers={'Origin': 'http://localhost:5173'})
+        self.assertEqual(catalog.status_code, 200)
+        self.assertEqual(catalog.headers.get('access-control-allow-origin'), 'http://localhost:5173')
+        items = catalog.json()
+        self.assertEqual([item['document_id'] for item in items],
+                         ['t01_service_outage', 't02_fundraising', 't03_succession_payroll'])
+        self.assertEqual([item['pack'] for item in items], ['T01', 'T02', 'T03'])
+        self.assertEqual([item['default'] for item in items], [True, False, False])
+        first = items[0]
+        self.assertEqual(set(first), {'document_id', 'title', 'filename', 'pack', 'default', 'summary', 'pdf_url'})
+        self.assertEqual(first['title'], 'Service outage and unavailable director')
+        self.assertEqual(first['filename'], 'demo-t01-service-outage.pdf')
+        self.assertTrue(all(item['summary'] for item in items))
+        for item in items:
+            pdf = await client.get(item['pdf_url'], headers={'Origin': 'http://localhost:5173'})
+            self.assertEqual(pdf.status_code, 200)
+            self.assertEqual(pdf.headers['content-type'], 'application/pdf')
+            self.assertEqual(pdf.headers['content-disposition'], f'inline; filename="{item["filename"]}"')
+            self.assertEqual(pdf.headers.get('access-control-allow-origin'), 'http://localhost:5173')
+            self.assertTrue(pdf.content.startswith(b'%PDF'))
+        unknown = await client.get('/api/documents/unknown_doc/pdf')
+        self.assertEqual(unknown.status_code, 404)
+        self.assertEqual(unknown.json()['detail']['code'], 'document_not_found')
+        for bad in ('..%2F..%2Fplaytest%2Ffixtures%2Frevision2-controller-reference.md', '%2E%2E',
+                    'demo-t01-service-outage.pdf', 'T01', '..', 't01_service_outage%2F..'):
+            response = await client.get(f'/api/documents/{bad}/pdf')
+            self.assertEqual(response.status_code, 404, bad)
+            self.assertNotIn(b'%PDF', response.content)
+        self.assertEqual(IncidentDocuments(directory=self.enterContext(tempfile.TemporaryDirectory())).listing(), [])
 
 
 class RecordingCatalogTests(unittest.IsolatedAsyncioTestCase):

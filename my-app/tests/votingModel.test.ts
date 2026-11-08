@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { ballotProgress, mergeLabels, optionDescription, tallyRows } from '../src/features/game/votingModel.ts'
+import { aiOptionsNotice, ballotProgress, mergeLabels, optionDescription, tallyRows } from '../src/features/game/votingModel.ts'
 
 test('ballot progress stays unknown while the server hides the tally', () => {
     assert.equal(ballotProgress(null, 4), null)
@@ -23,4 +23,12 @@ test('custom options describe their proposer and labels merge only when changed'
     const known = { a: 'Preserve evidence' }
     assert.equal(mergeLabels(known, [{ option_id: 'a', label: 'Preserve evidence' }]), null)
     assert.deepEqual(mergeLabels(known, [{ option_id: 'b', label: 'Wait' }]), { a: 'Preserve evidence', b: 'Wait' })
+})
+
+test('aiOptionsNotice reports agent drafting and fallback states', () => {
+    assert.equal(aiOptionsNotice({ ballot_source: 'authored', ai_options_status: 'disabled' }, 'speaking'), null)
+    assert.match(aiOptionsNotice({ ballot_source: 'ai', ai_options_status: 'pending' }, 'speaking') ?? '', /drafting/)
+    assert.match(aiOptionsNotice({ ballot_source: 'ai', options_source: 'ai' }, 'voting') ?? '', /AI agents/)
+    assert.match(aiOptionsNotice({ ballot_source: 'ai', options_source: 'prepared_fallback' }, 'voting') ?? '', /prepared/)
+    assert.equal(aiOptionsNotice(null, 'voting'), null)
 })

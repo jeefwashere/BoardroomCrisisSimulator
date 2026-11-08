@@ -1,0 +1,58 @@
+{
+  "validated_at": "2026-11-08T03:06:12.158634+00:00",
+  "status": "catalog_and_internal_narrative_validation_passed",
+  "schema": "draft.2",
+  "scenario_id": "cedar_bridge_t01",
+  "version": 1,
+  "scenario_sha256": "d83caf9d8c9c2837a70fcaaf82204d606b1d0ca9b051f4a34063d75b0af3e904",
+  "content_sha256": "a1873d94ebfb8c7844b65f4859c42ea89786dd4a565cf7e38881624a0cc47d49",
+  "nodes": 1,
+  "prepared_options": 3,
+  "authored_outcomes": 4,
+  "paths_checked": 4,
+  "path_evidence": "test_cedar_bridge_scenario.CedarBridgeEngineTests.test_every_authored_and_no_decision_path_ends_in_one_round",
+  "sources": [
+    "playtest/fixtures/participant-packs.json (T01 public documents only)",
+    "playtest/roundtable_scenario.py (three authored choices)",
+    "playtest/fixtures/recordings.json and playtest/recordings/manifest.json (t01 captions and durations)"
+  ],
+  "excluded_sources": [
+    "playtest/fixtures/revision2-controller-reference.md was not read"
+  ],
+  "checks": [
+    "draft.2 catalog admission alongside maplecart_cybersecurity version 3",
+    "exact option IDs, labels and roundtable descriptions",
+    "allowed custom outcomes exclude the no decision outcome",
+    "all 3 prepared and the no decision path end after round 1 with authored ending labels",
+    "unknown facts (data disclosure, restoration time) remain unconfirmed on every path",
+    "public GET /api/scenarios lists the package without private node or outcome data",
+    "HTTP authored ballot vote reaches the controlled continuity ending and evaluation evidence"
+  ],
+  "commands": [
+    {
+      "command": "env BOARDROOM_TTS_ENABLED=false ../BoardroomCrisisSimulator/backend/.venv/bin/python -m unittest backend.tests.test_cedar_bridge_scenario -v",
+      "exit_code": 0,
+      "tests_run": 7
+    },
+    {
+      "command": "env BOARDROOM_TTS_ENABLED=false ../BoardroomCrisisSimulator/backend/.venv/bin/python -m unittest discover -s backend/tests -q",
+      "exit_code": 0,
+      "tests_run": 177
+    }
+  ],
+  "timing_metadata": {
+    "round_count": 1,
+    "result_seconds": 30,
+    "result_window_includes_ai": false,
+    "profile_ids_mirror": "maplecart_cybersecurity version 3"
+  },
+  "known_gaps": [
+    "Option descriptions are stored in scenario.json but the current PreparedOption loader projects only the label."
+  ],
+  "paid_calls": 0,
+  "not_verified": [
+    "live browser demo flow",
+    "AI generated option mapping quality",
+    "human playtest timing"
+  ]
+}

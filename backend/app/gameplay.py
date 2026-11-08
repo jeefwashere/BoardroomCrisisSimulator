@@ -21,11 +21,57 @@ def deadline(game: sim.Game) -> float | None:
     return getattr(phase, "deadline", None)
 
 
+def ready_ai_options(game: sim.Game) -> tuple[sim.BallotOption, ...]:
+    ai = game.ai_options
+    if game.ballot_source != "ai" or ai is None or ai.round_id != game.round_id:
+        return ()
+    return ai.options
+
+
 def options(game: sim.Game) -> tuple[sim.BallotOption, ...]:
+    """Frozen ballot, else the ballot that would freeze now.
+
+    Ready agent drafted options replace the authored prepared options; human
+    custom proposals are always appended.
+    """
     if game.frozen_options:
         return game.frozen_options
-    return tuple(sim.BallotOption(option.option_id, option.label) for option in sim.current_node(game).options) + tuple(
-        sim.BallotOption(item.option_id, item.text, "custom", item.member_id) for item in game.proposals)
+    base = ready_ai_options(game) or tuple(
+        sim.BallotOption(option.option_id, option.label, description=option.description)
+        for option in sim.current_node(game).options)
+    return base + tuple(sim.BallotOption(item.option_id, item.text, "custom", item.member_id) for item in game.proposals)
+
+
+def options_source(game: sim.Game) -> str:
+    if game.ballot_source == "authored":
+        return "authored"
+    if game.frozen_options and game.options_source is not None:
+        return game.options_source
+    return "ai" if ready_ai_options(game) else "prepared_fallback"
+
+
+def ai_options_wanted(game: sim.Game) -> bool:
+    """Agents draft only when configured, chosen for this room, and the node allows custom outcomes."""
+    return (game.ai_options_enabled and game.ballot_source == "ai"
+            and bool(sim.current_node(game).allowed_custom_outcome_ids))
+
+
+def ai_options_status(game: sim.Game) -> str:
+    if not ai_options_wanted(game):
+        return "disabled"
+    if game.frozen_options:
+        return "ready" if options_source(game) == "ai" else "failed"
+    ai = game.ai_options
+    if ai is None or ai.round_id != game.round_id:
+        return "pending"
+    return "ready" if ai.options else ai.status
+
+
+def freeze(game: sim.Game) -> sim.Game:
+    frozen = options(game)
+    source = ("authored" if game.ballot_source == "authored" else
+              "ai" if any(option.kind == "ai" for option in frozen) else "prepared_fallback")
+    return replace(game, frozen_options=frozen, options_source=source)
 
 
 def end(game: sim.Game, instant: float, reason: str) -> sim.Game:
@@ -82,6 +128,16 @@ def resolve(game: sim.Game, instant: float, option_id: str | None,
     counts = tuple((option.option_id, tally[option.option_id])
                    for option in options(game))
     selected = next((item for item in options(game) if item.option_id == option_id), None)
+    if selected is not None and selected.kind == "ai":
+        # The outcome was validated against allowed_custom_outcome_ids when the option was drafted.
+        ai = game.ai_options
+        candidate = sim.transition(replace(game, phase=sim.DecisionPhase(game.phase.phase_id)),
+                                   sim.ResolveCustom(selected.option_id, selected.label, selected.outcome_id),
+                                   instant, at(game, instant), sim.TransitionIds(uuid4(), uuid4(), uuid4()),
+                                   contribution_ids)
+        record = replace(candidate.history[-1], resolution_kind="ai", vote_counts=counts, selection_method=method,
+                         ai_job_id=ai.ready_job_id if ai is not None and ai.round_id == game.round_id else None)
+        return replace(candidate, last_tally=counts, history=candidate.history[:-1] + (record,))
     if selected is not None and selected.kind == "custom":
         job = uuid4()
         resolution = sim.Resolution(job, 1, selected.option_id, selected.member_id, selected.label,
@@ -133,7 +189,7 @@ def reconcile(game: sim.Game, now: float, roster: tuple[tuple[UUID, int, float],
         elif isinstance(phase, sim.SpeakingPhase):
             game = next_speaker(game, due, last_seen, reason)
         elif isinstance(phase, sim.DiscussionPhase):
-            game = replace(game, frozen_options=options(game), phase=sim.VotingPhase(uuid4(), due + game.timing.voting_seconds),
+            game = replace(freeze(game), phase=sim.VotingPhase(uuid4(), due + game.timing.voting_seconds),
                            ballots=(), last_tally=())
         elif isinstance(phase, sim.VotingPhase):
             counts = Counter(dict(game.ballots).values())
@@ -153,7 +209,8 @@ def reconcile(game: sim.Game, now: float, roster: tuple[tuple[UUID, int, float],
         elif isinstance(phase, sim.ResultPhase):
             game = replace(game, node_id=phase.next_node_id, round_number=game.round_number + 1,
                            round_id=uuid4(), phase=sim.ReadingPhase(uuid4(), due + game.timing.reading_seconds),
-                           ballots=(), last_tally=(), proposals=(), frozen_options=(), resolution=None)
+                           ballots=(), last_tally=(), proposals=(), frozen_options=(), resolution=None,
+                           ai_options=None, options_source=None)
         else:
             return game
     return game

@@ -68,6 +68,7 @@ class StartRoom(BaseModel):
     scenario_version: int = Field(gt=0, strict=True)
     timing_profile: str = Field(min_length=1, max_length=64)
     players: list[PlayerRole] = Field(min_length=1, max_length=ROOM_CAPACITY)
+    ballot_source: Literal["ai", "authored"] = "ai"
 
 
 class View(BaseModel):
@@ -120,8 +121,10 @@ class ScenarioView(ScenarioRef):
 class VisibleOptionView(View):
     option_id: str
     label: str
-    kind: Literal["prepared", "custom"] = "prepared"
+    kind: Literal["prepared", "custom", "ai"] = "prepared"
     member_id: UUID | None = None
+    description: str | None = None
+    rationale: str | None = None
 
 
 class CurrentNodeView(View):
@@ -143,7 +146,7 @@ class DecisionView(View):
     question: str
     selected_option_id: str | None
     selected_option_label: str | None
-    resolution_kind: Literal["prepared", "no_decision", "custom"]
+    resolution_kind: Literal["prepared", "no_decision", "custom", "ai"]
     outcome_id: str
     text: str
     facts_before: dict[str, FactValue] = Field(validation_alias="facts_before_view")
@@ -235,6 +238,9 @@ class GameView(View):
     feedback: dict[str, Any] | None = None
     proposals: list[ProposalView] = Field(default_factory=list)
     resolution: ResolutionView | None = None
+    options_source: Literal["ai", "prepared_fallback", "authored"] | None = None
+    ai_options_status: Literal["pending", "ready", "failed", "disabled"] = "disabled"
+    ballot_source: Literal["ai", "authored"] = "ai"
 
 
 class RoomFields(View):

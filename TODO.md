@@ -250,6 +250,10 @@ The user now owns frontend implementation and backend integration, retaining Jef
 
   Owner: Arjun's Claude agent. Status: `done`. Evidence: completion record 32. Scope from the user: integrate the 2D and 3D stages so the screen can be switched. Progress: a **3D view** control bar button switches live in every phase without reloading; the choice is stored per tab (`boardroom.stageView`, shared with the demo setup) and wins over `view=`; the scene stays loaded and pauses rendering while hidden; the reload based switch beside Reset demo is removed; offered for rooms of up to three members; guide section 11 updated. Checks: `npx tsc -b`, `npm run lint`, `npm run build` passed; `npm test` passed 226 of 226; Playwright on the running solo room switched 3D to call to 3D with the transcript and game state kept. Next action: none for this task.
 
+* [ ] X23 Make the live transcript a compact, minimizable card.
+
+  Owner: Arjun's Claude agent. Status: `in_progress`. Scope from the user: smaller text, about half the height, easy to minimize. Progress: the transcript is now a 300 px floating card under the game header at half the height above the control bar (it runs down to the control bar only while a stage docks its answer box); text sizes reduced; a chevron or a click on the header minimizes it to its title bar, showing who is speaking, and the choice is stored per tab (`boardroom.transcriptMinimized`); the docked answer box stays visible when minimized; the card no longer pushes the call aside (the chat drawer still does). Checks: `npx tsc -b`, `npm run lint`, `npm run build` passed; `npm test` passed 226 of 226; Playwright screenshots of the card in the 3D and call views, expanded and minimized. Next action: commit, push and record completion.
+
 ## Integration and verification
 
 * [x] I01 Publish the frontend API and snapshot contract with examples.

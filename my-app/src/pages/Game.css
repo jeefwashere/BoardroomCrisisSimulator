@@ -647,45 +647,61 @@ details.game-notice { display: block; border-color: #b58c28; background: #fbf1d6
 @media (max-width: 900px) { .game-call-screen.has-side-panel { padding-right: clamp(12px, 2.5vw, 36px); } }
 
 .transcript-panel {
+  /* Floating card in the top right corner, about half the height above the control bar. */
+  --transcript-width: 300px;
+  --transcript-top: 88px; /* below the game header */
   position: fixed;
-  top: 0;
-  right: 0;
-  bottom: var(--control-bar-height, 84px);
+  top: var(--transcript-top);
+  right: 12px;
   z-index: 84;
   display: flex;
   flex-direction: column;
-  width: min(var(--side-panel-width), 100vw);
-  border-left: 1px solid #ffffff14;
-  background: #222327;
+  width: min(var(--transcript-width), calc(100vw - 24px));
+  height: calc((100dvh - var(--control-bar-height, 84px)) * 0.5);
+  min-height: 220px;
+  border: 1px solid #ffffff14;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #222327f2;
   color: #f2f3f5;
   font-family: var(--font-heading);
-  font-size: 13px;
-  box-shadow: -12px 0 32px #00000059;
-  transform: translateX(100%);
+  font-size: 12px;
+  box-shadow: 0 14px 36px #00000066;
+  transform: translateX(calc(100% + 24px));
   visibility: hidden;
-  transition: transform 260ms ease, visibility 0s linear 260ms;
+  transition: transform 260ms ease, visibility 0s linear 260ms, height 200ms ease;
 }
-.transcript-panel.is-open { transform: none; visibility: visible; transition: transform 260ms ease; }
-.transcript-header { display: flex; align-items: center; justify-content: space-between; padding: 22px 16px 12px; border-bottom: 1px solid #ffffff12; }
-.transcript-header h2 { margin: 0; font-size: 15px; font-weight: 650; }
-.transcript-close { width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: #c4c6ce; font-size: 22px; line-height: 1; cursor: pointer; }
+.transcript-panel.is-open { transform: none; visibility: visible; transition: transform 260ms ease, height 200ms ease; }
+/* A stage's answer box (private sessions) needs room: the card then runs down to the control bar. */
+.transcript-panel:has(.transcript-dock:not(:empty)) { height: calc(100dvh - var(--control-bar-height, 84px) - var(--transcript-top) - 12px); }
+/* Minimized: just the header bar (plus the answer box, if a stage docked one). */
+.transcript-panel.is-minimized, .transcript-panel.is-minimized:has(.transcript-dock:not(:empty)) { height: auto; min-height: 0; }
+.transcript-header { display: flex; align-items: center; gap: 2px; padding: 6px 6px 6px 4px; border-bottom: 1px solid #ffffff12; }
+.transcript-panel.is-minimized .transcript-header { border-bottom-color: transparent; }
+.transcript-title { display: flex; flex: 1 1 auto; align-items: center; gap: 8px; min-width: 0; padding: 4px 8px; border: 0; border-radius: 8px; background: transparent; color: inherit; text-align: left; cursor: pointer; }
+.transcript-title:hover { background: #ffffff0d; }
+.transcript-header h2 { margin: 0; font-size: 13px; font-weight: 650; white-space: nowrap; }
+.transcript-close { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 8px; background: transparent; color: #c4c6ce; font-size: 20px; line-height: 1; cursor: pointer; }
 .transcript-close:hover { background: #ffffff12; color: #fff; }
-.transcript-scroll { flex: 1 1 0; min-height: 120px; overflow-y: auto; padding: 8px 16px 12px; scrollbar-width: thin; scrollbar-color: #ffffff35 transparent; }
-.transcript-list { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; }
-.transcript-entry { display: grid; gap: 4px; padding: 9px 10px; border-radius: 10px; border-left: 3px solid transparent; }
+.transcript-minimize svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.transcript-scroll { flex: 1 1 0; min-height: 80px; overflow-y: auto; padding: 4px 10px 8px; scrollbar-width: thin; scrollbar-color: #ffffff35 transparent; }
+.transcript-scroll[hidden] { display: none; }
+.transcript-list { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.transcript-entry { display: grid; gap: 2px; padding: 6px 8px; border-radius: 8px; border-left: 3px solid transparent; }
 .transcript-entry.is-live { background: #ffffff0a; border-left-color: #9da4ff; }
-.transcript-entry-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
-.transcript-speaker { color: #dfe2ff; font-size: 12.5px; font-weight: 700; }
+.transcript-entry-head { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 6px; }
+.transcript-speaker { color: #dfe2ff; font-size: 11.5px; font-weight: 700; }
 .transcript-entry--self .transcript-speaker { color: #9fe0b5; }
 .transcript-entry--coach .transcript-speaker, .transcript-entry--agent .transcript-speaker { color: #c6caff; }
 .transcript-entry--system .transcript-speaker { color: #ecc783; }
-.transcript-role { padding: 1px 7px; border-radius: 999px; background: #ffffff10; color: #a6abb6; font-size: 10px; font-weight: 650; letter-spacing: .04em; text-transform: uppercase; }
-.transcript-live { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; color: #9da4ff; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
-.transcript-live-dot { width: 7px; height: 7px; border-radius: 50%; background: #9da4ff; animation: vote-waiting 1.2s ease-in-out infinite; }
-.transcript-text { margin: 0; color: #e3e5ea; font-size: 13.5px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
-.transcript-entry--system .transcript-text { color: #d6d8de; font-size: 12.5px; }
+.transcript-role { padding: 0 6px; border-radius: 999px; background: #ffffff10; color: #a6abb6; font-size: 9px; font-weight: 650; letter-spacing: .04em; text-transform: uppercase; }
+.transcript-live { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; color: #9da4ff; font-size: 9.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.transcript-live--bar { min-width: 0; margin-left: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-transform: none; letter-spacing: 0; font-size: 11px; }
+.transcript-live-dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: #9da4ff; animation: vote-waiting 1.2s ease-in-out infinite; }
+.transcript-text { margin: 0; color: #e3e5ea; font-size: 12px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+.transcript-entry--system .transcript-text { color: #d6d8de; font-size: 11.5px; }
 .transcript-caret { display: inline-block; width: 2px; height: 1em; margin-left: 2px; vertical-align: text-bottom; background: #c6caff; animation: opening-caret 1s steps(1) infinite; }
-.transcript-empty { margin: 12px 0; color: #9a9fab; font-size: 13px; }
+.transcript-empty { margin: 10px 0; color: #9a9fab; font-size: 12px; }
 .transcript-dock { flex: 0 0 auto; max-height: 62%; overflow-y: auto; }
 .transcript-dock:not(:empty) { padding: 12px 14px 14px; border-top: 1px solid #ffffff14; background: #1d1e21; }
 

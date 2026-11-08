@@ -35,14 +35,19 @@ function TranscriptLine({ entry }: { entry: TranscriptEntry }) {
 }
 
 /**
- * Right side "Live transcript" panel (captions). Newest lines at the bottom; it follows new text unless the reader has
+ * "Live transcript" card (captions), floating in the top right corner at about half the screen height. It minimizes
+ * to its header bar (click the bar or the chevron); a stage's answer box in the dock stays visible either way.
+ * Formerly a full height right side panel. Newest lines at the bottom; it follows new text unless the reader has
  * scrolled up. `dock` is a slot at the bottom where a stage can render its answer box (private sessions).
  */
-export default function TranscriptPanel({ entries, open, onClose, dockRef }: {
+export default function TranscriptPanel({ entries, open, onClose, dockRef, minimized = false, onToggleMinimized }: {
     entries: readonly TranscriptEntry[]
     open: boolean
     onClose: () => void
     dockRef?: (element: HTMLDivElement | null) => void
+    /** Folded to the header bar. */
+    minimized?: boolean
+    onToggleMinimized?: () => void
 }) {
     const scrollRef = useRef<HTMLDivElement>(null)
     const listRef = useRef<HTMLOListElement>(null)
@@ -58,13 +63,20 @@ export default function TranscriptPanel({ entries, open, onClose, dockRef }: {
         observer.observe(list)
         return () => observer.disconnect()
     }, [])
-    useEffect(() => { if (open && stuck.current && scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight }, [open])
-    return <aside className={`transcript-panel${open ? ' is-open' : ''}`} aria-label="Live transcript" aria-hidden={!open} inert={!open}>
+    useEffect(() => { if (open && !minimized && stuck.current && scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight }, [open, minimized])
+    const live = entries.find((entry) => entry.live)
+    return <aside className={`transcript-panel${open ? ' is-open' : ''}${minimized ? ' is-minimized' : ''}`} aria-label="Live transcript" aria-hidden={!open} inert={!open}>
         <header className="transcript-header">
-            <h2>Live transcript</h2>
+            <button type="button" className="transcript-title" aria-expanded={!minimized} title={minimized ? 'Show the live transcript' : 'Minimize the live transcript'} onClick={onToggleMinimized}>
+                <h2>Live transcript</h2>
+                {minimized && live && <span className="transcript-live transcript-live--bar"><span className="transcript-live-dot" aria-hidden="true" />{live.speaker}</span>}
+            </button>
+            {onToggleMinimized && <button type="button" className="transcript-close transcript-minimize" aria-label={minimized ? 'Expand transcript' : 'Minimize transcript'} title={minimized ? 'Expand' : 'Minimize'} onClick={onToggleMinimized}>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d={minimized ? 'M6 9l6 6 6-6' : 'M6 15l6-6 6 6'} /></svg>
+            </button>}
             <button type="button" className="transcript-close" aria-label="Hide captions" title="Hide captions (CC)" onClick={onClose}>×</button>
         </header>
-        <div ref={scrollRef} className="transcript-scroll" onScroll={(event) => {
+        <div ref={scrollRef} className="transcript-scroll" hidden={minimized} onScroll={(event) => {
             const element = event.currentTarget
             stuck.current = element.scrollHeight - element.scrollTop - element.clientHeight < 48
         }}>

@@ -62,6 +62,16 @@ function readView3d(): boolean {
     try { return stagePreference(tabStorage()?.getItem(STAGE_STORAGE_KEY) ?? null, window.location.search) === '3d' } catch { return false }
 }
 
+const TRANSCRIPT_MINIMIZED_KEY = 'boardroom.transcriptMinimized'
+
+function readTranscriptMinimized(): boolean {
+    try { return tabStorage()?.getItem(TRANSCRIPT_MINIMIZED_KEY) === '1' } catch { return false }
+}
+
+function storeTranscriptMinimized(on: boolean) {
+    try { tabStorage()?.setItem(TRANSCRIPT_MINIMIZED_KEY, on ? '1' : '0') } catch { /* The choice lasts for this view only. */ }
+}
+
 function storeView3d(on: boolean) {
     try { tabStorage()?.setItem(STAGE_STORAGE_KEY, on ? '3d' : 'call') } catch { /* The choice lasts for this view only. */ }
 }
@@ -101,6 +111,9 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const toggleCaptions = useCallback(() => setCaptions((on) => { storeCaptions(!on); return !on }), [])
     const hideCaptions = useCallback(() => { storeCaptions(false); setCaptions(false) }, [])
     const transcriptOpen = captions && !chatOpen
+    // The transcript card can fold to its header bar; remembered for this tab.
+    const [transcriptMinimized, setTranscriptMinimized] = useState(readTranscriptMinimized)
+    const toggleTranscriptMinimized = useCallback(() => setTranscriptMinimized((on) => { storeTranscriptMinimized(!on); return !on }), [])
     const [dock, setDock] = useState<HTMLDivElement | null>(null)
     const { entries: transcriptEntries, writer: transcript } = useTranscript(`${room.room_id}:${room.game?.started_at ?? ''}`)
     const [soloBots] = useState(drivesSoloBots)
@@ -239,7 +252,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const nodeArticle = node && <article className="game-situation"><h3>{node.title}</h3><p>{node.situation}</p>{node.study_questions.map((question) => <p key={question} className="game-question">{question}</p>)}</article>
     const answering = self?.eligible_current_round && ((room.phase === 'speaking' && recorder.ownTurn) || room.phase === 'discussion')
 
-    return <AgentPresenceContext.Provider value={setStageAgent}><MotionConfig reducedMotion="user"><div className={`game-call-screen game-live-screen${transcriptOpen || chatOpen ? ' has-side-panel' : ''}`}>
+    return <AgentPresenceContext.Provider value={setStageAgent}><MotionConfig reducedMotion="user"><div className={`game-call-screen game-live-screen${chatOpen ? ' has-side-panel' : ''}${transcriptOpen ? ' has-transcript' : ''}`}>
         <header className="game-call-header">
             <div className="room-personal-controls"><button className="game-back-button" type="button" onClick={() => { window.location.hash = '/' }}><LobbyIcon name="back" /><span>Leave room</span></button><RoomNameEditor room={room} rename={rename} /></div>
             <div className="game-call-heading"><h1>Boardroom</h1><span>Room {room.room_code}</span></div>
@@ -300,7 +313,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
             skipSpeaker={actions.includes('skip_speaker') ? () => void act(rounds + 'speaker/skip', { reason: 'Skipped by the host' }) : undefined}
             end={actions.includes('end') ? () => void act('end') : undefined}
         />
-        <TranscriptPanel entries={transcriptEntries} open={transcriptOpen} onClose={hideCaptions} dockRef={setDock} />
+        <TranscriptPanel entries={transcriptEntries} open={transcriptOpen} onClose={hideCaptions} dockRef={setDock} minimized={transcriptMinimized} onToggleMinimized={toggleTranscriptMinimized} />
         <ChatDrawer room={room} scenarios={scenarios} chat={chat} open={chatOpen} onClose={closeChat}
             pinned={individual && room.phase === 'individual_decision' ? <div className="game-briefing chat-decision"><p className="chat-decision-from">Facilitator · Round 1</p><IndividualDecisionPanel key={game.phase_id} room={room} pending={pending} act={act} notice={notice} dictation={dictation} attachDictation={attachDictation} /></div> : undefined} />
     </div></MotionConfig></AgentPresenceContext.Provider>

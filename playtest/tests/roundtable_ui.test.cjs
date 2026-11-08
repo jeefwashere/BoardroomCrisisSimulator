@@ -297,3 +297,20 @@ test('solo creation registers exactly one membership and does not fabricate othe
  run(`let soloRequests=[];api=async(path,data)=>{soloRequests.push({path,data});return {token:'solo-token',code:'SOLO'};};refresh=async()=>{};loadMemory=async()=>{};loadRecordings=async()=>{};`);
  await run('join(false,true)');assert.equal(run('soloRequests.length'),1);assert.equal(run('soloRequests[0].data.solo_test'),true);assert.equal(run('bundle.seats.length'),1);assert.equal(run('bundle.solo'),true);assert.equal(run('bundle.test'),false);
 });
+
+test('private library displays all three clip cards and selects the current question',async()=>{
+ const {run,node}=harness(true);
+ run(`render=()=>{};states[0].phase='private';states[0].private_session={phase:'coaching',turn:2,revision:1};fixtureKey=exerciseKey(state());api=async()=>({library_version:2,clips:[1,2,3].map(step=>({id:'clip_'+step,step,title:'Answer '+step,text:'Caption '+step,duration_seconds:12}))});`);
+ await run('loadExerciseClips(fixtureKey)');assert.equal(node('fixtureSelect').children.length,3);assert.equal(node('fixtureChoices').children.length,3);assert.equal(node('fixtureSelect').value,'clip_2');assert.match(node('fixtureLibraryStatus').textContent,/3 recordings/);
+ run('playExerciseFixture=async id=>{globalThis.selected=id;}');await node('fixtureChoices').children[2].children.at(-1).onclick();assert.equal(run('selected'),'clip_3');assert.equal(node('fixtureCaption').textContent,'Caption 3');
+});
+test('a finished preview permits the next recording and never starts another clip automatically',async()=>{
+ const {run,node,ctx}=harness(true);privateFixture(run);const played=[];
+ ctx.fetch=async(url,options)=>{if(url.endsWith('/play'))played.push(JSON.parse(options.body).clip_id);return {ok:true,json:async()=>({id:'lease'}),blob:async()=>new Blob(['mp3'])};};
+ run(`fixtureClips=[1,2,3].map(step=>({id:'clip_'+step,step,text:'Caption '+step,duration_seconds:1}));refresh=async()=>{};`);
+ for(const id of ['clip_1','clip_3']){
+  const pending=run(`playExerciseFixture('${id}')`);await new Promise(resolve=>setImmediate(resolve));node('fixtureAudio').onended();await pending;
+  assert(run('fixturePlayback.finished'));assert.equal(node('privateAnswer').value,'');
+ }
+ await new Promise(resolve=>setImmediate(resolve));assert.deepEqual(played,['clip_1','clip_3']);
+});

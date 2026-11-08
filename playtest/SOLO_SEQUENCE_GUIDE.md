@@ -1,5 +1,8 @@
 # Test Alex with the complete recorded sequence
 
+Latest X25: [all recordings for your private round are visible and playable](ROUND_RECORDING_LIBRARY.md), including all three choices in Gemini Live. Use port 8793 for the updated backend; older rooms remain on their previous ports.
+
+
 X24, branch `experiment/ai-voice-playtest`. Open [the current local app](http://127.0.0.1:8792/roundtable) and select **Load Alex only**. This creates one real test membership. Morgan and Sam are not created and do not block progress. Existing rooms remain on their previous servers; use a fresh room for this mode.
 
 ## Start and reach Round 2

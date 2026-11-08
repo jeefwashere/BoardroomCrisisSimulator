@@ -248,14 +248,16 @@ class FourRoundService:
         finally:
             with self.engine.lock:session['busy']=False
 
-    def eligible_clips(self, room, mid):
+    def eligible_clips(self, room, mid, all_steps=False):
         seat=room['electorate'].index(mid) if mid in room['electorate'] else list(room['members']).index(mid)
         require(seat<3,'Saved sample voices are provided for the first three test members',409)
         phase=room['phase'];session=room.get('private_sessions',{}).get(mid,{})
         round,step=(1,1) if phase=='decision' else (4,None) if phase=='reunion' else (None,None)
         if phase=='private':
             if session.get('phase')=='coaching':round,step=2,session['turn']
-            elif session.get('phase')=='assessment':round,step=3,session['turn']
+            elif session.get('phase') in ('assessment','grading','assessment_done'):round,step=3,session['turn']
+            elif session.get('phase')=='card_review':round,step=2,None
+        if all_steps:step=None
         return [c for c in self.clips if c['seat']==seat and c['round']==round and (step is None or c['step']==step)]
 
     async def stream_reply(self, request, response, voice):
@@ -317,17 +319,16 @@ class FourRoundService:
         @router.get('/recordings')
         def recordings(request:Request):
             with self.engine.lock:
-                room,mid=self.identity(token(request));clips=self.eligible_clips(room,mid)
-                return {'clips':[{**c,**{k:v for k,v in self.library.get(c['id'])[0].items() if k in ('duration_seconds','available')}} for c in clips]}
+                room,mid=self.identity(token(request));clips=self.eligible_clips(room,mid,all_steps=True)
+                return {'library_version':2,'clips':[{**c,**{k:v for k,v in self.library.get(c['id'])[0].items() if k in ('duration_seconds','available')}} for c in clips]}
         @router.post('/recordings/play')
         def play(data:dict,request:Request):
             with self.engine.lock:
-                room,mid=self.identity(token(request));clip=next((c for c in self.eligible_clips(room,mid) if c['id']==data.get('clip_id')),None)
-                require(clip is not None,'This sample answer does not belong to your current turn',403)
+                room,mid=self.identity(token(request));clip=next((c for c in self.eligible_clips(room,mid,all_steps=True) if c['id']==data.get('clip_id')),None)
+                require(clip is not None,'This sample answer does not belong to you and this round',403)
                 session=room.get('private_sessions',{}).get(mid)
                 require(not session or not session['busy'],'Wait for your agent',409)
-                if room['phase']=='private':require(session.get('prompt'),'Hear the question before playing your answer',409)
-                else:require(not room.get('active_audio') and not room.get('active_stream'),'Stop shared audio first',409)
+                if room['phase']!='private':require(not room.get('active_audio') and not room.get('active_stream'),'Stop shared audio first',409)
                 item,_=self.library.get(clip['id']);now=self.engine.clock();lease={'id':uuid.uuid4().hex,'member':mid,'phase':room['phase'],
                     'clip_id':clip['id'],'context':self.engine.fixture_context(room,mid),'expires':now+90,'served_at':None,
                     'duration_seconds':item['duration_seconds'],'completed':False,'kind':'exercise_fixture'}

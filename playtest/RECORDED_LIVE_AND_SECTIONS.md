@@ -1,6 +1,9 @@
 # Saved recordings in Live and protected decisions
 
-Latest X24: [test Alex alone with a finite recorded sequence](SOLO_SEQUENCE_GUIDE.md). Use port 8792 and **Load Alex only**. Three coaching clips stop at card review; three assessment clips stop at personal results. No Morgan or Sam session is required. The three member group mode remains optional.
+Latest X25: [all recordings for your private round are visible and playable](ROUND_RECORDING_LIBRARY.md), including all three choices in Gemini Live. Use port 8793 for the updated backend; older rooms remain on their previous ports.
+
+
+Earlier X24: [test Alex alone with a finite recorded sequence](SOLO_SEQUENCE_GUIDE.md). Use port 8792 and **Load Alex only**. Three coaching clips stop at card review; three assessment clips stop at personal results. No Morgan or Sam session is required. The three member group mode remains optional.
 
 
 X23 corrects the earlier broad skip controls and lets saved participant audio act as input to Gemini Live. Working branch: `experiment/ai-voice-playtest`. Open [the updated app](http://127.0.0.1:8791/roundtable) and create a fresh room. Earlier meetings remain on their original localhost ports.
@@ -18,7 +21,7 @@ Whole round bypasses are removed from the UI and rejected by the backend. Every 
 
 Round 1 discussion clips are beneath the current participant's controls. Play the clip, then explicitly commit its caption and pass the turn.
 
-Round 1 decisions, private coaching, private assessment and reunion reflections appear under **Saved answer for this turn**. The current member and question determine the clip. This original route plays the recording locally, then loads its trusted caption as an editable draft. It still works.
+Round 1 decisions, private coaching, private assessment and reunion reflections appear under **Your recordings for this round**. The current member and question determine the clip. This original route plays the recording locally, then loads its trusted caption as an editable draft. It still works.
 
 The files are in `playtest/recordings/`. The 36 active exercise clip assignments and captions are in `playtest/fixtures/four-round-audio.json`, with file integrity and durations in `playtest/recordings/manifest.json`. This update reuses the existing ElevenLabs recordings and generates no new prerecorded audio.
 

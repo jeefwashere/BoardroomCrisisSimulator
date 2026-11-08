@@ -160,13 +160,13 @@ class LiveAudio:
                 require(input_mode in ('microphone', 'recordings'), 'Choose microphone or recordings', 422)
                 room, mid, session, ident, frozen = self.claim(hello.get('token'), hello.get('revision'))
                 setup = await asyncio.to_thread(self.setup, frozen, mid)
-                clips = self.service.exercise.eligible_clips(frozen, mid) if input_mode == 'recordings' else []
+                clips = self.service.exercise.eligible_clips(frozen, mid, all_steps=True) if input_mode == 'recordings' else []
                 fixture_queue = asyncio.Queue(maxsize=1)
                 fixture_active = False
                 async with self.provider.connect(setup) as (upstream, usage):
                     await ws.send_json({'type': 'ready', 'model': MODEL, 'max_seconds': MAX_SECONDS,
                                         'agent_id': session['agent_id'], 'revision': session['revision'], 'connection_id': ident,
-                                        'input_mode': input_mode, 'clips': [{k: c[k] for k in ('id', 'title', 'text')} for c in clips]})
+                                        'input_mode': input_mode, 'clips': [{k: c[k] for k in ('id', 'title', 'text', 'step')} for c in clips]})
                     await upstream.send(json.dumps({'clientContent': {'turns': [{'role': 'user', 'parts': [{'text': 'Read my current question now, then listen.'}]}], 'turnComplete': True}}))
 
                     async def send_pcm(pcm):
@@ -218,7 +218,7 @@ class LiveAudio:
                                     require(input_mode == 'recordings', 'Start Live with saved clips first', 409)
                                     require(not fixture_active, 'A saved clip is already playing', 409)
                                     clip = next((c for c in clips if c['id'] == data['clip_id']), None)
-                                    require(clip is not None, 'This clip does not belong to your current member and question', 403)
+                                    require(clip is not None, 'This clip does not belong to you and this private round', 403)
                                     fixture_active = True
                                     await fixture_queue.put(clip)
                                 else:

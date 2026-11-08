@@ -143,3 +143,8 @@ X23 supersedes X22 whole round skips. Only the opening and shared discussion sec
 ## Single member recorded sequence
 
 X24 adds an explicitly selected solo test. Read [the solo guide](playtest/SOLO_SEQUENCE_GUIDE.md). One Alex membership may complete the exercise without Morgan or Sam. Only this beta mode permits a reviewed and explicitly approved batch of saved answers to submit their trusted captions after completed Live playback. Mark those answers scripted and preserve actual recognition separately. Never confirm the response card automatically, submit an interrupted recording, repeat completed clips or autoplay personal feedback after the final assessment. Stop prevents remaining submissions. Group participation rules and individual review remain unchanged. Solo completion has no competition winner.
+
+
+## Full private round recording access
+
+X25 supersedes the earlier current question only recording restriction. Read [the recording library guide](playtest/ROUND_RECORDING_LIBRARY.md). Show all three of the selected member's recordings for the active private round, with captions and individual playback controls. Allow any owned round clip as explicit Gemini Live input. Preview and Live playback do not submit or advance the question. Retain member and round isolation, reviewed manual submissions, the approved solo sequence's current step validation, and explicit card confirmation. Do not hide the other recordings merely because the current question has one recommended answer.

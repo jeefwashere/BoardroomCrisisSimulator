@@ -1,6 +1,9 @@
 # Test one member or the full board
 
-Latest X24: [test Alex alone with a finite recorded sequence](SOLO_SEQUENCE_GUIDE.md). Use port 8792 and **Load Alex only**. Three coaching clips stop at card review; three assessment clips stop at personal results. No Morgan or Sam session is required. The three member group mode remains optional.
+Latest X25: [all recordings for your private round are visible and playable](ROUND_RECORDING_LIBRARY.md), including all three choices in Gemini Live. Use port 8793 for the updated backend; older rooms remain on their previous ports.
+
+
+Earlier X24: [test Alex alone with a finite recorded sequence](SOLO_SEQUENCE_GUIDE.md). Use port 8792 and **Load Alex only**. Three coaching clips stop at card review; three assessment clips stop at personal results. No Morgan or Sam session is required. The three member group mode remains optional.
 
 The guide below describes the optional three member group. For the requested single member test, follow the linked solo instructions.
 
@@ -26,7 +29,7 @@ Play the current speaker's saved discussion clip, wait for completion, then choo
 
 After the clips, the CEO can finish discussion early. The five minute discussion also ends automatically. The IT/security, operations/community services and governance/finance experts respond live in sequence. Wait for all three; use **CEO: Hear next expert** if a request fails. Then select **CEO: Begin individual decisions**.
 
-Select each member. In **Saved answer for this turn**, play that person's decision clip. After it finishes, choose **Review this answer as a draft**. Review the single answer box, check the confirmation box and submit the individual decision. The prompt asks what you would do next and why. In a few sentences, include your action, supporting information and what you still need to check. Saved clips and reviewed microphone transcripts fill this same editable box. Repeat for all three members.
+Select each member. In **Your recordings for this round**, play that person's decision clip. After it finishes, choose **Review this answer as a draft**. Review the single answer box, check the confirmation box and submit the individual decision. The prompt asks what you would do next and why. In a few sentences, include your action, supporting information and what you still need to check. Saved clips and reviewed microphone transcripts fill this same editable box. Repeat for all three members.
 
 Select the CEO and choose **CEO: Start Round 2**. There is no group winning ballot, CEO override or scoring in this first round.
 
@@ -48,7 +51,7 @@ You do not have to speak yourself. In Round 2 or 3, wait for the current questio
 
 After the reply, choose **Stop Live session**, then **Use recognized words as an answer draft**. Review and correct the text, confirm, and submit. Nothing is submitted automatically. Start a new connection for the next question. Choose **Start Live with microphone** instead if you want to speak yourself. Beta mode keeps canonical questions, fixed voice and temperature zero; wording can still vary.
 
-The original **Saved answer for this turn** panel still provides local playback and a trusted caption draft without sending the audio into Gemini. Round 1 discussion recordings remain under the participant controls. Files live in `playtest/recordings/`; assignments and captions are in `playtest/fixtures/four-round-audio.json`. See [recorded Live details](RECORDED_LIVE_AND_SECTIONS.md).
+The original **Your recordings for this round** panel still provides local playback and a trusted caption draft without sending the audio into Gemini. Round 1 discussion recordings remain under the participant controls. Files live in `playtest/recordings/`; assignments and captions are in `playtest/fixtures/four-round-audio.json`. See [recorded Live details](RECORDED_LIVE_AND_SECTIONS.md).
 
 ## Round 3: the same agent becomes examiner
 

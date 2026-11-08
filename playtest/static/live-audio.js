@@ -13,7 +13,7 @@ function renderLiveAudio(s){
  $('useLiveAnswer').disabled=busy||!!liveTask||!liveDraft||liveDraft.key!==liveKey(s)||!liveDraft.text.trim();
  $('resumeLive').hidden=!liveTask;
  if(!liveTask)$('liveAvailability').textContent=liveStatus?.message||'Checking Live audio availability…';
- if(liveRenderedKey!==liveKey(s)&&!liveTask){liveRenderedKey=liveKey(s);liveDraft=null;$('liveTranscript').replaceChildren();$('liveClipSelect').replaceChildren();$('liveClipCaption').textContent='Connect saved clip mode to load the answer for this member and question.';$('liveClipState').textContent='';$('liveState').textContent='Choose saved clips or your microphone. Saved clip mode never opens the microphone.';}
+ if(liveRenderedKey!==liveKey(s)&&!liveTask){liveRenderedKey=liveKey(s);liveDraft=null;$('liveTranscript').replaceChildren();$('liveClipSelect').replaceChildren();$('liveClipCaption').textContent='Connect saved clip mode to choose from all your recordings for this round.';$('liveClipState').textContent='';$('liveState').textContent='Choose saved clips or your microphone. Saved clip mode never opens the microphone.';}
  if(liveTask){$('submitPrivate').disabled=true;$('privateAgent').disabled=true;$('recordPrivate').disabled=true;$('transcribePrivate').disabled=true;$('playFixture').disabled=true;}
 }
 async function checkLiveStatus(){try{liveStatus=await api('/api/roundtable/exercise/live-status');}catch{liveStatus={configured:false,message:'This server does not have Live audio enabled. Use the updated Live test server.'};}render();}
@@ -65,8 +65,8 @@ async function startLiveAudio(inputMode='microphone'){
    if(task.finished)return;const event=JSON.parse(e.data);
    if(event.type==='ready'){
     clearTimeout(task.timer);task.ready=true;task.connectionId=event.connection_id;task.clips=event.clips||[];
-    $('liveClipSelect').replaceChildren(...task.clips.map(c=>{const n=el('option',c.title);n.value=c.id;return n;}));
-    if(task.clips.length){$('liveClipSelect').value=task.clips[0].id;$('liveClipCaption').textContent=task.clips[0].text;}
+    $('liveClipSelect').replaceChildren(...task.clips.map(c=>{const n=el('option',(c.step?'Clip '+c.step+' · ':'')+c.title);n.value=c.id;return n;}));
+    if(task.clips.length){const selected=task.clips.find(c=>c.step===state()?.private_session?.turn)||task.clips[0];$('liveClipSelect').value=selected.id;$('liveClipCaption').textContent=selected.text;}
     $('liveState').textContent=task.inputMode==='recordings'?'LIVE · Saved clips connected. Microphone is OFF. Send the selected participant answer when ready.':'LIVE · Microphone on. Speak naturally; you can interrupt the agent. Stop before reviewing your answer.';
     task.timer=setTimeout(()=>void stopLiveAudio(),event.max_seconds*1000);render();
    }

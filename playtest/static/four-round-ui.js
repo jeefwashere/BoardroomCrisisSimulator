@@ -1,5 +1,5 @@
 'use strict';
-let exerciseVoice=null,fixturePlayback=null,fixtureDraft=null,fixtureClips=[],fixtureKey='',privateFormKey='',cardFormKey='',reunionFormKey='',exerciseAuto=new Set();
+let exerciseVoice=null,fixturePlayback=null,fixtureDraft=null,fixtureClips=[],fixtureButtons=[],fixtureKey='',privateFormKey='',cardFormKey='',reunionFormKey='',exerciseAuto=new Set();
 const four=s=>s?.flow==='four_rounds';
 const exerciseKey=s=>[s?.code,s?.me,s?.phase,s?.private_session?.phase,s?.private_session?.turn,s?.private_session?.revision].join(':');
 const exerciseFields=['action','responsibility','evidence','dependencies','fallback','communication','review'];
@@ -18,11 +18,13 @@ function renderFourRounds(s,locked){
  const signature=exerciseKey(s);
  if(fixturePlayback&&fixturePlayback.key!==signature)void stopFixture().catch(e=>say(e.message));
  if(fixtureDraft&&fixtureDraft.key!==signature)fixtureDraft=null;
- if(fixtureKey!==signature){fixtureKey=signature;fixtureClips=[];$('fixtureSelect').replaceChildren();if(['decision','private','reunion'].includes(s.phase))void loadExerciseClips(signature);}
+ if(fixtureKey!==signature){fixtureKey=signature;fixtureClips=[];fixtureButtons=[];$('fixtureChoices').replaceChildren();$('fixtureSelect').replaceChildren();if(['decision','private','reunion'].includes(s.phase))void loadExerciseClips(signature);}
  const answerReady=privateStage&&['coaching','assessment'].includes(ps.phase)&&!!ps.prompt;
- $('playFixture').disabled=locked||!!exerciseVoice||!!briefing||!fixtureClips.length||privateStage&&!answerReady;
- $('stopFixture').disabled=!fixturePlayback;$('useFixture').disabled=locked||!fixturePlayback?.finished;$('ownAnswer').disabled=busy||!fixturePlayback&&!fixtureDraft;
- $('fixtureHint').textContent=s.beta_mode?'Beta mode: these fictional human answers match the fixed question order. Play, review, then separately submit.':'Adaptive mode: Gemini may ask a different question. Use the sample only if it answers the actual question, or give your own response.';
+ $('playFixture').disabled=locked||(typeof liveTask!=='undefined'&&!!liveTask)||!!exerciseVoice||!!briefing||!!fixturePlayback&&!fixturePlayback.finished||!fixtureClips.length||!!ps?.busy;
+ for(const b of fixtureButtons)b.disabled=$('playFixture').disabled;
+ $('fixtureSelect').disabled=locked||!!fixturePlayback&&!fixturePlayback.finished;
+ $('stopFixture').disabled=!fixturePlayback;$('useFixture').disabled=locked||!fixturePlayback?.finished||privateStage&&!answerReady;$('ownAnswer').disabled=busy||!fixturePlayback&&!fixtureDraft;
+ $('fixtureHint').textContent=s.beta_mode?'All your recordings for this round are available below. Question numbers show their intended use. Play any clip; review and submit only when you are answering the agent. For automatic progression, use Run my saved responses.':'Adaptive mode: Gemini may ask a different question. Use the sample only if it answers the actual question, or give your own response.';
  if(privateStage){
   $('privateRoundLabel').textContent='ROUND '+s.exercise_round+' · PRIVATE · '+s.members.find(m=>m.id===s.me)?.name;
   $('privateTitle').textContent=ps.phase==='coaching'||ps.phase==='card_review'?'Your crisis coach':'Your examiner';
@@ -60,19 +62,36 @@ function renderFourRounds(s,locked){
   $('winnerAnnouncement').textContent=s.solo_test?(s.phase==='ended'?'Your single member test is complete.':'Review your own results, then finish. No other members or competition winner are required.'):r.winners.length?(r.winners.length>1?'Joint winners: ':'Winner: ')+r.winners.map(id=>s.members.find(m=>m.id===id)?.name).join(', ')+'. Highest final Round 3 score.':s.test_skip?.ranking_disabled?'Historical incomplete test: rounds were skipped. Start a fresh room with the corrected controls; no winner is announced.':'Winner announced after every member reviews their evidence.';
  }
 }
-async function loadExerciseClips(key){const owner=context();try{const result=await api('/api/roundtable/exercise/recordings',undefined,owner);if(!same(owner)||key!==fixtureKey)return;fixtureClips=result.clips||[];$('fixtureSelect').replaceChildren(...fixtureClips.map(c=>{const option=el('option',c.title+' · '+c.duration_seconds.toFixed(1)+'s');option.value=c.id;return option;}));if(fixtureClips.length)$('fixtureSelect').value=fixtureClips[0].id;updateFixtureCaption();render();}catch(e){if(key===fixtureKey)$('fixtureStatus').textContent=e.message;}}
+async function loadExerciseClips(key){
+ const owner=context();try{
+  const result=await api('/api/roundtable/exercise/recordings',undefined,owner);if(!same(owner)||key!==fixtureKey)return;
+  fixtureClips=result.clips||[];
+  $('fixtureSelect').replaceChildren(...fixtureClips.map(c=>{const option=el('option','Clip '+c.step+' · '+c.title+' · '+c.duration_seconds.toFixed(1)+'s');option.value=c.id;return option;}));
+  const current=fixtureClips.find(c=>c.step===state().private_session?.turn)||fixtureClips[0];if(current)$('fixtureSelect').value=current.id;
+  fixtureButtons=[];
+  $('fixtureChoices').replaceChildren(...fixtureClips.map(c=>{
+   const card=el('article',undefined,'reply');card.append(el('h3','Clip '+c.step+' · '+c.title),el('small',c.duration_seconds.toFixed(1)+' seconds'+(c.id===current?.id?' · Matches the current question':'')),el('p',c.text));
+   const play=button('Play clip '+c.step,async()=>{if(!same(owner)||key!==exerciseKey(state()))throw new Error('The member or round changed. Select a recording again.');$('fixtureSelect').value=c.id;updateFixtureCaption();await playExerciseFixture(c.id);});fixtureButtons.push(play);card.append(play);return card;
+  }));
+  $('recordingLibraryUpdate').hidden=result.library_version===2;
+  $('fixtureLibraryStatus').textContent=result.library_version===2?fixtureClips.length+' recordings available for you in this round.':'This older server still limits clips to one question. Open the updated recording library on localhost:8793; your current room remains here.';
+  updateFixtureCaption();render();
+ }catch(e){if(key===fixtureKey)$('fixtureStatus').textContent=e.message;}
+}
 function updateFixtureCaption(){$('fixtureCaption').textContent=fixtureClips.find(c=>c.id===$('fixtureSelect').value)?.text||'No saved response is needed at this stage.';}
 $('fixtureSelect').onchange=updateFixtureCaption;
 async function stopFixture(){const task=fixturePlayback;fixturePlayback=null;fixtureDraft=null;$('fixtureAudio').pause();$('fixtureAudio').removeAttribute('src');if(task){task.cancelled=true;task.resolve?.(false);if(task.url)URL.revokeObjectURL(task.url);await api('/api/roundtable/exercise/recordings/stop',{},task.owner).catch(()=>{});}else if(bundle)await api('/api/roundtable/exercise/recordings/stop',{}).catch(()=>{});render();}
-bind('playFixture',async()=>{
- if(exerciseVoice||briefing||turnPlayback||fixturePlayback)throw new Error('Stop the current audio first.');
- const owner=context(),key=exerciseKey(state()),clipId=$('fixtureSelect').value,task={owner,key,cancelled:false,finished:false};fixturePlayback=task;fixtureDraft=null;render();
+async function playExerciseFixture(clipId=$('fixtureSelect').value){
+ if(fixturePlayback?.finished)await stopFixture();
+ if(exerciseVoice||briefing||turnPlayback||fixturePlayback||(typeof liveTask!=='undefined'&&liveTask))throw new Error('Stop the current audio first.');
+ const owner=context(),key=exerciseKey(state()),task={owner,key,cancelled:false,finished:false};fixturePlayback=task;fixtureDraft=null;render();
  try{const lease=await api('/api/roundtable/exercise/recordings/play',{clip_id:clipId},owner);task.id=lease.id;if(task.cancelled||!same(owner)||key!==exerciseKey(state()))return;
  const blob=await api('/api/roundtable/exercise/recordings/audio/'+lease.id,undefined,owner,{blob:true});if(task.cancelled||key!==exerciseKey(state()))return;
  task.url=URL.createObjectURL(blob);const audio=$('fixtureAudio');audio.src=task.url;const ended=new Promise((resolve,reject)=>{task.resolve=resolve;audio.onended=()=>resolve(true);audio.onerror=()=>reject(new Error('Sample audio could not play.'));});await audio.play();$('fixtureStatus').textContent='Playing a prerecorded human response. Nothing is submitted.';
  task.finished=await ended;if(task.finished)$('fixtureStatus').textContent='Playback finished. Review this answer as a draft, then submit separately.';
  }catch(e){await stopFixture();throw e;}finally{render();}
-});
+}
+bind('playFixture',()=>playExerciseFixture());
 $('stopFixture').onclick=()=>stopFixture().catch(e=>say(e.message));
 bind('ownAnswer',async()=>{await stopFixture();$('fixtureStatus').textContent='Using your own reviewed answer. The text stays editable.';});
 bind('useFixture',async()=>{

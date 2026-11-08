@@ -66,9 +66,10 @@ class FourRoundTests(unittest.TestCase):
             fields['action']='PRIVATE_ORIGIN_'+str(who)+' '+fields['action']
             self.cmd('submit_individual_decision',who,revision=0,**fields)
         self.cmd('end');self.assertEqual(self.room['phase'],'private')
-    def fixture(self,who=0,index=0):
+    def fixture(self,who=0,index=None):
         catalog=self.call('exercise/recordings',who=who);self.assertEqual(catalog.status_code,200,catalog.text)
-        clip=catalog.json()['clips'][index]
+        clips=catalog.json()['clips'];step=(self.state(who).get('private_session') or {}).get('turn',1)
+        clip=clips[index] if index is not None else next((c for c in clips if c['step']==step),clips[0])
         response=self.call('exercise/recordings/play',{'clip_id':clip['id']},who);self.assertEqual(response.status_code,200,response.text);lease=response.json()
         self.assertEqual(self.call('exercise/recordings/complete',{'id':lease['id']},who).status_code,409)
         self.assertEqual(self.call('exercise/recordings/audio/'+lease['id'],who=(who+1)%3).status_code,409)
@@ -164,3 +165,15 @@ class FourRoundTests(unittest.TestCase):
         self.service.reunion(self.seats[0]['token'],uuid.uuid4().hex)
         for who in range(3):self.cmd('confirm_score_review',who)
         self.cmd('announce_winner');self.assertEqual(len(self.room['winners']),3)
+
+    def test_round_library_exposes_three_owned_clips_and_all_can_preview_before_question(self):
+        self.begin();catalog=self.call('exercise/recordings').json();self.assertEqual(catalog['library_version'],2)
+        self.assertEqual([c['step'] for c in catalog['clips']],[1,2,3]);self.assertTrue(all(c['seat']==0 and c['round']==2 for c in catalog['clips']))
+        payloads=[]
+        for clip in catalog['clips']:
+            r=self.call('exercise/recordings/play',{'clip_id':clip['id']});self.assertEqual(r.status_code,200,r.text)
+            audio=self.call('exercise/recordings/audio/'+r.json()['id']);self.assertEqual(audio.status_code,200);payloads.append(audio.content)
+            self.call('exercise/recordings/stop',{})
+        self.assertEqual(len(set(payloads)),3);self.assertEqual(self.state()['private_session']['answers'],{})
+        for wrong in ('r2_member_2_step_1','r3_member_1_step_1'):
+            self.assertEqual(self.call('exercise/recordings/play',{'clip_id':wrong}).status_code,403)

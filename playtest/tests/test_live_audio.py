@@ -106,7 +106,7 @@ class LiveTests(unittest.TestCase):
         clip=self.f.service.eligible_clips(self.f.room,self.f.state()['me'])[0]
         with self.connect() as ws:
             self.hello(ws,input_mode='recordings');ready=ws.receive_json();self.assertEqual(ready['input_mode'],'recordings')
-            self.assertEqual([c['id'] for c in ready['clips']],[clip['id']]);self.until(ws,'turn_complete')
+            self.assertEqual([c['step'] for c in ready['clips']],[1,2,3]);self.assertIn(clip['id'],[c['id'] for c in ready['clips']]);self.until(ws,'turn_complete')
             ws.send_json({'type':'play_fixture','clip_id':clip['id']});events=self.until(ws,'fixture_complete')
             self.assertTrue(any(e['type']=='fixture_audio' and e['sample_rate']==16000 for e in events))
             self.assertTrue(any(e['type']=='transcript' and e['role']=='human' for e in events))
@@ -141,3 +141,16 @@ class LiveTests(unittest.TestCase):
         saved=self.f.state()['private_session']['live_history'][0]
         self.assertLess(saved['input_audio_seconds'],1)
         self.assertFalse(self.f.state()['private_session']['busy'])
+
+    def test_each_owned_round_clip_can_be_sent_in_one_live_session_without_submission(self):
+        decoded=[]
+        async def decode(clip_id):decoded.append(clip_id);return b'\x00\x01'*640
+        self.f.app.state.live_audio.fixture_pcm=decode
+        with self.connect() as ws:
+            self.hello(ws,input_mode='recordings');ready=ws.receive_json();self.until(ws,'turn_complete')
+            self.assertEqual(len(ready['clips']),3)
+            for clip in ready['clips']:
+                ws.send_json({'type':'play_fixture','clip_id':clip['id']});self.until(ws,'fixture_complete')
+            ws.send_json({'type':'stop'});self.until(ws,'closed')
+        ps=self.f.state()['private_session'];self.assertFalse(ps['busy']);self.assertEqual(ps['answers'],{})
+        self.assertEqual(decoded,[c['id'] for c in ready['clips']]);self.assertEqual(ps['live_history'][0]['completed_clips'],decoded)

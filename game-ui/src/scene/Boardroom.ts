@@ -315,6 +315,9 @@ export class Boardroom {
   /** The baked room once loaded (null while the placeholder room shows). */
   room: THREE.Object3D | null = null
   private laptops: THREE.Object3D[] = []
+  private consoles: THREE.Object3D[] = []
+  private bezel!: THREE.Mesh
+  private screen!: THREE.Mesh
   private screenCanvas = document.createElement('canvas')
   private screenTexture: THREE.CanvasTexture
   private screenKey = ''
@@ -367,7 +370,7 @@ export class Boardroom {
     this.renderer.domElement.addEventListener('dblclick', () => this.resetView())
 
     this.screenCanvas.width = 1024
-    this.screenCanvas.height = 576
+    this.screenCanvas.height = 676
     this.screenTexture = new THREE.CanvasTexture(this.screenCanvas)
     this.screenTexture.colorSpace = THREE.SRGBColorSpace
     // WebGPU cannot upload a canvas that has no 2D context yet, so draw the first frame now.
@@ -450,6 +453,7 @@ export class Boardroom {
       avatar.group.visible = Boolean(seat)
       this.chairs[index]?.position.copy(this.chairPosition(avatar))
       if (this.laptops[index]) this.laptops[index].visible = Boolean(seat)
+      if (this.consoles[index]) this.consoles[index].visible = Boolean(seat)
       if (!seat) return
       avatar.setMood(seat.mood)
     })
@@ -527,16 +531,28 @@ export class Boardroom {
         })
         return gltf.scene
       }
+      // Prop origins sit at the centre of their base. The back wall face is at z = -3.6.
+      const WALL = -3.6
       await Promise.all([
-        this.swapProp(await load('table', true), 'table', (model) => model.position.set(0, 0, 0), true),
+        this.swapProp(await load('table', true), 'table', (model) => {
+          model.position.set(0, 0, 0)
+          // The Tripo table texture reads grey and weathered; tint it toward the dark walnut concept.
+          model.traverse((o) => {
+            const material = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined
+            if (material?.isMeshStandardMaterial) material.color.set('#9a7457')
+          })
+        }, true),
         this.swapChairs(await load('chair', true)),
-        this.placeProp(await load('credenza', true), new THREE.Vector3(0, 0, -3.15), 0),
+        this.placeProp(await load('credenza', true), new THREE.Vector3(0, 0, WALL + 0.25), 0),
+        this.placeProp(await load('water-service'), new THREE.Vector3(0.62, 0.756, WALL + 0.25), 0),
         this.placeProp(await load('plant'), new THREE.Vector3(-4.6, 0, -2.9), 0),
         this.placeProp((await load('plant'))?.clone() ?? null, new THREE.Vector3(-4.6, 0, 2.9), 0),
-        this.placeProp(await load('clock'), new THREE.Vector3(2.0, 1.95, -3.56), 0),
-        this.placeProp(await load('speaker'), new THREE.Vector3(0, TABLE.height, 0), 0),
-        // The TRELLIS wall display is not used: the live canvas screen shows phase and timer.
+        // The clock is 0.5 m across; centre it at y = 1.95.
+        this.placeProp(await load('clock'), new THREE.Vector3(2.0, 1.7, WALL + 0.063), 0),
+        this.placeProp(await load('holo-hub'), new THREE.Vector3(0, TABLE.height, 0), 0),
+        this.mountDisplay(await load('display')),
         this.swapLaptops(await load('laptop')),
+        this.placeConsoles(await load('console')),
       ])
     } catch (error) {
       console.warn('[boardroom] props not loaded', error)
@@ -613,6 +629,36 @@ export class Boardroom {
     model.position.copy(position)
     model.rotation.y = yaw
     this.scene.add(model)
+  }
+
+  /**
+   * The brass framed display hangs centred at (-0.4, 1.75) on the back wall. The live canvas
+   * screen (phase, decision and timer) moves onto its glass, and the placeholder bezel goes.
+   */
+  private async mountDisplay(model: THREE.Object3D | null) {
+    if (!model) return
+    const size = new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3())
+    model.position.set(-0.4, 1.75 - size.y / 2, -3.6 + size.z / 2)
+    this.scene.add(model)
+    this.bezel.visible = false
+    this.screen.geometry.dispose()
+    this.screen.geometry = new THREE.PlaneGeometry(size.x * 0.935, size.y * 0.885)
+    this.screen.position.set(-0.4, 1.75 + size.y * 0.005, -3.6 + size.z + 0.004)
+  }
+
+  /** A voting console at every seat, to the player's right of the laptop, screen toward them. */
+  private async placeConsoles(model: THREE.Object3D | null) {
+    if (!model) return
+    this.avatars.forEach((avatar, index) => {
+      const unit = model.clone()
+      const toward = new THREE.Vector3(0, 0, 1).applyAxisAngle(UP, avatar.seat.yaw)
+      const right = new THREE.Vector3(-1, 0, 0).applyAxisAngle(UP, avatar.seat.yaw)
+      unit.position.copy(avatar.seat.position).addScaledVector(toward, EDGE_GAP + 0.13).addScaledVector(right, 0.4).setY(TABLE.height)
+      unit.rotation.y = avatar.seat.yaw + Math.PI
+      unit.visible = this.laptops[index]?.visible ?? true
+      this.scene.add(unit)
+      this.consoles[index] = unit
+    })
   }
 
   private async swapChairs(model: THREE.Object3D | null) {
@@ -708,10 +754,10 @@ export class Boardroom {
     this.shell.add(skirting)
 
     // Wall display with the live phase and timer.
-    const bezel = new THREE.Mesh(new THREE.BoxGeometry(2.1, 1.22, 0.06), new THREE.MeshStandardMaterial({ color: '#141614', roughness: 0.4 }))
+    const bezel = (this.bezel = new THREE.Mesh(new THREE.BoxGeometry(2.1, 1.22, 0.06), new THREE.MeshStandardMaterial({ color: '#141614', roughness: 0.4 })))
     bezel.position.set(-0.4, 1.75, -3.56)
     this.scene.add(bezel)
-    const screen = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 1.125), new THREE.MeshBasicMaterial({ map: this.screenTexture, toneMapped: false }))
+    const screen = (this.screen = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 1.125), new THREE.MeshBasicMaterial({ map: this.screenTexture, toneMapped: false })))
     screen.position.set(-0.4, 1.75, -3.525)
     this.scene.add(screen)
   }

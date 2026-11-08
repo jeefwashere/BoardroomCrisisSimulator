@@ -117,8 +117,21 @@ def bounded(value, limit: int) -> str:
 
 def clean_ack(value) -> str:
     """One short sentence without a question, at most 220 characters."""
+    if isinstance(value, str):
+        raw = value.strip()
+        if raw.startswith("```"):
+            fenced = re.fullmatch(r"```(?:json)?\s*(.*?)\s*```", raw, re.DOTALL | re.IGNORECASE)
+            if fenced is None:
+                return ""
+            raw = fenced[1]
+        if raw.startswith(("{", "[")):
+            try:
+                obj = json.loads(raw)
+            except ValueError:
+                return ""
+            value = obj.get("acknowledgement") if isinstance(obj, dict) else None
     text = bounded(value, 600).replace("?", ".")
-    if not text:
+    if not text or any(marker in text for marker in ("{", "}", "```")):
         return ""
     match = re.search(r"[.!](\s|$)", text)
     if match and match.end() >= 12:
@@ -479,8 +492,7 @@ class PrivateSessions:
             pass  # Never surface provider details; try the next source.
         try:
             text = clean_ack(await self._hosted(self._hosted_prompt(
-                "Reply with one short plain sentence acknowledging the member's reasoning without declaring it "
-                "correct. Do not ask a question.", context, {"current_question": question, "member_answer": answer[:800]})))
+                ACK_TASK, context, {"current_question": question, "member_answer": answer[:800]})))
             if text:
                 return text, "hosted"
         except Exception:

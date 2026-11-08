@@ -12,6 +12,7 @@ import asyncio
 import json
 import os
 from pathlib import Path
+import ssl
 import threading
 import urllib.error
 import urllib.request
@@ -48,6 +49,17 @@ def parse_json_object(text: str) -> dict:
     return value
 
 
+def _https_opener():
+    try:
+        import truststore
+        context = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    except ImportError:
+        context = ssl.create_default_context()
+    context.set_alpn_protocols(["http/1.1"])
+    return urllib.request.build_opener(
+        NoRedirect(), urllib.request.HTTPSHandler(context=context))
+
+
 class VertexText:
     """Minimal Gemini generateContent client: one request per call, no automatic retries."""
 
@@ -60,7 +72,7 @@ class VertexText:
         self.ledger = Path(ledger)
         self.unlimited = unlimited
         self.cap_cents = cap_cents
-        self.opener = opener or urllib.request.build_opener(NoRedirect())
+        self.opener = opener or _https_opener()
         self._budget = None
         self._lock = threading.Lock()
         self.last_error: str | None = None

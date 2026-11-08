@@ -10,7 +10,7 @@ from uuid import uuid4
 from backend.app import gameplay
 from backend.app.facilitation import Facilitation
 from backend.app.main import create_app
-from backend.app.private_sessions import (CARD_FIELDS, COACH_UPDATE, EXAM_UPDATE, QUESTIONS, TRANSITION, TWIST,
+from backend.app.private_sessions import (CARD_RECORDED, CARD_FIELDS, COACH_UPDATE, EXAM_UPDATE, QUESTIONS, TRANSITION, TWIST,
                                           full_question)
 from backend.app.rooms import Rooms
 from backend.app.scenarios import ScenarioCatalog
@@ -135,9 +135,9 @@ class PrivateSessionTests(individual.IndividualDecisionTests):
     async def coach(self, who):
         for step in (1, 2, 3):
             _, body = await self.answer(who, 2, step)
-        self.assertEqual((body['stage'], body['card']['status']), ('card', 'draft'))
-        fields = {field: f'Edited {field} by member {who}.' for field in CARD_FIELDS}
-        return await self.post(who, 'card', fields=fields)
+        # The coach records the card live and Round 3 begins without a card review screen.
+        self.assertEqual((body['stage'], body['card']['status']), ('assessment', 'confirmed'))
+        return body
 
     async def complete(self, who):
         await self.coach(who)
@@ -241,21 +241,17 @@ class PrivateSessionTests(individual.IndividualDecisionTests):
         self.assertEqual(body['clip']['clip_id'], 'r2_member_1_step_2')
         for step in (2, 3):
             _, body = await self.answer(0, 2, step)
-        self.assertEqual((body['stage'], body['round'], body['expecting']), ('card', 2, None))
-        self.assertEqual(body['card'], {'status': 'draft', 'fields': {field: f'Draft {field} from my plan.'
-                                                                      for field in CARD_FIELDS}})
+        draft = {field: f'Draft {field} from my plan.' for field in CARD_FIELDS}
+        self.assertEqual(body['card'], {'status': 'confirmed', 'fields': draft})
         self.assertEqual(body['assessment']['total'], None)
-        await self.post(0, 'answer', expected=409, text='No question is waiting')
-        await self.post(0, 'card', expected=422, fields={field: 'x' for field in CARD_FIELDS[:-1]})
-        await self.post(0, 'card', expected=422, fields={**{field: 'x' for field in CARD_FIELDS}, 'review': 'y' * 601})
-        fields = {field: f'Edited {field}.' for field in CARD_FIELDS}
-        confirmed = await self.post(0, 'card', fields=fields)
-        self.assertEqual(confirmed['card'], {'status': 'confirmed', 'fields': fields})
+        confirmed = body
         self.assertEqual((confirmed['round'], confirmed['stage'], confirmed['agent']['role']), (3, 'assessment', 'examiner'))
-        self.assertEqual([(item['kind'], item['text']) for item in confirmed['messages'][-2:]],
-                         [('transition', TRANSITION), ('question', QUESTIONS[3][0])])
+        self.assertEqual([(item['kind'], item['text']) for item in confirmed['messages'][-3:]],
+                         [('update', CARD_RECORDED), ('transition', TRANSITION), ('question', QUESTIONS[3][0])])
+        self.assertEqual(confirmed['messages'][-1]['text'], QUESTIONS[3][0])
         self.assertEqual(confirmed['clip']['clip_id'], 'r3_member_1_step_1')
-        await self.post(0, 'card', expected=409, fields=fields)
+        # The old card review command no longer applies.
+        await self.post(0, 'card', expected=409, fields={field: 'Edited.' for field in CARD_FIELDS})
         expected_totals = (21, 49, 70)
         for step in (1, 2, 3):
             answer = ANSWERS[(3, step)].format(who=0)
@@ -415,12 +411,14 @@ class PrivateSessionTests(individual.IndividualDecisionTests):
             _, body = await self.answer(0, 2, step)
         acks = [item for item in body['messages'] if item['kind'] == 'ack']
         self.assertEqual({item['source'] for item in acks}, {'offline'})
-        self.assertEqual(body['card']['status'], 'draft')
-        fields = body['card']['fields']
-        self.assertEqual(set(fields), set(CARD_FIELDS))
-        self.assertTrue(DECISIONS[0].startswith(fields['action']))
+        # Without Gemini the coach cannot record the card: it stays retryable, nothing is invented.
+        self.assertEqual((body['stage'], body['card']['status'], body['retryable']), ('card', 'drafting', True))
+        self.vertex.configured = True
+        await self.post(0, 'retry')
+        body = await self.settle()
+        self.assertEqual((body['stage'], body['card']['status']), ('assessment', 'confirmed'))
         # Scoring has no offline fabrication: it fails and stays retryable.
-        await self.post(0, 'card', fields={field: 'Edited.' for field in CARD_FIELDS})
+        self.vertex.configured = False
         await self.post(0, 'answer', text=ANSWERS[(3, 1)].format(who=0))
         body = await self.settle()
         self.assertTrue(body['retryable'])

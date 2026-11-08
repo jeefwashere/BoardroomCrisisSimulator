@@ -28,6 +28,8 @@ CARD_FIELD_LIMIT = 600
 TWIST = "The IT specialist is now unavailable. Your original response relied on their advice."
 COACH_UPDATE = "The alternate provider can investigate, but needs an authorized contact."
 EXAM_UPDATE = "The alternate provider cannot begin immediately. Staff still need instructions."
+CARD_RECORDED = ("I have recorded your response card from your answers: your action, who is responsible, the evidence, "
+                 "dependencies, fallback, communication and review.")
 TRANSITION = ("Your preparation is complete. The scored challenge begins now. "
               "I will ask you to explain your response and adapt to new information.")
 # The scenario development shown before each question, as a separate message.
@@ -427,19 +429,19 @@ class PrivateSessions:
         return fields if any(fields.values()) else None
 
     async def _card_draft(self, context: dict) -> tuple[dict, str]:
-        try:
-            fields = self._card_fields(await self._vertex_json(self._prompt(CARD_TASK, context), 1536))
-            if fields:
-                return fields, "vertex"
-        except Exception:
-            pass
-        try:
-            fields = self._card_fields(parse_json_object(await self._hosted(self._hosted_prompt(CARD_TASK, context, {}))))
-            if fields:
-                return fields, "hosted"
-        except Exception:
-            pass
-        return offline_card(context["own_decision"]), "offline"
+        """The coach records the card live with Gemini from the member's own answers. No hosted or offline
+        stand in: the card is no longer shown for review, so a failure stays retryable instead."""
+        last = None
+        for _ in range(2):
+            try:
+                fields = self._card_fields(await self._vertex_json(self._prompt(CARD_TASK, context), 1536))
+                if fields:
+                    return {field: value or "Needs confirmation" for field, value in fields.items()}, "vertex"
+                last = RuntimeError("Empty response card")
+            except Exception as failure:
+                last = failure
+        LOG.warning("Round 2 response card drafting failed: %s", last)
+        raise RuntimeError("The coach could not record the response card")
 
     async def _grade(self, context: dict, step: int, question: str, answer: str) -> dict:
         """Gemini only, temperature 0. No offline or hosted fabrication: any failure leaves the stage retryable."""
@@ -524,10 +526,14 @@ class PrivateSessions:
         fields, _ = await self._card_draft(context)
         if branch["job"] is not job:
             return None
-        branch["card"] = {"status": "draft", "fields": fields}
-        branch["stage"] = "card"
+        # Recorded live and confirmed automatically: the member is not shown a card to edit; Round 3 starts.
+        branch["card"] = {"status": "confirmed", "fields": fields}
+        branch["stage"] = "assessment"
         branch["job"] = None
-        return "card"
+        self._message(branch, "agent", "update", 2, None, CARD_RECORDED, source="vertex")
+        self._message(branch, "agent", "transition", 3, None, TRANSITION)
+        self._ask(branch, 3, 1)
+        return "assessment"
 
     async def _run_score(self, branch: dict, job: dict, context: dict) -> str | None:
         step = job["step"]

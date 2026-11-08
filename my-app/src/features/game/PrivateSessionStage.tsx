@@ -227,7 +227,7 @@ export default function PrivateSessionStage({ room, handle, autoPlaying, autoCap
         : session.busy ? (session.stage === 'assessment' ? 'Scoring your answer…' : 'Thinking…')
         : session.stage === 'complete' ? 'Assessment complete'
         : session.expecting ? 'Waiting for your answer'
-        : session.stage === 'card' ? (session.card?.status === 'draft' ? 'Review your response card' : 'Drafting your response card…')
+        : session.stage === 'card' ? (session.card?.status === 'draft' ? 'Review your response card' : 'Recording your response card…')
         : 'Listening'
     const handover = transitionIndex(messages)
     const complete = session?.stage === 'complete' && caughtUp
@@ -308,7 +308,7 @@ export default function PrivateSessionStage({ room, handle, autoPlaying, autoCap
         {session?.stage === 'card' && caughtUp && (session.card?.status === 'draft'
             ? <ResponseCardForm key={session.card.fields.action} initial={session.card.fields} disabled={sending || session.busy} onConfirm={handle.confirmCard} />
             : session.card?.status === 'confirmed' ? <p className="private-note" role="status">Response card confirmed. The assessment begins shortly.</p>
-            : <div className="opening-shimmer" aria-busy="true"><p className="opening-shimmer-label">{agentName} is drafting your response card…</p><span /><span /></div>)}
+            : <div className="opening-shimmer" aria-busy="true"><p className="opening-shimmer-label">{agentName} is recording your response card from your answers…</p><span /><span /></div>)}
 
         {session?.stage === 'complete' && <PrivateBoard progress={room.game?.private_progress} selfId={room.self_member_id} />}
 

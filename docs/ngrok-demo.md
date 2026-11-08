@@ -43,6 +43,16 @@ The backend can spend paid Vertex AI and ElevenLabs credit, so by default the tu
 
 The free ngrok plan shows a one time "You are about to visit" page; press Visit Site.
 
+## Tailscale Funnel instead of ngrok
+
+A free ngrok account has a monthly request limit; when it is used up ngrok answers every request with 403 `ERR_NGROK_727`. Every game window polls the server about once a second, so a few long sessions can use the free allowance. Tailscale Funnel gives a free public HTTPS address for the same tunnel server:
+
+1. Keep the tunnel's Vite server running on port 5175 (started by `./scripts/ngrok-demo.sh`, or on its own with `npx vite --config vite.tunnel.config.ts` from `my-app`).
+2. Start Tailscale (`tailscale up`) and run `tailscale funnel --bg 5175`. The first time, Tailscale asks you to enable Funnel for your tailnet in its admin page.
+3. Play at `https://<machine>.<tailnet>.ts.net/#/demo`. Stop it with `tailscale funnel --https=443 off`.
+
+The demo login is enforced by the tunnel's Vite server itself (`my-app/vite.tunnel.config.ts`), so it protects every tunnel, ngrok or Funnel: the generated login in `my-app/.local/ngrok-demo/login`, or `TUNNEL_BASIC_AUTH=user:password` (`off` removes it). For Tailscale addresses the server adds `X-Forwarded-Proto: https`, so the backend's same origin check accepts the public address.
+
 ## Play the three window demo
 
 1. **Alex (host):** open `<public>/#/demo`. Choose **Three independent windows**, pick the stage (3D boardroom or call tiles) and the voting options, then press **Create room as Alex**.

@@ -314,6 +314,10 @@ The user now owns frontend implementation and backend integration, retaining Jef
 
   Owner: Arjun's Claude agent. Status: `done`. Evidence: completion record 48. Scope from the user: "The facilitation service returned HTTP 403", what is this error. Cause: the tunnel log showed every error came from an old tab still polling room `822dae91`, wiped by a backend restart; the server no longer knew its session (`session_required`, relayed as 403 since X34). Progress: `useRoom` treats `session_required` like a missing room: it stops polling and shows "This room no longer exists because the game server restarted. Go back home and start a new room." with Back home. Checks: `npx tsc -b`, `npm run lint`, `npm test` passed; in Playwright a joined tab whose room poll returned `session_required` showed the message and made no further room requests. Next action: none for this task.
 
+* [x] X39 Public demo link through Tailscale Funnel after the ngrok quota ran out.
+
+  Owner: Arjun's Claude agent. Status: `done`. Evidence: completion record 49. Scope from the user: open the ngrok link; it answered 403 `ERR_NGROK_727` ("This ngrok account has reached its HTTP requests limit for the month"). The user chose Tailscale Funnel. Progress: `my-app/vite.tunnel.config.ts` now enforces the demo login itself (basic auth from `TUNNEL_BASIC_AUTH`, `NGROK_BASIC_AUTH` or `.local/ngrok-demo/login`, constant time comparison), allows `.ts.net` hosts, and adds `X-Forwarded-Proto: https` for Tailscale addresses; Tailscale was started and, after the user enabled Funnel for the tailnet, `tailscale funnel --bg 5175` serves `https://arjuns-macbook-air.tail223f51.ts.net`; `docs/ngrok-demo.md` documents it. Checks: on the tunnel server and on the public address, no login and a wrong login got 401 and the right login 200; through Funnel `/api/health` answered and a room was created (201, so the same origin check passed). Next action: none for this task.
+
 ## Integration and verification
 
 * [x] I01 Publish the frontend API and snapshot contract with examples.

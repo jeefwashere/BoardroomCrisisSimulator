@@ -30,7 +30,11 @@ export function useRoom(roomId: string, initialRoom?: RoomSnapshot) {
         let stop: (() => void) | undefined
         function failed(failure: unknown) {
             if (controller.signal.aborted) return
-            if (failure instanceof RoomApiError && ['room_closed', 'not_a_member', 'room_not_found'].includes(failure.code)) {
+            if (failure instanceof RoomApiError && failure.code === 'session_required') {
+                // The server no longer knows this tab (it restarted and rooms live in memory): stop polling for good.
+                setAccessError(new RoomApiError('This room no longer exists because the game server restarted. Go back home and start a new room.', 'room_not_found', failure.status))
+                stop?.()
+            } else if (failure instanceof RoomApiError && ['room_closed', 'not_a_member', 'room_not_found'].includes(failure.code)) {
                 setAccessError(failure)
                 stop?.()
             } else setError(errorMessage(failure))

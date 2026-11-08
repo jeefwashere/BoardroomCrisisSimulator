@@ -24,6 +24,54 @@ function json(payload: unknown, status = 200) {
     return new Response(JSON.stringify(payload), { status, headers: { 'Content-Type': 'application/json' } })
 }
 
+test('lobby leave sends the selected private credential and exact intent, accepting removal or closure', async () => {
+    const signal = new AbortController().signal
+    const input = Object.freeze({ command_id: 'leave-command' })
+    for (const status of ['left', 'closed'] as const) {
+        const receipt = { room_id: 'room/1', room_version: 3, status }
+        const api = createRoomApi({ baseUrl: '', fetch: async (path, init) => {
+            assert.equal(path, '/api/rooms/room%2F1/leave')
+            assert.equal(init?.method, 'POST')
+            assert.equal(init?.signal, signal)
+            assert.equal(init?.credentials, 'include')
+            assert.deepEqual(init?.headers, { 'X-Boardroom-Session': 'test-tab-token', 'Content-Type': 'application/json' })
+            assert.deepEqual(JSON.parse(String(init?.body)), input)
+            return json(receipt)
+        } })
+        assert.deepEqual(await api.leave('room/1', input, signal), receipt)
+    }
+})
+
+test('leave transport errors retain the original command for an explicit retry and never retry automatically', async () => {
+    const bodies: string[] = []
+    const input = Object.freeze({ command_id: 'retry-leave-command' })
+    const api = createRoomApi({ fetch: async (_path, init) => {
+        bodies.push(String(init?.body))
+        if (bodies.length === 1) throw new TypeError('Connection lost after commit')
+        return json({ room_id: 'room-1', room_version: 3, status: 'left' })
+    } })
+    await assert.rejects(api.leave('room-1', input), (error: unknown) => error instanceof RoomApiError && error.code === 'network_error')
+    assert.equal(bodies.length, 1)
+    await api.leave('room-1', input)
+    assert.deepEqual(bodies, [JSON.stringify(input), JSON.stringify(input)])
+})
+
+test('leave preserves closure errors and rejects invalid acknowledgements', async () => {
+    const input = { command_id: 'leave-command' }
+    const closedApi = createRoomApi({ fetch: async () => json({ detail: { code: 'room_closed', message: 'The host has closed this lobby.' } }, 410) })
+    await assert.rejects(closedApi.leave('room-1', input), (error: unknown) => error instanceof RoomApiError && error.code === 'room_closed' && error.status === 410)
+    for (const payload of [{ room_id: 'other', room_version: 3, status: 'left' }, { room_id: 'room-1', room_version: 0, status: 'left' }, { room_id: 'room-1', room_version: 3, status: 'ok' }]) {
+        const api = createRoomApi({ fetch: async () => json(payload) })
+        await assert.rejects(api.leave('room-1', input), (error: unknown) => error instanceof RoomApiError && error.code === 'invalid_response')
+    }
+    let calls = 0
+    const cancelled = createRoomApi({ fetch: async () => { calls++; return json({}) } })
+    const controller = new AbortController()
+    controller.abort()
+    await assert.rejects(cancelled.leave('room-1', input, controller.signal), { name: 'AbortError' })
+    assert.equal(calls, 0)
+})
+
 test('public catalog forwards cancellation without a player credential', async () => {
     const signal = new AbortController().signal
     const api = createRoomApi({ baseUrl: 'http://local.test:8000/', fetch: async (url, init) => {

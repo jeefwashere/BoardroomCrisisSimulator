@@ -5,14 +5,17 @@ import { nextRoleIndex, roleMenuPlacement } from './rolePickerModel'
 
 type RolePickerProps = {
     id: string
-    playerName: string
+    playerName?: string
+    ariaLabel?: string
+    className?: string
+    opaqueMenu?: boolean
     value: string
     roles: readonly { id: string; label: string }[]
     disabled?: boolean
     onChange: (role: string) => void
 }
 
-function RolePicker({ id, playerName, value, roles, disabled = false, onChange }: RolePickerProps) {
+function RolePicker({ id, playerName, ariaLabel, className = '', opaqueMenu = false, value, roles, disabled = false, onChange }: RolePickerProps) {
     const [isOpen, setIsOpen] = useState(false)
     const selectedIndex = Math.max(0, roles.findIndex((role) => role.id === value))
     const [activeIndex, setActiveIndex] = useState(selectedIndex)
@@ -22,7 +25,8 @@ function RolePicker({ id, playerName, value, roles, disabled = false, onChange }
     const listId = `${id}-options`
     const menuOpen = isOpen && !disabled && roles.length > 0
     const activeOptionIndex = Math.min(activeIndex, Math.max(0, roles.length - 1))
-    const selectedLabel = roles[selectedIndex]?.label ?? 'Choose a role'
+    const selectedLabel = roles[selectedIndex]?.label ?? (ariaLabel ? 'Loading…' : 'Choose a role')
+    const controlLabel = ariaLabel ?? `Role for ${playerName}`
 
     function close(restoreFocus = false) {
         setIsOpen(false)
@@ -108,13 +112,13 @@ function RolePicker({ id, playerName, value, roles, disabled = false, onChange }
     }
 
     return (
-        <span className="lobby-role-picker">
+        <span className={`lobby-role-picker ${className}`.trim()}>
             <button
                 ref={triggerRef}
                 id={id}
                 className="lobby-role-select lobby-role-trigger"
                 type="button"
-                aria-label={`Role for ${playerName}: ${selectedLabel}`}
+                aria-label={`${controlLabel}: ${selectedLabel}`}
                 disabled={disabled || roles.length === 0}
                 aria-haspopup="listbox"
                 aria-expanded={menuOpen}
@@ -129,10 +133,10 @@ function RolePicker({ id, playerName, value, roles, disabled = false, onChange }
                     }
                 }}
             >
-                {selectedLabel}<span aria-hidden="true">⌄</span>
+                <span className="lobby-select-label">{selectedLabel}</span>{!disabled && <svg className="lobby-select-arrow" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 6 4 4 4-4" /></svg>}
             </button>
             {menuOpen && createPortal(
-                <ul ref={listRef} id={listId} className="lobby-role-menu" role="listbox" tabIndex={-1} aria-label={`Role for ${playerName}`} aria-activedescendant={`${listId}-${activeOptionIndex}`} onKeyDown={handleListKey}>
+                <ul ref={listRef} id={listId} className={`lobby-role-menu${opaqueMenu ? ' lobby-role-menu--opaque' : ''}`} role="listbox" tabIndex={-1} aria-label={controlLabel} aria-activedescendant={`${listId}-${activeOptionIndex}`} onKeyDown={handleListKey}>
                     {roles.map((role, index) => (
                         <li
                             key={role.id}
@@ -145,7 +149,7 @@ function RolePicker({ id, playerName, value, roles, disabled = false, onChange }
                             onMouseDown={(event) => event.preventDefault()}
                             onClick={() => choose(index)}
                         >
-                            <span>{role.label}</span><span aria-hidden="true">{role.id === value ? '✓' : ''}</span>
+                            <span>{role.label}</span>
                         </li>
                     ))}
                 </ul>, document.body,

@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef } from 'react'
+import type { ReactNode } from 'react'
 import { AnimatePresence, LayoutGroup, motion } from 'motion/react'
 import { getLobbyRows, LOBBY_ROLES } from './lobbyModel'
 import type { LobbyMember } from './lobbyModel'
@@ -11,11 +12,12 @@ type PlayerRosterProps = {
     onAssignRole: (memberId: string, role: string) => void
     roles?: { id: string; label: string }[]
     editable?: boolean
+    renderName?: (member: LobbyMember) => ReactNode
 }
 
 const layoutTransition = { type: 'spring' as const, stiffness: 310, damping: 32 }
 
-function PlayerRoster({ members, onAssignRole, roles = [...LOBBY_ROLES], editable = true }: PlayerRosterProps) {
+function PlayerRoster({ members, onAssignRole, roles = [...LOBBY_ROLES], editable = true, renderName }: PlayerRosterProps) {
     const viewportRef = useRef<HTMLDivElement>(null)
     const { reboundY, scrollToLatest } = useElasticRosterScroll(viewportRef)
     const rows = getLobbyRows(members)
@@ -56,11 +58,11 @@ function PlayerRoster({ members, onAssignRole, roles = [...LOBBY_ROLES], editabl
                                                 {member.name.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase()}
                                             </span>
                                             <div className="lobby-player-identity">
-                                                <h2 className="lobby-player-name" title={member.name}>{member.name}</h2>
+                                                <h2 className="lobby-player-name" title={member.name}>{renderName ? renderName(member) : member.name}</h2>
                                                 {member.connected !== undefined && <span className="lobby-presence">{member.connected ? 'Active' : 'Away'}</span>}
                                                 {member.isHost && <span className="lobby-host-badge"><LobbyIcon name="crown" /> Host</span>}
                                             </div>
-                                            <RolePicker id={`role-${member.id}`} playerName={member.name} value={member.role} roles={roles} disabled={!editable} onChange={(role) => onAssignRole(member.id, role)} />
+                                            <RolePicker id={`role-${member.id}`} playerName={member.name} value={member.role} roles={roles} opaqueMenu disabled={!editable} onChange={(role) => onAssignRole(member.id, role)} />
                                         </motion.article>
                                     ))}
                                 </AnimatePresence>

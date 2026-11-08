@@ -235,7 +235,7 @@
   width: 180px;
   max-width: 100%;
   min-height: 44px;
-  padding: 8px 23px 8px 8px;
+  padding: 8px;
   border: 0;
   border-radius: 0;
   appearance: none;
@@ -249,10 +249,15 @@
   cursor: pointer;
 }
 
-.lobby-role-trigger { position: relative; outline: none; box-shadow: none; }
-.lobby-role-trigger > span { position: absolute; right: 7px; color: #85725e; pointer-events: none; }
-.host-lobby .lobby-role-trigger:focus-visible { outline: none; color: var(--lobby-accent); text-decoration: underline; text-underline-offset: 5px; }
-.lobby-role-select:hover { color: var(--lobby-accent); }
+.lobby-role-trigger { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; outline: none; box-shadow: none; }
+.lobby-select-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.host-lobby .lobby-role-trigger svg { width: 12px; height: 12px; }
+.lobby-select-arrow { transition: transform 200ms ease-out; }
+.lobby-role-trigger[aria-expanded='true'] .lobby-select-arrow { transform: rotate(180deg); }
+.lobby-role-trigger::after { position: absolute; right: 8px; bottom: 3px; left: 8px; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: right center; transition: transform 200ms ease-out; content: ''; }
+.host-lobby .lobby-role-trigger:focus-visible { outline: none; color: var(--lobby-accent); }
+.lobby-role-trigger:is(:hover, :focus-visible, [aria-expanded='true']):not(:disabled)::after { transform: scaleX(1); }
+.lobby-role-select:is(:hover, [aria-expanded='true']):not(:disabled) { color: var(--lobby-accent); }
 
 .lobby-role-menu {
   position: fixed;
@@ -265,7 +270,7 @@
   border-radius: 0;
   outline: none;
   box-shadow: none;
-  background: var(--paper);
+  background: transparent;
   color: #422820;
   font-family: var(--font-heading);
   list-style: none;
@@ -274,9 +279,10 @@
 }
 
 .lobby-role-option { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; padding: 8px 12px; border: 0; background: transparent; font-size: 13px; cursor: pointer; }
+.lobby-role-menu--opaque { background: var(--paper, #f6f5ef); }
 .lobby-role-option.is-active > span:first-child { color: #8b362c; text-decoration: underline; text-underline-offset: 4px; }
 .lobby-role-option[aria-selected='true'] { font-weight: 650; }
-.lobby-role-option > span:last-child { color: #8b362c; }
+.lobby-role-option[aria-selected='true'] > span { text-decoration: underline; text-underline-offset: 4px; }
 
 .lobby-context {
   display: flex;
@@ -395,8 +401,10 @@
 }
 
 .lobby-scenario-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
-.lobby-scenario-controls label { display: grid; gap: 5px; text-align: left; color: #796655; font-size: 11px; }
-.lobby-scenario-controls select { max-width: min(340px, 80vw); min-height: 32px; padding: 5px 8px; border: 1px solid #bba38a; background: #fff9ee; color: #422820; font: inherit; }
+.lobby-scenario-controls .lobby-setting { display: grid; gap: 5px; min-width: 0; text-align: left; color: #796655; font-size: 11px; }
+.lobby-setting-picker { max-width: min(340px, 80vw); }
+.lobby-setting-picker .lobby-role-trigger { width: auto; max-width: min(340px, 80vw); min-height: 40px; justify-content: flex-start; padding-inline: 0; color: #422820; font-size: 12px; text-align: left; }
+.lobby-setting-picker .lobby-role-trigger::after { right: 0; left: 0; }
 .lobby-presence { color: #796655; font-size: 10px; }
 .lobby-waiting { text-align: right; font-size: 12px; }
 .lobby-context .lobby-live-status { white-space: normal; color: #6b4b3d; }
@@ -404,3 +412,7 @@
 .lobby-start-button:disabled { cursor: default; opacity: 0.45; }
 
 .lobby-context [role="alert"] { white-space: normal; color: #8b362c; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lobby-role-trigger::after, .lobby-select-arrow { transition: none; }
+}

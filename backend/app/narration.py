@@ -69,9 +69,7 @@ class NarrationService:
             price = float(os.environ.get("BOARDROOM_TTS_USD_PER_1K", "0"))
         except ValueError:
             return cls()
-        from .voices import voice_map
-        voices = voice_map()
-        voice = os.environ.get("BOARDROOM_TTS_VOICE_ID") or voices["facilitator"]
+        voice = os.environ.get("BOARDROOM_TTS_VOICE_ID", "")
         ledger = os.environ.get("BOARDROOM_TTS_LEDGER", "")
         if (not all(math.isfinite(value) and value > 0 for value in (cap, price))
                 or not voice or not all(c.isalnum() or c in "_-" for c in voice)
@@ -92,6 +90,8 @@ class NarrationService:
             # Optional media setup must never prevent the text game starting.
             return cls()
         synthesis_lock = Lock()
+        from .voices import voice_map
+        voices = voice_map()
 
         def synthesize(text: str, speaker: str | None = None) -> bytes:
             # ElevenSpeech owns disk caching and the shared budget reservation.

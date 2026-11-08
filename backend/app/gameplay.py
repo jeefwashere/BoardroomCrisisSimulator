@@ -104,6 +104,9 @@ def select_speaker(game: sim.Game, instant: float, last_seen: dict[UUID, float],
                                  at(game, instant), at(game, instant))
         game = replace(game, turns=game.turns + (skipped,))
         index += 1
+    if game.timing.unused_speaking == "skip_to_vote":
+        # Voting opens as soon as the last turn ends; reconcile freezes the ballot immediately.
+        return replace(game, phase=sim.DiscussionPhase(uuid4(), instant))
     return replace(game, phase=sim.DiscussionPhase(uuid4(), discussion_deadline))
 
 

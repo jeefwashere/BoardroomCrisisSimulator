@@ -41,7 +41,7 @@ export function useRoom(roomId: string, initialRoom?: RoomSnapshot) {
                 const catalog = await roomApi.scenarios(controller.signal)
                 if (controller.signal.aborted) return
                 setScenarios(catalog)
-                stop = pollRoom((signal) => roomApi.snapshot(roomId, signal), receive, failed, 2000, (resume) => {
+                stop = pollRoom((signal) => roomApi.snapshot(roomId, signal), receive, failed, 1000, (resume) => {
                     const visible = () => { if (document.visibilityState === 'visible') resume() }
                     window.addEventListener('focus', resume)
                     document.addEventListener('visibilitychange', visible)

@@ -57,6 +57,22 @@ export default function DemoRoom() {
     const [selected, setSelected] = useState(0)
     const [split, setSplit] = useState(() => window.innerWidth >= SPLIT_VIEW_MIN_WIDTH)
     const [autoFollow, setAutoFollow] = useState(true)
+    const [skipping, setSkipping] = useState(false)
+    const hostView = snapshots[0]
+    const hostCanSkip = Boolean(hostView?.game?.allowed_actions?.includes('skip_phase'))
+    async function skipPhase() {
+        const game = hostView?.game
+        if (!demo || !clients || !game || skipping) return
+        setSkipping(true)
+        try {
+            const next = await clients[0].api.command(demo.room_id, `rounds/${game.round_id}/skip-phase`, { command_id: crypto.randomUUID(), phase_id: game.phase_id })
+            setSnapshots((current) => [next, ...current.slice(1)])
+        } catch (failure) {
+            setPollError(failure instanceof Error ? failure.message : 'Skipping the phase failed.')
+        } finally {
+            setSkipping(false)
+        }
+    }
     const followRef = useRef(autoFollow && !split)
     const lastTargetRef = useRef('')
 
@@ -84,7 +100,7 @@ export default function DemoRoom() {
                 lastTargetRef.current = key
                 if (followRef.current) setSelected(target!)
             }
-            if (!gone) timer = setTimeout(() => void tick(), 2000)
+            if (!gone) timer = setTimeout(() => void tick(), 1000)
         }
         void tick()
         return () => { controller.abort(); clearTimeout(timer) }
@@ -235,6 +251,7 @@ export default function DemoRoom() {
             <div className="demo-bar__controls">
                 <label className="demo-toggle"><input type="checkbox" checked={split} onChange={(event) => setSplit(event.target.checked)} /> Split view</label>
                 <label className="demo-toggle" title="In tab view, switch to the speaker, the next voter, or the CEO in a tie"><input type="checkbox" checked={autoFollow} disabled={split} onChange={(event) => setAutoFollow(event.target.checked)} /> Auto follow</label>
+                {hostCanSkip && <button className="demo-secondary demo-secondary--small" type="button" disabled={skipping} onClick={() => void skipPhase()} title="Ends the current phase for everyone (host command, sent as Alex)">{skipping ? 'Skipping…' : 'Skip phase ⏭'}</button>}
                 <button className="demo-secondary demo-secondary--small" type="button" onClick={reset}>Reset demo</button>
             </div>
         </header>

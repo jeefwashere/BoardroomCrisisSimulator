@@ -14,6 +14,11 @@ from . import simulation as sim
 from . import gameplay
 
 
+
+# Timed phases the host may end early with the skip_phase command.
+SKIPPABLE = (sim.BriefingPhase, sim.ReadingPhase, sim.SpeakingPhase, sim.DiscussionPhase,
+             sim.VotingPhase, sim.TiePhase, sim.ResultPhase)
+
 class RoomError(Exception):
     def __init__(self, status: int, code: str, message: str):
         self.status, self.code, self.message = status, code, message
@@ -291,6 +296,8 @@ class Room:
                     actions.append("end")
                 if isinstance(state.phase, sim.BriefingPhase) and caller.member_id == self.host_member_id:
                     actions.append("finish_briefing")
+                if caller.member_id == self.host_member_id and isinstance(state.phase, SKIPPABLE):
+                    actions.append("skip_phase")
                 if isinstance(state.phase, sim.SpeakingPhase):
                     if caller.member_id == state.phase.order[state.phase.index]:
                         actions.append("finish_speaking")
@@ -404,7 +411,24 @@ class Rooms:
                     raise RoomError(403, "host_required", "Only the host can finish the briefing")
                 if not isinstance(phase, sim.BriefingPhase):
                     raise RoomError(409, "not_briefing", "The briefing has already finished")
-                state = replace(state, phase=sim.ReadingPhase(uuid4(), now + state.timing.reading_seconds))
+                # The spoken briefing already covered the situation, so speaking turns begin at once.
+                seen = {seat.member_id: seat.last_seen for seat in room.members.values()}
+                state = gameplay.begin_speaking(state, now, group.electorate, seen)
+            elif action == "skip_phase":
+                if caller.member_id != room.host_member_id:
+                    raise RoomError(403, "host_required", "Only the host can skip a phase")
+                if isinstance(phase, sim.SpeakingPhase):
+                    state = gameplay.finish_record(state, now, "host_skip_phase", caller.member_id)
+                    state = replace(state, phase=sim.DiscussionPhase(uuid4(), now))
+                elif isinstance(phase, sim.BriefingPhase):
+                    seen = {seat.member_id: seat.last_seen for seat in room.members.values()}
+                    state = gameplay.begin_speaking(state, now, group.electorate, seen)
+                elif isinstance(phase, sim.ResultPhase):
+                    state = replace(state, phase=replace(phase, not_before=now))
+                elif isinstance(phase, SKIPPABLE):
+                    state = replace(state, phase=replace(phase, deadline=now))
+                else:
+                    raise RoomError(409, "not_skippable", "This phase cannot be skipped")
             elif action in {"finish", "skip"}:
                 if not isinstance(phase, sim.SpeakingPhase):
                     raise RoomError(409, "not_speaking", "There is no active speaker")
@@ -488,6 +512,9 @@ class Rooms:
             room.phase = replace(group, state=state, assignments=assignments)
             room.version += 1
             room.touch(session, now)
+            if action in {"skip_phase", "finish", "skip"}:
+                # Apply the transition this command made due right away instead of on the next poll.
+                self.reconcile(room, now)
             view = room.snapshot(session, now)
             self.receipts[(session, command_id)] = (intent, view)
             return view

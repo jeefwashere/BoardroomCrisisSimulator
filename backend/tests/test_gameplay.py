@@ -101,9 +101,22 @@ class GameplayTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn('finish_briefing', (await self.view(0))['game']['allowed_actions'])
         self.assertNotIn('finish_briefing', (await self.view(1))['game']['allowed_actions'])
         await self.action(1, briefing, 'briefing/finish', expected=403)
-        reading = await self.action(0, briefing, 'briefing/finish')
-        self.assertEqual(reading['phase'], 'reading')
+        speaking = await self.action(0, briefing, 'briefing/finish')
+        self.assertEqual(speaking['phase'], 'speaking')
         await self.action(0, briefing, 'briefing/finish', expected=409)
+
+    async def test_host_skips_each_timed_phase(self):
+        view = await self.ready()
+        await self.action(1, view, 'skip-phase', expected=403)
+        seen = []
+        for _ in range(8):
+            if view['phase'] in ('ended', 'decision', 'resolving'):
+                break
+            self.assertIn('skip_phase', view['game']['allowed_actions'])
+            view = await self.action(0, view, 'skip-phase')
+            seen.append(view['phase'])
+        self.assertIn('voting', seen)
+        self.assertEqual(seen[0], 'speaking')
 
     async def test_complete_game_tie_late_admission_and_frozen_evidence(self):
         await self.ready()

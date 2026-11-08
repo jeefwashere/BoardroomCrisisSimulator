@@ -163,7 +163,7 @@ class CedarBridgeHttpTests(unittest.IsolatedAsyncioTestCase):
         for forbidden in ("preferred_option_id", "outcomes", "continuity_with_checks", "happy_path"):
             self.assertNotIn(forbidden, response.text)
 
-    async def test_authored_ballot_vote_ends_with_controlled_continuity(self):
+    async def test_individual_decisions_replace_the_vote_and_end_the_game(self):
         ids = []
         for number, name in enumerate(("Alex", "Morgan", "Sam")):
             client = await self.client()
@@ -188,33 +188,26 @@ class CedarBridgeHttpTests(unittest.IsolatedAsyncioTestCase):
 
         for _ in range(250):
             current = await view()
-            if current["phase"] == "voting":
+            self.assertNotEqual(current["phase"], "voting", current)
+            if current["phase"] == "individual_decision":
                 break
             self.assertNotEqual(current["phase"], "ended", current)
             self.clock.now += 5
             await asyncio.gather(*(client.get(path) for client in self.clients))
         else:
-            self.fail("Voting was never reached")
-        options = current["game"]["current_node"]["options"]
-        self.assertEqual([(item["option_id"], item["label"]) for item in options],
-                         [option[:2] for option in OPTIONS])
-        for client in self.clients:
-            response = await client.post(path + "/rounds/" + current["game"]["round_id"] + "/vote", json={
+            self.fail("Individual decisions were never reached")
+        for number, client in enumerate(self.clients):
+            response = await client.post(path + "/rounds/" + current["game"]["round_id"] + "/decision", json={
                 "command_id": str(uuid4()), "phase_id": current["game"]["phase_id"],
-                "option_id": "controlled_continuity"})
+                "text": f"Decision {number}: controlled continuity with checks."})
             self.assertEqual(response.status_code, 200, response.text)
-        for _ in range(12):
-            self.clock.now += 10
-            await asyncio.gather(*(client.get(path) for client in self.clients))
         ended = await view()
         self.assertEqual(ended["phase"], "ended", ended)
-        (record,) = ended["game"]["history"]
-        self.assertEqual(record["selected_option_id"], "controlled_continuity")
-        self.assertIn("interim incident coordinator", record["text"])
+        self.assertEqual(ended["game"]["ending_label"], "individual_decisions_recorded")
+        self.assertEqual(ended["game"]["history"], [])
         evidence = await self.clients[0].get(path + "/evaluation-evidence")
         self.assertEqual(evidence.status_code, 200, evidence.text)
         self.assertEqual(UUID(evidence.json()["room_id"]), UUID(room_id))
-
 
 if __name__ == "__main__":
     unittest.main()

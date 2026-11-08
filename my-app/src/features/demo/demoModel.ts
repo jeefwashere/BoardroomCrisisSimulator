@@ -84,11 +84,12 @@ export function seatStatus(snapshot: RoomSnapshot | null | undefined): SeatStatu
     const game = snapshot.game
     const eligible = Boolean(game && (game.allowed_actions?.includes('vote') ?? game.eligible_member_ids.includes(snapshot.self_member_id)))
     const voting = snapshot.phase === 'voting' && eligible
+    const writing = snapshot.phase === 'individual_decision' && Boolean(game?.allowed_actions?.includes('submit_decision')) && !game?.individual_decisions?.self
     return {
         phase: snapshot.phase,
         roleId,
         speaking: snapshot.phase === 'speaking' && game?.active_speaker_id === snapshot.self_member_id,
-        decide: voting && game?.self_vote == null,
+        decide: (voting && game?.self_vote == null) || writing,
         voted: voting && game?.self_vote != null,
         ceoTie: snapshot.phase === 'tie_break' && roleId === 'ceo',
     }
@@ -113,6 +114,10 @@ export function followTarget(snapshots: readonly (RoomSnapshot | null | undefine
         return next >= 0 ? next : ceo >= 0 ? ceo : null
     }
     if (phase === 'tie_break') return ceo >= 0 ? ceo : null
+    if (phase === 'individual_decision') {
+        const next = statuses.findIndex((status) => status.decide)
+        return next >= 0 ? next : null
+    }
     return null
 }
 
@@ -135,6 +140,8 @@ export type DemoBot = {
     keywords: readonly RegExp[]
     /** Committed when the bot's saved clip is missing from the recordings catalog. */
     fallback: string
+    /** Submitted as this bot's own written decision in individual decision games. */
+    decision: string
 }
 
 export const DEMO_BOTS: readonly DemoBot[] = [
@@ -142,11 +149,13 @@ export const DEMO_BOTS: readonly DemoBot[] = [
         seat: 'morgan', index: 1, name: 'Morgan', title: 'IT recovery lead',
         keywords: [/technical/i, /verif/i, /check/i, /\bIT\b/, /backup/i, /recover/i],
         fallback: 'From IT recovery: before we promise anything, we verify the backups are usable, map the recovery dependencies and get a restoration estimate.',
+        decision: 'I would verify that our backups are usable and map the recovery dependencies before we promise any restoration time, because a missed promise would cost more trust than a short delay. Using the IT status report (systems down, backups not yet test restored, vendor dependencies unconfirmed), I would run a test restore first. I still need to establish whether the latest backup is clean and complete, how long a restore takes and which systems must come back first.',
     },
     {
         seat: 'sam', index: 2, name: 'Sam', title: 'Communications lead',
         keywords: [/update/i, /communicat/i, /public/i, /continuity/i],
         fallback: 'From communications: we issue a factual update now that separates confirmed facts from unknowns and commits to a time for the next update.',
+        decision: 'I would publish an honest update now that separates confirmed facts from unknowns and names the time of the next update, because silence invites rumours while a scheduled update shows control without overpromising. Using what is confirmed so far (the affected services, the approved paper appointment workaround and the recovery checks under way), I would keep it short. I still need to establish the restoration estimate, whether any personal data was exposed and who approves the wording while the director is unavailable.',
     },
 ]
 
@@ -203,7 +212,7 @@ export function botVoteChoice({ bot, options, ceoVote, ceoMemberId, roomId }: Bo
 
 type Snapshot = RoomSnapshot | null | undefined
 
-export type BotAction = { kind: 'speak' | 'vote'; bot: DemoBot; phaseId: string; roundId: string; key: string }
+export type BotAction = { kind: 'speak' | 'vote' | 'decide'; bot: DemoBot; phaseId: string; roundId: string; key: string }
 
 /** The bot's own live speaking turn, read from that bot's snapshot. */
 export function botSpeakingTurn(bot: DemoBot, snapshot: Snapshot): Omit<BotAction, 'kind' | 'key'> | null {
@@ -213,16 +222,30 @@ export function botSpeakingTurn(bot: DemoBot, snapshot: Snapshot): Omit<BotActio
     return { bot, phaseId: game.phase_id, roundId: game.round_id }
 }
 
+/** The bot's own open individual decision step (not yet submitted), read from that bot's snapshot. */
+export function botDecisionStep(bot: DemoBot, snapshot: Snapshot): Omit<BotAction, 'kind' | 'key'> | null {
+    const game = snapshot?.game
+    if (!snapshot || !game || snapshot.phase !== 'individual_decision' || game.individual_decisions?.self) return null
+    if (game.allowed_actions && !game.allowed_actions.includes('submit_decision')) return null
+    return { bot, phaseId: game.phase_id, roundId: game.round_id }
+}
+
 /**
  * Which bot acts now, given every seat's snapshot (Alex first) and the action keys already taken.
  * A bot speaks on its own turn. Bots vote only after the CEO's ballot is in, Morgan before Sam,
  * and each bot votes at most once per voting phase (a later CEO vote change does not re vote).
+ * In individual decision games each bot writes its own decision once per phase, independent of Alex.
  */
 export function nextBotAction(snapshots: readonly Snapshot[], handled: ReadonlySet<string>): BotAction | null {
     for (const bot of DEMO_BOTS) {
         const turn = botSpeakingTurn(bot, snapshots[bot.index])
         const key = turn && `speak:${turn.phaseId}:${bot.seat}`
         if (turn && key && !handled.has(key)) return { kind: 'speak', key, ...turn }
+    }
+    for (const bot of DEMO_BOTS) {
+        const step = botDecisionStep(bot, snapshots[bot.index])
+        const key = step && `decide:${step.phaseId}:${bot.seat}`
+        if (step && key && !handled.has(key)) return { kind: 'decide', key, ...step }
     }
     const ceo = snapshots[0]
     if (ceo?.phase !== 'voting' || ceo.game.self_vote == null) return null
@@ -246,7 +269,7 @@ export function turnBudgetMs(game: { phase_deadline?: string | null; server_time
 }
 
 /** What the parent page is doing for a bot right now (not visible in any snapshot). */
-export type BotActivity = 'clip' | 'fallback' | 'committing' | 'deciding'
+export type BotActivity = 'clip' | 'fallback' | 'committing' | 'deciding' | 'writing'
 
 /** Status shown in the solo Board strip for one bot. */
 export function botStatusText(bot: DemoBot, snapshots: readonly Snapshot[], activity: BotActivity | null | undefined): string {
@@ -254,6 +277,7 @@ export function botStatusText(bot: DemoBot, snapshots: readonly Snapshot[], acti
     if (activity === 'fallback') return 'speaking…'
     if (activity === 'committing') return 'passing the turn…'
     if (activity === 'deciding') return 'deciding…'
+    if (activity === 'writing') return 'writing…'
     const own = snapshots[bot.index]
     if (!own) return 'connecting…'
     const self = own.members.find((member) => member.member_id === own.self_member_id)
@@ -263,6 +287,8 @@ export function botStatusText(bot: DemoBot, snapshots: readonly Snapshot[], acti
     if (own.phase === 'speaking' && game.active_speaker_id === own.self_member_id) return 'speaking…'
     const turn = (game.turns ?? []).findLast((item) => item.member_id === own.self_member_id && item.round_id === game.round_id)
     if (['speaking', 'discussion'].includes(own.phase) && turn) return turn.reason === 'finished' ? 'spoke' : turn.reason === 'disconnected' ? 'skipped (disconnected)' : 'turn ended'
+    if (own.phase === 'individual_decision') return game.individual_decisions?.self ? 'submitted' : 'writing…'
+    if (own.phase === 'ended' && game.decision_mode === 'individual') return game.individual_decisions?.self ? 'submitted' : 'decisions closed'
     if (game.self_vote != null && ['voting', 'tie_break', 'resolving', 'resolution_failed', 'decision', 'result', 'ended'].includes(own.phase)) return 'voted'
     if (own.phase === 'voting') return snapshots[0]?.game?.self_vote == null ? 'waiting for your vote' : 'waiting'
     return 'waiting'
@@ -289,6 +315,7 @@ export function soloStage(snapshots: readonly Snapshot[]): SoloStage {
     if (ceo.phase === 'lobby') return stage('Lobby: assign roles and start the game in your view')
     const game = ceo.game
     const label = game.last_result?.round_number === game.round_number ? game.last_result.selected_option_label : null
+    const individual = game.decision_mode === 'individual'
     switch (ceo.phase) {
         case 'briefing':
         case 'reading': return stage('Opening briefing: listen in your view, or use Skip phase')
@@ -297,12 +324,20 @@ export function soloStage(snapshots: readonly Snapshot[]): SoloStage {
             const speaker = ceo.members.find((member) => member.member_id === game.active_speaker_id)
             return stage(speaker ? `${speaker.display_name} has the floor` : 'Speaking turns')
         }
-        case 'discussion': return stage(game.discussion_mode === 'experts' ? 'Expert panel: voting opens when the experts finish' : 'Open discussion before the vote')
+        case 'discussion': return stage(game.discussion_mode === 'experts'
+            ? `Expert panel: ${individual ? 'decisions open' : 'voting opens'} when the experts finish`
+            : `Open discussion before ${individual ? 'your decision' : 'the vote'}`)
+        case 'individual_decision': {
+            if (!game.individual_decisions?.self) return stage('Write your decision', { action: null })
+            const botsDone = DEMO_BOTS.every((bot) => snapshots[bot.index]?.game?.individual_decisions?.self)
+            return stage(botsDone ? 'Decision submitted · closing decisions…' : 'Decision submitted · the board is writing…')
+        }
         case 'voting': {
             if (game.self_vote == null) return stage('Your decision first: vote in your view (you may add your own option)')
             const botsVoted = DEMO_BOTS.every((bot) => snapshots[bot.index]?.game?.self_vote != null)
             if (!botsVoted) return stage('The board is deciding…')
-            const canRecord = game.allowed_actions?.includes('skip_phase') ?? false
+            // Individual decision games never offer the record call to action.
+            const canRecord = !individual && (game.allowed_actions?.includes('skip_phase') ?? false)
             return stage(canRecord ? 'The board has voted: record the final decision' : 'The board has voted', { action: canRecord ? 'record' : null })
         }
         case 'tie_break': return stage('Tie — choose the final decision in your view')
@@ -311,6 +346,7 @@ export function soloStage(snapshots: readonly Snapshot[]): SoloStage {
         case 'decision': return stage('Recording the decision…')
         case 'result': return stage('Decision recorded', { decision: label })
         case 'ended': {
+            if (individual) return stage('Game over · decisions recorded', { over: true })
             const final = label ?? game.last_result?.selected_option_label ?? null
             return stage(game.last_result ? 'Decision recorded · game over' : 'Game over', { decision: final, over: true })
         }

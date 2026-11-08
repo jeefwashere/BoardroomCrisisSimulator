@@ -76,6 +76,14 @@ class VotingPhase:
 
 
 @dataclass(frozen=True)
+class IndividualDecisionPhase:
+    """Each electorate member writes a private decision instead of voting (decision_mode "individual")."""
+    phase_id: UUID
+    deadline: float
+    kind: Literal["individual_decision"] = "individual_decision"
+
+
+@dataclass(frozen=True)
 class TiePhase:
     phase_id: UUID
     deadline: float
@@ -148,6 +156,16 @@ class Resolution:
 
 
 @dataclass(frozen=True)
+class IndividualDecision:
+    """One member's latest written decision for a round. The text is private to its author in snapshots."""
+    member_id: UUID
+    round_id: UUID
+    text: str
+    at: datetime
+    contribution_id: UUID
+
+
+@dataclass(frozen=True)
 class TurnRecord:
     member_id: UUID
     round_id: UUID
@@ -212,7 +230,7 @@ class Game:
     node_id: str
     facts: Facts
     history: tuple[DecisionRecord, ...]
-    phase: BriefingPhase | DecisionPhase | ResultPhase | EndedPhase | ReadingPhase | SpeakingPhase | DiscussionPhase | VotingPhase | TiePhase | ResolvingPhase | ResolutionFailedPhase
+    phase: BriefingPhase | DecisionPhase | ResultPhase | EndedPhase | ReadingPhase | SpeakingPhase | DiscussionPhase | VotingPhase | TiePhase | ResolvingPhase | ResolutionFailedPhase | IndividualDecisionPhase
     started_mono: float = 0
     session_deadline: float | None = None
     ballots: tuple[tuple[UUID, str], ...] = ()
@@ -228,6 +246,8 @@ class Game:
     options_source: Literal["ai", "prepared_fallback", "authored"] | None = None
     # Per room setting chosen at Start: agent drafted ballots or the authored prepared options.
     ballot_source: Literal["ai", "authored"] = "ai"
+    # Written decisions for decision_mode "individual"; resubmission replaces the member's entry.
+    individual_decisions: tuple[IndividualDecision, ...] = ()
 
 
 @dataclass(frozen=True)

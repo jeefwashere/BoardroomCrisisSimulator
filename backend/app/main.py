@@ -14,7 +14,7 @@ from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyCookie, APIKeyHeader
 from fastapi.exceptions import RequestValidationError
 
-from .models import (LeaveRoom, LeaveView, ProposalCommand, RecordingView, AudioBody, BeginRecording, ReviewBody, CeoCommand, PhaseCommand, SkipCommand, VoteCommand,
+from .models import (LeaveRoom, LeaveView, ProposalCommand, RecordingView, AudioBody, BeginRecording, ReviewBody, CeoCommand, DecisionCommand, PhaseCommand, SkipCommand, VoteCommand,
                      ContributionBody, ContributionView, CreateRoom, DeliveryBody, ErrorResponse,
                      EvaluationEvidenceView, JoinRoom, MediaView, RoomView, ScenarioView, StartRoom,
                      TabSessionBody, TabSessionView, ValidationErrorResponse, ConsultBody)
@@ -200,6 +200,11 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     @app.post("/api/rooms/{room_id}/rounds/{round_id}/vote", response_model=RoomView, responses=errors)
     async def vote(room_id: UUID, round_id: UUID, body: VoteCommand, member_session: authenticated):
         return await rooms.play(member_session, room_id, body.command_id, body.phase_id, round_id, "vote", body.option_id)
+
+    @app.post("/api/rooms/{room_id}/rounds/{round_id}/decision", response_model=RoomView, responses=errors)
+    async def individual_decision(room_id: UUID, round_id: UUID, body: DecisionCommand, member_session: authenticated):
+        return await rooms.play(member_session, room_id, body.command_id, body.phase_id, round_id,
+                                "submit_decision", body.text)
 
     @app.post("/api/rooms/{room_id}/rounds/{round_id}/tie-decision", response_model=RoomView, responses=errors)
     async def tie_decision(room_id: UUID, round_id: UUID, body: VoteCommand, member_session: authenticated):

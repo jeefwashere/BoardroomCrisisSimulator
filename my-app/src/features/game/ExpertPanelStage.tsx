@@ -4,13 +4,12 @@ import { motion, useReducedMotion } from 'motion/react'
 import type { RoomSnapshot } from '../../services/rooms'
 import type { Adviser, ExpertPanel, ExpertTake } from '../../services/facilitation'
 import { facilitationApi, facilitationErrorMessage } from '../facilitation/facilitationClient'
-import { ADVISER_ACCENTS, adviserInitials } from '../facilitation/facilitationModel'
 import { pollRoom } from '../rooms/roomState'
 import { seatFromSearch } from '../../services/tabSession'
 import Countdown from './Countdown'
 import {
-    EXPERT_STATUS_LABELS, activeExpertIndex, expertCardStatus, expertPersona, normalizeExperts, panelForRound,
-    panelSettled, panelSourceLabel,
+    EXPERT_ORDER, EXPERT_STATUS_LABELS, PANEL_EXPERT_ORDER, activeExpertIndex, expertAccent, expertCardStatus, expertInitials,
+    expertPersona, normalizeExperts, panelForRound, panelSettled, panelSourceLabel,
 } from './expertPanelModel'
 
 const POLL_MS = 1500
@@ -113,7 +112,7 @@ function Orb() {
 
 type Props = {
     room: RoomSnapshot
-    /** Host only: ends the panel for the whole room and opens voting. */
+    /** Host only: ends the panel for the whole room and opens voting (or individual decisions). */
     finishPanel?: () => Promise<boolean>
     /** Room command error to surface while the briefing column is hidden. */
     notice?: string
@@ -123,7 +122,9 @@ export default function ExpertPanelStage({ room, finishPanel, notice }: Props) {
     const game = room.game
     const roundId = game?.round_id ?? ''
     const { panel, advisers, error } = useExpertPanel(room.room_id, roundId)
-    const experts = useMemo(() => normalizeExperts(panel), [panel])
+    // Individual decision scenarios use the security, operations and governance panel; the vote wording changes with it.
+    const individual = game?.decision_mode === 'individual'
+    const experts = useMemo(() => normalizeExperts(panel, individual ? PANEL_EXPERT_ORDER : EXPERT_ORDER), [panel, individual])
     const voiceFor = useExpertVoices(room.room_id, experts, PLAYS_VOICE)
     const [step, setStep] = useState(0)
     const [typedIndex, setTypedIndex] = useState(-1)
@@ -179,7 +180,10 @@ export default function ExpertPanelStage({ room, finishPanel, notice }: Props) {
 
     const source = panelSourceLabel(experts)
     const speakingNow = activeTake?.status === 'ready' ? activeTake.label : ''
-    const problem = finishFailed ? (notice || 'Voting could not be opened automatically. The host can try Skip to the vote.') : ''
+    const words = individual
+        ? { heading: 'Expert panel · advice before your decision', skip: 'Skip to decisions', opens: 'Decisions open shortly.', advisory: 'Advisory only: experts cannot decide for you', failed: 'Decisions could not be opened automatically. The host can try Skip to decisions.' }
+        : { heading: 'Expert panel · advice before the vote', skip: 'Skip to the vote', opens: 'Voting opens shortly.', advisory: 'Advisory only: experts cannot vote', failed: 'Voting could not be opened automatically. The host can try Skip to the vote.' }
+    const problem = finishFailed ? (notice || words.failed) : ''
 
     return <motion.section
         className="opening-stage expert-stage"
@@ -190,7 +194,7 @@ export default function ExpertPanelStage({ room, finishPanel, notice }: Props) {
         transition={{ duration: 0.35, ease: 'easeOut' }}
     >
         <div className="opening-meta">
-            <h2 id="expert-panel-title" className="opening-pill expert-heading">Expert panel · advice before the vote</h2>
+            <h2 id="expert-panel-title" className="opening-pill expert-heading">{words.heading}</h2>
             <Countdown key={game.phase_id + (game.server_time ?? '')} deadline={game.phase_deadline} serverTime={game.server_time} className="opening-countdown" />
         </div>
         <p className="game-visually-hidden" role="status">{complete ? 'The expert panel has finished.' : speakingNow ? `${speakingNow} is speaking.` : 'The experts are preparing.'}</p>
@@ -207,10 +211,10 @@ export default function ExpertPanelStage({ room, finishPanel, notice }: Props) {
                 const isActive = panel !== null && index === active
                 const waitingForVoice = isActive && voiceDriven && startedIndex !== active
                 const speaking = isActive && status === 'speaking' && !waitingForVoice && (playing || typedIndex !== active)
-                const accent = ADVISER_ACCENTS[take.kind] ?? '#5b5f57'
+                const accent = expertAccent(take.kind)
                 return <li key={take.kind} className={`expert-card expert-card--${status}${isActive ? ' is-active' : ''}${speaking ? ' is-speaking' : ''}`} style={{ '--expert-accent': accent } as CSSProperties}>
                     <div className="expert-card-head">
-                        {isActive ? <Orb /> : <span className="expert-avatar" aria-hidden="true">{adviserInitials(take.label)}</span>}
+                        {isActive ? <Orb /> : <span className="expert-avatar" aria-hidden="true">{expertInitials(take.kind, take.label)}</span>}
                         <span className="expert-identity">
                             <span className="expert-name">{take.label}</span>
                             <span className="expert-persona">{expertPersona(take.kind, advisers)}</span>
@@ -231,7 +235,7 @@ export default function ExpertPanelStage({ room, finishPanel, notice }: Props) {
             onError={() => { setPlaying(false); setBlocked(false); setBrokenSpeech(activeTake.speech_id) }} />}
 
         <div className="opening-footer">
-            <span className="opening-source">Advisory only: experts cannot vote</span>
+            <span className="opening-source">{words.advisory}</span>
             {source && <span className={`opening-source${source === 'Offline reply' ? ' is-offline' : ''}`}>{source}</span>}
             {blocked && <button type="button" className="opening-play" onClick={() => { void audioRef.current?.play().then(() => setBlocked(false)).catch(() => undefined) }}>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
@@ -240,9 +244,9 @@ export default function ExpertPanelStage({ room, finishPanel, notice }: Props) {
             {blocked && <p className="opening-voice-notice" role="status">The browser blocked autoplay. Tap once to hear the live expert panel.</p>}
             {activeVoice?.state === 'unavailable' && <p className="opening-voice-notice" role="status">{activeVoice.message}</p>}
             {!PLAYS_VOICE && !complete && <p className="opening-voice-notice" role="status">Experts are speaking on the host's screen.</p>}
-            {complete && !finishFailed && <p className="opening-voice-notice" role="status">Voting opens shortly.</p>}
+            {complete && !finishFailed && <p className="opening-voice-notice" role="status">{words.opens}</p>}
             {problem && <p className="opening-voice-notice" role="alert">{problem}</p>}
-            {finishPanel && <button type="button" className="opening-link" onClick={skipToVote}>Skip to the vote</button>}
+            {finishPanel && <button type="button" className="opening-link" onClick={skipToVote}>{words.skip}</button>}
         </div>
     </motion.section>
 }

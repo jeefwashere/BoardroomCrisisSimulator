@@ -190,3 +190,43 @@ test('the solo bar asks the CEO to vote first, then to record the decision, then
     assert.match(soloStage(views('discussion', () => ({ discussion_mode: 'experts' }))).text, /^Expert panel/)
     assert.equal(soloStage([null, null, null]).text, 'Connecting…')
 })
+
+// Individual decision games (decision_mode "individual", Cedar T01): one written decision per member.
+const decisionViews = (submitted: Record<string, boolean>, actions = ['submit_decision', 'skip_phase']) => views('individual_decision', (id) => ({
+    phase_id: 'decide-1', decision_mode: 'individual', allowed_actions: id === 'a' ? actions : ['submit_decision'],
+    individual_decisions: { submitted: seats.map((member) => ({ member_id: member, display_name: member, role_name: roles[member], submitted: submitted[member] })), self: submitted[id] ? { text: `${id} decision`, at: '' } : null },
+}))
+
+test('each bot writes its own decision once per phase, independent of Alex', () => {
+    const open = decisionViews({ a: false, b: false, c: false })
+    const morgan = nextBotAction(open, new Set())
+    assert.deepEqual(morgan && { kind: morgan.kind, seat: morgan.bot.seat, key: morgan.key, roundId: morgan.roundId }, { kind: 'decide', seat: 'morgan', key: 'decide:decide-1:morgan', roundId: 'r1' })
+    const sam = nextBotAction(open, new Set(['decide:decide-1:morgan']))
+    assert.equal(sam?.bot.seat, 'sam')
+    // A bot that already submitted, or that cannot submit, is skipped; duplicates are guarded by phase.
+    assert.equal(nextBotAction(decisionViews({ a: false, b: true, c: false }), new Set())?.bot.seat, 'sam')
+    assert.equal(nextBotAction(decisionViews({ a: true, b: true, c: true }), new Set()), null)
+    assert.equal(nextBotAction(open, new Set(['decide:decide-1:morgan', 'decide:decide-1:sam'])), null)
+    const observers = open.map((view, index) => index === 0 || !view.game ? view : { ...view, game: { ...view.game, allowed_actions: [] } })
+    assert.equal(nextBotAction(observers, new Set()), null)
+    // Every bot has a canned decision covering the action, reasons, information and unknowns.
+    for (const bot of DEMO_BOTS) assert.match(bot.decision, /^I would .+because.+Using .+I still need to establish/s)
+})
+
+test('individual decisions show writing and submitted states and never offer the record action', () => {
+    const open = decisionViews({ a: false, b: false, c: false })
+    assert.equal(botStatusText(MORGAN, open, null), 'writing…')
+    assert.equal(botStatusText(MORGAN, open, 'writing'), 'writing…')
+    assert.equal(botStatusText(SAM, decisionViews({ a: false, b: false, c: true }), null), 'submitted')
+    assert.deepEqual(soloStage(open), { text: 'Write your decision', action: null, decision: null, over: false })
+    assert.equal(soloStage(decisionViews({ a: true, b: false, c: false })).text, 'Decision submitted · the board is writing…')
+    assert.equal(soloStage(decisionViews({ a: true, b: true, c: true })).action, null)
+    const ended = views('ended', (id) => ({ decision_mode: 'individual', individual_decisions: { submitted: [], self: id === 'b' ? { text: 't', at: '' } : null } }))
+    assert.deepEqual(soloStage(ended), { text: 'Game over · decisions recorded', action: null, decision: null, over: true })
+    assert.equal(botStatusText(MORGAN, ended, null), 'submitted')
+    assert.match(soloStage(views('discussion', () => ({ discussion_mode: 'experts', decision_mode: 'individual' }))).text, /decisions open/)
+    // Seats mode follows the next member who still has to write.
+    assert.equal(seatStatus(open[0]).decide, true)
+    assert.equal(followTarget(decisionViews({ a: true, b: false, c: false })), 1)
+    assert.equal(followTarget(decisionViews({ a: true, b: true, c: true })), null)
+})

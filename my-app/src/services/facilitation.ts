@@ -2,6 +2,10 @@
 import type { RoomApi } from './rooms.ts'
 
 export type AdviserKind = 'facilitator' | 'it' | 'journalist'
+/** Expert panel kinds used by individual decision scenarios (Cedar T01). */
+export type PanelExpertKind = 'security' | 'operations' | 'governance'
+/** Any expert panel kind: the legacy advisers or the newer panel experts. */
+export type ExpertKind = AdviserKind | PanelExpertKind
 export type JobStatus = 'pending' | 'ready' | 'failed'
 
 export type Opening = {
@@ -36,9 +40,9 @@ export type AttachedDocument = { document_id: string; title: string; pdf_url: st
 /** Public catalog entry (`GET /api/documents`). */
 export type IncidentDocument = AttachedDocument & { filename: string; pack: string; default: boolean; summary: string }
 
-/** One expert's spoken take in the pre vote expert panel (fixed order facilitator, it, journalist). */
+/** One expert's spoken take in the pre decision expert panel (facilitator, it, journalist; or security, operations, governance). */
 export type ExpertTake = {
-    kind: AdviserKind
+    kind: ExpertKind
     label: string
     status: JobStatus
     text: string

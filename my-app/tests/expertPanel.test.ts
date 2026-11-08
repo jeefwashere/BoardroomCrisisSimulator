@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
-    EXPERT_STATUS_LABELS, activeExpertIndex, expertCardStatus, expertPersona, normalizeExperts, panelForRound,
+    EXPERT_STATUS_LABELS, PANEL_EXPERT_ORDER, activeExpertIndex, expertAccent, expertInitials, expertOrder, expertCardStatus, expertPersona, normalizeExperts, panelForRound,
     panelSettled, panelSourceLabel, showsExpertStage,
 } from '../src/features/game/expertPanelModel.ts'
 import type { ExpertPanel, ExpertTake } from '../src/services/facilitation.ts'
@@ -78,4 +78,24 @@ test('the source label reflects live and offline takes', () => {
     assert.equal(panelSourceLabel(normalizeExperts(panel([take('facilitator', { source: 'offline' })]))), 'Offline reply')
     assert.match(panelSourceLabel(normalizeExperts(panel([take('facilitator'), take('it', { source: 'offline' })]))), /some replies offline/)
     assert.equal(panelSourceLabel(normalizeExperts(null)), '')
+})
+
+test('the individual decision panel uses the security, operations and governance experts', () => {
+    const newer = normalizeExperts(panel([take('governance', { label: 'Governance and finance' }), take('security', { label: 'IT and security' })]))
+    assert.deepEqual(newer.map((item) => item.kind), ['security', 'operations', 'governance'])
+    assert.equal(newer[1].status, 'pending')
+    assert.equal(newer[1].label, 'Operations and community services')
+    // Before the panel arrives the caller picks which placeholders to show; legacy remains the default.
+    assert.deepEqual(normalizeExperts(null, PANEL_EXPERT_ORDER).map((item) => item.kind), ['security', 'operations', 'governance'])
+    assert.deepEqual(normalizeExperts(null).map((item) => item.kind), ['facilitator', 'it', 'journalist'])
+    assert.deepEqual(expertOrder(panel([take('it')]), PANEL_EXPERT_ORDER), ['facilitator', 'it', 'journalist'])
+    assert.equal(expertInitials('security', 'IT and security'), 'IS')
+    assert.equal(expertInitials('operations', 'Operations and community services'), 'OC')
+    assert.equal(expertInitials('governance', 'Governance and finance'), 'GF')
+    assert.equal(expertInitials('journalist', 'Journalist'), 'JO')
+    assert.equal(expertInitials('other', 'Risk adviser'), 'RA')
+    assert.notEqual(expertAccent('operations'), expertAccent('governance'))
+    assert.equal(expertAccent('unknown'), '#5b5f57')
+    assert.match(expertPersona('operations'), /services/)
+    assert.equal(expertPersona('unknown'), '')
 })

@@ -27,6 +27,7 @@ class Role:
 
 
 UNUSED_SPEAKING_MODES = ("open_discussion", "skip_to_vote", "expert_panel")
+DECISION_MODES = ("vote", "individual")
 
 
 @dataclass(frozen=True)
@@ -43,6 +44,10 @@ class Timing:
     # "open_discussion" keeps unused speaking time as discussion; "skip_to_vote" opens voting after the last turn;
     # "expert_panel" holds a 90 second AI expert panel stage after the last turn, then opens voting.
     unused_speaking: str = "open_discussion"
+    # "vote" keeps the board ballot; "individual" replaces it with one private written decision
+    # per member, after which the game ends.
+    decision_mode: str = "vote"
+    individual_decision_seconds: int = 180
 
 
 @dataclass(frozen=True)
@@ -303,6 +308,11 @@ def _validate_timings(data, rounds):
         _text(value.get("unused_speaking_seconds"), "unused_speaking_seconds")
         if type(value.get("result_window_includes_ai")) is not bool:
             raise ValueError("result_window_includes_ai must be boolean")
+        mode = value.get("decision_mode", "vote")
+        if mode not in DECISION_MODES:
+            raise ValueError("decision_mode must be vote or individual")
+        individual_seconds = _integer(value.get("individual_decision_seconds", 180),
+                                      f"timing.{name}.individual_decision_seconds", positive=True)
         timings.append(Timing(
             name, value["briefing_seconds"], value["result_seconds_per_round"],
             value["reading_seconds_per_round"], value["discussion_seconds_per_round"],
@@ -310,6 +320,7 @@ def _validate_timings(data, rounds):
             value["gameplay_ceiling_from_briefing_start_seconds"], value["speaker_max_seconds"],
             value["unused_speaking_seconds"] if value["unused_speaking_seconds"] in UNUSED_SPEAKING_MODES
             else "open_discussion",
+            mode, individual_seconds,
         ))
     vote = _object(data.get("vote_policy"), "vote_policy")
     if type(vote.get("duration_seconds")) is not int or vote["duration_seconds"] != 60:

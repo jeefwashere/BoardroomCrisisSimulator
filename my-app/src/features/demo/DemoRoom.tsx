@@ -203,7 +203,7 @@ export default function DemoRoom() {
                 <p className="demo-eyebrow">Single window test</p>
                 <h1 id="demo-title">{mode === 'solo' ? 'Solo demo' : 'Three player demo'}</h1>
                 {mode === 'solo'
-                    ? <p className="demo-lede">Play a full game as <strong>Alex, the CEO and host</strong>. Morgan (IT recovery) and Sam (communications) are automated board members with their own <strong>test memberships</strong>: they play their saved clips on their turns and vote after you.</p>
+                    ? <p className="demo-lede">Play a full game as <strong>Alex, the CEO and host</strong>. Morgan (IT recovery) and Sam (communications) are automated board members with their own <strong>test memberships</strong>: they play their saved clips on their turns and vote after you (in individual decision scenarios such as T01 Cedar Bridge, they each write their own decision).</p>
                     : <p className="demo-lede">Drive a full three player game from this one window. Alex, Morgan and Sam each get a separate <strong>test membership</strong> on the room server, shown side by side so you can act as every player.</p>}
                 <ol className="demo-steps">
                     <li>Alex creates a room; Morgan and Sam join it.</li>

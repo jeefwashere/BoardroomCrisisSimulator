@@ -260,7 +260,8 @@ class ExpertPanelTests(unittest.IsolatedAsyncioTestCase):
         self.clock.now += 89
         self.assertEqual((await self.view())['phase'], 'discussion')
         self.clock.now += 1
-        self.assertEqual((await self.view())['phase'], 'voting')
+        # Cedar Bridge records individual decisions instead of voting.
+        self.assertEqual((await self.view())['phase'], 'individual_decision')
 
     async def test_three_grounded_experts_generated_once_for_concurrent_readers(self):
         await self.to_panel(early_get=True)
@@ -276,8 +277,9 @@ class ExpertPanelTests(unittest.IsolatedAsyncioTestCase):
         prompts = self.expert_prompts()
         self.assertEqual(len(prompts), 3)
         panel = body['expert_panel']
-        self.assertEqual([item['kind'] for item in panel['experts']], ['facilitator', 'it', 'journalist'])
-        self.assertEqual([item['label'] for item in panel['experts']], ['Facilitator', 'IT adviser', 'Journalist'])
+        self.assertEqual([item['kind'] for item in panel['experts']], ['security', 'operations', 'governance'])
+        self.assertEqual([item['label'] for item in panel['experts']],
+                         ['IT and security', 'Operations and community services', 'Governance and finance'])
         for item in panel['experts']:
             self.assertEqual(set(item), {'kind', 'label', 'status', 'text', 'source', 'speech_id', 'error'})
             self.assertEqual((item['status'], item['source'], item['text'], item['error']),
@@ -291,6 +293,14 @@ class ExpertPanelTests(unittest.IsolatedAsyncioTestCase):
             self.assertIn('What must IT verify', prompt)
             self.assertIn('"label": "Attached incident report"', prompt)
             self.assertNotIn('controller', prompt.lower())
+        security, operations, governance = prompts_by_kind = (
+            next(prompt for prompt in prompts if 'IT and security expert' in prompt),
+            next(prompt for prompt in prompts if 'operations and community services expert' in prompt),
+            next(prompt for prompt in prompts if 'governance and finance expert' in prompt))
+        self.assertIn('technically known', security)
+        self.assertIn('staff', operations)
+        self.assertIn('authorize', governance)
+        self.assertEqual(len(set(prompts_by_kind)), 3)
         speech_id = panel['experts'][1]['speech_id']
         prepared = await self.clients[0].post(self.facilitation_path + f'/speech/{speech_id}/prepare')
         self.assertEqual(prepared.json(), {'status': 'disabled', 'error': None})
@@ -305,21 +315,21 @@ class ExpertPanelTests(unittest.IsolatedAsyncioTestCase):
                 await self.clients[0].get(self.facilitation_path)
                 experts = (await self.settle())['expert_panel']['experts']
                 self.assertEqual({item['source'] for item in experts}, {'offline'})
-                self.assertIn('Offline facilitator take', experts[0]['text'])
-                self.assertIn('Offline IT adviser take', experts[1]['text'])
-                self.assertIn('Offline journalist take', experts[2]['text'])
+                self.assertIn('Offline IT and security take', experts[0]['text'])
+                self.assertIn('Offline operations and community services take', experts[1]['text'])
+                self.assertIn('Offline governance and finance take', experts[2]['text'])
                 for item in experts:
                     self.assertIn('Player 0 (CEO) said:', item['text'])
                     self.assertNotIn('private provider', item['text'])
                     self.assertTrue(40 <= len(item['text'].split()) <= 130, item['text'])
 
-    async def test_host_skip_from_expert_stage_opens_voting_and_panel_remains(self):
+    async def test_host_skip_from_expert_stage_opens_individual_decisions_and_panel_remains(self):
         view = await self.to_panel()
         await self.clients[0].get(self.facilitation_path)
         before = (await self.settle())['expert_panel']
         await self.action(1, view, 'skip-phase', expected=403)
-        voting = await self.action(0, view, 'skip-phase')
-        self.assertEqual(voting['phase'], 'voting')
+        decision = await self.action(0, view, 'skip-phase')
+        self.assertEqual(decision['phase'], 'individual_decision')
         after = (await self.clients[2].get(self.facilitation_path)).json()['expert_panel']
         self.assertEqual(after, before)
         self.assertEqual(len(self.expert_prompts()), 3)

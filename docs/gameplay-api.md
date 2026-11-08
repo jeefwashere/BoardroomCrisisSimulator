@@ -24,6 +24,8 @@ result -> reading
 any active phase -> ended
 ```
 
+With `"decision_mode": "individual"` (see Individual decision mode below) the round instead runs `discussion -> individual_decision -> ended`.
+
 A FastAPI lifespan task reconciles rooms every 100 milliseconds. Authenticated commands and snapshots also reconcile under the same room lock before changing presence or accepting actions. No browser request is needed to move time forward. The deadline remains authoritative even when a wakeup is late. No public host command selects an ordinary vote winner.
 
 `backend/app/gameplay.py` computes immutable replacements. `Rooms` alone publishes them under its existing lock, increments room versions and retains receipts. Timer work, HTTP commands and rejoin therefore share one authority. Provider work is outside this delivery. The explicit `automatic=False` construction is used only by internal narrative foundation fixtures and their demo; normal application construction enables gameplay.
@@ -36,7 +38,7 @@ Retain the current tab session contract: initialize or resume with `POST /api/ta
 
 `GET /api/rooms/{room_id}` returns the existing room fields and these gameplay fields:
 
-1. `phase`: `briefing`, `reading`, `speaking`, `discussion`, `voting`, `tie_break`, `result` or `ended`. The older `decision` phase remains limited to internal foundation fixtures.
+1. `phase`: `briefing`, `reading`, `speaking`, `discussion`, `voting`, `tie_break`, `result`, `individual_decision` or `ended`. The older `decision` phase remains limited to internal foundation fixtures.
 2. `game.phase_id`, `round_id`, `round_number`, `server_time`, `phase_deadline` and `session_deadline`. Times are UTC projections of the server's monotonic clock. Clients display countdowns; they never advance gameplay.
 3. `active_speaker_id`, `speaker_order`, `current_node`, prepared `options` and `eligible_member_ids`.
 4. `self_vote`, `vote_counts`, `tied_option_ids` and caller specific `allowed_actions`. `vote_counts` is null throughout voting. No list of individual ballots is projected.
@@ -109,3 +111,34 @@ Only a winning custom choice (vote or CEO tie decision) enters a 15 second resol
 `POST /api/rooms/{room_id}/recordings/begin` takes command, phase and round IDs. Upload original audio with `POST /api/rooms/{room_id}/recordings/{recording_id}` using `audio_base64` and `mime_type`. The original owner reviews with `POST /api/rooms/{room_id}/recordings/{recording_id}/review` and `{ "text": "reviewed transcript" }`. Member authenticated audio is available at the same recording path with `/audio`. `GET /api/rooms/{room_id}/extras` supplies contributions, recordings and final assessment status. Pending upload, transcription or owner review prevents premature assessment. Every route uses the private tab session header.
 
 The actual custom winner, real voice provider and three tab end to end evidence, failure boundaries, storage and configuration are documented in [full game integration](full-game-integration.md). Shared activation and deployment remain I04. The historical 112 test count above describes the prepared delivery; final delivery checks are in completion record 21.
+
+## Individual decision mode
+
+A scenario timing profile may set `"decision_mode": "individual"` (default `"vote"`) and `"individual_decision_seconds"` (default 180). Both Cedar Bridge T01 profiles use `"individual"` with 180 seconds; every other scenario keeps `"vote"` and behaves exactly as before. The snapshot field `game.decision_mode` is `"vote"` or `"individual"` and is fixed for the whole game.
+
+In individual mode the board does not vote. When the discussion phase ends (in Cedar Bridge, after the expert panel deadline or a host `skip_phase`), the room enters the `individual_decision` phase instead of `voting`. No ballot freezes, no outcome is resolved, AI ballot options are not drafted (`ai_options_status` is `"disabled"`), and `proposal` is not offered (a proposal command returns 409 `proposals_disabled`). There are no points.
+
+Each electorate member writes one free text decision: what they would do, why, which information they used, and what they still need to establish.
+
+```text
+POST /api/rooms/{room_id}/rounds/{round_id}/decision
+{ "command_id": "UUID", "phase_id": "UUID", "text": "1 to 1200 characters, not blank" }
+```
+
+1. `allowed_actions` contains `"submit_decision"` for current electorate members during `individual_decision`. Members who joined after Start get 403 `not_eligible`. Outside the phase the command returns 409 `not_individual_decision`; a stale phase or round returns 409 `stale_phase`; blank or overlong text returns 422.
+2. Resubmission replaces the member's decision until the phase ends. Commands are idempotent by `command_id` like every other command; reusing an ID with different text returns 409 `command_conflict`.
+3. Every submission, including replacements, is retained as an attributed contribution with `kind: "answer"`, `source: "typed"` and `phase: "individual_decision"`. While the game is running, `GET /contributions` and `/extras` show these only to their author. After the game ends they appear in the final records (`/contributions`, `/evaluation-evidence` and the final AI assessment) like other answers.
+4. The phase ends as soon as every electorate member has submitted, when its deadline passes, or when the host uses `skip_phase` (now allowed in this phase). The game then ends with `ending_label: "individual_decisions_recorded"` and `ending_title: "Individual decisions recorded"`, with empty `history` and no vote outcome. Evaluation evidence and `POST /feedback` work as for other endings. `gameplay.finish_individual_decision` is the single place a later phase can be added.
+
+From the `individual_decision` phase onwards (and in the ended view) the snapshot includes:
+
+```json
+"individual_decisions": {
+  "submitted": [
+    {"member_id": "UUID", "display_name": "Alex", "role_name": "CEO", "submitted": true}
+  ],
+  "self": {"text": "the caller's own decision", "at": "ISO timestamp"}
+}
+```
+
+`submitted` lists the round electorate in seat order. `self` is the caller's own latest decision or `null`. Other members' texts are never projected in any snapshot, including after the end. `individual_decisions` is `null` in vote mode and before the phase. `game.ending_title` is `null` for every other ending.

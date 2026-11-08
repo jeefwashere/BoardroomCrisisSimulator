@@ -433,6 +433,10 @@
 .expert-identity { display: grid; flex: 1 1 auto; gap: 2px; min-width: 0; }
 .expert-name { font-size: 15px; font-weight: 650; letter-spacing: -.02em; }
 .expert-persona { color: #b0b4bf; font-size: 12px; line-height: 1.4; }
+.expert-name { overflow-wrap: anywhere; }
+.expert-card { position: relative; }
+.expert-card:not(.is-active) { padding-top: 42px; }
+.expert-card:not(.is-active) .expert-status { position: absolute; top: 14px; left: 16px; }
 .expert-card:not(.is-active) .expert-persona { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
 .expert-status { flex-shrink: 0; align-self: flex-start; padding: 3px 8px; border-radius: 999px; background: #ffffff12; color: #c4c6ce; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
 .expert-status--speaking { background: var(--expert-accent); color: #fff; }
@@ -481,3 +485,32 @@
 .game-briefing .vote-panel .vote-custom-error { padding: 8px 10px; border-left: 3px solid #aa2929; border-radius: 6px; background: #aa29290f; color: #7a1f1f; font-size: 13px; }
 .vote-custom-badge { display: inline-block; margin-right: 0.5rem; padding: 0.05rem 0.45rem; border-radius: 999px; background: #ae5238; color: #fff; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; vertical-align: middle; }
 @media (prefers-reduced-motion: reduce) { .game-briefing .vote-custom--add { transition: none; } }
+
+/* Individual decision step (decision_mode "individual"): one written decision per member, voice or text. */
+.game-round-label { display: block; margin-bottom: 3px; color: #ecc783; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.decision-panel { border-color: #b58c28; }
+.decision-form { display: grid; gap: 10px; }
+.game-briefing .decision-field { display: grid; gap: 6px; margin-top: 0; }
+.decision-label { font-size: 15px; font-weight: 650; }
+.decision-helper { color: #796655; font-size: 12px; line-height: 1.4; }
+.game-briefing .decision-field textarea { min-height: 130px; line-height: 1.5; }
+.decision-voice { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.game-briefing .decision-mic { margin: 0; }
+.game-briefing .decision-mic.is-listening { background: #9a3030; border-color: #9a3030; color: #fff9ee; }
+.decision-listening { display: inline-flex; align-items: center; gap: 8px; color: #9a3030; font-size: 13px; font-weight: 650; }
+.decision-listening .vote-waiting-dot { background: #c04040; }
+.decision-interim { flex: 1 1 100%; color: #796655; font-size: 13px; font-style: italic; line-height: 1.45; }
+.game-briefing .decision-voice-note { flex-basis: 100%; margin: 0; color: #796655; font-size: 12px; }
+.decision-recorded { display: grid; gap: 10px; }
+.game-briefing .decision-text { margin: 0; padding: 12px 14px; border-left: 3px solid #354c3c; border-radius: 6px; background: #f6f2e6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.decision-board { display: grid; gap: 8px; padding-top: 10px; border-top: 1px solid #e3d6c2; }
+.decision-board-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.decision-board-list li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; border-radius: 8px; background: #f6f2e6; }
+.decision-board-name { display: grid; gap: 1px; font-size: 14px; font-weight: 600; }
+.decision-board-name small { color: #796655; font-size: 11px; font-weight: 400; }
+.decision-badge--waiting { background: #ecc783; color: #2b2112; }
+.decision-board-list li.is-writing .decision-badge--waiting { animation: vote-waiting 1.6s ease-in-out infinite; }
+.decision-report-block h4 { margin: 0 0 8px; font-size: 14px; }
+@media (prefers-reduced-motion: reduce) {
+  .decision-board-list li.is-writing .decision-badge--waiting, .decision-listening .vote-waiting-dot { animation: none; }
+}

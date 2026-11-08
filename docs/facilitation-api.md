@@ -87,11 +87,11 @@ Optional speech for the opening, a consultation reply or an expert panel take, t
 
 ## Expert panel
 
-An optional stage between the speaking turns and voting. After the last speaker's turn, the three AI experts (facilitator, IT adviser, journalist) each give a short live take on the round's discussion, then voting opens.
+An optional stage between the speaking turns and the round's decision. After the last speaker's turn, three AI experts (IT and security, operations and community services, governance and finance) each give a short live take on what the board actually said, then the decision opens: voting, or the individual decision phase when the timing profile uses `"decision_mode": "individual"` (see [gameplay API](gameplay-api.md)). The expert panel kinds are separate from the consultation advisers (facilitator, IT adviser, journalist), which are unchanged.
 
 ### Timing
 
-A scenario timing profile enables it with `"unused_speaking_seconds": "expert_panel"` (the other values `"open_discussion"` and `"skip_to_vote"` are unchanged). When the last turn ends, the room enters the existing `discussion` phase with `phase_deadline` exactly 90 seconds later (never beyond `session_deadline`). When the deadline passes, the ballot freezes and voting opens as usual. The host can end the stage early with the existing `skip_phase` command (`POST /api/rooms/{room_id}/rounds/{round_id}/skip-phase`), which opens voting at once. Both Cedar Bridge T01 profiles (`standard_18`, `fast_15`) use `"expert_panel"`; the other scenarios keep `"open_discussion"`. Proposals and answers stay allowed during the stage, exactly as in any `discussion` phase.
+A scenario timing profile enables it with `"unused_speaking_seconds": "expert_panel"` (the other values `"open_discussion"` and `"skip_to_vote"` are unchanged). When the last turn ends, the room enters the existing `discussion` phase with `phase_deadline` exactly 90 seconds later (never beyond `session_deadline`). When the deadline passes, the ballot freezes and voting opens as usual, or in individual decision mode the `individual_decision` phase begins. The host can end the stage early with the existing `skip_phase` command (`POST /api/rooms/{room_id}/rounds/{round_id}/skip-phase`), which opens the next phase at once. Both Cedar Bridge T01 profiles (`standard_18`, `fast_15`) use `"expert_panel"` and `"decision_mode": "individual"`; the other scenarios keep `"open_discussion"` and voting. Proposals and answers stay allowed during the stage, exactly as in any `discussion` phase.
 
 The room snapshot has a new field `game.discussion_mode`: `"experts"` when the room's timing profile uses the expert panel, otherwise `"open"`. It is fixed for the whole game, so the UI can read it during speaking as well; render the expert stage when `phase == "discussion"` and `discussion_mode == "experts"`.
 
@@ -105,22 +105,22 @@ The room snapshot has a new field `game.discussion_mode`: `"experts"` when the r
     "round_id": "uuid",
     "status": "pending | ready",
     "experts": [
-      {"kind": "facilitator", "label": "Facilitator", "status": "pending | ready | failed", "text": "spoken take",
+      {"kind": "security", "label": "IT and security", "status": "pending | ready | failed", "text": "spoken take",
        "source": "vertex | hosted | offline | null", "speech_id": "uuid or null", "error": null},
-      {"kind": "it", "label": "IT adviser", "status": "...", "text": "...", "source": "...", "speech_id": "...", "error": null},
-      {"kind": "journalist", "label": "Journalist", "status": "...", "text": "...", "source": "...", "speech_id": "...", "error": null}
+      {"kind": "operations", "label": "Operations and community services", "status": "...", "text": "...", "source": "...", "speech_id": "...", "error": null},
+      {"kind": "governance", "label": "Governance and finance", "status": "...", "text": "...", "source": "...", "speech_id": "...", "error": null}
     ]
   }
 }
 ```
 
-`expert_panel` is `null` until a panel exists. The experts always appear in the fixed order facilitator, it, journalist. The panel `status` is `"ready"` once all three experts are terminal (`ready` or `failed`). `text` is an empty string while pending. A `failed` expert has `error: "Expert take unavailable"`; in practice each expert falls back to offline text instead of failing.
+`expert_panel` is `null` until a panel exists. The experts always appear in the fixed order `security`, `operations`, `governance`. The panel `status` is `"ready"` once all three experts are terminal (`ready` or `failed`). `text` is an empty string while pending. A `failed` expert has `error: "Expert take unavailable"`; in practice each expert falls back to offline text instead of failing.
 
 ### Generation
 
 The first GET while the room is in `discussion` with `discussion_mode == "experts"` starts one shared job for that round; concurrent callers share it and no second job is ever started for the same round. The three experts are generated in parallel through the same Vertex, hosted, offline chain as the other facilitation text, and each falls back to its own offline take on its own. Poll the GET until `status` is `"ready"`.
 
-Each take is about 60 to 90 words of speakable prose (markdown and list markers are stripped), in that expert's persona, grounded only in the current node title, situation and study questions, the public documents, the attached incident report, and this round's contributions so far (answers and chat, attributed by display name and role name; committed saved clip captions are answer contributions, so they are included). The hidden controller reference is never read. Experts are advisory only: they cannot vote, pick a winner, or claim facts beyond the sources. The facilitator summarizes trade offs and gaps, the IT adviser names what must be verified, and the journalist says what can be said publicly.
+Each take is about 60 to 90 words of speakable prose (markdown and list markers are stripped), in that expert's persona, grounded only in the current node title, situation and study questions, the public documents, the attached incident report, and this round's contributions so far (answers and chat, attributed by display name and role name; committed saved clip captions are answer contributions, so they are included). The hidden controller reference is never read. Experts are advisory only: they cannot vote, pick a winner, or claim facts beyond the sources. Each responds to the board's actual contributions. The IT and security expert says what is technically known, what is uncertain and which proposed steps are risky; the operations and community services expert says how staff and community members will be affected; the governance and finance expert says who can authorize the proposed actions and which resources and responsibilities matter. Each kind has its own clearly labelled offline take (for example "Offline IT and security take (no AI model connected).") that quotes the recorded contributions.
 
 Each ready expert has a `speech_id` that works with the existing `POST .../facilitation/speech/{speech_id}/prepare` and `GET .../facilitation/speech/{speech_id}/audio` routes.
 

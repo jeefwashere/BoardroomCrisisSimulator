@@ -4,17 +4,19 @@ import type { RoomApi, RoomSnapshot } from '../../services/rooms'
 import { createFacilitationApi } from '../../services/facilitation'
 import type { RecordedClip } from '../../services/facilitation'
 import { assignSavedClips, clipForMember } from '../game/savedClips'
-import { botSpeakingTurn, botVoteChoice, nextBotAction, turnBudgetMs } from './demoModel'
+import { botDecisionStep, botSpeakingTurn, botVoteChoice, nextBotAction, turnBudgetMs } from './demoModel'
 import type { BotAction, BotActivity, BotSeat } from './demoModel'
 
 type Snapshots = readonly (RoomSnapshot | null)[]
 
 // The board "thinks" this long before each bot ballot, so the votes land one after another.
 const DECIDE_MS = 1500
+// Each bot "writes" its individual decision this long, so Morgan and Sam submit one after another.
+const WRITE_MS = 3500
 // Silent stand in for a clip that is missing or that the browser refused to autoplay.
 const FALLBACK_MS = 2000
 // Server answers meaning the turn or vote already moved on; nothing to report or retry.
-const MOVED_ON = new Set(['stale_phase', 'not_speaking', 'speaker_required', 'not_voting', 'game_ended'])
+const MOVED_ON = new Set(['stale_phase', 'not_speaking', 'speaker_required', 'not_voting', 'not_deciding', 'game_ended'])
 
 function wait(ms: number, signal: AbortSignal): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -59,8 +61,9 @@ export type SoloBots = { activity: Partial<Record<BotSeat, BotActivity>>; error:
 /**
  * Drives Morgan and Sam in solo mode through their own room API clients:
  * plays each bot's saved clip on its turn, commits the caption and passes,
- * then votes once the CEO has voted. One bot action runs at a time; each
- * action key (phase and bot) runs at most once.
+ * then votes once the CEO has voted, or writes its own decision in individual
+ * decision games. One bot action runs at a time; each action key (phase and
+ * bot) runs at most once, and a retried decision reuses its command ID.
  */
 export function useSoloBots({ enabled, roomId, apis, snapshots, onSnapshot }: {
     enabled: boolean
@@ -77,6 +80,8 @@ export function useSoloBots({ enabled, roomId, apis, snapshots, onSnapshot }: {
     const [catalog, setCatalog] = useState<{ roomId: string; clips: RecordedClip[] } | null>(null)
     const latest = useRef(snapshots)
     const handled = useRef(new Set<string>())
+    // Stable command IDs per action key, so a retried submission is idempotent on the server.
+    const commandIds = useRef(new Map<string, string>())
     const running = useRef<{ action: BotAction; controller: AbortController } | null>(null)
     const onSnapshotRef = useRef(onSnapshot)
 
@@ -85,6 +90,7 @@ export function useSoloBots({ enabled, roomId, apis, snapshots, onSnapshot }: {
     // A new room (or leaving solo mode) forgets past actions and stops anything in flight.
     useEffect(() => {
         handled.current = new Set()
+        commandIds.current = new Map()
         return () => { running.current?.controller.abort(); running.current = null }
     }, [enabled, roomId, apis])
 
@@ -154,12 +160,23 @@ export function useSoloBots({ enabled, roomId, apis, snapshots, onSnapshot }: {
             onSnapshotRef.current(bot.index, after)
         }
 
-        void (action.kind === 'speak' ? speak() : vote()).then(() => setError(''), (failure: unknown) => {
+        async function decide() {
+            show('writing')
+            await wait(WRITE_MS, signal)
+            if (botDecisionStep(bot, latest.current[bot.index])?.phaseId !== action.phaseId) return
+            let commandId = commandIds.current.get(action.key)
+            if (!commandId) { commandId = crypto.randomUUID(); commandIds.current.set(action.key, commandId) }
+            const after = await api.command(room, `rounds/${action.roundId}/decision`, { command_id: commandId, phase_id: action.phaseId, text: bot.decision }, signal)
+            onSnapshotRef.current(bot.index, after)
+        }
+
+        void (action.kind === 'speak' ? speak() : action.kind === 'decide' ? decide() : vote()).then(() => setError(''), (failure: unknown) => {
             if (signal.aborted) return
             if (failure instanceof RoomApiError && MOVED_ON.has(failure.code)) return
-            // A ballot can safely be tried again on the next poll; a spoken turn is not replayed.
-            if (action.kind === 'vote') handled.current.delete(action.key)
-            setError(`${bot.name} could not ${action.kind === 'vote' ? 'vote' : 'finish the turn'}: ${failure instanceof Error ? failure.message : 'request failed'}`)
+            // A ballot or decision can safely be tried again on the next poll; a spoken turn is not replayed.
+            if (action.kind !== 'speak') handled.current.delete(action.key)
+            const verb = action.kind === 'vote' ? 'vote' : action.kind === 'decide' ? 'submit a decision' : 'finish the turn'
+            setError(`${bot.name} could not ${verb}: ${failure instanceof Error ? failure.message : 'request failed'}`)
         }).finally(() => {
             if (running.current?.controller === controller) running.current = null
             show(null)

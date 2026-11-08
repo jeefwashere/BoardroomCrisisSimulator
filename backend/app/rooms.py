@@ -17,7 +17,10 @@ from . import gameplay
 
 # Timed phases the host may end early with the skip_phase command.
 SKIPPABLE = (sim.BriefingPhase, sim.ReadingPhase, sim.SpeakingPhase, sim.DiscussionPhase,
-             sim.VotingPhase, sim.TiePhase, sim.ResultPhase)
+             sim.VotingPhase, sim.TiePhase, sim.ResultPhase, sim.IndividualDecisionPhase)
+# Written individual decisions stay private to their author until the game ends.
+PRIVATE_CONTRIBUTION_PHASES = frozenset({"individual_decision"})
+MAX_DECISION_CHARACTERS = 1200
 
 class RoomError(Exception):
     def __init__(self, status: int, code: str, message: str):
@@ -153,6 +156,11 @@ class GameSnapshot:
     ai_options_status: str = "disabled"
     ballot_source: str = "ai"
     discussion_mode: str = "open"
+    decision_mode: str = "vote"
+    # Only for decision_mode "individual", from the individual_decision phase on: everyone's submitted
+    # status plus the caller's own text. Other members' texts are never projected.
+    individual_decisions: dict | None = None
+    ending_title: str | None = None
 
     @property
     def facts(self) -> dict:
@@ -274,6 +282,30 @@ class Room:
         record = state.history[-1]
         return NarrationCaption(record.decision_id, state.phase.phase_id, record.text)
 
+    def visible_contributions(self, member_id: UUID) -> tuple[Contribution, ...]:
+        """Other members' written individual decisions are hidden until the game ends."""
+        if isinstance(self.phase, StartedGame) and isinstance(self.phase.state.phase, sim.EndedPhase):
+            return self.contributions
+        return tuple(item for item in self.contributions
+                     if not (item.kind == "answer" and item.phase in PRIVATE_CONTRIBUTION_PHASES)
+                     or item.member_id == member_id)
+
+    def individual_view(self, state: sim.Game, assignments: dict, electorate: tuple[UUID, ...],
+                        caller_id: UUID) -> dict | None:
+        if gameplay.decision_mode(state) != "individual" or not isinstance(
+                state.phase, (sim.IndividualDecisionPhase, sim.EndedPhase)):
+            return None
+        names = {seat.member_id: seat.display_name for seat in self.members.values()}
+        roles = {role.role_id: role.name for role in state.scenario.roles}
+        decisions = {item.member_id: item for item in state.individual_decisions if item.round_id == state.round_id}
+        own = decisions.get(caller_id)
+        return {
+            "submitted": [{"member_id": member, "display_name": names.get(member, ""),
+                           "role_name": roles.get(assignments[member].role_id, assignments[member].role_id),
+                           "submitted": member in decisions} for member in electorate],
+            "self": {"text": own.text, "at": own.at} if own is not None else None,
+        }
+
     def snapshot(self, session: str, now: float) -> RoomSnapshot:
         caller = self.member(session)
         game, assignments, electorate = None, {}, ()
@@ -285,7 +317,8 @@ class Room:
             current = None
             if isinstance(state.phase, (sim.DecisionPhase, sim.ReadingPhase, sim.SpeakingPhase,
                                         sim.DiscussionPhase, sim.VotingPhase, sim.TiePhase,
-                                        sim.ResolvingPhase, sim.ResolutionFailedPhase)):
+                                        sim.ResolvingPhase, sim.ResolutionFailedPhase,
+                                        sim.IndividualDecisionPhase)):
                 node = sim.current_node(state)
                 current = CurrentNode(node.node_id, node.title, sim.render(node.inject, state.facts),
                                       node.study_questions, tuple(VisibleOption(option.option_id, option.label, option.kind, option.member_id,
@@ -306,7 +339,11 @@ class Room:
                         actions.append("skip_speaker")
                 if isinstance(state.phase, sim.VotingPhase) and caller.member_id in electorate:
                     actions.append("vote")
-                if isinstance(state.phase, (sim.SpeakingPhase, sim.DiscussionPhase, sim.VotingPhase)) and caller.member_id in electorate:
+                if isinstance(state.phase, sim.IndividualDecisionPhase) and caller.member_id in electorate:
+                    actions.append("submit_decision")
+                # Custom ballot options only exist when the round ends in a vote.
+                if (isinstance(state.phase, (sim.SpeakingPhase, sim.DiscussionPhase, sim.VotingPhase))
+                        and caller.member_id in electorate and gameplay.decision_mode(state) == "vote"):
                     actions.append("proposal")
                 if isinstance(state.phase, sim.ResolutionFailedPhase) and state.resolution.attempt < 2 and caller.member_id == self.host_member_id:
                     actions.append("retry_resolution")
@@ -333,7 +370,10 @@ class Room:
                 state.phase.leaders if isinstance(state.phase, sim.TiePhase) else (), tuple(actions),
                 state.turns, state.ceo_changes, state.ended_at, state.proposals, state.resolution,
                 gameplay.options_source(state), gameplay.ai_options_status(state), state.ballot_source,
-                gameplay.discussion_mode(state),
+                gameplay.discussion_mode(state), gameplay.decision_mode(state),
+                self.individual_view(state, assignments, electorate, caller.member_id),
+                gameplay.INDIVIDUAL_ENDING_TITLE if isinstance(state.phase, sim.EndedPhase)
+                and state.phase.ending_label == gameplay.INDIVIDUAL_ENDING else None,
             )
         members = []
         for seat in self.members.values():
@@ -453,7 +493,31 @@ class Rooms:
                 ballots = dict(state.ballots)
                 ballots[caller.member_id] = value
                 state = replace(state, ballots=tuple(ballots.items()))
+            elif action == "submit_decision":
+                if not isinstance(phase, sim.IndividualDecisionPhase):
+                    raise RoomError(409, "not_individual_decision", "Individual decisions are not open")
+                if caller.member_id not in group.electorate:
+                    raise RoomError(403, "not_eligible", "Participation begins next round")
+                if (not isinstance(value, str) or not valid_unicode(value) or not value.strip()
+                        or len(value) > MAX_DECISION_CHARACTERS):
+                    raise RoomError(422, "invalid_decision", f"Write your decision in 1 to {MAX_DECISION_CHARACTERS} characters")
+                # Every submission, including a replacement, stays attributed evidence.
+                contribution = Contribution(uuid4(), len(room.contributions) + 1, caller.member_id,
+                    next(item.role_id for item in assignments if item.member_id == caller.member_id),
+                    phase.phase_id, phase.kind, state.round_id, state.round_number, state.node_id,
+                    "answer", "typed", value, utc_now())
+                room.contributions += (contribution,)
+                decision = sim.IndividualDecision(caller.member_id, state.round_id, value,
+                                                  gameplay.at(state, now), contribution.contribution_id)
+                state = replace(state, individual_decisions=tuple(
+                    item for item in state.individual_decisions
+                    if (item.member_id, item.round_id) != (caller.member_id, state.round_id)) + (decision,))
+                submitted = {item.member_id for item in state.individual_decisions if item.round_id == state.round_id}
+                if set(group.electorate) <= submitted:
+                    state = gameplay.finish_individual_decision(state, now)
             elif action == "proposal":
+                if gameplay.decision_mode(state) != "vote":
+                    raise RoomError(409, "proposals_disabled", "This room records individual decisions instead of a vote")
                 if not isinstance(phase, (sim.SpeakingPhase, sim.DiscussionPhase, sim.VotingPhase)):
                     raise RoomError(409, "proposals_frozen", "Custom actions are editable only during speaking, discussion and voting")
                 if caller.member_id not in group.electorate:
@@ -788,9 +852,9 @@ class Rooms:
     async def contributions(self, session: str, room_id: UUID) -> tuple[Contribution, ...]:
         room = self.require_room(room_id)
         async with room.lock:
-            room.member(session)
+            member = room.member(session)
             self.reconcile(room, self.clock())
-            return room.contributions
+            return room.visible_contributions(member.member_id)
 
     async def evaluation_evidence(self, session: str, room_id: UUID) -> EvaluationEvidence:
         room = self.require_room(room_id)

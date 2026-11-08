@@ -10,6 +10,9 @@ from . import simulation as sim
 from .rules import PRESENCE_WINDOW_SECONDS
 
 EXPERT_PANEL_SECONDS = 90
+# Ending label when the individual decision phase closes (decision_mode "individual").
+INDIVIDUAL_ENDING = "individual_decisions_recorded"
+INDIVIDUAL_ENDING_TITLE = "Individual decisions recorded"
 
 
 def at(game: sim.Game, instant: float):
@@ -25,6 +28,23 @@ def deadline(game: sim.Game) -> float | None:
 
 def discussion_mode(game: sim.Game) -> str:
     return "experts" if game.timing.unused_speaking == "expert_panel" else "open"
+
+
+def decision_mode(game: sim.Game) -> str:
+    return "individual" if game.timing.decision_mode == "individual" else "vote"
+
+
+def begin_individual_decision(game: sim.Game, instant: float) -> sim.Game:
+    """Replaces the board vote: no ballot freezes and no outcome is resolved."""
+    return replace(game, phase=sim.IndividualDecisionPhase(uuid4(), instant + game.timing.individual_decision_seconds))
+
+
+def finish_individual_decision(game: sim.Game, instant: float) -> sim.Game:
+    """Called when every member has submitted, at the deadline, or on host skip.
+
+    The game currently ends here; a later phase (for example a private preparation round) can begin instead.
+    """
+    return end(game, instant, INDIVIDUAL_ENDING)
 
 
 def ready_ai_options(game: sim.Game) -> tuple[sim.BallotOption, ...]:
@@ -58,7 +78,7 @@ def options_source(game: sim.Game) -> str:
 
 def ai_options_wanted(game: sim.Game) -> bool:
     """Agents draft only when configured, chosen for this room, and the node allows custom outcomes."""
-    return (game.ai_options_enabled and game.ballot_source == "ai"
+    return (game.ai_options_enabled and game.ballot_source == "ai" and decision_mode(game) == "vote"
             and bool(sim.current_node(game).allowed_custom_outcome_ids))
 
 
@@ -203,6 +223,10 @@ def reconcile(game: sim.Game, now: float, roster: tuple[tuple[UUID, int, float],
             game = begin_speaking(game, due, electorate, last_seen)
         elif isinstance(phase, sim.SpeakingPhase):
             game = next_speaker(game, due, last_seen, reason)
+        elif isinstance(phase, sim.DiscussionPhase) and decision_mode(game) == "individual":
+            game = begin_individual_decision(game, due)
+        elif isinstance(phase, sim.IndividualDecisionPhase):
+            game = finish_individual_decision(game, due)
         elif isinstance(phase, sim.DiscussionPhase):
             game = replace(freeze(game), phase=sim.VotingPhase(uuid4(), due + game.timing.voting_seconds),
                            ballots=(), last_tally=())

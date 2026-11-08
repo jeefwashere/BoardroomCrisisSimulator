@@ -205,6 +205,24 @@ class NarrationCaptionView(View):
     text: str
 
 
+class SubmittedDecisionView(View):
+    member_id: UUID
+    display_name: str
+    role_name: str
+    submitted: bool
+
+
+class OwnDecisionView(View):
+    text: str
+    at: datetime
+
+
+class IndividualDecisionsView(View):
+    submitted: list[SubmittedDecisionView]
+    # The caller's own decision only; other members' texts are never projected.
+    self: OwnDecisionView | None = None
+
+
 class GameView(View):
     phase_id: UUID
     round_id: UUID
@@ -243,6 +261,11 @@ class GameView(View):
     ballot_source: Literal["ai", "authored"] = "ai"
     # "experts" when the timing profile runs the AI expert panel between speaking and voting.
     discussion_mode: Literal["open", "experts"] = "open"
+    # "individual" replaces the vote with private written decisions (phase "individual_decision").
+    decision_mode: Literal["vote", "individual"] = "vote"
+    individual_decisions: IndividualDecisionsView | None = None
+    # Human readable title for endings that have no authored outcome, for example "Individual decisions recorded".
+    ending_title: str | None = None
 
 
 class RoomFields(View):
@@ -262,7 +285,7 @@ class LobbyRoomView(RoomFields):
 
 
 class StartedRoomView(RoomFields):
-    phase: Literal["briefing", "reading", "speaking", "discussion", "voting", "tie_break", "resolving", "resolution_failed", "decision", "result", "ended"]
+    phase: Literal["briefing", "reading", "speaking", "discussion", "voting", "tie_break", "resolving", "resolution_failed", "decision", "result", "individual_decision", "ended"]
     game: GameView
 
 
@@ -363,6 +386,17 @@ class PhaseCommand(BaseModel):
 
 class VoteCommand(PhaseCommand):
     option_id: str = Field(min_length=1, max_length=128)
+
+
+class DecisionCommand(PhaseCommand):
+    text: str = Field(min_length=1, max_length=1200)
+
+    @field_validator("text")
+    @classmethod
+    def require_text(cls, value):
+        if not value.strip():
+            raise ValueError("Write a nonempty decision")
+        return value
 
 
 class SkipCommand(PhaseCommand):

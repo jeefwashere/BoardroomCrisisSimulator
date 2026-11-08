@@ -346,12 +346,14 @@ class VertexTextTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(status['attempts'], 1)
             body = json.loads(opener.requests[0].data)
             self.assertEqual(body['generationConfig']['responseMimeType'], 'application/json')
-            self.assertEqual(body['generationConfig']['thinkingConfig']['thinkingLevel'], 'LOW')
+            # Structured answers skip thinking for speed.
+            self.assertEqual(body['generationConfig']['thinkingConfig'], {'thinkingBudget': 0})
             failing = VertexText('test-key', ledger=ledger, opener=FakeOpener({'candidates': [{'finishReason': 'MAX_TOKENS'}]}))
             with self.assertRaises(Exception) as caught:
                 await failing.text('prompt', 5)
             self.assertNotIn('test-key', str(caught.exception))
-            self.assertEqual(failing.budget().status()['attempts'], 2)
+            # The JSON call above, then the failed text request and its two backup attempts.
+            self.assertEqual(failing.budget().status()['attempts'], 4)
 
 
 

@@ -92,7 +92,7 @@ All room commands are `POST /api/rooms/{room_id}/…` with a `command_id` and th
 | Skip speaker (host) | `POST rounds/{round_id}/speaker/skip` |
 | End (host) | `POST end` |
 | Mic / Dictate | browser Web Speech (`useDictation.ts`, `createSpeechReader` dedupes phrases) fills the active text box |
-| Round 1 decision | `POST rounds/{round_id}/decision` with one text (max 1200 chars) |
+| Round 1 decision | `POST rounds/{round_id}/decision` with one text (max 2000 chars, `DECISION_LIMIT`) |
 | Private answer | `POST private-session/answer` `{text, used_clip}`; Auto response plays `session.clip` then submits its text (`usePrivateAutoResponse.ts`) |
 | Private retry | `POST private-session/retry` when `session.retryable` |
 

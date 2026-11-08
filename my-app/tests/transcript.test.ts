@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
     MAX_TRANSCRIPT_ENTRIES, assessmentDividerEntry, briefingEntry, captionsPreference, estimateSpeechMs, expertEntry, privateAutoEntry, privateEntry,
-    privateTranscriptLines, revealedLength, revealedText, silentHoldMs, speechDurationMs, transcriptReducer, turnEntry,
+    privateTranscriptLines, recordingTranscriptEntry, revealedLength, revealedText, silentHoldMs, speechDurationMs, transcriptReducer, turnEntry,
 } from '../src/features/game/transcriptModel.ts'
 import type { TranscriptEntry, TranscriptInput } from '../src/features/game/transcriptModel.ts'
 import type { PrivateMessage } from '../src/services/facilitation.ts'
@@ -88,6 +88,24 @@ test('entry builders give stable IDs, speakers and role tags', () => {
     assert.equal(turnEntry('p2:m', { name: 'Morgan', role: 'Recovery' }, 'Hi', false).speaker, 'Morgan')
     assert.equal(privateAutoEntry('2:1:clip', 'Alex', 'Saved').id, 'private-auto:2:1:clip')
     assert.equal(assessmentDividerEntry('Coach').tone, 'system')
+})
+
+test('participant recordings update one caption line when recognition is reviewed', () => {
+    const provisional = recordingTranscriptEntry({ recording_id: 'r1', status: 'review_required', transcript: 'We should contain the server.', reviewed_text: null }, { name: 'Alex', role: 'CEO' }, true)!
+    const reviewed = recordingTranscriptEntry({ recording_id: 'r1', status: 'reviewed', transcript: 'We should contain the server.', reviewed_text: 'We should contain the server.' }, { name: 'Alex', role: 'CEO' }, true)!
+    let state = transcriptReducer([], { type: 'upsert', entry: provisional })
+    state = transcriptReducer(state, { type: 'upsert', entry: provisional })
+    assert.equal(state.length, 1)
+    state = transcriptReducer(state, { type: 'upsert', entry: reviewed })
+    assert.equal(state.length, 1)
+    assert.equal(state[0].id, 'recording:r1')
+    assert.equal(state[0].text, 'We should contain the server.')
+    assert.match(state[0].role, /Reviewed transcript/)
+    const other = recordingTranscriptEntry({ recording_id: 'r2', status: 'review_required', transcript: 'Check the logs.', reviewed_text: null }, { name: 'Morgan', role: 'IT' }, false)!
+    assert.equal(other.speaker, 'Morgan')
+    assert.match(other.role, /Unreviewed transcript/)
+    assert.equal(recordingTranscriptEntry({ recording_id: 'r3', status: 'review_required', transcript: '  ', reviewed_text: null }, { name: 'Alex', role: 'CEO' }, true), null)
+    assert.equal(recordingTranscriptEntry({ recording_id: 'r4', status: 'transcription_failed', transcript: '', reviewed_text: null }, { name: 'Alex', role: 'CEO' }, true), null)
 })
 
 function message(id: string, fields: Partial<PrivateMessage> = {}): PrivateMessage {

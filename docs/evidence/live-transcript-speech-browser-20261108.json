@@ -1,0 +1,61 @@
+{
+  "fixture": "Browser MediaRecorder with generated audio and deterministic local transcriber; no paid call or physical microphone claim",
+  "self": [
+    "Alex (you)CEO · Reviewed transcriptCorrected caption: appoint the authorized incident coordinator.Corrected caption: appoint the authorized incident coordinator."
+  ],
+  "other": [
+    "AlexCEO · Reviewed transcriptCorrected caption: appoint the authorized incident coordinator.Corrected caption: appoint the authorized incident coordinator."
+  ],
+  "window_errors": [],
+  "at": "2026-11-08T14:33:43.953Z",
+  "provisional_before_review": {
+    "self_speaker": "Alex (you)",
+    "other_speaker": "Alex",
+    "role": "CEO · Unreviewed transcript",
+    "text": "I will appoint an authorized coordinator and verify access before restoring service."
+  },
+  "finalRows": {
+    "alex": [
+      {
+        "speaker": "Preparation agent",
+        "role": "AI agent",
+        "text": "Offline facilitator briefing (no AI model connected). Scenario: Cedar Bridge Community Services: service outage and unavailable director. Public documents to read first: briefing, initial_evidence, operations. Attached incident report, Service outage and unavailable director. T01-STATUS Opening update: [STATUS-1] Appointment software is unavailable. IT has reported suspicious account activity. [STATUS-2] No data disclosure has been confirmed. [STATUS-3] Backup copies are listed in the inventory, but their restorability has not been checked during this incident. Separate confirmed facts from assumptions, hear each speaker, then decide by the board's own vote."
+      },
+      {
+        "speaker": "Alex (you)",
+        "role": "CEO · Reviewed transcript",
+        "text": "Corrected caption: appoint the authorized incident coordinator."
+      }
+    ],
+    "morgan": [
+      {
+        "speaker": "Preparation agent",
+        "role": "AI agent",
+        "text": "Offline facilitator briefing (no AI model connected). Scenario: Cedar Bridge Community Services: service outage and unavailable director. Public documents to read first: briefing, initial_evidence, operations. Attached incident report, Service outage and unavailable director. T01-STATUS Opening update: [STATUS-1] Appointment software is unavailable. IT has reported suspicious account activity. [STATUS-2] No data disclosure has been confirmed. [STATUS-3] Backup copies are listed in the inventory, but their restorability has not been checked during this incident. Separate confirmed facts from assumptions, hear each speaker, then decide by the board's own vote."
+      },
+      {
+        "speaker": "Alex",
+        "role": "CEO · Reviewed transcript",
+        "text": "Corrected caption: appoint the authorized incident coordinator."
+      }
+    ],
+    "sam": [
+      {
+        "speaker": "Preparation agent",
+        "role": "AI agent",
+        "text": "Offline facilitator briefing (no AI model connected). Scenario: Cedar Bridge Community Services: service outage and unavailable director. Public documents to read first: briefing, initial_evidence, operations. Attached incident report, Service outage and unavailable director. T01-STATUS Opening update: [STATUS-1] Appointment software is unavailable. IT has reported suspicious account activity. [STATUS-2] No data disclosure has been confirmed. [STATUS-3] Backup copies are listed in the inventory, but their restorability has not been checked during this incident. Separate confirmed facts from assumptions, hear each speaker, then decide by the board's own vote."
+      },
+      {
+        "speaker": "Alex",
+        "role": "CEO · Reviewed transcript",
+        "text": "Corrected caption: appoint the authorized incident coordinator."
+      }
+    ]
+  },
+  "assertions": {
+    "one_caption_per_recording_after_repeated_polling": true,
+    "owner_review_updates_existing_line_across_three_members": true,
+    "same_recording_status_and_text_replaced": true,
+    "original_unreviewed_text_replaced": true
+  }
+}

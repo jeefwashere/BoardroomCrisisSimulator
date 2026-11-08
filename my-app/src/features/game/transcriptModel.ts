@@ -1,6 +1,7 @@
 // Pure logic for the "Live transcript" side panel (no JSX, no network) so it can be unit tested.
 // The call stage shows only tiles; everything spoken (briefing, turns, experts, the private coach) lands here.
 import type { ExpertTake, PrivateMessage } from '../../services/facilitation.ts'
+import type { Recording } from '../../services/rooms.ts'
 import { transitionIndex } from './privateSessionModel.ts'
 
 export type TranscriptTone = 'agent' | 'expert' | 'coach' | 'self' | 'member' | 'system'
@@ -130,6 +131,16 @@ export function expertEntry(roundId: string, take: Pick<ExpertTake, 'kind' | 'la
 
 export function turnEntry(turn: string, member: { name: string; role: string }, text: string, self: boolean): TranscriptInput {
     return { id: `turn:${turn}`, speaker: self ? `${member.name} (you)` : member.name, role: member.role, tone: self ? 'self' : 'member', text }
+}
+
+export function recordingTranscriptEntry(recording: Pick<Recording, 'recording_id' | 'status' | 'transcript' | 'reviewed_text'>,
+    member: { name: string; role: string }, self: boolean): TranscriptInput | null {
+    const reviewed = recording.status === 'reviewed'
+    if (!reviewed && recording.status !== 'review_required') return null
+    const text = (reviewed ? recording.reviewed_text : recording.transcript)?.trim()
+    if (!text) return null
+    return { id: `recording:${recording.recording_id}`, speaker: self ? `${member.name} (you)` : member.name,
+        role: `${member.role} · ${reviewed ? 'Reviewed transcript' : 'Unreviewed transcript'}`, tone: self ? 'self' : 'member', text }
 }
 
 export function privateAgentName(agentName: string, round: number): string {

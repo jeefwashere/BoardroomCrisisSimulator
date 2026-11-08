@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from backend.app import gameplay
 from backend.app.facilitation import Facilitation
+from backend.app.prerecorded import load_prerecorded
 from backend.app.main import create_app
 from backend.app.private_sessions import (CARD_RECORDED, CARD_FIELDS, COACH_UPDATE, EXAM_UPDATE, QUESTIONS, TRANSITION, TWIST,
                                           QuizError, full_question, validate_quiz)
@@ -371,6 +372,79 @@ class PrivateSessionTests(individual.IndividualDecisionTests):
         body = await self.settle()
         self.assertEqual((body['quiz']['status'], body['quiz']['current'], body['retryable']), ('ready', 1, False))
         self.assertEqual(body['messages'][-1]['kind'], 'question')
+
+    async def test_question_timer_closes_with_zero_and_rejects_late_picks(self):
+        await self.to_private()
+        body = await self.coach(0)
+        quiz = body['quiz']
+        self.assertEqual((quiz['question_seconds'], quiz['questions'][0]['timed_out']), (60, False))
+        left = (datetime.fromisoformat(quiz['questions'][0]['deadline'])
+                - datetime.fromisoformat(quiz['server_time'])).total_seconds()
+        self.assertAlmostEqual(left, 60, delta=1)
+        # Within the 1.5 second grace a pick still counts.
+        self.clock.now += 61
+        body = await self.choose(0, 1, 20)
+        self.assertEqual((body['quiz']['total'], body['quiz']['current']), (20, 2))
+        self.clock.now += 61.6
+        body = await self.session(0)
+        second = body['quiz']['questions'][1]
+        self.assertEqual((second['timed_out'], second['points'], second['chosen']), (True, 0, None))
+        self.assertEqual((body['quiz']['current'], body['quiz']['total']), (3, 20))
+        self.assertEqual(body['messages'][-2]['text'], 'Question 2: time is up, 0 of 20 points.')
+        again = await self.session(0)
+        self.assertEqual(len(again['messages']), len(body['messages']))
+        late = await self.clients[0].post(self.path + '/private-session/choice',
+                                          json={'command_id': str(uuid4()), 'step': 2, 'choice_id': 'a'})
+        self.assertEqual((late.status_code, late.json()['detail']['code']), (409, 'question_timed_out'))
+        for _ in range(3):
+            self.clock.now += 62
+            body = await self.session(0)
+        self.assertEqual((body['stage'], body['quiz']['total']), ('complete', 20))
+        self.assertEqual([item['timed_out'] for item in body['quiz']['review']], [False, True, True, True, True])
+
+    async def test_start_at_assessment_uses_prerecorded_answers(self):
+        for number in range(3):
+            client = await self.client()
+            self.clients.append(client)
+            response = await client.post('/api/rooms' if number == 0 else '/api/rooms/join',
+                                         json=fixture.command(room_code='ROUND3', display_name=f'Player {number}'))
+            self.ids.append(response.json()['self_member_id'])
+        self.path = '/api/rooms/' + response.json()['room_id']
+        response = await self.clients[0].post(self.path + '/start', json=fixture.command(
+            room_code='ROUND3', scenario_id='cedar_bridge_t01', scenario_version=1, timing_profile='standard_18',
+            players=[{'member_id': member, 'role_id': role} for member, role in zip(self.ids, individual.CEDAR_ROLES)],
+            start_at='assessment'))
+        self.assertEqual(response.status_code, 200, response.text)
+        game = response.json()['game']
+        self.assertEqual((game['phase'], game['start_at']), ('private_session', 'assessment'))
+        self.assertEqual([item['stage'] for item in game['private_progress']], ['assessment'] * 3)
+        remaining = (datetime.fromisoformat(game['phase_deadline'])
+                     - datetime.fromisoformat(game['server_time'])).total_seconds()
+        self.assertGreaterEqual(remaining, 600)
+        recorded = load_prerecorded()
+        # Every member's quiz starts at game start, before anyone opens their session.
+        await asyncio.sleep(0.05)
+        quiz_prompts = [prompt for prompt in self.vertex.prompts if 'multiple choice assessment' in prompt]
+        self.assertEqual(len(quiz_prompts), 3)
+        for who in range(3):
+            body = await self.settle(who)
+            self.assertEqual((body['stage'], body['quiz']['status'], body['quiz']['current']), ('assessment', 'ready', 1))
+            self.assertEqual(body['decision_text'], recorded[who]['decision'])
+            answers = [item['text'] for item in body['messages'] if item['author'] == 'member']
+            self.assertEqual(answers, list(recorded[who]['coaching']))
+            self.assertTrue(any(item['text'].startswith('Test start: prerecorded answers') for item in body['messages']))
+            self.assertEqual((await self.view(who))['game']['individual_decisions']['self']['text'],
+                             recorded[who]['decision'])
+        self.assertTrue(any(recorded[0]['coaching'][0] in prompt for prompt in quiz_prompts))
+        bodies = await asyncio.gather(*(self.choose_all(who) for who in range(3)))
+        self.assertTrue(all(body['stage'] == 'complete' for body in bodies))
+        self.assertEqual((await self.view())['phase'], 'ended')
+
+    async def choose_all(self, who):
+        body = None
+        for step in range(1, 6):
+            body = await self.choose(who, step, 20)
+        return body
 
     async def test_private_isolation_between_members(self):
         await self.to_private()

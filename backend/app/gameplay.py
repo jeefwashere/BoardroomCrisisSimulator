@@ -68,6 +68,19 @@ def begin_private_session(game: sim.Game, instant: float, electorate: tuple[UUID
                    private_stages=tuple((member, "not_started") for member in electorate))
 
 
+# Start at Round 3: quiz generation (about 15 to 60 seconds) plus five 60 second questions, with margin.
+ASSESSMENT_START_MINIMUM_SECONDS = 600
+
+
+def begin_assessment_start(game: sim.Game, instant: float, electorate: tuple[UUID, ...]) -> sim.Game:
+    """Test shortcut: the game opens in private_session with every member already at the assessment stage."""
+    game = begin_private_session(game, instant, electorate)
+    ends = max(game.phase.deadline, instant + ASSESSMENT_START_MINIMUM_SECONDS)
+    session_deadline = None if game.session_deadline is None else max(game.session_deadline, ends)
+    return replace(game, phase=replace(game.phase, deadline=ends), session_deadline=session_deadline,
+                   private_stages=tuple((member, "assessment") for member in electorate), start_at="assessment")
+
+
 def record_private_stage(game: sim.Game, instant: float, member_id: UUID, stage: str) -> sim.Game:
     """Stages only move forward. The phase finishes once every electorate member is complete."""
     if not isinstance(game.phase, sim.PrivateSessionPhase) or stage not in PRIVATE_STAGES:

@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createRoomApi, RoomApiError } from '../../services/rooms'
-import type { RoomApi, RoomSnapshot, Scenario } from '../../services/rooms'
+import type { RoomApi, RoomSnapshot, Scenario, StartAt } from '../../services/rooms'
 import { clearSeatSession, createTabSession, seatStorage } from '../../services/tabSession'
 import type { StoragePort } from '../../services/tabSession'
 import { acceptSnapshot, startInput } from '../rooms/roomState'
-import { DEFAULT_DEMO_MODE, DEMO_SEATS, DEMO_STORAGE_KEY, DEMO_VIEW_KEY, SPLIT_VIEW_MIN_WIDTH, demoRoles, demoRoomCode, followTarget, phaseLabel, pickDemoScenario, readDemoView, readStoredDemo, seatStatus, soloFrameSrc } from './demoModel'
+import { DEFAULT_DEMO_MODE, DEMO_SEATS, DEMO_STORAGE_KEY, DEMO_VIEW_KEY, SPLIT_VIEW_MIN_WIDTH, demoRoles, demoRoomCode, followTarget, phaseLabel, pickDemoScenario, readDemoView, readStoredDemo, seatStatus, soloFrameSrc, startAtInput } from './demoModel'
 import type { BallotSource, DemoMode, DemoView, StoredDemo } from './demoModel'
 import { useSoloBots } from './useSoloBots'
 import WindowsDemo from './WindowsDemo'
@@ -50,6 +50,7 @@ export default function DemoRoom() {
     const [{ demo, clients }, setLoaded] = useState(initialDemo)
     const [busy, setBusy] = useState<'start' | 'lobby' | null>(null)
     const [ballotSource, setBallotSource] = useState<BallotSource>('authored')
+    const [startAt, setStartAt] = useState<StartAt>('beginning')
     const [mode, setMode] = useState<DemoMode>(() => demo?.mode ?? DEFAULT_DEMO_MODE)
     const [view, setViewState] = useState<DemoView>(() => readDemoView(tabStorage()?.getItem(DEMO_VIEW_KEY) ?? null))
     const setView = (next: DemoView) => { setViewState(next); try { tabStorage()?.setItem(DEMO_VIEW_KEY, next) } catch { /* Lasts for this view only. */ } }
@@ -199,8 +200,8 @@ export default function DemoRoom() {
                     const timing = scenario?.timings[0]?.profile_id
                     if (!scenario || !timing) throw new Error('No scenario with a timing profile is available.')
                     const latest = await next[0].api.snapshot(room.room_id)
-                    const body = { ...startInput(latest, scenario, timing, demoRoles(latest, memberIds, scenario), crypto.randomUUID()), ballot_source: ballotSource }
-                    step(`Alex starts “${scenario.title}” (${timing.replaceAll('_', ' ')}, ${ballotSource === 'ai' ? 'AI generated' : 'hardcoded T01'} voting options)…`)
+                    const body = { ...startInput(latest, scenario, timing, demoRoles(latest, memberIds, scenario), crypto.randomUUID()), ballot_source: ballotSource, ...startAtInput(startAt) }
+                    step(`Alex starts “${scenario.title}” (${timing.replaceAll('_', ' ')}, ${ballotSource === 'ai' ? 'AI generated' : 'hardcoded T01'} voting options${startAt === 'assessment' ? ', straight to Round 3 with prerecorded Rounds 1 and 2' : ''})…`)
                     try {
                         await next[0].api.start(room.room_id, body)
                     } catch (failure) {
@@ -247,7 +248,7 @@ export default function DemoRoom() {
     if (demo?.mode === 'windows') return <WindowsDemo demo={demo} view={view} onReset={resetToSetup} />
 
     if (!demo || !clients) {
-        return <DemoSetup mode={mode} onMode={setMode} view={view} onView={setView} ballotSource={ballotSource} onBallot={setBallotSource} busy={busy} progress={progress} error={error} onStart={() => void load(true)} onLobby={() => void load(false)} />
+        return <DemoSetup mode={mode} onMode={setMode} view={view} onView={setView} ballotSource={ballotSource} onBallot={setBallotSource} startAt={startAt} onStartAt={setStartAt} busy={busy} progress={progress} error={error} onStart={() => void load(true)} onLobby={() => void load(false)} />
     }
 
     const hostRoom = snapshots[0]

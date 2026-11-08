@@ -82,6 +82,8 @@ export type PrivateMessage = {
     source: 'vertex' | 'hosted' | 'offline' | 'canonical' | null
     speech_id: string | null
     at: string
+    /** Member answers only: true when the answer came from a saved (prerecorded) clip. */
+    used_clip?: boolean
 }
 export type CardFieldKey = 'action' | 'responsibility' | 'evidence' | 'dependencies' | 'fallback' | 'communication' | 'review'
 export type ResponseCardFields = Record<CardFieldKey, string>
@@ -93,10 +95,21 @@ export type Assessment = { stages: AssessmentStage[]; total: number | null; max:
 export type PrivateClip = { clip_id: string; audio_url: string; text: string; duration_seconds: number | null }
 // Round 3: five multiple choice questions (`quiz` in the private session payload). Points are revealed per question once answered.
 export type QuizChoice = { choice_id: string; text: string }
-export type QuizQuestion = { step: number; question: string; choices: QuizChoice[]; chosen: string | null; points: number | null; max: number }
+export type QuizQuestion = {
+    step: number
+    question: string
+    choices: QuizChoice[]
+    chosen: string | null
+    points: number | null
+    max: number
+    /** When this question closes (ISO-8601 UTC); set for the current question and kept for closed ones. */
+    deadline: string | null
+    /** The clock ran out before a pick: closed with 0 points and no choice. */
+    timed_out: boolean
+}
 /** One choice in the released review: its points (0 to 20) and why. */
 export type QuizReviewChoice = QuizChoice & { points: number; rationale: string }
-export type QuizReview = { step: number; question: string; chosen: string | null; points: number | null; choices: QuizReviewChoice[] }
+export type QuizReview = { step: number; question: string; chosen: string | null; points: number | null; choices: QuizReviewChoice[]; timed_out: boolean }
 export type PrivateQuiz = {
     status: 'generating' | 'ready' | 'failed'
     /** The question to answer now (1 to 5); null while generating, after a failure and once complete. */
@@ -105,6 +118,10 @@ export type PrivateQuiz = {
     questions: QuizQuestion[]
     total: number
     max: number
+    /** Seconds allowed per question (60). */
+    question_seconds: number
+    /** The server clock when the payload was built, to correct the local clock for countdowns. */
+    server_time: string | null
     /** Every choice's points and rationale, released once the stage is complete. */
     review: QuizReview[] | null
 }

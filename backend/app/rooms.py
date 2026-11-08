@@ -73,6 +73,9 @@ class StartSpec:
     players: tuple[tuple[UUID, str], ...]
     ballot_source: str = "ai"
     manual_turns: bool = False
+    start_at: str = "beginning"
+    # start_at "assessment": prerecorded Round 1 decisions by electorate seat (seat 1 first).
+    prerecorded_decisions: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -179,6 +182,7 @@ class GameSnapshot:
     floor_open: bool = False
     # Open floor rooms: who spoke last; they wait until someone else has had the floor.
     last_speaker_id: UUID | None = None
+    start_at: str = "beginning"
 
     @property
     def facts(self) -> dict:
@@ -415,7 +419,7 @@ class Room:
                 if isinstance(state.phase, sim.EndedPhase) else None,
                 state.timing.private_rounds, self.private_progress(state, assignments),
                 state.phase.index if isinstance(state.phase, sim.SpeakingPhase) and not state.phase.floor_open else None,
-                manual_turns=state.manual_turns,
+                manual_turns=state.manual_turns, start_at=state.start_at,
                 floor_open=isinstance(state.phase, sim.SpeakingPhase) and state.phase.floor_open,
                 last_speaker_id=state.phase.last_speaker if open_meeting else None,
                 speaker_clip={"clip_id": state.phase.clip[0], "started_at": gameplay.at(state, state.phase.clip[1]),
@@ -811,7 +815,7 @@ class Rooms:
 
     async def start(self, session: str, room_id: UUID, command_id: UUID, spec: StartSpec) -> RoomSnapshot:
         intent = ("start", room_id, spec.room_code, spec.scenario_id, spec.scenario_version,
-                  spec.timing_profile, tuple(sorted(spec.players)), spec.ballot_source)
+                  spec.timing_profile, tuple(sorted(spec.players)), spec.ballot_source, spec.start_at)
         room = self.require_room(room_id)
         async with room.lock:
             caller = room.member(session)
@@ -831,6 +835,10 @@ class Rooms:
             timing = next((item for item in scenario.timings if item.profile_id == spec.timing_profile), None)
             if timing is None:
                 raise RoomError(422, "invalid_timing_profile", "Choose an available timing profile")
+            if spec.start_at not in {"beginning", "assessment"}:
+                raise RoomError(422, "invalid_start_at", "Start at the beginning or at the assessment")
+            if spec.start_at == "assessment" and not timing.private_rounds:
+                raise RoomError(422, "start_at_unavailable", "This timing profile has no private assessment round")
             ids = [member_id for member_id, _ in spec.players]
             if len(ids) != len(set(ids)):
                 raise RoomError(422, "duplicate_member", "Each member must appear exactly once")
@@ -857,12 +865,37 @@ class Rooms:
             if spec.manual_turns:
                 # No automatic timing: turns wait for the speaker and the session has no overall ceiling.
                 phase = replace(phase, state=replace(phase.state, manual_turns=True, session_deadline=None))
-            candidate = replace(room, phase=phase, version=room.version + 1,
+            added = ()
+            if spec.start_at == "assessment":
+                phase, added = self.assessment_start(room, phase, roles, spec.prerecorded_decisions, now)
+            candidate = replace(room, phase=phase, version=room.version + 1, contributions=room.contributions + added,
                                 members={**room.members, session: replace(caller, last_seen=now)})
             view = candidate.snapshot(session, now)
             room.phase, room.version, room.members = candidate.phase, candidate.version, candidate.members
+            room.contributions = candidate.contributions
             self.receipts[(session, command_id)] = (intent, view)
             return view
+
+    @staticmethod
+    def assessment_start(room, phase: StartedGame, roles: dict, decisions: tuple[str, ...],
+                         now: float) -> tuple[StartedGame, tuple]:
+        """Test shortcut: record each seat's prerecorded Round 1 decision as if submitted, then open the private
+        session with every member at the assessment stage. Seats without a prerecorded decision keep none."""
+        state = phase.state
+        decision_phase = uuid4()
+        added, records = [], []
+        for index, member in enumerate(phase.electorate):
+            text = decisions[index] if index < len(decisions) else None
+            if not text:
+                continue
+            contribution = Contribution(uuid4(), len(room.contributions) + len(added) + 1, member, roles[member],
+                                        decision_phase, "individual_decision", state.round_id, state.round_number,
+                                        state.node_id, "answer", "speech", text, utc_now())
+            added.append(contribution)
+            records.append(sim.IndividualDecision(member, state.round_id, text, gameplay.at(state, now),
+                                                  contribution.contribution_id))
+        state = gameplay.begin_assessment_start(replace(state, individual_decisions=tuple(records)), now, phase.electorate)
+        return replace(phase, state=state), tuple(added)
 
     async def snapshot(self, session: str, room_id: UUID) -> RoomSnapshot:
         room = self.require_room(room_id)

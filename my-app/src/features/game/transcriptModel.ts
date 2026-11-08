@@ -137,9 +137,10 @@ export function privateAgentName(agentName: string, round: number): string {
 }
 
 /** One private session message as a transcript line: the coach's lines, the member's answers, failures as notes. */
-export function privateEntry(message: Pick<PrivateMessage, 'message_id' | 'author' | 'round' | 'status' | 'text'>, agentName: string, selfName: string): TranscriptInput {
+export function privateEntry(message: Pick<PrivateMessage, 'message_id' | 'author' | 'round' | 'status' | 'text' | 'used_clip'>, agentName: string, selfName: string): TranscriptInput {
     const id = `private:${message.message_id}`
-    if (message.author === 'member') return { id, speaker: `${selfName} (you)`, role: message.round === 3 ? 'Answer' : 'You', tone: 'self', text: message.text }
+    // Answers from a saved clip (including the prerecorded Rounds 1 and 2 of a Round 3 test start) keep the saved answer label.
+    if (message.author === 'member') return { id, speaker: `${selfName} (you)`, role: message.used_clip ? 'Saved answer' : message.round === 3 ? 'Answer' : 'You', tone: 'self', text: message.text }
     if (message.status === 'failed') return { id, speaker: privateAgentName(agentName, message.round), role: 'Note', tone: 'system', text: message.text || 'This reply could not be prepared.' }
     return { id, speaker: privateAgentName(agentName, message.round), role: message.round === 3 ? 'Examiner' : 'Crisis coach', tone: 'coach', text: message.text }
 }

@@ -13,11 +13,13 @@ own role and decision and that member's own private history.
 """
 
 import asyncio
-from datetime import datetime, timezone
+from dataclasses import replace
+from datetime import datetime, timedelta, timezone
 import json
 import logging
 import random
 import re
+import time
 from uuid import UUID, uuid4
 
 from .rooms import PRIVATE_CONTRIBUTION_PHASES, RoomError
@@ -34,6 +36,10 @@ CARD_RECORDED = ("I have recorded your response card from your answers: your act
                  "dependencies, fallback, communication and review.")
 TRANSITION = ("Your preparation is complete. The scored challenge begins now. "
               "I will ask you five multiple choice questions about your response.")
+START_TRANSITION = ("Test start: prerecorded answers were used for Rounds 1 and 2. The scored assessment begins now: "
+                    "five multiple choice questions, 60 seconds each.")
+START_TRANSITION_EMPTY = ("Test start: the scored assessment begins now. Five multiple choice questions, "
+                          "60 seconds each.")
 # Round 2: the scenario development shown before a coaching question, as a separate message.
 DEVELOPMENTS = {1: ("twist", TWIST), 2: ("update", COACH_UPDATE)}
 QUESTIONS = ("What would you do next?",
@@ -50,6 +56,9 @@ QUIZ_CHOICES = 4
 QUESTION_MAXIMUM = 20
 QUIZ_MAXIMUM = QUIZ_QUESTIONS * QUESTION_MAXIMUM  # 100
 CHOICE_IDS = ("a", "b", "c", "d")
+QUESTION_SECONDS = 60
+# A pick sent just before the deadline may arrive a little late; questions close this long after it.
+ANSWER_GRACE_SECONDS = 1.5
 QUIZ_TEMPERATURE = 0.4
 QUIZ_TIMEOUT = 90
 # LOW thinking alone can spend 500 to 2000 tokens before five questions of JSON (about 2000 to 3000 tokens).
@@ -74,7 +83,8 @@ CARD_TASK = ("Summarize this member's proposed preparation response into a draft
              "characters per field. No points are awarded.")
 QUIZ_TASK = ("You are now this member's examiner. Write a scored multiple choice assessment of exactly 5 questions that "
              "tests crisis judgment for THIS scenario and THIS member: their role (own_role), their own written decision "
-             "(own_decision), their coaching answers (own_private_history) and their response_card. Across the five "
+             "(own_decision), their coaching answers (own_private_history) and their response_card; when some of these "
+             "are missing, base the questions on the role and the public material. Across the five "
              "questions cover: who has the authority to act, facts versus uncertainty, dependencies, a workable fallback, "
              "communication, and review. Each question is a short realistic decision point this member faces next, "
              "addressed to them as you, self contained, at most 250 characters, and spoken aloud, so never refer to "
@@ -86,9 +96,11 @@ QUIZ_TASK = ("You are now this member's examiner. Write a scored multiple choice
              "Each question has exactly 4 choices: plausible, mutually exclusive, similar in length and tone, each at most "
              "160 characters, with no 'all of the above' and no points in the text. The best choice must not always be "
              "the longest. Points: the best choice exactly 20, the worst exactly 0, and the other two distinct whole "
-             "numbers strictly between 0 and 20 reflecting partial merit. Each rationale, at most 200 characters, says "
+             "numbers strictly between 0 and 20 reflecting partial merit, for example 20, 12, 5 and 0; never repeat a value "
+             "and never use two 0s or two 20s. Each rationale, at most 200 characters, says "
              "briefly why that choice earns its points, using the supplied facts in plain words without document or section "
-             "IDs. Return "
+             "IDs. Before replying, check that every question has exactly 4 choices whose points are 0, 20 and two "
+             "different values between them. Return only this JSON object, nothing before or after it: "
              '{"questions":[{"question":"...","choices":[{"text":"...","points":20,"rationale":"..."}]}]}.')
 OFFLINE_ACK = "Thank you. I have noted that in your preparation."
 
@@ -162,8 +174,26 @@ def _quiz_text(value, low: int, high: int, what: str) -> str:
     return text
 
 
+def score_by_rank(points: list[float]) -> list[int] | None:
+    """Gemini's ranking of the four choices, mapped onto the scale: worst 0, best 20, the other two distinct whole
+    numbers between, scaled from Gemini's own values. None when Gemini gave no clear single best and worst."""
+    low, high = min(points), max(points)
+    if high <= low or points.count(low) != 1 or points.count(high) != 1:
+        return None
+    middle = sorted(i for i, value in enumerate(points) if value not in (low, high))
+    middle.sort(key=lambda i: points[i])
+    scaled = [min(QUESTION_MAXIMUM - 1, max(1, round(QUESTION_MAXIMUM * (points[i] - low) / (high - low)))) for i in middle]
+    if scaled[0] >= scaled[1]:  # tied or collapsed by rounding: keep Gemini's order, one point apart
+        scaled = [scaled[0], scaled[0] + 1] if scaled[0] < QUESTION_MAXIMUM - 1 else [scaled[0] - 1, scaled[0]]
+    result = [0 if value == low else QUESTION_MAXIMUM if value == high else 0 for value in points]
+    for i, value in zip(middle, scaled):
+        result[i] = value
+    return result
+
+
 def validate_quiz(obj) -> list[dict]:
-    """Strict: 5 questions of 4 choices; points are exactly one 0, one 20 and two distinct values between."""
+    """5 questions of 4 choices; points end as exactly one 0, one 20 and two distinct values between. Points that
+    break the scale but rank the choices clearly are mapped onto it by rank (Gemini's judgment is kept)."""
     questions = obj.get("questions") if isinstance(obj, dict) else None
     if not isinstance(questions, list) or len(questions) != QUIZ_QUESTIONS:
         raise QuizError(f"Return exactly {QUIZ_QUESTIONS} questions")
@@ -183,14 +213,17 @@ def validate_quiz(obj) -> list[dict]:
             if not isinstance(choice, dict):
                 raise QuizError(f"Question {number} choices must be objects")
             points = choice.get("points")
-            if type(points) is not int:
-                raise QuizError(f"Question {number} points must be whole numbers")
+            if isinstance(points, bool) or not isinstance(points, (int, float)):
+                raise QuizError(f"Question {number} points must be numbers")
             rows.append({"text": _quiz_text(choice.get("text"), 2, 300, f"Question {number} choice text"),
                          "points": points,
                          "rationale": _quiz_text(choice.get("rationale"), 1, 300, f"Question {number} rationale")})
-        low, middle, top = 0, sorted(row["points"] for row in rows), QUESTION_MAXIMUM
-        if not (middle[0] == low and middle[3] == top and low < middle[1] < middle[2] < top):
-            raise QuizError(f"Question {number} points must be exactly one 0, one 20 and two distinct values between")
+        ranked = score_by_rank([float(row["points"]) for row in rows])
+        if ranked is None:
+            raise QuizError(f"Question {number} points were {[row['points'] for row in rows]}; each question needs "
+                            "exactly one 0, one 20 and two different whole numbers from 1 to 19")
+        for row, value in zip(rows, ranked):
+            row["points"] = value
         if len({row["text"].lower() for row in rows}) != QUIZ_CHOICES:
             raise QuizError(f"Question {number} repeats a choice")
         result.append({"question": question, "choices": rows})
@@ -208,12 +241,16 @@ def fit(build, budget_bytes: int, fractions=(1.0, 0.7, 0.5, 0.35, 0.2, 0.1)) -> 
 
 
 class PrivateSessions:
-    def __init__(self, rooms, facilitation, vertex=None, clips=None, rng: random.Random | None = None):
+    def __init__(self, rooms, facilitation, vertex=None, clips=None, rng: random.Random | None = None,
+                 clock=None, prerecorded: tuple[dict, ...] = ()):
         self.rooms = rooms
         self.facilitation = facilitation
         self.vertex = vertex
         self.clips = clips
         self.random = rng or random.Random()
+        # Monotonic seconds for question deadlines; the rooms clock by default so tests share one controllable clock.
+        self.clock = clock or getattr(rooms, "clock", None) or time.monotonic
+        self.prerecorded = prerecorded
         # (room_id, member_id) -> branch. Only the owning member can ever read a branch.
         self.branches: dict[tuple[UUID, UUID], dict] = {}
         self.tasks: set[asyncio.Task] = set()
@@ -243,13 +280,55 @@ class PrivateSessions:
         if not active:
             raise RoomError(404, "private_session_not_started", "You did not start a private session")
         own = (snapshot.game.individual_decisions or {}).get("self")
-        branch = {"room_id": snapshot.room_id, "member_id": snapshot.self_member_id, "seat": seat,
-                  "stage": "coaching", "messages": [], "expecting": None, "answers": {}, "card": None,
-                  "quiz": None, "job": None, "receipts": {}, "decision_text": own["text"] if own else None,
-                  "created_at": now_iso()}
+        branch = self._new_branch(snapshot.room_id, snapshot.self_member_id, seat, own["text"] if own else None)
         self.branches[key] = branch
         self._ask(branch, 1)
         return branch, True
+
+    @staticmethod
+    def _new_branch(room_id: UUID, member_id: UUID, seat: int, decision_text: str | None) -> dict:
+        return {"room_id": room_id, "member_id": member_id, "seat": seat, "stage": "coaching", "messages": [],
+                "expecting": None, "answers": {}, "card": None, "quiz": None, "job": None, "receipts": {},
+                "decision_text": decision_text, "created_at": now_iso()}
+
+    async def begin_assessment(self, session: str, room_id: UUID) -> None:
+        """Start at Round 3 (test shortcut): every member's branch replays the prerecorded Round 2 answers, records an
+        offline card from them, and starts the quiz job now. Idempotent: existing branches are left alone."""
+        snapshot = await self.rooms.snapshot(session, room_id)
+        game = snapshot.game
+        if game is None or game.phase != "private_session" or getattr(game, "start_at", None) != "assessment":
+            return
+        contributions = await self.rooms.contributions(session, room_id)
+        for seat, item in enumerate(game.private_progress or ()):
+            key = (room_id, item["member_id"])
+            if key in self.branches:
+                continue
+            recorded = self.prerecorded[seat] if seat < len(self.prerecorded) else None
+            branch = self._new_branch(room_id, item["member_id"], seat, recorded["decision"] if recorded else None)
+            branch["stage"] = "assessment"
+            self.branches[key] = branch
+            if recorded is not None:
+                self._replay_coaching(branch, recorded)
+            self._message(branch, "agent", "transition", 3, None, START_TRANSITION if recorded else START_TRANSITION_EMPTY)
+            member_view = replace(snapshot, self_member_id=item["member_id"])
+            self._start(branch, {"kind": "quiz", "round": 3, "step": None, "message_id": None},
+                        self._grounding(member_view, contributions, branch))
+
+    def _replay_coaching(self, branch: dict, recorded: dict) -> None:
+        """The canonical Round 2 developments and questions with the seat's prerecorded answers (used_clip), then a
+        response card from the offline helper, so the quiz is grounded as if the member had played. No model calls."""
+        for step, text in enumerate(recorded["coaching"], 1):
+            development = DEVELOPMENTS.get(step)
+            if development:
+                self._message(branch, "agent", development[0], 2, step, development[1])
+            self._message(branch, "agent", "question", 2, step, QUESTIONS[step - 1])
+            self._message(branch, "member", "answer", 2, step, text)
+            branch["answers"][(2, step)] = {"question": full_question(step), "text": text, "used_clip": True,
+                                            "clip_id": recorded["clip_ids"][step], "at": now_iso()}
+        fields = offline_card(" ".join((recorded["decision"], *recorded["coaching"])))
+        branch["card"] = {"status": "confirmed",
+                          "fields": {field: value or "Needs confirmation" for field, value in fields.items()}}
+        self._message(branch, "agent", "update", 2, None, CARD_RECORDED)
 
     async def _notify(self, branch: dict, stage: str) -> None:
         try:
@@ -329,26 +408,33 @@ class PrivateSessions:
         quiz = branch["quiz"]
         if quiz is None or quiz["status"] != "ready":
             return None
-        return next((item["step"] for item in quiz["questions"] if item["chosen"] is None), None)
+        return next((item["step"] for item in quiz["questions"]
+                     if item["chosen"] is None and not item["timed_out"]), None)
 
     def _quiz_view(self, branch: dict) -> dict | None:
         quiz = branch["quiz"]
         if quiz is None:
             return None
         current = self._current(branch)
+        server_time = datetime.now(timezone.utc)
         # Only questions already reached; points and rationales stay on the server until each is answered.
-        reached = [item for item in quiz["questions"] if item["chosen"] is not None or item["step"] == current]
+        reached = [item for item in quiz["questions"]
+                   if item["chosen"] is not None or item["timed_out"] or item["step"] == current]
         questions = [{"step": item["step"], "question": item["question"],
                       "choices": [{"choice_id": choice["choice_id"], "text": choice["text"]} for choice in item["choices"]],
-                      "chosen": item["chosen"], "points": item["points"], "max": QUESTION_MAXIMUM} for item in reached]
+                      "chosen": item["chosen"], "points": item["points"], "max": QUESTION_MAXIMUM,
+                      "deadline": item["deadline_at"], "timed_out": item["timed_out"]}
+                     for item in reached]
         review = None
         if branch["stage"] == "complete":
             review = [{"step": item["step"], "question": item["question"], "chosen": item["chosen"],
-                       "points": item["points"], "choices": [dict(choice) for choice in item["choices"]]}
+                       "points": item["points"], "timed_out": item["timed_out"],
+                       "choices": [dict(choice) for choice in item["choices"]]}
                       for item in quiz["questions"]]
         return {"status": quiz["status"], "current": current, "questions": questions,
                 "total": sum(item["points"] for item in quiz["questions"] if item["points"] is not None),
-                "max": QUIZ_MAXIMUM, "review": review}
+                "max": QUIZ_MAXIMUM, "review": review, "question_seconds": QUESTION_SECONDS,
+                "server_time": server_time.isoformat()}
 
     def _assessment(self, branch: dict) -> dict:
         """Compatibility summary of the quiz; the detailed review lives in quiz.review."""
@@ -539,6 +625,7 @@ class PrivateSessions:
             choices = list(item["choices"])
             self.random.shuffle(choices)
             ready.append({"step": step, "question": item["question"], "chosen": None, "points": None, "at": None,
+                          "deadline": None, "deadline_at": None, "timed_out": False,
                           "choices": [{"choice_id": choice_id, **choice} for choice_id, choice in zip(CHOICE_IDS, choices)]})
         return ready
 
@@ -623,17 +710,64 @@ class PrivateSessions:
             return None
         branch["quiz"] = {"status": "ready", "questions": questions}
         branch["job"] = None
-        self._message(branch, "agent", "question", 3, 1, questions[0]["question"], source="vertex")
+        self._post_question(branch, questions[0])
         return None
+
+    # Round 3 question clock --------------------------------------------------------------------------
+
+    def _post_question(self, branch: dict, question: dict) -> None:
+        """The question becomes current: its clock starts now and a timer closes it if nobody answers."""
+        # Monotonic for enforcement; the wall clock ISO copy is what clients see (compare it with server_time).
+        question["deadline"] = self.clock() + QUESTION_SECONDS
+        question["deadline_at"] = (datetime.now(timezone.utc) + timedelta(seconds=QUESTION_SECONDS)).isoformat()
+        self._message(branch, "agent", "question", 3, question["step"], question["question"], source="vertex")
+        self.spawn(self._timer(branch, question))
+
+    async def _timer(self, branch: dict, question: dict) -> None:
+        while self._current(branch) == question["step"] and branch["quiz"]["questions"][question["step"] - 1] is question:
+            remaining = question["deadline"] + ANSWER_GRACE_SECONDS - self.clock()
+            if remaining <= 0:
+                if self._expire(branch):
+                    await self._notify(branch, "complete")
+                return
+            await asyncio.sleep(remaining + 0.05)
+
+    def _expire(self, branch: dict) -> bool:
+        """Closes the current question with 0 points once its deadline plus grace has passed. Synchronous and
+        idempotent, so the lazy path and the timer cannot both close it. True when this completed the quiz."""
+        step = self._current(branch)
+        if step is None:
+            return False
+        question = branch["quiz"]["questions"][step - 1]
+        if self.clock() < question["deadline"] + ANSWER_GRACE_SECONDS:
+            return False
+        question.update(chosen=None, points=0, timed_out=True, at=now_iso())
+        return self._advance(branch, step, f"Question {step}: time is up, 0 of {QUESTION_MAXIMUM} points.")
+
+    def _advance(self, branch: dict, step: int, text: str) -> bool:
+        """Posts the result line, then the next question or the completion. True when the quiz is complete."""
+        quiz = branch["quiz"]
+        if step < QUIZ_QUESTIONS:
+            self._message(branch, "agent", "result", 3, step, text)
+            self._post_question(branch, quiz["questions"][step])
+            return False
+        total = sum(item["points"] for item in quiz["questions"])
+        self._message(branch, "agent", "result", 3, step, text + f" Your assessment is complete with {total} of "
+                      f"{QUIZ_MAXIMUM} points. The full review is now available.")
+        branch["stage"] = "complete"
+        return True
 
     # Commands ---------------------------------------------------------------------------------------
 
     async def view(self, session: str, room_id: UUID) -> dict:
         snapshot, seat, active = await self._resolve(session, room_id)
         branch, created = self._branch(snapshot, seat, active)
+        completed = self._expire(branch)
         payload = self.payload(branch, active)
         if created:
             await self._notify(branch, "coaching")
+        if completed:
+            await self._notify(branch, "complete")
         return payload
 
     async def answer(self, session: str, room_id: UUID, command_id: UUID, text: str, used_clip: bool) -> dict:
@@ -695,6 +829,8 @@ class PrivateSessions:
         snapshot, seat, active = await self._resolve(session, room_id)
         # Synchronous from here: no other request can interleave between these checks and the mutation.
         branch, created = self._branch(snapshot, seat, active)
+        if self._expire(branch):
+            await self._notify(branch, "complete")  # Mutation already done; the room only records the stage.
         intent = ("choice", step, choice_id)
         if self._replay(branch, command_id, intent):
             return self.payload(branch, active)
@@ -704,6 +840,8 @@ class PrivateSessions:
                 await self._notify(branch, "coaching")
             raise RoomError(409, "quiz_not_ready", "The multiple choice assessment is not ready")
         question = next((item for item in quiz["questions"] if item["step"] == step), None)
+        if question is not None and question["timed_out"]:
+            raise RoomError(409, "question_timed_out", "Time ran out for this question; it scored 0 points")
         if question is not None and question["chosen"] is not None:
             raise RoomError(409, "already_answered", "This question is already answered; answers are final")
         if not active:
@@ -716,18 +854,10 @@ class PrivateSessions:
         question.update(chosen=choice_id, points=choice["points"], at=now_iso())
         branch["receipts"][command_id] = intent
         self._message(branch, "member", "answer", 3, step, choice["text"])
-        text = f"Question {step}: {choice['points']} of {QUESTION_MAXIMUM} points."
-        if step < QUIZ_QUESTIONS:
-            self._message(branch, "agent", "result", 3, step, text)
-            following = quiz["questions"][step]
-            self._message(branch, "agent", "question", 3, following["step"], following["question"], source="vertex")
-            return self.payload(branch, active)
-        total = sum(item["points"] for item in quiz["questions"])
-        self._message(branch, "agent", "result", 3, step, text + f" Your assessment is complete with {total} of "
-                      f"{QUIZ_MAXIMUM} points. The full review is now available.")
-        branch["stage"] = "complete"
+        completed = self._advance(branch, step, f"Question {step}: {choice['points']} of {QUESTION_MAXIMUM} points.")
         payload = self.payload(branch, active)
-        await self._notify(branch, "complete")
+        if completed:
+            await self._notify(branch, "complete")
         return payload
 
     async def retry(self, session: str, room_id: UUID, command_id: UUID) -> dict:

@@ -1,0 +1,195 @@
+/*
+ * Call screen theme: the home page's look (warm paper, brown ink, brick red, condensed uppercase labels and
+ * skewed red bars) carried into the live call. Loaded after Game.css and ControlBar.css; every rule is scoped to
+ * .game-call-screen so it wins over the original dark call styles without touching their layout.
+ */
+
+.game-call-screen {
+  --call-paper: #f6f5ef;
+  --call-card: #fffaf1;
+  --call-card-deep: #f3ece0;
+  --call-line: #e3d6c2;
+  --call-ink: #422820;
+  --call-body: #4a3a30;
+  --call-muted: #7a6656;
+  --call-red: #8b362c;
+  --call-red-hover: #a3443a;
+  --call-red-soft: #8b362c12;
+  --call-cream: #fff4dc;
+  --call-gold: #8a6a18;
+  --call-green: #354c3c;
+  --call-shadow: #42282024;
+  --call-skew: polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
+
+  background: var(--call-paper);
+  color: var(--call-ink);
+  color-scheme: light;
+}
+
+.game-call-screen *, .game-call-screen { scrollbar-color: #42282033 transparent; }
+.game-call-screen button:focus-visible, .game-call-screen .game-call-viewport:focus-visible,
+.game-call-screen .control-button:focus-visible, .game-call-screen .control-end:focus-visible { outline: 2px solid var(--call-red); outline-offset: 3px; }
+
+/* Header: the home title treatment. */
+.game-call-screen .game-call-heading h1 { color: var(--call-ink); font-size: 26px; font-style: italic; font-weight: 800; letter-spacing: .03em; line-height: 1; text-transform: uppercase; transform: scaleX(.82); text-shadow: 2px 2px 0 #42282012; }
+.game-call-screen .game-call-heading > span { color: var(--call-red); font-family: ui-monospace, Consolas, monospace; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; }
+.game-call-screen .game-back-button { color: var(--call-muted); }
+.game-call-screen .game-back-button:hover { background: var(--call-red-soft); color: var(--call-red); }
+.game-call-screen .game-summary-button { color: var(--call-ink); }
+.game-call-screen .game-summary-button:hover { color: var(--call-red); }
+.game-call-screen .game-player-count > span, .game-call-screen .game-empty-grid { color: var(--call-muted); }
+
+/* Stage frame: paper card instead of the dark gradient. */
+.game-call-screen .call-stage, .game-call-screen .opening-stage { border: 1px solid var(--call-line); background: linear-gradient(180deg, #fcf9f2 0%, #f2eadc 100%); box-shadow: 0 14px 34px #4228200f; }
+.game-call-screen .call-stage-meta { color: var(--call-muted); }
+.game-call-screen .opening-pill { border-color: #8b362c55; color: var(--call-red); font-weight: 700; }
+.game-call-screen .opening-countdown { background: var(--call-ink); color: var(--call-cream); }
+.game-call-screen .private-lock { background: #4228200d; color: var(--call-muted); }
+
+/* Tiles. */
+.game-call-screen .call-tile, .game-call-screen .game-player-card { border: 1px solid var(--call-line); background: var(--call-card); box-shadow: 0 3px 12px #42282012; }
+.game-call-screen .call-tile { --tile-accent: var(--call-red); }
+.game-call-screen .call-tile.is-talking { border-color: var(--tile-accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--tile-accent) 28%, transparent), 0 12px 28px var(--call-shadow); }
+.game-call-screen .call-tile-status { background: #4228200f; color: var(--call-muted); }
+.game-call-screen .call-tile.is-talking .call-tile-status { background: var(--tile-accent); color: var(--call-cream); }
+.game-call-screen .call-tile-caption strong, .game-call-screen .game-player-caption h2 { color: var(--call-ink); }
+.game-call-screen .call-tile-caption > span:not(.call-bars), .game-call-screen .game-player-caption > span, .game-call-screen .game-player-caption small { color: var(--call-muted); }
+.game-call-screen .game-player-card .call-tile-ring { --tile-accent: var(--call-red); }
+.game-call-screen .game-player-card--talking, .game-call-screen .game-player-card--speaking { border-color: var(--call-red); box-shadow: 0 0 0 2px #8b362c40, 0 12px 28px var(--call-shadow); }
+.game-call-screen .game-tile-badge--speaking { background: var(--call-red); color: var(--call-cream); }
+.game-call-screen .game-tile-badge--voted { background: var(--call-green); color: var(--call-cream); }
+.game-call-screen .game-host-indicator { color: #b07a1c; }
+.game-call-screen .call-bars i { background: var(--tile-accent, var(--call-red)); }
+
+/* AI orb: warm terracotta by default; experts and the examiner keep their own accents. */
+.game-call-screen .opening-core { background: radial-gradient(circle at 35% 30%, #ffe3c8 0%, #c8603e 42%, #7a2a20 100%); box-shadow: 0 10px 34px #8b362c40, inset 0 -6px 14px #42282033; }
+.game-call-screen .opening-ring { border-color: #c8603e; }
+.game-call-screen .call-tile[style] .call-orb .opening-core { box-shadow: 0 10px 34px color-mix(in srgb, var(--tile-accent) 40%, transparent), inset 0 -6px 14px #42282033; }
+
+/* Opening briefing text and controls. */
+.game-call-screen .opening-state, .game-call-screen .opening-source, .game-call-screen .opening-next,
+.game-call-screen .opening-shimmer-label, .game-call-screen .opening-voice-notice, .game-call-screen .opening-report-meta { color: var(--call-muted); }
+.game-call-screen .opening-text p, .game-call-screen .opening-report-summary { color: var(--call-body); }
+.game-call-screen .opening-scenario, .game-call-screen .opening-report-eyebrow, .game-call-screen .game-round-label { color: var(--call-red); }
+.game-call-screen .opening-caret, .game-call-screen .transcript-caret { background: var(--call-red); }
+.game-call-screen .opening-link, .game-call-screen .opening-report-link, .game-call-screen .private-history > summary { color: var(--call-red); }
+.game-call-screen .opening-report-link:hover { color: var(--call-red-hover); }
+.game-call-screen .opening-shimmer > span { background: linear-gradient(90deg, #4228200d 0%, #4228201f 50%, #4228200d 100%); background-size: 200% 100%; }
+.game-call-screen .opening-problem { border-left-color: #c0603f; background: #c0603f14; color: #6b2a1e; }
+.game-call-screen .opening-source.is-offline { background: #b58c281f; color: #6b4b14; }
+.game-call-screen .opening-play { border-radius: 0; background: var(--call-red); color: var(--call-cream); clip-path: var(--call-skew); padding-inline: 20px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.game-call-screen .opening-play:hover:not(:disabled) { background: var(--call-red-hover); }
+.game-call-screen .opening-report { border-color: #b58c2866; background: linear-gradient(180deg, #fbf1d6 0%, var(--call-card) 100%); }
+.game-call-screen .opening-report-icon { background: #b58c2826; color: var(--call-gold); }
+.game-call-screen .opening-report-button { border-radius: 0; background: var(--call-ink); color: var(--call-cream); clip-path: var(--call-skew); padding-inline: 20px; }
+.game-call-screen .opening-report-button:hover { background: var(--call-red); }
+
+/* Expert panel cards. */
+.game-call-screen .expert-card { border-color: var(--call-line); background: var(--call-card); }
+.game-call-screen .expert-card.is-active { border-color: var(--expert-accent); background: color-mix(in srgb, var(--expert-accent) 9%, var(--call-card)); }
+.game-call-screen .expert-persona, .game-call-screen .expert-waiting { color: var(--call-muted); }
+.game-call-screen .expert-text--done { color: var(--call-body); }
+.game-call-screen .expert-status { background: #4228200f; color: var(--call-muted); }
+.game-call-screen .expert-status--speaking { background: var(--expert-accent); color: #fff; }
+.game-call-screen .expert-status--done { background: var(--call-green); color: var(--call-cream); }
+.game-call-screen .expert-status--unavailable { background: #c0603f1f; color: #6b2a1e; }
+
+/* Private coaching. */
+.game-call-screen .private-call, .game-call-screen .private-stage { --private-accent: var(--call-red); }
+.game-call-screen .private-call.is-examiner, .game-call-screen .private-stage.is-examiner { --private-accent: #b58c28; }
+.game-call-screen .private-call.is-examiner .private-pill, .game-call-screen .private-stage.is-examiner .private-pill { border-color: #b58c2866; color: var(--call-gold); }
+.game-call-screen .private-chip { border-color: var(--call-line); background: var(--call-card); }
+.game-call-screen .private-chip span, .game-call-screen .private-author, .game-call-screen .private-hint, .game-call-screen .private-card-field small,
+.game-call-screen .private-board-row small, .game-call-screen .private-total span, .game-call-screen .private-waiting,
+.game-call-screen .private-voice, .game-call-screen .private-note { color: var(--call-muted); }
+.game-call-screen .private-chip--scoring { border-color: #b58c2899; }
+.game-call-screen .private-chip--scored { border-color: #9cbf9f; background: #e7efe2; }
+.game-call-screen .private-chip--failed { border-color: #e0a46a; background: #fbeee0; }
+.game-call-screen .private-message--agent { background: #4228200a; color: var(--call-ink); }
+.game-call-screen .private-message--agent.is-current { background: color-mix(in srgb, var(--private-accent) 10%, var(--call-card)); }
+.game-call-screen .private-message--twist p, .game-call-screen .private-message--update p { color: #6b4b14; }
+.game-call-screen .private-message--member { background: var(--call-ink); color: var(--call-cream); }
+.game-call-screen .private-message--member .private-author { color: #e9d9c4; }
+.game-call-screen .private-message--member.is-live { outline-color: var(--call-red); }
+.game-call-screen .private-divider { border-color: #b58c2866; background: #fbf1d6; }
+.game-call-screen .private-divider span, .game-call-screen .private-eyebrow { color: var(--call-red); }
+.game-call-screen .private-divider small, .game-call-screen .private-criterion p { color: var(--call-body); }
+.game-call-screen .private-failed, .game-call-screen .private-listening { color: #9a3030; }
+.game-call-screen .private-composer, .game-call-screen .private-card, .game-call-screen .private-retry { border-color: var(--call-line); background: var(--call-card); }
+.game-call-screen .private-retry { border-color: #e0a46a; }
+.game-call-screen .private-retry p { color: #6b2a1e; }
+.game-call-screen .private-question { color: var(--call-ink); }
+.game-call-screen .private-composer textarea, .game-call-screen .private-card textarea { border-color: #d9ccb8; background: #fffdf8; color: var(--call-ink); }
+.game-call-screen .private-composer textarea::placeholder, .game-call-screen .private-card textarea::placeholder { color: #9a8a7a; }
+.game-call-screen .private-composer textarea:focus-visible, .game-call-screen .private-card textarea:focus-visible { outline-color: var(--call-red); }
+.game-call-screen .private-criterion, .game-call-screen .private-board-row { background: var(--call-card-deep); }
+.game-call-screen .private-criterion blockquote { border-left-color: #b58c28; color: #5c4630; }
+.game-call-screen .private-board { border-top-color: var(--call-line); }
+.game-call-screen .private-dock-float { border-color: var(--call-line); background: #fffaf1f2; box-shadow: 0 12px 36px var(--call-shadow); }
+.game-call-screen .private-complete { border-color: var(--call-line); background: #fffaf1e6; }
+
+/* Live transcript card. */
+.game-call-screen .transcript-panel { border-color: var(--call-line); background: #fffaf1f7; color: var(--call-ink); box-shadow: 0 14px 36px var(--call-shadow); }
+.game-call-screen .transcript-header { border-bottom-color: var(--call-line); }
+.game-call-screen .transcript-header h2 { color: var(--call-red); font-size: 11px; font-style: italic; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+.game-call-screen .transcript-title:hover { background: var(--call-red-soft); }
+.game-call-screen .transcript-close { color: var(--call-muted); }
+.game-call-screen .transcript-close:hover { background: var(--call-red-soft); color: var(--call-red); }
+.game-call-screen .transcript-entry.is-live { background: var(--call-red-soft); border-left-color: var(--call-red); }
+.game-call-screen .transcript-speaker { color: var(--call-ink); }
+.game-call-screen .transcript-entry--self .transcript-speaker { color: #2f6b45; }
+.game-call-screen .transcript-entry--coach .transcript-speaker, .game-call-screen .transcript-entry--agent .transcript-speaker { color: var(--call-red); }
+.game-call-screen .transcript-entry--system .transcript-speaker { color: var(--call-gold); }
+.game-call-screen .transcript-role { background: #4228200f; color: var(--call-muted); }
+.game-call-screen .transcript-live { color: var(--call-red); }
+.game-call-screen .transcript-live-dot { background: var(--call-red); }
+.game-call-screen .transcript-text { color: #3b2a22; }
+.game-call-screen .transcript-entry--system .transcript-text { color: #5c4630; }
+.game-call-screen .transcript-empty { color: var(--call-muted); }
+.game-call-screen .transcript-dock:not(:empty) { border-top-color: var(--call-line); background: #f6f0e4; }
+
+/* Chat drawer. */
+.game-call-screen .chat-drawer { border-left-color: var(--call-line); background: var(--call-card); color: var(--call-ink); box-shadow: -12px 0 32px #4228201f; }
+.game-call-screen .chat-drawer-header, .game-call-screen .chat-drawer .room-chat-compose, .game-call-screen .chat-drawer-pinned { border-color: var(--call-line); }
+.game-call-screen .chat-drawer-header h2 { color: var(--call-red); font-size: 12px; font-style: italic; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+.game-call-screen .chat-drawer-close { color: var(--call-muted); }
+.game-call-screen .chat-drawer-close:hover { background: var(--call-red-soft); color: var(--call-red); }
+.game-call-screen .chat-drawer .room-chat-record { border-bottom-color: #4228200f; }
+.game-call-screen .chat-drawer .room-chat-record.is-self .room-chat-text { color: var(--call-red); }
+.game-call-screen .chat-drawer .room-chat-meta time, .game-call-screen .chat-drawer .room-chat-context, .game-call-screen .chat-drawer .room-chat-empty,
+.game-call-screen .chat-drawer .room-chat-note, .game-call-screen .chat-drawer .room-chat-compose-actions span { color: var(--call-muted); }
+.game-call-screen .chat-drawer .room-chat-compose textarea { border-color: #d9ccb8; background: #fffdf8; color: var(--call-ink); }
+.game-call-screen .chat-drawer .room-chat-compose textarea:focus { outline-color: var(--call-red); }
+.game-call-screen .chat-drawer .room-chat-compose button, .game-call-screen .chat-drawer .room-chat-retry button { background: var(--call-red); color: var(--call-cream); }
+.game-call-screen .chat-drawer .room-chat-error { color: #9a3030; }
+
+/* Control bar: paper bar, brown icons, red when on; End is the home page's skewed red bar. */
+.game-call-screen .control-bar { border-top-color: var(--call-line); background: #fbf8f1; color: var(--call-ink); box-shadow: 0 -8px 24px #4228200f; }
+.game-call-screen .control-phase { background: #4228200d; }
+.game-call-screen .control-phase-dot { background: #487b52; box-shadow: 0 0 0 3px #487b5233; }
+.game-call-screen .control-clock { border-left-color: #42282026; color: var(--call-red); }
+.game-call-screen .control-round { color: var(--call-muted); }
+.game-call-screen .control-button { color: var(--call-ink); }
+.game-call-screen .control-button:hover:not(:disabled) { background: #4228200a; }
+.game-call-screen .control-disc { background: #ece5d8; }
+.game-call-screen .control-button:hover:not(:disabled) .control-disc { background: #e2d8c7; }
+.game-call-screen .control-button[aria-pressed="true"] .control-disc { background: var(--call-red); color: var(--call-cream); }
+.game-call-screen .control-button[aria-pressed="true"]:hover:not(:disabled) .control-disc { background: var(--call-red-hover); }
+.game-call-screen .control-button--accent .control-disc { background: var(--call-green); color: var(--call-cream); }
+.game-call-screen .control-button--accent:hover:not(:disabled) .control-disc { background: #44614d; }
+.game-call-screen .control-button--live .control-disc, .game-call-screen .control-button--live[aria-pressed="true"] .control-disc { background: #c0392b; color: #fff; }
+.game-call-screen .control-label { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.game-call-screen .control-badge { border-color: #fbf8f1; background: var(--call-red); color: var(--call-cream); }
+.game-call-screen .control-end { min-height: 44px; padding: 8px 26px; border-radius: 0; background: var(--call-red); color: var(--call-cream); clip-path: var(--call-skew); font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif; font-size: 20px; font-weight: 400; letter-spacing: .08em; text-transform: uppercase; }
+.game-call-screen .control-end:hover:not(:disabled) { background: var(--call-red-hover); }
+.game-call-screen .control-end.is-armed { background: #5e1f18; box-shadow: none; }
+
+/* 3D stage overlays: cream pills over the room instead of dark ones. */
+.game-call-screen .game-live-main--3d .call-stage { border-color: transparent; background: transparent; box-shadow: none; }
+.game-call-screen .game-live-main--3d .call-stage-head,
+.game-call-screen .game-live-main--3d .call-stage-footer { background: #fffaf1eb; color: var(--call-ink); box-shadow: 0 8px 26px var(--call-shadow); }
+.game-call-screen .game-live-main--3d .private-complete { background: #fffaf1f2; }
+.game-call-screen .board3d { background: var(--call-card-deep); border: 1px solid var(--call-line); }
+.game-call-screen .board3d-vignette { background: radial-gradient(ellipse at 50% 50%, transparent 60%, #42282026 100%); }
+.game-call-screen .board3d-loading { background: #fffaf1eb; color: var(--call-ink); box-shadow: 0 6px 18px var(--call-shadow); }
+.game-call-screen .board3d-loading--failed { color: #9a3030; }

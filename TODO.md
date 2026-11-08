@@ -254,6 +254,10 @@ The user now owns frontend implementation and backend integration, retaining Jef
 
   Owner: Arjun's Claude agent. Status: `done`. Evidence: completion record 33. Scope from the user: smaller text, about half the height, easy to minimize. Progress: the transcript is now a 300 px floating card under the game header at half the height above the control bar (it runs down to the control bar only while a stage docks its answer box); text sizes reduced; a chevron or a click on the header minimizes it to its title bar, showing who is speaking, and the choice is stored per tab (`boardroom.transcriptMinimized`); the docked answer box stays visible when minimized; the card no longer pushes the call aside (the chat drawer still does). Checks: `npx tsc -b`, `npm run lint`, `npm run build` passed; `npm test` passed 226 of 226; Playwright screenshots of the card in the 3D and call views, expanded and minimized. Next action: none for this task.
 
+* [ ] X24 Carry the home page look into the call screen.
+
+  Owner: Arjun's Claude agent. Status: `in_progress`. Scope from the user: use the home page colour scheme and style in the call, with a similar theme everywhere and no dark gradient. Progress: new `my-app/src/pages/GameTheme.css`, loaded after `Game.css` and scoped to `.game-call-screen`, recolours the header, stage frame, tiles, AI orbs, opening, expert and private session stages, transcript card, chat drawer, control bar and 3D overlays in the home palette (paper `#f6f5ef`, brown ink `#422820`, brick red `#8b362c`, cream `#fff4dc`); the title uses the home italic uppercase treatment, and primary buttons and End use the home page's skewed red bar; transcript speaker accents now mix toward ink; the blue first avatar colour became warm brown; the solo demo frame and Reset button went light. Checks: `npx tsc -b`, `npm run lint`, `npm run build` passed; `npm test` passed 226 of 226; Playwright screenshots of the ended card, a sample expert panel stage with answer box, and the 3D view. Next action: commit, push and record completion.
+
 ## Integration and verification
 
 * [x] I01 Publish the frontend API and snapshot contract with examples.

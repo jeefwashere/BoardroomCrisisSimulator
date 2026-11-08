@@ -22,7 +22,7 @@ function TranscriptLine({ entry }: { entry: TranscriptEntry }) {
     const text = revealing ? revealedText(entry.text, entry.reveal, now) : entry.text
     return <li className={`transcript-entry transcript-entry--${entry.tone}${entry.live ? ' is-live' : ''}`}>
         <div className="transcript-entry-head">
-            <span className="transcript-speaker" style={entry.accent ? { color: `color-mix(in srgb, ${entry.accent} 50%, #ffffff 50%)` } : undefined}>{entry.speaker}</span>
+            <span className="transcript-speaker" style={entry.accent ? { color: `color-mix(in srgb, ${entry.accent} 75%, #422820 25%)` } : undefined}>{entry.speaker}</span>
             {entry.role && <span className="transcript-role">{entry.role}</span>}
             {entry.live && <span className="transcript-live"><span className="transcript-live-dot" aria-hidden="true" />Speaking</span>}
         </div>

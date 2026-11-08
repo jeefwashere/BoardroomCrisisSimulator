@@ -41,6 +41,7 @@ import type { StageAgent } from '../features/boardroom3d/boardroomModel'
 import { DEMO_STORAGE_KEY, readStoredDemo } from '../features/demo/demoModel'
 import { seatFromSearch } from '../services/tabSession'
 import './Game.css'
+import './GameTheme.css'
 
 const CONTEXT_PHASES = ['reading', 'speaking', 'discussion']
 

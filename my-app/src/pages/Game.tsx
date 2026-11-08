@@ -88,7 +88,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const hideCaptions = useCallback(() => { storeCaptions(false); setCaptions(false) }, [])
     const transcriptOpen = captions && !chatOpen
     const [dock, setDock] = useState<HTMLDivElement | null>(null)
-    const { entries: transcriptEntries, writer: transcript } = useTranscript()
+    const { entries: transcriptEntries, writer: transcript } = useTranscript(`${room.room_id}:${room.game?.started_at ?? ''}`)
     const [soloBots] = useState(drivesSoloBots)
     // Unread counts other members' messages that arrived after the drawer was last open (history at entry counts as read).
     const [seenChat, setSeenChat] = useState<number | null>(null)

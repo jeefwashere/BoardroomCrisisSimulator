@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { transcriptReducer } from './transcriptModel'
 import type { TranscriptEntry, TranscriptInput } from './transcriptModel'
 
@@ -12,9 +12,14 @@ export type TranscriptWriter = {
     done: (id: string) => void
 }
 
-/** The call's running transcript, owned by the game screen for the whole game. */
-export function useTranscript(): { entries: TranscriptEntry[]; writer: TranscriptWriter } {
+/** The call's running transcript, owned by the game screen. A new `sessionKey` (new room or game) starts it empty. */
+export function useTranscript(sessionKey: string): { entries: TranscriptEntry[]; writer: TranscriptWriter } {
     const [entries, dispatch] = useReducer(transcriptReducer, [])
+    const [session, setSession] = useState(sessionKey)
+    if (session !== sessionKey) {
+        setSession(sessionKey)
+        dispatch({ type: 'clear' })
+    }
     const upsert = useCallback((entry: TranscriptInput) => dispatch({ type: 'upsert', entry }), [])
     const speak = useCallback((entry: TranscriptInput, durationMs: number | null, elapsedMs = 0) => dispatch({ type: 'speak', entry, at: Date.now() - elapsedMs, durationMs }), [])
     const done = useCallback((id: string) => dispatch({ type: 'done', id }), [])

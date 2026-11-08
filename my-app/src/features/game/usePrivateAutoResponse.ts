@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { PrivateSession } from '../../services/facilitation'
 import { facilitationApi } from '../facilitation/facilitationClient'
-import { generatedSpeechUrl } from './aiReply'
+import { streamedSpeech } from './aiReply'
 import { audioDurationMs } from './useAutoResponse'
 import type { AutoPlayback, AutoResponseState } from './useAutoResponse'
 
@@ -15,14 +15,14 @@ export function usePrivateAutoResponse(roomId: string, session: PrivateSession |
     const [reply, setReply] = useState<{ key: string; text: string } | null>(null)
     const [playback, setPlayback] = useState<AutoPlayback | null>(null)
     const audio = useRef<HTMLAudioElement | null>(null)
-    const objectUrl = useRef<string | null>(null)
+    const disposeSpeech = useRef<(() => void) | null>(null)
     const latestKey = useRef<string | null>(null)
     const expecting = session?.expecting && !session.busy ? session.expecting : null
     const key = expecting ? `${expecting.round}:${expecting.step}` : null
 
     function release() {
         audio.current?.pause(); audio.current = null
-        if (objectUrl.current) { URL.revokeObjectURL(objectUrl.current); objectUrl.current = null }
+        disposeSpeech.current?.(); disposeSpeech.current = null
     }
 
     useEffect(() => {
@@ -49,16 +49,19 @@ export function usePrivateAutoResponse(roomId: string, session: PrivateSession |
         catch (failure) { onError(failure); if (latestKey.current === forKey) setState({ key: forKey, status: 'ready' }); return }
         if (latestKey.current !== forKey) return
         setReply({ key: forKey, text: drafted.text })
-        const url = await generatedSpeechUrl(roomId, drafted.speech_id)
-        if (latestKey.current !== forKey) { if (url) URL.revokeObjectURL(url); return }
-        if (!url) { await commit(forKey, drafted.text); return }
+        // Streams: playback starts with the first audio instead of after the whole file.
+        const speech = await streamedSpeech(roomId, drafted.speech_id)
+        if (latestKey.current !== forKey) { speech?.dispose(); return }
+        if (!speech) { await commit(forKey, drafted.text); return }
         release()
-        objectUrl.current = url
-        const player = new Audio(url)
+        disposeSpeech.current = speech.dispose
+        const player = speech.player
         audio.current = player
         setState({ key: forKey, status: 'playing' })
         player.addEventListener('playing', () => { if (audio.current === player) setPlayback({ key: forKey, durationMs: audioDurationMs(player) }) }, { once: true })
         player.onended = () => { if (audio.current === player) { release(); void commit(forKey, drafted.text) } }
+        // A broken stream still commits the written reply.
+        player.onerror = () => { if (audio.current === player) { release(); void commit(forKey, drafted.text) } }
         player.play().catch(() => { if (audio.current === player) { release(); void commit(forKey, drafted.text) } })
     }
 

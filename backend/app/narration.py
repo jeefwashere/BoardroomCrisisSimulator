@@ -1,7 +1,7 @@
 """Shared narration bytes. Rooms owns authentication and current phase checks."""
 
 import asyncio
-from collections.abc import Callable
+from collections.abc import AsyncIterator, Callable, Iterator
 from dataclasses import dataclass, field
 import math
 import os
@@ -37,6 +37,11 @@ class _Entry:
     voice: str | None = None
     audio: bytes | None = None
     deliveries: tuple[Delivery, ...] = field(default_factory=tuple)
+    # Streaming synthesis: chunks so far, shared by every listener; `streamed` marks a task that fills them.
+    chunks: list[bytes] = field(default_factory=list)
+    streamed: bool = False
+    stream_ended: bool = False
+    changed: asyncio.Condition | None = None
 
 
 class NarrationService:
@@ -47,8 +52,11 @@ class NarrationService:
     whether a narration still belongs to the current phase.
     """
 
-    def __init__(self, synthesizer: Callable[..., bytes] | None = None):
+    def __init__(self, synthesizer: Callable[..., bytes] | None = None,
+                 streamer: Callable[[str, str | None], Iterator[bytes]] | None = None):
         self._synthesizer = synthesizer
+        # Optional: yields audio chunks as they are produced, so playback can start before synthesis ends.
+        self._streamer = streamer
         self._entries: dict[tuple[UUID, UUID], _Entry] = {}
 
     @classmethod
@@ -88,12 +96,17 @@ class NarrationService:
         def synthesize(text: str, speaker: str | None = None) -> bytes:
             # ElevenSpeech owns disk caching and the shared budget reservation.
             # Serial access also protects its cache's single temporary filename.
+            # 64 kbps keeps speech clear at half the bytes, so lines reach players sooner over the tunnel.
             with synthesis_lock:
-                result = speech.speak(text, voices.get(speaker or "", voice), model_id="eleven_flash_v2_5")
+                result = speech.speak(text, voices.get(speaker or "", voice), model_id="eleven_flash_v2_5",
+                                      output_format="mp3_44100_64")
                 with Path(result["path"]).open("rb") as audio:
                     return audio.read(MAX_AUDIO_BYTES + 1)
 
-        return cls(synthesize)
+        def stream(text: str, speaker: str | None = None) -> Iterator[bytes]:
+            return speech.stream(text, voices.get(speaker or "", voice), model_id="eleven_flash_v2_5")
+
+        return cls(synthesize, stream)
 
     def _entry(self, room_id: UUID, narration_id: UUID, text: str) -> _Entry:
         if not isinstance(text, str) or not text.strip() or len(text) > MAX_TEXT_CHARACTERS:
@@ -133,6 +146,67 @@ class NarrationService:
         except Exception:
             # Provider exceptions can contain keys, response bodies, or paths.
             entry.result = MediaResult("failed", entry.result.text, "Narration unavailable")
+        return entry.result
+
+    async def stream(self, room_id: UUID, narration_id: UUID, text: str, voice: str | None = None) -> AsyncIterator[bytes]:
+        """Audio for a line as it is produced. The first caller starts one upstream synthesis; every other listener
+        (other windows) reads the same chunks, and once complete the line is cached like a prepared one."""
+        entry = self._entry(room_id, narration_id, text)
+        if entry.result.status == "disabled":
+            raise KeyError("Narration is disabled")
+        if entry.task is None and self._streamer is not None:
+            entry.voice, entry.streamed, entry.changed = voice, True, asyncio.Condition()
+            entry.task = asyncio.create_task(self._stream_generate(entry))
+        elif entry.task is None:
+            entry.voice = voice
+            entry.task = asyncio.create_task(self._generate(entry))
+        if not entry.streamed:
+            await asyncio.shield(entry.task)
+            if entry.audio is None:
+                raise KeyError("Narration audio is unavailable")
+            yield entry.audio
+            return
+        sent = 0
+        while True:
+            async with entry.changed:
+                await entry.changed.wait_for(lambda: len(entry.chunks) > sent or entry.stream_ended)
+                pending = entry.chunks[sent:]
+                finished = entry.stream_ended
+            for chunk in pending:
+                yield chunk
+            sent += len(pending)
+            if finished and sent >= len(entry.chunks):
+                return
+
+    async def _stream_generate(self, entry: _Entry) -> MediaResult:
+        loop = asyncio.get_running_loop()
+
+        async def push(chunk: bytes) -> None:
+            async with entry.changed:
+                entry.chunks.append(chunk)
+                entry.changed.notify_all()
+
+        def pump() -> None:
+            total = 0
+            for chunk in self._streamer(entry.result.text, entry.voice):
+                total += len(chunk)
+                if total > MAX_AUDIO_BYTES:
+                    raise ValueError("Audio too large")
+                asyncio.run_coroutine_threadsafe(push(chunk), loop).result()
+
+        try:
+            await asyncio.to_thread(pump)
+            if not entry.chunks:
+                raise ValueError("Empty audio")
+            entry.audio = b"".join(entry.chunks)
+            entry.result = MediaResult("ready", entry.result.text)
+        except Exception:
+            # Provider exceptions can contain keys, response bodies, or paths.
+            entry.result = MediaResult("failed", entry.result.text, "Narration unavailable")
+        finally:
+            async with entry.changed:
+                entry.stream_ended = True
+                entry.changed.notify_all()
         return entry.result
 
     def audio(self, room_id: UUID, narration_id: UUID) -> bytes:

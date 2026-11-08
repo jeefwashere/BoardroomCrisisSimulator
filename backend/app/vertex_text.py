@@ -20,6 +20,7 @@ from playtest.vertex import ENDPOINT, MODEL, THINKING, DollarBudget, NoRedirect,
 
 DEFAULT_LEDGER = ".local/vertex/ledger.sqlite"
 MAX_PROMPT_BYTES = 20000
+EMBEDDING_ENDPOINT = "https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-embedding-001:predict"
 USAGE_KEYS = ("promptTokenCount", "candidatesTokenCount", "thoughtsTokenCount", "totalTokenCount")
 
 
@@ -91,14 +92,16 @@ class VertexText:
                 "thinking_level": THINKING, "last_error": self.last_error}
 
     def generate(self, prompt: str, *, json_output: bool = False, max_output_tokens: int = 1024,
-                 timeout: float = 30, temperature: float = 0.4) -> str:
+                 timeout: float = 30, temperature: float = 0.4, think: bool = True) -> str:
         """Blocking call. Never raises provider bodies or credentials."""
         if not self.configured:
             raise VertexError("Vertex is not configured")
         if not isinstance(prompt, str) or not prompt or len(prompt.encode("utf-8")) > MAX_PROMPT_BYTES:
             raise ValueError("Vertex input limit exceeded")
-        config = {"thinkingConfig": {"thinkingLevel": THINKING}, "maxOutputTokens": max_output_tokens,
-                  "temperature": temperature}
+        # Spoken lines skip thinking: measured on this model, LOW thinking spent 500+ tokens and 8 to 17 seconds on a
+        # 60 word line (sometimes running out of tokens), while a zero thinking budget answered in about 3 seconds.
+        thinking = {"thinkingLevel": THINKING} if think else {"thinkingBudget": 0}
+        config = {"thinkingConfig": thinking, "maxOutputTokens": max_output_tokens, "temperature": temperature}
         if json_output:
             config["responseMimeType"] = "application/json"
         payload = {"contents": [{"role": "user", "parts": [{"text": prompt}]}], "generationConfig": config}
@@ -131,10 +134,37 @@ class VertexText:
             raise VertexError(self.last_error) from None
 
     async def text(self, prompt: str, timeout: float = 30, max_output_tokens: int = 1024,
-                   temperature: float = 0.4) -> str:
+                   temperature: float = 0.4, think: bool = False) -> str:
+        """Short spoken text (agent lines, AI replies, coach questions): no thinking unless asked, for speed."""
         return await asyncio.wait_for(asyncio.to_thread(
             self.generate, prompt, max_output_tokens=max_output_tokens, timeout=timeout,
-            temperature=temperature), timeout + 1)
+            temperature=temperature, think=think), timeout + 1)
+
+    def embed(self, texts: list[str], task: str = "RETRIEVAL_DOCUMENT", timeout: float = 10) -> list[list[float]]:
+        """Blocking. Google gemini-embedding-001 vectors (768 dimensions), batched. Never raises provider bodies."""
+        if not self.configured:
+            raise VertexError("Vertex is not configured")
+        vectors: list[list[float]] = []
+        for start in range(0, len(texts), 20):
+            batch = [{"content": text[:2000], "task_type": task} for text in texts[start:start + 20]]
+            request = urllib.request.Request(EMBEDDING_ENDPOINT, data=json.dumps(
+                {"instances": batch, "parameters": {"outputDimensionality": 768}}).encode(),
+                headers={"Content-Type": "application/json", "x-goog-api-key": self._key})
+            try:
+                with self.opener.open(request, timeout=timeout) as response:
+                    data = json.load(response)
+                vectors += [[float(x) for x in item["embeddings"]["values"]] for item in data["predictions"]]
+            except urllib.error.HTTPError as error:
+                error.close()
+                raise VertexError(f"Embedding HTTP {error.code}") from None
+            except Exception:
+                raise VertexError("Embedding request failed or returned invalid output") from None
+        if len(vectors) != len(texts):
+            raise VertexError("Embedding count mismatch")
+        return vectors
+
+    async def embeddings(self, texts: list[str], task: str = "RETRIEVAL_DOCUMENT", timeout: float = 10) -> list[list[float]]:
+        return await asyncio.wait_for(asyncio.to_thread(self.embed, texts, task, timeout), timeout + 1)
 
     async def json(self, prompt: str, timeout: float = 30, max_output_tokens: int = 2048,
                    temperature: float = 0.4) -> dict:

@@ -10,7 +10,7 @@ from uuid import UUID
 
 from fastapi import Depends, FastAPI, Request, Response, Security
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.security import APIKeyCookie, APIKeyHeader
 from fastapi.exceptions import RequestValidationError
 
@@ -356,6 +356,12 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     @app.post("/api/rooms/{room_id}/facilitation/speech/{speech_id}/prepare", responses=errors)
     async def facilitation_speech(room_id: UUID, speech_id: UUID, member_session: authenticated):
         return await facilitation.prepare(member_session, room_id, speech_id)
+
+    @app.get("/api/rooms/{room_id}/facilitation/speech/{speech_id}/stream", response_class=Response, responses=errors,
+             summary="A line's speech as it is synthesized (MP3 chunks), for playback that starts at once")
+    async def facilitation_stream(room_id: UUID, speech_id: UUID, member_session: authenticated):
+        chunks = await facilitation.stream(member_session, room_id, speech_id)
+        return StreamingResponse(chunks, media_type="audio/mpeg", headers={"Cache-Control": "no-store"})
 
     @app.get("/api/rooms/{room_id}/facilitation/speech/{speech_id}/audio", response_class=Response, responses=errors)
     async def facilitation_audio(room_id: UUID, speech_id: UUID, member_session: authenticated):

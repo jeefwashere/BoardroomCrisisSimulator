@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { RecordedClip } from '../../services/facilitation'
 import type { RoomSnapshot } from '../../services/rooms'
 import { facilitationApi } from '../facilitation/facilitationClient'
-import { REPLY_CLIP_PREFIX, generatedSpeechUrl } from './aiReply'
+import { REPLY_CLIP_PREFIX, streamedSpeech } from './aiReply'
 import { isOwnTurn, turnKey } from './savedClips'
 
 type Execute = (path: string, fields?: Record<string, unknown>) => Promise<void>
@@ -45,7 +45,7 @@ export function useAutoResponse(room: RoomSnapshot, execute: Execute, onError: (
     const [reply, setReply] = useState<{ turn: string; text: string } | null>(null)
     const [playback, setPlayback] = useState<AutoPlayback | null>(null)
     const audio = useRef<HTMLAudioElement | null>(null)
-    const objectUrl = useRef<string | null>(null)
+    const disposeSpeech = useRef<(() => void) | null>(null)
     const latestTurn = useRef<string | null>(null)
 
     useEffect(() => {
@@ -60,7 +60,7 @@ export function useAutoResponse(room: RoomSnapshot, execute: Execute, onError: (
 
     function release() {
         audio.current?.pause(); audio.current = null
-        if (objectUrl.current) { URL.revokeObjectURL(objectUrl.current); objectUrl.current = null }
+        disposeSpeech.current?.(); disposeSpeech.current = null
     }
 
     useEffect(() => {
@@ -95,18 +95,21 @@ export function useAutoResponse(room: RoomSnapshot, execute: Execute, onError: (
         catch (failure) { onError(failure); if (latestTurn.current === forTurn) setState({ turn: forTurn, status: 'ready' }); return }
         if (latestTurn.current !== forTurn) return
         setReply({ turn: forTurn, text: drafted.text })
-        const url = await generatedSpeechUrl(room.room_id, drafted.speech_id)
-        if (latestTurn.current !== forTurn) { if (url) URL.revokeObjectURL(url); return }
+        // Streams: playback starts with the first audio instead of after the whole file.
+        const speech = await streamedSpeech(room.room_id, drafted.speech_id)
+        if (latestTurn.current !== forTurn) { speech?.dispose(); return }
         // Without audio (speech off or failed) the written reply is still used.
-        if (!url) { await commit(forTurn, drafted.text); return }
+        if (!speech) { await commit(forTurn, drafted.text); return }
         release()
-        objectUrl.current = url
-        const player = new Audio(url)
+        disposeSpeech.current = speech.dispose
+        const player = speech.player
         audio.current = player
         setState({ turn: forTurn, status: 'playing' })
         if (manual) void act(clipPath, { clip_id: `${REPLY_CLIP_PREFIX}${drafted.speech_id}`, text: drafted.text })
         player.addEventListener('playing', () => { if (audio.current === player) setPlayback({ key: forTurn, durationMs: audioDurationMs(player) }) }, { once: true })
         player.onended = () => { if (audio.current === player) { release(); void commit(forTurn, drafted.text) } }
+        // A broken stream still commits the written reply.
+        player.onerror = () => { if (audio.current === player) { release(); void commit(forTurn, drafted.text) } }
         // If the browser refuses playback, still commit the caption so the turn can move on.
         player.play().catch(() => { if (audio.current === player) { release(); void commit(forTurn, drafted.text) } })
     }

@@ -147,6 +147,12 @@ export function createFacilitationApi(api: RoomApi) {
             if (!response.ok) throw new FacilitationError('Speech audio is unavailable.', response.status)
             return response.blob()
         },
+        /** The line's speech as it is synthesized (MP3 chunks); read `body` to start playback before it completes. */
+        speechStream: async (roomId: string, speechId: string, signal?: AbortSignal) => {
+            const response = await api.authorized(`${room(roomId)}/speech/${encodeURIComponent(speechId)}/stream`, { signal })
+            if (!response.ok || !response.body) throw new FacilitationError('Speech audio is unavailable.', response.status)
+            return response
+        },
         recordings: async (signal?: AbortSignal) => json<RecordedClip[]>(await fetch(`${api.baseUrl}/api/recordings`, { signal })),
         /** Absolute URL usable directly as an <audio src>. */
         recordingUrl: (clip: RecordedClip) => `${api.baseUrl}${clip.audio_url}`,

@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import type { RecordedClip } from '../../services/facilitation'
 import type { RoomSnapshot } from '../../services/rooms'
 import { facilitationApi } from '../facilitation/facilitationClient'
-import { REPLY_CLIP_PREFIX, generatedSpeechUrl } from './aiReply'
+import { REPLY_CLIP_PREFIX, streamedSpeech } from './aiReply'
 import { sharedClipOffsetSeconds } from './savedClips'
 
 export type SharedClip = { key: string; turn: string; speakerId: string; text: string; remainingMs: number | null }
@@ -28,21 +28,26 @@ export function useSharedClip(room: RoomSnapshot, catalog: readonly RecordedClip
         if (!key) return
         let cancelled = false
         let player: HTMLAudioElement | null = null
-        let url: string | null = null
+        let dispose: (() => void) | null = null
         const begun = performance.now()
         void (async () => {
-            url = speechId ? await generatedSpeechUrl(room.room_id, speechId) : saved ? facilitationApi.recordingUrl(saved) : null
-            if (cancelled || !url) return
-            player = new Audio(url)
-            // Start where the speaker is now, including the time spent fetching the audio.
+            // AI replies stream from the same synthesis the speaker hears; saved clips are plain files.
+            const speech = speechId ? await streamedSpeech(room.room_id, speechId) : null
+            if (cancelled) { speech?.dispose(); return }
+            if (speech) { player = speech.player; dispose = speech.dispose }
+            else if (saved) player = new Audio(facilitationApi.recordingUrl(saved))
+            if (!player) return
+            // Start where the speaker is now, including the time spent fetching the audio. A streamed line's length
+            // is unknown until it ends; seeking past its end simply ends playback.
             const at = offset + (performance.now() - begun) / 1000
-            player.addEventListener('loadedmetadata', () => { if (player && at < player.duration) player.currentTime = at }, { once: true })
-            player.play().catch(() => { /* Autoplay refused: the caption still appears in the transcript. */ })
+            const audio = player
+            audio.addEventListener('loadedmetadata', () => { if (at > 0.3 && !(at >= audio.duration)) audio.currentTime = at }, { once: true })
+            audio.play().catch(() => { /* Autoplay refused: the caption still appears in the transcript. */ })
         })()
         return () => {
             cancelled = true
             player?.pause()
-            if (url && speechId) URL.revokeObjectURL(url)
+            dispose?.()
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on the shared clip, not on each poll's offset
     }, [key])

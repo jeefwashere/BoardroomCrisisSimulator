@@ -61,7 +61,29 @@ class ElevenSpeech:
     def voices(self):
         return json.loads(self.request("/v2/voices?page_size=10"))
 
-    def speak(self, approved_text, voice_id, model_id="eleven_flash_v2_5"):
+    def stream(self, approved_text, voice_id, model_id="eleven_flash_v2_5", output_format="mp3_44100_64"):
+        """Yield MP3 chunks as ElevenLabs produces them (first audio in about a quarter second). Not cached here."""
+        if not isinstance(approved_text, str) or not 0 < len(approved_text) <= 500:
+            raise ValueError("Smoke-test speech is limited to 500 characters")
+        if not voice_id or not all(c.isalnum() or c in "_-" for c in voice_id):
+            raise ValueError("A voice ID from the account voice list is required")
+        if self.tts_rate is None:
+            raise ValueError("Set a verified TTS price before making a paid request")
+        self.budget.reserve("tts", self.tts_rate * len(approved_text) / 1000)
+        req = urllib.request.Request(
+            "https://api.elevenlabs.io/v1/text-to-speech/" + voice_id + "/stream?output_format=" + output_format,
+            data=json.dumps({"text": approved_text, "model_id": model_id}).encode(),
+            headers={"xi-api-key": self.key, "Content-Type": "application/json"})
+        try:
+            import truststore
+            context = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        except ImportError:
+            context = ssl.create_default_context()
+        with urllib.request.urlopen(req, timeout=45, context=context) as response:
+            while chunk := response.read1(16384) if hasattr(response, "read1") else response.read(16384):
+                yield chunk
+
+    def speak(self, approved_text, voice_id, model_id="eleven_flash_v2_5", output_format="mp3_44100_128"):
         if not isinstance(approved_text, str) or not 0 < len(approved_text) <= 500:
             raise ValueError("Smoke-test speech is limited to 500 characters")
         if not voice_id or not all(c.isalnum() or c in "_-" for c in voice_id):
@@ -74,7 +96,7 @@ class ElevenSpeech:
         if self.tts_rate is None:
             raise ValueError("Set a verified TTS price before making a paid request")
         self.budget.reserve("tts", self.tts_rate * len(approved_text) / 1000)
-        content = self.request("/v1/text-to-speech/" + voice_id + "?output_format=mp3_44100_128", json.dumps(payload).encode())
+        content = self.request("/v1/text-to-speech/" + voice_id + "?output_format=" + output_format, json.dumps(payload).encode())
         tmp = target.with_suffix(".tmp")
         tmp.write_bytes(content)
         tmp.replace(target)

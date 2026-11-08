@@ -48,5 +48,42 @@
     "manual-microphone-mobile.png": "4361c2452cae311e99879aebafb5981edac1bd13b7d05a112c512d18d72eeced"
   },
   "paid_provider_calls": 0,
-  "physical_microphone_tested": false
+  "physical_microphone_tested": false,
+  "local_frontend_activation": {
+    "source_commit": "111f57471cea3d7ad116571762730ffb057260ec",
+    "backend_reloader_unchanged": 88927,
+    "backend_worker_unchanged": 88932,
+    "build": {
+      "command": "npm run build --prefix my-app",
+      "exit_code": 0,
+      "transformed_modules": 487,
+      "javascript": "my-app/dist/assets/index-CM8Z9BZC.js",
+      "css": "my-app/dist/assets/index-BOdoTs3M.css"
+    },
+    "http": {
+      "/": 200,
+      "/@vite/client": 200,
+      "/src/features/game/TurnMedia.tsx": 200,
+      "/src/features/game/manualRecorder.ts": 200,
+      "/src/pages/Game.tsx": 200,
+      "backend/docs": 200,
+      "backend/api/health": 200
+    },
+    "module_proof": {
+      "microphone_icon": true,
+      "start_recording": true,
+      "stop_and_save": true,
+      "saved_for_turn": true,
+      "manual_recorder_wiring": true,
+      "manual_recorder_helper": true,
+      "game_media_wiring": true
+    },
+    "backend_health": {
+      "status": "ok",
+      "storage": "memory"
+    },
+    "no_browser_media_or_provider_test_performed": true,
+    "verified_at": "2026-11-08T01:30:45.602Z",
+    "rooms_and_voice_configuration_preserved": true
+  }
 }

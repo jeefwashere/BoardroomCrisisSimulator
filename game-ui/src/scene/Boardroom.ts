@@ -312,13 +312,15 @@ export class Boardroom {
   private chairs: THREE.Object3D[] = []
   /** Placeholder walls, floor and windows; hidden once the baked room from tools/build_room.py loads. */
   private shell = new THREE.Group()
-  private room: THREE.Object3D | null = null
+  /** The baked room once loaded (null while the placeholder room shows). */
+  room: THREE.Object3D | null = null
   private laptops: THREE.Object3D[] = []
   private screenCanvas = document.createElement('canvas')
   private screenTexture: THREE.CanvasTexture
   private screenKey = ''
   private state: SceneState | null = null
   private focus = new THREE.Vector3(-0.4, 0.95, 0)
+  private userControlUntil = 0
   private frame = 0
   private resizeObserver: ResizeObserver
   private loader = new GLTFLoader()
@@ -351,10 +353,18 @@ export class Boardroom {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement)
     this.controls.target.copy(this.focus)
     this.controls.enableDamping = true
-    this.controls.minDistance = 2.2
-    this.controls.maxDistance = 10
-    this.controls.maxPolarAngle = Math.PI * 0.47
-    this.controls.enablePan = false
+    this.controls.minDistance = 1.2
+    this.controls.maxDistance = 15
+    this.controls.minPolarAngle = 0.05
+    this.controls.maxPolarAngle = Math.PI * 0.495
+    this.controls.enablePan = true
+    this.controls.screenSpacePanning = true
+    this.controls.panSpeed = 0.8
+    this.controls.zoomToCursor = true
+    // While the player steers, the camera stops following the speaker; it resumes after a pause.
+    this.controls.addEventListener('start', () => (this.userControlUntil = Infinity))
+    this.controls.addEventListener('end', () => (this.userControlUntil = performance.now() + 10000))
+    this.renderer.domElement.addEventListener('dblclick', () => this.resetView())
 
     this.screenCanvas.width = 1024
     this.screenCanvas.height = 576
@@ -562,6 +572,9 @@ export class Boardroom {
         mesh.castShadow = false
         mesh.receiveShadow = false
         const material = mesh.material as THREE.MeshBasicMaterial
+        // Single sided surfaces face inward, so walls and ceiling between an outside camera and the
+        // table are culled: zooming out gives a cutaway view instead of the back of a wall.
+        material.side = THREE.FrontSide
         if (material.map) material.map.anisotropy = 8
         if (mesh.name.startsWith('Glass')) {
           mesh.material = new THREE.MeshPhysicalMaterial({
@@ -855,16 +868,18 @@ export class Boardroom {
       avatar.lookAt(state?.seats[index]?.mood === 'typing' ? null : target, dt)
     }
 
-    // Ease the orbit target toward the active speaker.
-    const goal = speakerHead ? new THREE.Vector3(-0.4, 0.95, 0).lerp(speakerHead, 0.35) : new THREE.Vector3(-0.4, 0.95, 0)
-    this.focus.lerp(goal, 1 - Math.exp(-dt * 2))
-    this.controls.target.copy(this.focus)
-    this.controls.update()
-    // With the baked room loaded, keep the orbit camera inside its walls and below the ceiling.
-    if (this.room) {
-      const p = this.camera.position
-      p.set(THREE.MathUtils.clamp(p.x, -5.0, 7.35), Math.min(p.y, 3.0), THREE.MathUtils.clamp(p.z, -3.35, 3.35))
+    // Ease the orbit target toward the active speaker, unless the player is steering the camera.
+    if (performance.now() > this.userControlUntil) {
+      const goal = speakerHead ? new THREE.Vector3(-0.4, 0.95, 0).lerp(speakerHead, 0.35) : new THREE.Vector3(-0.4, 0.95, 0)
+      this.focus.lerp(goal, 1 - Math.exp(-dt * 2))
+      this.controls.target.copy(this.focus)
+    } else {
+      // Keep panning inside the room so the view cannot drift away from the table.
+      const target = this.controls.target
+      target.set(THREE.MathUtils.clamp(target.x, -5, 7.3), THREE.MathUtils.clamp(target.y, 0.2, 2.8), THREE.MathUtils.clamp(target.z, -3.4, 3.4))
+      this.focus.copy(target)
     }
+    this.controls.update()
     if (this.frame % 6 === 0) this.drawScreen()
 
     // Floor rings under the speaker and the player hovered in the HUD.
@@ -879,6 +894,14 @@ export class Boardroom {
     this.camera.updateMatrixWorld()
     const anchors = this.avatars.map((avatar) => (avatar.model && avatar.group.visible ? avatar.headPosition().add(new THREE.Vector3(0, 0.27, 0)) : null))
     this.tags.layout(anchors, this.camera, this.size.width, this.size.height)
+  }
+
+  /** Double click: back to the default view, and follow the speaker again. */
+  private resetView() {
+    this.userControlUntil = 0
+    this.camera.position.set(6.4, 3.0, 0.0)
+    this.focus.set(-0.4, 0.95, 0)
+    this.controls.target.copy(this.focus)
   }
 
   private placeRing(ring: THREE.Mesh, index: number, scale: number) {

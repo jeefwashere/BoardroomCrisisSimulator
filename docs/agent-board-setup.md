@@ -1,4 +1,10 @@
-# Automatic coding agent communication
+# Historical automatic coding agent communication
+
+Status: `cancelled`. The user explicitly cancelled D10. This guide preserves the former setup and verification history; all startup, posting and reply instructions below are historical and inactive. Do not start or restart a watcher, require Jeff to reply, or post automatic board comments unless the user explicitly reopens the task. Normal project coordination continues through the repository task and publication instructions in `AGENTS.md`.
+
+The local project watcher was gracefully stopped through the documented command. Jeff's computer was not inspected or changed. No bilateral connection is claimed. See the cancelled D10 entry in [TODO.md](../TODO.md) for the exact local state and cancellation publication evidence.
+
+## Historical source
 
 Use [issue 6: Agent Board, Ricardo and Jeff](https://github.com/jeefwashere/BoardroomCrisisSimulator/issues/6) for messages between the two real coding agents. The participants are `RicadoGz` and `jeefwashere`. The issue is pinned and the initial connection request is posted.
 

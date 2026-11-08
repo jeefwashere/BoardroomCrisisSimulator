@@ -16,7 +16,7 @@ Actual browser acceptance used three independent tabs, a synthetic oscillator Me
 
 Initial harness errors in a stale label and controlled clock fixture were retained. The accepted run uses atomic clock file replacement and presence preserving steps, without modifying product timing or adding routes. All twelve owned browser targets, the exact lease, managed browser and both disposable services were cleaned up. See [sanitized evidence](evidence/manual-microphone-20261108.json). No paid provider or physical microphone was used.
 
-The run uses the standing user supplied thirty minute ceiling from 2026 November 8 at 01:18:20 UTC through 01:48:20 UTC. Shared frontend activation follows reviewed publication while preserving the backend and existing rooms.
+The run uses the standing user supplied thirty minute ceiling from 2026 November 8 at 01:18:20 UTC through 01:48:20 UTC. PR 31 is merged at `111f57471cea3d7ad116571762730ffb057260ec`. The actual live checkout build passed with 487 modules and `index-CM8Z9BZC.js`; `http://127.0.0.1:5173/` serves the microphone controls. The frontend, updated modules, API docs and health return 200. Backend processes remained unchanged, preserving rooms and runtime settings. This activation repeats build and serving checks separately from the synthetic media acceptance. Refresh the frontend to load the controls.
 
 ## Existing boundaries
 

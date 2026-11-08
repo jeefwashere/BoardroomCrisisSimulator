@@ -13,7 +13,17 @@ export default mergeConfig(base, defineConfig({
     strictPort: true,
     allowedHosts: ['.ngrok-free.app', '.ngrok-free.dev', '.ngrok.app', '.ngrok.dev', '.ngrok.io'],
     proxy: {
-      '/api': { target: backend, changeOrigin: false, xfwd: false },
+      '/api': {
+        target: backend, changeOrigin: false, xfwd: false,
+        // The tunnel's ngrok login is HTTP basic auth. Chrome forgets that login when any request that carried it gets
+        // a 401, so a stale tab whose room session expired (backend restart) made the sign in box reappear every few
+        // seconds. The app reads the error code in the body, not the status, so relay the backend's own 401 as 403.
+        configure: (proxy) => {
+          proxy.on('proxyRes', (response) => {
+            if (response.statusCode === 401) { response.statusCode = 403; response.statusMessage = 'Forbidden' }
+          })
+        },
+      },
     },
   },
 }))

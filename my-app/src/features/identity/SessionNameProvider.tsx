@@ -7,15 +7,16 @@ import './SessionName.css'
 
 function SessionNameProvider({ children }: { children: ReactNode }) {
     const [name, setName] = useState(() => readSessionName(browserSessionStorage()))
+    const [isPromptVisible, setIsPromptVisible] = useState(!name)
     const updateName = useCallback((value: string) => {
         setName(saveSessionName(browserSessionStorage(), value))
     }, [])
-    const identity = useMemo(() => ({ name, updateName }), [name, updateName])
+    const identity = useMemo(() => ({ name, updateName, isMenuReady: !isPromptVisible }), [name, updateName, isPromptVisible])
 
     return (
         <SessionNameContext.Provider value={identity}>
             {children}
-            {!name && <InitialNamePrompt onConfirm={updateName} />}
+            {isPromptVisible && <InitialNamePrompt onConfirm={updateName} onExited={() => setIsPromptVisible(false)} />}
         </SessionNameContext.Provider>
     )
 }

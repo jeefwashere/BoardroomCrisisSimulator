@@ -1,15 +1,35 @@
 import { useEffect, useRef } from 'react'
 import type { PointerEvent } from 'react'
+import { motion, useReducedMotion } from 'motion/react'
+import type { Variants } from 'motion/react'
 
 type HoverWaveTextProps = {
     text: string
     className?: string
+    entrance?: 'above' | 'below'
+    visible?: boolean
 }
 
-function HoverWaveText({ text, className = '' }: HoverWaveTextProps) {
+function HoverWaveText({ text, className = '', entrance, visible = true }: HoverWaveTextProps) {
     const containerRef = useRef<HTMLSpanElement>(null)
     const frameRef = useRef<number | null>(null)
     const cursorRef = useRef<{ x: number; y: number } | null>(null)
+    const hoverEnabledRef = useRef(!entrance)
+    const reducedMotion = useReducedMotion() ?? false
+    const letterVariants: Variants = {
+        hidden: { opacity: 0, y: reducedMotion ? '0%' : entrance === 'above' ? '-100%' : '100%' },
+        shown: (index: number) => {
+            const delay = (entrance === 'above' ? 0.1 : 0) + index * 0.035
+            return {
+                opacity: 1,
+                y: '0%',
+                transition: reducedMotion ? { duration: 0 } : {
+                    y: { type: 'spring', stiffness: 380, damping: 21, mass: 0.65, delay },
+                    opacity: { duration: 0.18, delay },
+                },
+            }
+        },
+    }
 
     useEffect(() => () => {
         if (frameRef.current !== null) {
@@ -45,7 +65,7 @@ function HoverWaveText({ text, className = '' }: HoverWaveTextProps) {
     }
 
     function handlePointerMove(event: PointerEvent<HTMLSpanElement>) {
-        if (event.pointerType === 'touch' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        if (!hoverEnabledRef.current || event.pointerType === 'touch' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
             return
         }
 
@@ -71,22 +91,26 @@ function HoverWaveText({ text, className = '' }: HoverWaveTextProps) {
     }
 
     return (
-        <span
+        <motion.span
             ref={containerRef}
             className={`hover-wave-text ${className}`.trim()}
             onPointerMove={handlePointerMove}
             onPointerLeave={resetLetters}
             onPointerCancel={resetLetters}
+            initial={entrance ? 'hidden' : false}
+            animate={entrance ? (visible ? 'shown' : 'hidden') : undefined}
+            onAnimationStart={() => { if (entrance) { hoverEnabledRef.current = false; resetLetters() } }}
+            onAnimationComplete={() => { hoverEnabledRef.current = visible }}
         >
             <span className="hover-wave-text__readable">{text}</span>
             <span aria-hidden="true">
                 {Array.from(text).map((letter, index) => (
-                    <span className="hover-wave-text__letter" key={`${index}-${letter}`}>
+                    <motion.span className="hover-wave-text__letter" key={`${index}-${letter}`} custom={index} variants={entrance ? letterVariants : undefined}>
                         <span className="hover-wave-text__glyph">{letter === ' ' ? '\u00a0' : letter}</span>
-                    </span>
+                    </motion.span>
                 ))}
             </span>
-        </span>
+        </motion.span>
     )
 }
 

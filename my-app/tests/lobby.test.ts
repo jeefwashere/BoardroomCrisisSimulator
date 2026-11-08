@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { addLobbyMember, assignLobbyRole, getLobbyRows, MAX_LOBBY_MEMBERS } from '../src/features/lobby/lobbyModel.ts'
 import type { LobbyMember } from '../src/features/lobby/lobbyModel.ts'
+import { nextRoleIndex, roleMenuPlacement } from '../src/features/lobby/rolePickerModel.ts'
 
 const host: LobbyMember = { id: 'host', name: 'You', role: 'unassigned', isHost: true }
 const guest = (index: number): LobbyMember => ({ id: `guest-${index}`, name: `Player ${index}`, role: 'unassigned', isHost: false })
@@ -53,4 +54,37 @@ test('rows fill left to right in stable join order with at most two people', () 
     assert.equal(rows.length, 15)
     assert.ok(rows.every((row) => row.length <= 2))
     assert.deepEqual(rows.flat(), members)
+})
+
+test('borderless role choices support arrow navigation, wraparound, Home, and End', () => {
+    assert.equal(nextRoleIndex(0, 'ArrowUp', 8), 7)
+    assert.equal(nextRoleIndex(7, 'ArrowDown', 8), 0)
+    assert.equal(nextRoleIndex(3, 'ArrowDown', 8), 4)
+    assert.equal(nextRoleIndex(3, 'Home', 8), 0)
+    assert.equal(nextRoleIndex(3, 'End', 8), 7)
+    assert.equal(nextRoleIndex(3, 'Escape', 8), 3)
+    assert.equal(nextRoleIndex(0, 'ArrowDown', 0), -1)
+})
+
+test('role choices open below the player when enough screen space is available', () => {
+    const placement = roleMenuPlacement({ left: 200, top: 100, bottom: 144, width: 180 }, { width: 1000, height: 800 }, 280)
+    assert.ok(placement.top > 144)
+    assert.equal(placement.width, 180)
+    assert.equal(placement.height, 280)
+})
+
+test('role choices near the bottom open above instead of being clipped by the player list', () => {
+    const placement = roleMenuPlacement({ left: 200, top: 650, bottom: 694, width: 180 }, { width: 1000, height: 720 }, 280)
+    assert.ok(placement.top + placement.height < 650)
+    assert.ok(placement.top >= 12)
+})
+
+test('role choices stay inside narrow screens at either horizontal edge', () => {
+    for (const left of [-20, 240]) {
+        const placement = roleMenuPlacement({ left, top: 250, bottom: 294, width: 150 }, { width: 320, height: 480 }, 300)
+        assert.ok(placement.left >= 12)
+        assert.ok(placement.left + placement.width <= 308)
+        assert.ok(placement.top >= 12)
+        assert.ok(placement.top + placement.height <= 468)
+    }
 })

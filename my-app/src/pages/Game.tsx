@@ -22,7 +22,7 @@ import PrivateSessionStage from '../features/game/PrivateSessionStage'
 import PrivateSessionReport from '../features/game/PrivateSessionReport'
 import { usePrivateSession } from '../features/game/usePrivateSession'
 import { usePrivateAutoResponse } from '../features/game/usePrivateAutoResponse'
-import { ownPrivateRound } from '../features/game/privateSessionModel'
+import { ANSWER_LIMIT, canSubmitAnswer, ownPrivateRound } from '../features/game/privateSessionModel'
 import ControlBar from '../features/game/ControlBar'
 import ChatDrawer from '../features/game/ChatDrawer'
 import { chatUnread, micControl, offersReport, othersCount, phaseCaption, skipLabel } from '../features/game/controlBarModel'
@@ -87,6 +87,12 @@ function storeView3d(on: boolean) {
 function drivesSoloBots(): boolean {
     if (typeof window === 'undefined' || seatFromSearch(window.location.search) !== 'alex') return false
     try { return readStoredDemo(tabStorage()?.getItem(DEMO_STORAGE_KEY) ?? null)?.mode === 'solo' } catch { return false }
+}
+
+const PRIVATE_ANSWER_COPY = {
+    target: 'Answer your coach', label: 'Your private answer', placeholder: 'Answer your coach (Enter to submit; only your coach sees it)',
+    note: 'Only your crisis coach sees this answer', submit: 'Submit answer', failed: 'Your answer could not be sent. Please try again.',
+    limit: ANSWER_LIMIT, canSubmit: canSubmitAnswer,
 }
 
 function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: { room: RoomSnapshot; scenarios: Scenario[]; error: string; rename: (name: string) => Promise<void>; execute: (path: string, fields?: Record<string, unknown>) => Promise<void>; onViewSummary: () => void; chat: RoomChatHandle }) {
@@ -275,6 +281,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     // In a private session the button stays (disabled) between questions so the bar does not jump.
     const decisionPhase = room.phase === 'individual_decision'
     const activeAuto = privatePhase ? privateAuto : decisionPhase ? decisionAuto : auto
+    const privateChatAnswer = privatePhase && privateSession.session?.stage === 'coaching' && Boolean(privateSession.session.expecting) && privateAuto.status !== 'playing'
     const privateAnswering = privatePhase && (privateSession.session?.stage === 'coaching' || privateSession.session?.stage === 'assessment')
     const privateQuiz = privatePhase && privateSession.session?.stage === 'assessment' && Boolean(privateSession.session.quiz)
     const autoControl = activeAuto.status === 'unavailable'
@@ -359,7 +366,10 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
         <TranscriptPanel entries={transcriptEntries} open={transcriptOpen} onClose={hideCaptions} dockRef={setDock} minimized={transcriptMinimized} onToggleMinimized={toggleTranscriptMinimized} />
         <ChatDrawer room={room} scenarios={scenarios} chat={chat} open={chatOpen} onClose={closeChat}
             pinned={individual && room.phase === 'individual_decision' ? <div className="game-briefing chat-decision"><p className="chat-decision-from">Facilitator · Round 1</p><DecisionStatusPanel room={room} speaking={decisionAuto.status === 'playing'} saving={decisionAuto.status === 'saving'} caption={decisionAuto.caption} /></div> : undefined}
-            decision={individual && room.phase === 'individual_decision' && actions.includes('submit_decision') ? { submit: (text) => act(`rounds/${game.round_id}/decision`, { text }), pending, recorded: game.individual_decisions?.self?.text ?? null, attachDictation } : undefined} />
+            decision={individual && room.phase === 'individual_decision' && actions.includes('submit_decision') ? { submit: (text) => act(`rounds/${game.round_id}/decision`, { text }), pending, recorded: game.individual_decisions?.self?.text ?? null, attachDictation }
+                // Private coaching: typed answers go through Chat (the stage keeps only the coach's question; Dictate and AI reply answer by voice).
+                : privateChatAnswer ? { submit: (text) => privateSession.answer(text, false), pending: privateSession.sending || Boolean(privateSession.session?.busy), recorded: null, copy: PRIVATE_ANSWER_COPY }
+                : undefined} />
     </div></MotionConfig></AgentPresenceContext.Provider>
 }
 export default Game

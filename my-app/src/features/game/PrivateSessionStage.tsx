@@ -24,7 +24,7 @@ import type { AutoPlayback } from './useAutoResponse'
 import { useLiveSpeech, useSpokenLine } from './useTranscript'
 import type { TranscriptWriter } from './useTranscript'
 import {
-    ANSWER_LIMIT, CARD_FIELDS, CARD_FIELD_LIMIT, NEEDS_CONFIRMATION, canConfirmCard, canSubmitAnswer, expectingKey, initiallySpoken, nextToSpeak, privateRoundLabel,
+    CARD_FIELDS, CARD_FIELD_LIMIT, NEEDS_CONFIRMATION, canConfirmCard, canSubmitAnswer, expectingKey, initiallySpoken, nextToSpeak, privateRoundLabel,
     questionText, scoreText, stageChips, trimCard, withSilentQuiz,
 } from './privateSessionModel'
 
@@ -90,27 +90,31 @@ function LockIcon() {
     return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2" /><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" /></svg>
 }
 
-/** The answer box: the current question above a textarea. The bar's Mic dictates into it; Auto response submits a saved clip instead. */
-function AnswerComposer({ question, draft, setDraft, disabled, onSubmit, dictation }: {
-    question: string; draft: string; setDraft: (text: string) => void; disabled: boolean; onSubmit: () => void; dictation: Dictation
+/**
+ * The coach's current question, kept small so the 3D boardroom stays visible. No text box: Dictate (words shown here
+ * with Submit once spoken), AI reply (your saved answer, spoken by your character) or Chat (typed) answer it.
+ */
+function QuestionCard({ question, draft, clear, disabled, onSubmit, dictation }: {
+    question: string; draft: string; clear: () => void; disabled: boolean; onSubmit: () => void; dictation: Dictation
 }) {
-    return <form className="private-composer" onSubmit={(event) => { event.preventDefault(); onSubmit() }}>
-        <label className="private-composer-label">
-            <span className="private-eyebrow">Your coach asks</span>
-            <span className="private-question">{question}</span>
-            <textarea rows={4} maxLength={ANSWER_LIMIT} value={draft} placeholder="Type your answer, or use Dictate or Auto response below." onChange={(event) => setDraft(event.target.value)}
-                onKeyDown={(event) => { if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) { event.preventDefault(); onSubmit() } }} />
-        </label>
-        {(dictation.listening || dictation.note) && <div className="private-voice">
-            {dictation.listening && <span className="private-listening" role="status"><span className="vote-waiting-dot" aria-hidden="true" />Listening…</span>}
-            {dictation.listening && dictation.interim && <span className="private-interim" aria-live="polite">{dictation.interim}</span>}
-            {dictation.note && <span role="status">{dictation.note}</span>}
-        </div>}
-        <div className="private-actions">
-            <span className="private-hint">Only your crisis coach sees this answer.</span>
-            <button type="submit" className="opening-play" disabled={disabled || !canSubmitAnswer(draft)}>Submit answer</button>
-        </div>
-    </form>
+    const spoken = draft.trim()
+    const answering = dictation.listening || Boolean(spoken)
+    // While answering, the question shrinks to one line (full text on hover) so your character stays in view.
+    return <div className={`private-composer private-question-card${answering ? ' is-answering' : ''}`}>
+        <span className="private-eyebrow">Your coach asks</span>
+        <p className="private-question" title={answering ? question : undefined}>{question}</p>
+        {answering ? <div className="private-dictated">
+            <p className="private-dictated-text" aria-live="polite">
+                {dictation.listening && <span className="private-listening" role="status"><span className="vote-waiting-dot" aria-hidden="true" />Listening…</span>}
+                {spoken}{dictation.listening && dictation.interim ? <span className="private-interim"> {dictation.interim}</span> : null}
+            </p>
+            <div className="private-actions">
+                <button type="button" className="private-discard" disabled={disabled || !spoken} onClick={clear}>Discard</button>
+                <button type="button" className="opening-play" disabled={disabled || !canSubmitAnswer(draft)} onClick={onSubmit}>Submit answer</button>
+            </div>
+        </div> : <p className="private-hint">Answer with <strong>Dictate</strong>, <strong>AI reply</strong> or <strong>Chat</strong>. Only your crisis coach sees it.</p>}
+        {dictation.note && <p className="private-hint" role="status">{dictation.note}</p>}
+    </div>
 }
 
 function ResponseCardForm({ initial, disabled, onConfirm }: { initial: ResponseCardFields; disabled: boolean; onConfirm: (fields: ResponseCardFields) => Promise<boolean> }) {
@@ -279,10 +283,10 @@ export default function PrivateSessionStage({ room, handle, auto, selfName, self
     const problem = error || notice
 
     const dockContent = session && !complete && !stageQuiz && <div className="private-dock">
-        {showComposer && session.expecting && <AnswerComposer question={questionText(session)} draft={draftText} setDraft={setDraft} disabled={sending || session.busy}
+        {showComposer && session.expecting && <QuestionCard question={questionText(session)} draft={draftText} clear={() => { dictation.stop(); setDraft('') }} disabled={sending || session.busy}
             onSubmit={() => void submit()} dictation={dictation} />}
         {auto.playing && <p className="private-note" role="status">Playing your saved answer. It is submitted when the clip ends.</p>}
-        {!showComposer && !auto.playing && session.expecting && !caughtUp && <p className="private-note">The answer box opens when {agentName} finishes speaking.</p>}
+        {!showComposer && !auto.playing && session.expecting && !caughtUp && <p className="private-note">You can answer when {agentName} finishes speaking.</p>}
         {session.busy && !session.retryable && session.stage !== 'card' && <p className="private-note" role="status">{session.stage === 'assessment' ? `${agentName} is scoring your answer…` : `${agentName} is thinking…`}</p>}
         {session.retryable && <div className="private-retry" role="alert">
             <p>{agentName} could not respond. Your answers are kept.</p>

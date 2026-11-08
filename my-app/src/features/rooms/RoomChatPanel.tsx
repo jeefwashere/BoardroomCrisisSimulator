@@ -12,6 +12,14 @@ export type ChatDecision = {
     recorded: string | null
     /** Connects the control bar's Dictate to the decision box; null detaches it. */
     attachDictation?: (sink: ((words: string) => void) | null) => void
+    /** Wording and limits; the defaults are the Round 1 decision's. Private coaching answers reuse this target. */
+    copy?: { target: string; label: string; placeholder: string; note: string; submit: string; replace?: string; failed: string; limit: number; canSubmit?: (text: string) => boolean }
+}
+
+const DECISION_COPY = {
+    target: 'Your decision', label: 'Your private decision', placeholder: `${DECISION_PROMPT} (Enter to submit; only you see it)`,
+    note: 'Only you see your decision', submit: 'Submit decision', replace: 'Replace decision',
+    failed: 'Your decision could not be saved. Please try again.', limit: DECISION_LIMIT,
 }
 
 /** Committed room history plus the composer. Rendered inside the lobby pill or the game's chat drawer. */
@@ -27,12 +35,13 @@ export default function RoomChatPanel({ room, scenarios, chat, compact = false, 
         attach((words) => setDecisionDraft((current) => appendTranscript(current, words)))
         return () => attach(null)
     }, [deciding, attach])
-    const decisionReady = Boolean(decision) && canSubmitDecision(decisionDraft, decision?.recorded) && !decision?.pending
+    const copy = decision?.copy ?? DECISION_COPY
+    const decisionReady = Boolean(decision) && (decision?.copy?.canSubmit ? decision.copy.canSubmit(decisionDraft) : canSubmitDecision(decisionDraft, decision?.recorded)) && !decision?.pending
     async function sendDecision() {
         if (!decision || !decisionReady) return
         setDecisionError('')
         if (await decision.submit(decisionDraft.trim())) setDecisionDraft('')
-        else setDecisionError('Your decision could not be saved. Please try again.')
+        else setDecisionError(copy.failed)
     }
     const send = () => { if (deciding) void sendDecision(); else void store.send(room.game?.phase_id ?? null, ended) }
     const scenario = room.game ? scenarios.find((item) => item.scenario_id === room.game?.scenario.scenario_id && item.version === room.game.scenario.version) : scenarios[0]
@@ -57,17 +66,17 @@ export default function RoomChatPanel({ room, scenarios, chat, compact = false, 
         {state.historyError && <p className="room-chat-error" role="alert">History refresh: {state.historyError} Reconnecting automatically.</p>}
         {ended ? <p className="room-chat-note" role="status">This session has ended. Its committed records remain available.</p> : <form className={`room-chat-compose${deciding ? ' is-decision' : ''}`} onSubmit={(event) => { event.preventDefault(); send() }}>
             {decision && <div className="room-chat-target" role="radiogroup" aria-label="Send to">
-                <button type="button" role="radio" aria-checked={deciding} className={deciding ? 'is-active' : ''} onClick={() => setTarget('decision')}>Your decision</button>
+                <button type="button" role="radio" aria-checked={deciding} className={deciding ? 'is-active' : ''} onClick={() => setTarget('decision')}>{copy.target}</button>
                 <button type="button" role="radio" aria-checked={!deciding} className={!deciding ? 'is-active' : ''} onClick={() => setTarget('room')}>Message everyone</button>
             </div>}
-            <label htmlFor="room-chat-message" className={compact ? 'room-chat-visually-hidden' : undefined}>{deciding ? 'Your private decision' : 'Message everyone'}</label>
-            <textarea id="room-chat-message" rows={compact ? (deciding ? 4 : 2) : 3} maxLength={deciding ? DECISION_LIMIT : undefined}
+            <label htmlFor="room-chat-message" className={compact ? 'room-chat-visually-hidden' : undefined}>{deciding ? copy.label : 'Message everyone'}</label>
+            <textarea id="room-chat-message" rows={compact ? (deciding ? 4 : 2) : 3} maxLength={deciding ? copy.limit : undefined}
                 value={deciding ? decisionDraft : state.draft} disabled={deciding ? decision?.pending : state.sending} autoFocus={autoFocus}
                 onChange={(event) => { if (deciding) setDecisionDraft(event.target.value); else store.setDraft(event.target.value) }}
                 onKeyDown={(event) => { if (compact && event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); send() } }}
-                placeholder={deciding ? `${DECISION_PROMPT} (Enter to submit; only you see it)` : compact ? 'Message everyone (Enter to send)' : 'Share a thought with the room'} />
+                placeholder={deciding ? copy.placeholder : compact ? 'Message everyone (Enter to send)' : 'Share a thought with the room'} />
             {deciding
-                ? <div className="room-chat-compose-actions"><span>{decision?.recorded ? 'Sending again replaces your decision' : 'Only you see your decision'}</span><button type="submit" disabled={!decisionReady}>{decision?.pending ? 'Saving…' : decision?.recorded ? 'Replace decision' : 'Submit decision'}</button></div>
+                ? <div className="room-chat-compose-actions"><span>{decision?.recorded && copy.replace ? 'Sending again replaces your decision' : copy.note}</span><button type="submit" disabled={!decisionReady}>{decision?.pending ? 'Saving…' : decision?.recorded && copy.replace ? copy.replace : copy.submit}</button></div>
                 : <div className="room-chat-compose-actions"><span>{Array.from(state.draft).length.toLocaleString()} / 4,000</span><button type="submit" disabled={state.sending || Boolean(chatTextProblem(state.draft))}>{state.sending ? 'Sending…' : compact ? 'Send' : 'Send message'}</button></div>}
         </form>}
         {deciding && decisionError && <p className="room-chat-error" role="alert">{decisionError}</p>}

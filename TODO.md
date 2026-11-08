@@ -176,6 +176,10 @@ The user assigned Jeff the pages before game start and Ricardo the backend. Keep
 
   Owner: Arjun Codex agent. Status: `done`. Branch: `experiment/ai-voice-playtest`. User scope: require each participant's decision and clearly ask each member. Implement a server ordered first ballot, named UI prompts, explicit selection and confirmation, automatic seat progression only in the single window test setup, and existing all votes required CEO commitment. Implemented named UI prompts, server ordered first ballots, local option drafts and explicit confirmation. The test view advances after each vote and returns to the CEO once all ballots arrive; separate browser identities stay unchanged. Verification: 135 playtest tests, 31 existing tests, 27 Node UI checks, the authored demo, current documentation links, guide copies, DOM references, credential scan and whitespace passed. The restarted local server rejected out of turn voting with 403 and premature commitment with 409, then accepted all three ballots and committed the correct two to one winner without provider calls. Evidence: `playtest/evaluations/voting-ui.json`. Browser visual QA remains manual. Publication: `4d113f64da2c273c91740a1b0f84851829c553bf` pushed and verified on the named side branch, not merged. Completion record 24. Next action: user browser review in a fresh test room.
 
+* [ ] X15 Publish a dedicated Markdown summary of the voting UI changes.
+
+  Owner: Arjun Codex agent. Status: `in_progress`. Branch: `experiment/ai-voice-playtest`. User scope: document what was changed and push it. Next action: write the dedicated voting summary, validate its links and publish before recording completion.
+
 ## Integration and verification
 
 * [ ] I01 Publish the frontend API and snapshot contract with examples.

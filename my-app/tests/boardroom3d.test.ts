@@ -40,16 +40,16 @@ test('an agent speaking takes the camera to the hub', () => {
     assert.equal(view.focusId, null)
     assert.equal(view.agent, coach)
     assert.equal(view.agentPresent, true)
-    // The others work through their own private sessions.
-    assert.deepEqual(view.seats.map((seat) => seat.mood), ['sit', 'typing', 'typing'])
+    // Nobody types: the others sit with their hands on the table.
+    assert.deepEqual(view.seats.map((seat) => seat.mood), ['sit', 'sit', 'sit'])
 })
 
-test('agent phases keep the hub present between lines; decisions make everyone type', () => {
+test('agent phases keep the hub present between lines; decisions keep everyone seated', () => {
     assert.equal(boardroomView(input({ phase: 'briefing' }), [alex], new Set(), null).agentPresent, true)
     assert.equal(boardroomView(input({ phase: 'discussion' }), [alex], new Set(), null).agentPresent, true)
     const deciding = boardroomView(input({ phase: 'individual_decision' }), [alex, morgan, sam], new Set(), null)
     assert.equal(deciding.agentPresent, false)
-    assert.deepEqual(deciding.seats.map((seat) => seat.mood), ['typing', 'typing', 'typing'])
+    assert.deepEqual(deciding.seats.map((seat) => seat.mood), ['sit', 'sit', 'sit'])
     assert.equal(deciding.focusId, null)
 })
 

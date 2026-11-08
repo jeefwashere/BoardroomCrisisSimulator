@@ -36,10 +36,20 @@ const UP = new THREE.Vector3(0, 1, 0)
  * height, so the edge has to be close for hands to reach the tabletop.
  */
 const EDGE_GAP = 0.27
-/** Where resting hands go, in seat space (+X is the character's left, +Z its front). */
-const HAND_REST = { x: 0.235, y: TABLE.height + 0.03, z: EDGE_GAP + 0.07 }
-/** How far resting fingers open from the clip's clasped pose toward the open bind pose. */
-const FINGER_RELAX = 0.6
+/**
+ * Where resting wrists go, in seat space (+X is the character's left, +Z its front). The hand
+ * bone to fingertip is about 22 cm, so the wrists sit 13 cm past the edge with the forearms on
+ * the table, and the whole hand lies on the top instead of hooking over the edge. Wide enough
+ * that the fingers stay clear of the laptop.
+ */
+const HAND_REST = { x: 0.25, y: TABLE.height + 0.045, z: EDGE_GAP + 0.13 }
+/**
+ * How far resting fingers open from the clip's clasped pose toward the open bind pose. The
+ * clasped fingers reach 8 cm below the wrist, so they open fully to lie flat on the top.
+ */
+const FINGER_RELAX = 1
+/** Height of a finger joint's centre when it rests on the tabletop (about a finger's radius). */
+const FINGER_FLOOR = TABLE.height + 0.009
 /** Share of the clip's hand movement kept on top of the resting hands. Low keeps hands calm. */
 const GESTURE_SCALE = 0.15
 
@@ -167,9 +177,13 @@ class Avatar {
       target.lerpVectors(animated, target, w)
       const pole = new THREE.Vector3(0.6 * arm.side, -0.5, -0.6).normalize().applyQuaternion(toWorld)
       solveTwoBone(arm, this.group.localToWorld(target), pole)
-      orientHand(arm, new THREE.Vector3(-0.25 * arm.side, -0.12, 1).normalize().applyQuaternion(toWorld), w)
+      // Fingers point forward and slightly inward, level with the tabletop.
+      orientHand(arm, new THREE.Vector3(-0.15 * arm.side, -0.02, 1).normalize().applyQuaternion(toWorld), w)
     }
     for (const finger of this.fingers) finger.bone.quaternion.slerp(finger.open, FINGER_RELAX * w)
+    // Contact: no finger joint may end inside the tabletop; bend it up to lie on the surface.
+    const floor = this.group.localToWorld(new THREE.Vector3(0, FINGER_FLOOR, 0)).y
+    for (const chain of this.fingerChains) layOnSurface(chain, floor, w)
   }
 
   arms: Arm[] = []
@@ -205,6 +219,9 @@ class Avatar {
       if (!upper || !fore || !hand || !middle || !index || !pinky) return []
       return [{ side: side === 'Left' ? 1 : -1, upper, fore, hand, middle, index, pinky, rest: new THREE.Vector3() } as Arm]
     })
+    this.fingerChains = ['Left', 'Right'].flatMap((side) => ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky'].map((finger) =>
+      [1, 2, 3, 4].map((joint) => bones.get(`${side}Hand${finger}${joint}`)).filter((bone): bone is THREE.Bone => Boolean(bone))))
+      .filter((chain) => chain.length >= 2)
     // Called before any clip plays, so current rotations are the open-handed bind pose.
     this.fingers = [...bones.entries()]
       .filter(([name]) => /^(Left|Right)Hand(Thumb|Index|Middle|Ring|Pinky)[1-3]$/.test(name))
@@ -218,6 +235,8 @@ class Avatar {
   }
 
   private fingers: { bone: THREE.Bone; open: THREE.Quaternion }[] = []
+  /** Each finger and thumb as its joints from knuckle to tip, for the tabletop contact step. */
+  private fingerChains: THREE.Bone[][] = []
 }
 
 interface Arm {
@@ -261,6 +280,26 @@ function solveTwoBone(arm: Arm, target: THREE.Vector3, pole: THREE.Vector3) {
   aim(arm.upper, b.clone().sub(a), elbow.clone().sub(a))
   const b2 = position(arm.fore)
   aim(arm.fore, position(arm.hand).sub(b2), a.clone().addScaledVector(dir, d).sub(b2))
+}
+
+/**
+ * Bend each joint of a finger up just enough that the next joint stays at or above the surface
+ * height, so fingers rest on the tabletop instead of sinking into it.
+ */
+function layOnSurface(chain: THREE.Bone[], floor: number, weight: number) {
+  for (let i = 0; i < chain.length - 1; i++) {
+    const from = position(chain[i])
+    const to = position(chain[i + 1])
+    if (to.y >= floor) continue
+    const dir = to.clone().sub(from)
+    const length = dir.length()
+    const rise = THREE.MathUtils.clamp(floor - from.y, -length, length)
+    const flat = new THREE.Vector3(dir.x, 0, dir.z)
+    if (flat.lengthSq() < 1e-8) continue
+    flat.setLength(Math.sqrt(Math.max(0, length * length - rise * rise)))
+    const wanted = flat.setY(rise)
+    rotateWorld(chain[i], new THREE.Quaternion().slerp(new THREE.Quaternion().setFromUnitVectors(dir.normalize(), wanted.normalize()), weight))
+  }
 }
 
 /** Point the fingers forward and turn the palm down, blended by weight. */
@@ -1004,12 +1043,12 @@ export class Boardroom {
     // Everyone looks at whoever holds the floor: the agent's orb at the hub, or the member in focus.
     const lookTarget = view?.agent ? this.hubAnchor() : focusHead
 
-    for (const [index, avatar] of this.avatars.entries()) {
+    for (const avatar of this.avatars) {
       if (!avatar.mixer || !avatar.group.visible) continue
       avatar.animate(dt)
       avatar.placeHands()
       const target = avatar === focus ? this.camera.position : lookTarget
-      avatar.lookAt(view?.seats[index]?.mood === 'typing' ? null : target, dt)
+      avatar.lookAt(target, dt)
     }
 
     // Presenter camera: glide to whoever is talking (a member or the hub agent) and back to the

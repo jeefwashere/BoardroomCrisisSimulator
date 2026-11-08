@@ -6,7 +6,7 @@ export type StageAgent = { kind: 'agent' | 'expert' | 'coach'; name: string; rol
 
 export type BoardMember = { id: string; name: string; role: string; color: string; connected: boolean }
 
-export type BoardMood = 'sit' | 'talk' | 'typing'
+export type BoardMood = 'sit' | 'talk'
 
 export type BoardSeat = BoardMember & { isSelf: boolean; talking: boolean; mood: BoardMood }
 
@@ -66,9 +66,8 @@ export function boardroomView(input: BoardroomInput, members: readonly BoardMemb
     const seats = seated.map((member): BoardSeat => {
         const isSelf = member.id === input.selfId
         const isTalking = talking.has(member.id)
-        // Everyone writes during the decision; in private sessions the others work on their own coaching.
-        const typing = input.phase === 'individual_decision' || (input.phase === 'private_session' && !isSelf)
-        return { ...member, isSelf, talking: isTalking, mood: isTalking ? 'talk' : typing ? 'typing' : 'sit' }
+        // Everyone sits with hands on the table; only the person talking gestures. (The typing clip is not used.)
+        return { ...member, isSelf, talking: isTalking, mood: isTalking ? 'talk' : 'sit' }
     })
     const talker = seats.find((seat) => seat.talking)
     const turnHolder = input.phase === 'speaking' && input.activeSpeakerId && seats.some((seat) => seat.id === input.activeSpeakerId) ? input.activeSpeakerId : null

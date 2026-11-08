@@ -77,22 +77,24 @@ const smoothstep = (edge0: number, edge1: number, x: number) => {
 }
 
 /** The most the mouth opens while speaking: a moderate, conversational opening, never a wide one. */
-export const SPEECH_MOUTH_MAX = 0.32
+export const SPEECH_MOUTH_MAX = 0.42
+/** Within a phrase the lips stay at least this far apart, so a speaker never looks silent mid sentence. */
+export const SPEECH_MOUTH_PARTED = 0.1
 /** The most a brow accent adds while speaking. */
 export const SPEECH_BROW_MAX = 0.2
 
 /**
  * Procedural speech mouth: syllables at about 4 to 5 per second, louder and quieter stretches,
- * and short pauses between phrases. `seed` keeps characters out of step. Returns 0 to
- * SPEECH_MOUTH_MAX, so the lips part a little instead of opening wide.
+ * and brief pauses between phrases. Within a phrase the lips stay parted (SPEECH_MOUTH_PARTED);
+ * `seed` keeps characters out of step. Returns 0 to SPEECH_MOUTH_MAX, a moderate opening.
  * There is no audio level in the scene (audio stays with the stage hooks), so this is lip flap,
  * not lip sync.
  */
 export function speechMouth(time: number, seed: number): number {
     const syllable = Math.abs(Math.sin(time * 14.2 + seed)) * (0.65 + 0.35 * Math.sin(time * 3.7 + seed * 1.7))
     const loudness = 0.75 + 0.25 * Math.sin(time * 1.3 + seed * 2.3)
-    const phrase = smoothstep(-0.55, -0.15, Math.sin(time * 0.85 + seed * 3.1))
-    return Math.min(SPEECH_MOUTH_MAX, 0.01 + (SPEECH_MOUTH_MAX - 0.01) * syllable * loudness * phrase)
+    const phrase = smoothstep(-0.9, -0.6, Math.sin(time * 0.85 + seed * 3.1))
+    return Math.min(SPEECH_MOUTH_MAX, phrase * (SPEECH_MOUTH_PARTED + (SPEECH_MOUTH_MAX - SPEECH_MOUTH_PARTED) * syllable * loudness))
 }
 
 /** Brow lifts that accent speech every couple of seconds. Returns 0 to SPEECH_BROW_MAX. */

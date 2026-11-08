@@ -27,6 +27,12 @@ import { Blinker, FACE_MORPHS, REACTION_SECONDS, faceFrame, neutralFace, onFaceR
  */
 export const CHARACTER_IDS = ['01-coo', '03-cto', '02-cfo']
 
+/**
+ * How far each model's MouthOpen shape opens relative to the others: 03-cto's built shape opens
+ * less for the same weight, so its speech is scaled up to match 01 and 02.
+ */
+const MOUTH_GAIN: Record<string, number> = { '03-cto': 1.3 }
+
 type Mood = BoardMood | 'disbelief'
 
 /** Wall screen clock: the phase deadline and the server time it was read at. */
@@ -91,6 +97,8 @@ class Avatar {
   hips: THREE.Bone | null = null
   mood: Mood | null = null
   yaw = 0
+  /** Scale on the speech mouth for models whose MouthOpen shape opens less (MOUTH_GAIN). */
+  mouthGain = 1
   /** Eased up or down head correction (radians, positive lifts the face). */
   pitch = 0
   /** The face's forward direction in the head bone's local space, measured in the bind pose. */
@@ -174,6 +182,7 @@ class Avatar {
     const age = this.reaction ? (performance.now() - this.reaction.startedAt) / 1000 : 0
     if (this.reaction && age >= REACTION_SECONDS) this.reaction = null
     const weights = faceFrame(this.face, this.faceContext, blink, time, this.faceSeed, dt, this.reaction ? { reaction: this.reaction.reaction, age } : null)
+    weights.MouthOpen = Math.min(1, weights.MouthOpen * this.mouthGain)
     for (const [morph, slots] of this.morphs) {
       for (const slot of slots) slot.influences[slot.index] = weights[morph]
     }
@@ -652,6 +661,7 @@ export class Boardroom {
     await Promise.all(
       CHARACTER_IDS.map(async (id, index) => {
         const gltf = await this.loader.loadAsync(`${MODELS}characters/${id}.glb`)
+        this.avatars[index].mouthGain = MOUTH_GAIN[id] ?? 1
         this.avatars[index].attach(gltf, clips)
         if (index === 0) this.calibrateSeat(this.avatars[0])
         tick()

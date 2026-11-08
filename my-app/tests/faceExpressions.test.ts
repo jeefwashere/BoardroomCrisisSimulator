@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
-    Blinker, FACE_MORPHS, REACTION_SECONDS, SPEECH_BROW_MAX, SPEECH_MOUTH_MAX, approach, emitFaceReaction, faceFrame, moodExpression, neutralFace,
+    Blinker, FACE_MORPHS, REACTION_SECONDS, SPEECH_BROW_MAX, SPEECH_MOUTH_MAX, SPEECH_MOUTH_PARTED, approach, emitFaceReaction, faceFrame, moodExpression, neutralFace,
     onFaceReaction, reactionStrength, speechBrow, speechMouth,
 } from '../src/features/boardroom3d/faceExpressions.ts'
 import type { FaceReaction } from '../src/features/boardroom3d/faceExpressions.ts'
@@ -56,7 +56,7 @@ test('the speaking face keeps moving: smile and brows vary while talking', () =>
 })
 
 test('the speech mouth opens moderately, never wide, and opens and closes', () => {
-    assert.ok(SPEECH_MOUTH_MAX <= 0.35, 'never a wide open mouth')
+    assert.ok(SPEECH_MOUTH_MAX <= 0.45, 'never a wide open mouth')
     let min = 1, max = 0
     for (let t = 0; t < 20; t += 1 / 60) {
         const open = speechMouth(t, 3.3)
@@ -64,8 +64,12 @@ test('the speech mouth opens moderately, never wide, and opens and closes', () =
         min = Math.min(min, open); max = Math.max(max, open)
         assert.ok(speechBrow(t, 3.3) >= 0 && speechBrow(t, 3.3) <= SPEECH_BROW_MAX)
     }
-    assert.ok(min < 0.03, `mouth closes between syllables and phrases (min ${min})`)
-    assert.ok(max > 0.25, `the mouth visibly opens on syllables (max ${max})`)
+    assert.ok(min < 0.03, `mouth closes in the pauses between phrases (min ${min})`)
+    assert.ok(max > 0.35, `the mouth visibly opens on syllables (max ${max})`)
+    // Mid phrase the lips stay parted: most of the time the mouth is visibly open.
+    let parted = 0, samples = 0
+    for (let t = 0; t < 20; t += 1 / 60, samples++) if (speechMouth(t, 3.3) >= SPEECH_MOUTH_PARTED * 0.9) parted++
+    assert.ok(parted / samples > 0.7, `lips parted ${Math.round(100 * parted / samples)}% of the time`)
     // Different seeds keep characters out of step.
     let difference = 0
     for (let t = 0; t < 5; t += 0.1) difference += Math.abs(speechMouth(t, 1) - speechMouth(t, 50))

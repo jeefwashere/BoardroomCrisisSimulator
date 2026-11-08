@@ -356,6 +356,10 @@ The user now owns frontend implementation and backend integration, retaining Jef
 
   Owner: Arjun's Claude agent. Status: `done`. Evidence: completion record 55. Branch: `arjun/face-rig-characters`. Scope from the user: Morgan's mouth should open a bit while speaking ("its character 3 right?"). Cause: the speech mouth closed between syllables and phrases (peak 0.32), and 03-cto's built MouthOpen shape opens less for the same weight than 01 and 02 (held weights compared in Chrome: teeth just show at 0.3 on 03, while 02 at 0.42 shows a moderate opening). Progress: `speechMouth` peaks at 0.42 and keeps the lips at least 0.1 apart within a phrase (`SPEECH_MOUTH_PARTED`), with shorter pauses; new `MOUTH_GAIN` in `Boardroom.ts` scales 03-cto by 1.3. Checks: `npx tsc -b`, `npm run lint`, `npm test` (258 of 258) and `npm run build` passed; Chrome preview: a talking Morgan peaked at 0.46 and was visibly open (above 0.1) 76 percent of the time. Next action: none for this task.
 
+* [x] X49 No teeth on show: X48's wider mouth undone, teeth hidden on all three characters.
+
+  Owner: Arjun's Claude agent. Status: `done`. Evidence: completion record 56. Branch: `arjun/face-rig-characters`. Scope from the user: undo X48, "do not show any teeth", test all three 3D models, keep the face from X47. Progress: `faceExpressions.ts`, `Boardroom.ts`, the face tests and the 3D doc are restored to their X47 versions (speech mouth at most 0.32, no `MOUTH_GAIN`); `Avatar.attach` hides every mesh whose material is `teeth` (each character GLB has one, split from the mouth interior), keeping the dark `mouth_cavity`. Checks: `npx tsc -b`, `npm run lint`, `npm test` (258 of 258) and `npm run build` passed; Chrome preview: each character had one teeth mesh, hidden; Alex (01-coo), Sam (02-cfo) and Morgan (03-cto) each held at the widest speech opening (0.32) showed only parted lips and no teeth. Next action: none for this task.
+
 ## Integration and verification
 
 * [x] I01 Publish the frontend API and snapshot contract with examples.

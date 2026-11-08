@@ -171,7 +171,7 @@ instant. The button appears when the room has at most three members, since the 3
   Morgan and Sam work at their laptops. Heads turn toward the speaker or the hub.
 * Faces: the three characters (`01-coo` Alex, `03-cto` Morgan, `02-cfo` Sam) are face rigged with six morph targets
   and a mouth interior. `features/boardroom3d/faceExpressions.ts` blinks every 2 to 6 seconds, and while a member
-  talks opens the mouth moderately (up to 0.42, lips kept parted within a phrase, `03-cto` scaled 1.3 because its shape opens less; procedural lip flap, since the scene receives no audio level) with a
+  talks opens the mouth moderately (at most 0.32; procedural lip flap, since the scene receives no audio level; the teeth meshes are hidden, so only lips and the dark mouth cavity show) with a
   warm smile that swells and settles and brow accents every couple of seconds; heads lift toward what they look at, so
   the speaker faces the presenter camera instead of the laptop; raises listeners' brows while a colleague or an AI agent talks, frowns in thought
   during individual decisions and voting, stays composed in private sessions, looks alert in the briefing and smiles

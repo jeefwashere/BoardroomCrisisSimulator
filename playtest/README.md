@@ -1,5 +1,7 @@
 # Rehearsal meeting playtest
 
+Working branch: **`experiment/ai-voice-playtest`**. Read [the implementation and branch summary](IMPLEMENTATION_SUMMARY.md) for the current handoff and verification status.
+
 Open <http://127.0.0.1:8788/>. The page automatically attaches one incident PDF. Click **Load 3 test participants**, then have the CEO **Start meeting**. A roughly 30 second live spoken preparation introduction leads into a five minute discussion.
 
 Each participant card shows whose turn it is. Manually play that participant's saved clip, stop it, or commit its exact caption and pass the turn. There is no participant autoplay. The three T01 participant clips cover leadership, recovery checks and communications, totaling about 46 seconds. A separately labelled saved decision guide explains the choices; adviser replies use live Gemini and ElevenLabs.

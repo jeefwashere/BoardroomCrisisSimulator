@@ -4,7 +4,7 @@ import type { RoomApi, RoomSnapshot, Scenario } from '../../services/rooms'
 import { clearSeatSession, createTabSession, seatStorage } from '../../services/tabSession'
 import type { StoragePort } from '../../services/tabSession'
 import { acceptSnapshot, startInput } from '../rooms/roomState'
-import { DEFAULT_DEMO_MODE, DEMO_BOTS, DEMO_SEATS, DEMO_STORAGE_KEY, SPLIT_VIEW_MIN_WIDTH, botStatusText, demoRoles, demoRoomCode, followTarget, phaseLabel, pickDemoScenario, readStoredDemo, seatStatus, soloStage } from './demoModel'
+import { DEFAULT_DEMO_MODE, DEMO_SEATS, DEMO_STORAGE_KEY, SPLIT_VIEW_MIN_WIDTH, demoRoles, demoRoomCode, followTarget, phaseLabel, pickDemoScenario, readStoredDemo, seatStatus } from './demoModel'
 import type { BallotSource, DemoMode, StoredDemo } from './demoModel'
 import { useSoloBots } from './useSoloBots'
 import { usePrivateBots } from './usePrivateBots'
@@ -260,35 +260,11 @@ export default function DemoRoom() {
     const alexFrameSrc = `${window.location.pathname}?seat=${DEMO_SEATS[0].seat}#/room/${demo.room_id}`
 
     if (solo) {
-        const stage = soloStage(snapshots)
+        // Solo games give the whole window to Alex's call. Morgan and Sam keep running without a visible strip;
+        // the in game control bar carries Skip, and only a quiet Reset stays for after server restarts.
         return <main className="demo-room demo-room--solo">
-            <header className="demo-bar demo-bar--solo">
-                <div className="demo-bar__title">
-                    <span className="demo-badge">Solo · you are Alex (CEO)</span>
-                    <strong>Room {demo.room_code}</strong>
-                    <span className="demo-bar__phase">{phaseText}</span>
-                </div>
-                <div className="demo-board" role="group" aria-label="Board">
-                    <span className="demo-board__label">Board</span>
-                    {DEMO_BOTS.map((bot) => {
-                        const text = botStatusText(bot, snapshots, bots.activity[bot.seat], privateBots.status[bot.seat])
-                        const live = /…$/.test(text) && !/^(connecting|reconnecting)/.test(text)
-                        return <span key={bot.seat} className={`demo-board__bot${live ? ' demo-board__bot--live' : ''}`} data-bot={bot.seat}>
-                            <strong>{bot.name} · {bot.title}</strong> — <span className="demo-board__status">{text}</span>
-                        </span>
-                    })}
-                </div>
-                <div className={`demo-stage${stage.action ? ' demo-stage--action' : ''}${stage.over ? ' demo-stage--over' : ''}`} role="status" aria-live="polite">
-                    <span className="demo-stage__text">{stage.text}</span>
-                    {stage.decision && <strong className="demo-stage__decision">{stage.decision}</strong>}
-                    {stage.action === 'record' && <button className="demo-record" type="button" disabled={skipping} onClick={() => void skipPhase()} title="Closes voting and tallies the ballots (host command, sent as Alex)">{skipping ? 'Recording…' : 'Record final decision'}</button>}
-                </div>
-                <div className="demo-bar__controls">
-                    {hostCanSkip && stage.action !== 'record' && <button className="demo-secondary demo-secondary--small" type="button" disabled={skipping} onClick={() => void skipPhase()} title="Ends the current phase for everyone (host command, sent as Alex)">{skipping ? 'Skipping…' : 'Skip phase ⏭'}</button>}
-                    <button className="demo-secondary demo-secondary--small" type="button" onClick={reset}>Reset demo</button>
-                </div>
-            </header>
-            {alert && <p className="demo-error demo-error--bar" role="alert">{alert}</p>}
+            <button className="demo-reset-float" type="button" onClick={reset} title="Discard these test memberships and return to the demo setup">Reset demo</button>
+            {alert && <p className="demo-error demo-error--float" role="alert">{alert}</p>}
             <div className="demo-frames">
                 <section className="demo-frame" aria-label="Alex's player view">
                     <iframe title="Alex's player view (test membership)" src={alexFrameSrc} allow="autoplay; microphone; clipboard-write" />

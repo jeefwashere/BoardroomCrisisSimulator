@@ -101,6 +101,8 @@ export type RoomGame = {
     session_deadline?: string | null
     active_speaker_id?: string | null
     speaker_order?: string[]
+    /** Index into `speaker_order` of the active speaking turn (Cedar loops the order, so members repeat). */
+    speaker_index?: number | null
     self_vote?: string | null
     vote_counts?: Record<string, number> | null
     tied_option_ids?: string[]

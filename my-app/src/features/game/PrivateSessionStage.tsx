@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { motion, useReducedMotion } from 'motion/react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { motion } from 'motion/react'
 import type { RoomSnapshot } from '../../services/rooms'
 import type { PrivateMessage, ResponseCardFields } from '../../services/facilitation'
 import { facilitationApi, facilitationErrorMessage } from '../facilitation/facilitationClient'
@@ -12,15 +13,23 @@ import { PRIVATE_OBSERVER, PRIVATE_UNAVAILABLE } from './usePrivateSession'
 import { formatClock } from './controlBarModel'
 import { AssessmentResults, PrivateBoard } from './PrivateSessionReport'
 import Countdown from './Countdown'
+import CallTile from './CallTile'
+import { playerAvatarColor, playerInitials } from './playerPresentation'
+import { privateAutoEntry, privateEntry, privateTranscriptLines, silentHoldMs } from './transcriptModel'
+import { audioDurationMs, audioElapsedMs } from './useAutoResponse'
+import type { AutoPlayback } from './useAutoResponse'
+import { useLiveSpeech, useSpokenLine } from './useTranscript'
+import type { TranscriptWriter } from './useTranscript'
 import {
     ANSWER_LIMIT, CARD_FIELDS, CARD_FIELD_LIMIT, NEEDS_CONFIRMATION, canConfirmCard, canSubmitAnswer, expectingKey, initiallySpoken, nextToSpeak, privateRoundLabel,
-    questionText, scoreText, stageChips, transitionIndex, trimCard,
+    questionText, scoreText, stageChips, trimCard,
 } from './privateSessionModel'
 
-// Roughly the pace of spoken ElevenLabs speech, so the text keeps up with the voice.
+// Roughly the pace of spoken ElevenLabs speech, used to hold silent lines about as long as the voice would take.
 const CHARS_PER_SECOND = 16
-// Pause after a silent message finishes typing, before the next one starts.
+// Pause after a silent line before the next one starts; silent lines never hold the floor longer than SILENT_MAX_MS.
 const HOLD_MS = 900
+const SILENT_MAX_MS = 4000
 const SPEECH_RETRIES = 12
 // In the one window demo only the first seat plays sound, so frames never talk over each other.
 const SEAT = typeof window === 'undefined' ? null : seatFromSearch(window.location.search)
@@ -74,53 +83,20 @@ function useAgentVoices(roomId: string, messages: readonly PrivateMessage[], spo
     }, [enabled, voices])
 }
 
-function Typewriter({ text, onDone }: { text: string; onDone: () => void }) {
-    const reduceMotion = useReducedMotion()
-    const [count, setCount] = useState(0)
-    const complete = reduceMotion || count >= text.length
-    useEffect(() => {
-        if (complete) { onDone(); return }
-        const timer = setInterval(() => setCount((current) => Math.min(text.length, current + 1)), 1000 / CHARS_PER_SECOND)
-        return () => clearInterval(timer)
-    }, [complete, text, onDone])
-    return <>
-        <span className="game-visually-hidden">{text}</span>
-        <span aria-hidden="true">{complete ? text : text.slice(0, count)}{!complete && <span className="opening-caret" />}</span>
-    </>
-}
-
-function Orb() {
-    return <div className="opening-orb private-orb" aria-hidden="true">
-        <span className="opening-ring" />
-        <span className="opening-ring opening-ring--late" />
-        <span className="opening-core"><span className="opening-wave" /><span className="opening-wave" /><span className="opening-wave" /><span className="opening-wave" /></span>
-    </div>
-}
-
 function LockIcon() {
     return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2" /><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" /></svg>
 }
 
-function AnswerComposer({ question, disabled, onSubmit, dictation, attachDictation }: {
-    question: string; disabled: boolean; onSubmit: (text: string) => Promise<boolean>; dictation: Dictation; attachDictation: AttachDictation
+/** The answer box: the current question above a textarea. The bar's Mic dictates into it; Auto response submits a saved clip instead. */
+function AnswerComposer({ question, draft, setDraft, disabled, onSubmit, dictation }: {
+    question: string; draft: string; setDraft: (text: string) => void; disabled: boolean; onSubmit: () => void; dictation: Dictation
 }) {
-    const [draft, setDraft] = useState('')
-    // The control bar's Mic dictates into this box; final words are appended and stay editable.
-    useEffect(() => {
-        attachDictation((words) => setDraft((current) => appendTranscript(current, words)))
-        return () => attachDictation(null)
-    }, [attachDictation])
-    async function submit() {
-        if (!canSubmitAnswer(draft) || disabled) return
-        dictation.stop()
-        // A failed submission keeps the draft; the stage footer shows the reason.
-        if (await onSubmit(draft.trim())) setDraft('')
-    }
-    return <form className="private-composer" onSubmit={(event) => { event.preventDefault(); void submit() }}>
+    return <form className="private-composer" onSubmit={(event) => { event.preventDefault(); onSubmit() }}>
         <label className="private-composer-label">
+            <span className="private-eyebrow">Your coach asks</span>
             <span className="private-question">{question}</span>
-            <textarea rows={4} maxLength={ANSWER_LIMIT} value={draft} placeholder="Type your answer, or use Dictate below to speak it." onChange={(event) => setDraft(event.target.value)}
-                onKeyDown={(event) => { if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) { event.preventDefault(); void submit() } }} />
+            <textarea rows={4} maxLength={ANSWER_LIMIT} value={draft} placeholder="Type your answer, or use Dictate or Auto response below." onChange={(event) => setDraft(event.target.value)}
+                onKeyDown={(event) => { if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) { event.preventDefault(); onSubmit() } }} />
         </label>
         {(dictation.listening || dictation.note) && <div className="private-voice">
             {dictation.listening && <span className="private-listening" role="status"><span className="vote-waiting-dot" aria-hidden="true" />Listening…</span>}
@@ -154,36 +130,47 @@ function ResponseCardForm({ initial, disabled, onConfirm }: { initial: ResponseC
     </form>
 }
 
+type AutoClip = { playing: boolean; caption: string; key: string | null; playback: AutoPlayback | null }
+
 type Props = {
     room: RoomSnapshot
     handle: PrivateSessionHandle
-    /** The control bar's Auto response is playing the member's saved clip. */
-    autoPlaying: boolean
-    autoCaption: string
+    /** The control bar's Auto response for the current question (its clip plays from the bar). */
+    auto: AutoClip
     selfName: string
+    selfRole: string
     dictation: Dictation
     attachDictation: AttachDictation
     notice?: string
+    transcript: TranscriptWriter
+    /** The live transcript panel's answer slot; null when captions are off (or chat covers them), so the answer box floats on the stage. */
+    dock: HTMLElement | null
 }
 
-/** Rounds 2 and 3: the member's private conversation with one crisis coach, who becomes the examiner. */
-export default function PrivateSessionStage({ room, handle, autoPlaying, autoCaption, selfName, dictation, attachDictation, notice }: Props) {
+/**
+ * Rounds 2 and 3 as a one to one call: the member's window and the crisis coach's window (examiner in Round 3).
+ * Only the voices play on the stage; every line goes to the live transcript, where the answer box also lives.
+ */
+export default function PrivateSessionStage({ room, handle, auto, selfName, selfRole, dictation, attachDictation, notice, transcript, dock }: Props) {
     const { session, unavailable, error, sending } = handle
-    const messages = session?.messages ?? []
+    const messages = useMemo(() => session?.messages ?? [], [session?.messages])
     const [spoken, setSpoken] = useState<ReadonlySet<string> | null>(null)
-    const [typedId, setTypedId] = useState<string | null>(null)
     const [startedId, setStartedId] = useState<string | null>(null)
     const [playing, setPlaying] = useState(false)
     const [blocked, setBlocked] = useState(false)
     const [brokenSpeech, setBrokenSpeech] = useState<string | null>(null)
+    const [draft, setDraftState] = useState({ key: '', text: '' })
     const audioRef = useRef<HTMLAudioElement>(null)
-    const endRef = useRef<HTMLDivElement>(null)
+    // Captions of Auto response clips already in the transcript, so the submitted answer is not listed twice.
+    const captioned = useRef(new Set<string>())
+    const [captionedCount, setCaptionedCount] = useState(0)
+    const live = useLiveSpeech(transcript)
     // Earlier messages are not replayed when the stage opens again (reload); the current question is.
     if (session && spoken === null) setSpoken(initiallySpoken(session.messages))
     const voiceFor = useAgentVoices(room.room_id, messages, spoken, PLAYS_VOICE)
     const current = spoken ? nextToSpeak(messages, spoken) : null
-    // Auto response plays the member's own clip: the coach falls silent and its pending lines show in full.
-    if (autoPlaying && current && current.status === 'ready' && spoken) setSpoken(new Set([...spoken, ...messages.filter((item) => item.author === 'agent' && item.status === 'ready').map((item) => item.message_id)]))
+    // Auto response plays the member's own clip: the coach falls silent and its pending lines go to the transcript in full.
+    if (auto.playing && current && current.status === 'ready' && spoken) setSpoken(new Set([...spoken, ...messages.filter((item) => item.author === 'agent' && item.status === 'ready').map((item) => item.message_id)]))
     const voice = current ? voiceFor(current) : null
     const voiceDriven = voice !== null && voice.state !== 'unavailable' && brokenSpeech !== current?.speech_id
     const activeUrl = voiceDriven && voice?.state === 'ready' ? voice.url : null
@@ -191,14 +178,27 @@ export default function PrivateSessionStage({ room, handle, autoPlaying, autoCap
     const caughtUp = spoken !== null && current === null
 
     const markSpoken = useCallback((id: string) => setSpoken((set) => set && !set.has(id) ? new Set([...set, id]) : set), [])
-    const markTyped = useCallback(() => setTypedId(current?.message_id ?? null), [current?.message_id])
 
-    // Silent lines (no voice, or another seat's frame) move on shortly after their text has typed out.
+    const round = session?.round ?? 2
+    const examiner = session?.agent.role === 'examiner' || round === 3
+    const agentName = session?.agent.label || 'Crisis coach'
+    const visibleCount = current ? messages.indexOf(current) + 1 : messages.length
+    const currentReadyText = current?.status === 'ready' ? current.text : null
+    const currentId = current?.message_id ?? null
+
+    // Lines already revealed go to the transcript in full; the voiced line is added when its audio starts.
     useEffect(() => {
-        if (!current || current.status !== 'ready' || voiceDriven || typedId !== current.message_id) return
-        const timer = setTimeout(() => markSpoken(current.message_id), HOLD_MS)
+        if (!session) return
+        for (const line of privateTranscriptLines(messages, visibleCount, currentId, agentName, selfName, captioned.current)) transcript.upsert(line)
+    }, [session, messages, visibleCount, currentId, agentName, selfName, transcript, captionedCount])
+
+    // Silent lines (no voice, or another seat's frame) go to the transcript in full and move on after a short hold.
+    useEffect(() => {
+        if (!current || currentReadyText === null || voiceDriven) return
+        transcript.upsert(privateEntry(current, agentName, selfName))
+        const timer = setTimeout(() => markSpoken(current.message_id), silentHoldMs(currentReadyText, CHARS_PER_SECOND, HOLD_MS, SILENT_MAX_MS))
         return () => clearTimeout(timer)
-    }, [current, voiceDriven, typedId, markSpoken])
+    }, [current, currentReadyText, voiceDriven, markSpoken, transcript, agentName, selfName])
 
     useEffect(() => {
         const element = audioRef.current
@@ -206,128 +206,125 @@ export default function PrivateSessionStage({ room, handle, autoPlaying, autoCap
         element.play().then(() => setBlocked(false)).catch(() => setBlocked(true))
     }, [activeUrl])
 
-    const visibleCount = current ? messages.indexOf(current) + 1 : messages.length
-    useEffect(() => { endRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }) }, [visibleCount, current?.status, session?.stage, session?.expecting?.step, caughtUp, autoPlaying])
+    // The member's saved answer clip: captioned in step with its audio while it plays from the control bar.
+    const autoLine = auto.playback && auto.key ? { entry: privateAutoEntry(auto.key, selfName, auto.caption), durationMs: auto.playback.durationMs } : null
+    useSpokenLine(transcript, autoLine)
+    const autoCaption = autoLine ? auto.caption.trim() : ''
+    useEffect(() => {
+        if (!autoCaption || captioned.current.has(autoCaption)) return
+        captioned.current.add(autoCaption)
+        setCaptionedCount((count) => count + 1)
+    }, [autoCaption])
+
+    const answerKey = expectingKey(session ?? null) ?? ''
+    const draftText = draft.key === answerKey ? draft.text : ''
+    const setDraft = useCallback((text: string) => setDraftState({ key: answerKey, text }), [answerKey])
+    const showComposer = Boolean(session?.expecting && caughtUp && !auto.playing && (session.stage === 'coaching' || session.stage === 'assessment'))
+    // The control bar's Mic dictates into the answer box; final words are appended and stay editable.
+    useEffect(() => {
+        if (!showComposer) return
+        attachDictation((words) => setDraftState((value) => ({ key: answerKey, text: appendTranscript(value.key === answerKey ? value.text : '', words) })))
+        return () => attachDictation(null)
+    }, [showComposer, answerKey, attachDictation])
+
+    async function submit() {
+        if (!canSubmitAnswer(draftText) || sending || session?.busy) return
+        dictation.stop()
+        // A failed submission keeps the draft; the footer shows the reason.
+        if (await handle.answer(draftText.trim(), false)) setDraftState({ key: answerKey, text: '' })
+    }
 
     function showAll() {
         audioRef.current?.pause()
         setPlaying(false)
+        live.end()
         setSpoken(new Set(messages.filter((item) => item.author === 'agent').map((item) => item.message_id)))
     }
 
-    const round = session?.round ?? 2
-    const examiner = session?.agent.role === 'examiner' || round === 3
-    const agentName = session?.agent.label || 'Crisis coach'
-    const speaking = playing || Boolean(current && current.status === 'ready' && !voiceDriven && typedId !== current.message_id)
-    const stateText = handle.notEligible ? 'Observing' : unavailable ? 'Not available on this server'
-        : !session ? (error ? 'Reconnecting…' : 'Connecting to your coach…')
-        : current?.status === 'pending' ? 'Thinking…'
-        : waitingForVoice ? 'Preparing voice…'
-        : speaking ? 'Speaking'
-        : session.busy ? (session.stage === 'assessment' ? 'Scoring your answer…' : 'Thinking…')
-        : session.stage === 'complete' ? 'Assessment complete'
-        : session.expecting ? 'Waiting for your answer'
-        : session.stage === 'card' ? (session.card?.status === 'draft' ? 'Review your response card' : 'Recording your response card…')
+    const coachTalking = playing || Boolean(current && current.status === 'ready' && !voiceDriven)
+    const selfTalking = auto.playing || dictation.listening
+    const coachState = handle.notEligible ? 'Observing' : unavailable ? 'Unavailable'
+        : !session ? (error ? 'Reconnecting' : 'Connecting')
+        : current?.status === 'pending' ? 'Thinking'
+        : waitingForVoice ? 'Preparing voice'
+        : coachTalking ? 'Speaking'
+        : session.busy ? (session.stage === 'assessment' ? 'Scoring' : 'Thinking')
+        : session.stage === 'complete' ? 'Complete'
+        : session.stage === 'card' ? (session.card?.status === 'draft' ? 'Waiting for your card' : 'Recording card')
+        : session.expecting ? 'Listening'
         : 'Listening'
-    const handover = transitionIndex(messages)
+    const selfState = auto.playing ? 'Saved answer' : dictation.listening ? 'Dictating' : showComposer ? 'Your turn' : undefined
     const complete = session?.stage === 'complete' && caughtUp
-    const showComposer = Boolean(session?.expecting && caughtUp && !autoPlaying && (session.stage === 'coaching' || session.stage === 'assessment'))
-    const lastSource = [...messages].reverse().find((item) => item.author === 'agent' && item.status === 'ready')?.source
-    const sourceLabel = lastSource === 'vertex' ? 'Generated live by Gemini (Vertex AI) · voiced by ElevenLabs' : lastSource === 'canonical' ? 'Fixed beta question · voiced by ElevenLabs' : lastSource === 'offline' ? 'Offline reply' : null
-
-    function renderMessage(item: PrivateMessage, index: number) {
-        const divider = index === handover && handover > 0 && <li key={`divider-${item.message_id}`} className="private-divider" role="separator"><span>Round 3 · Assessment begins</span><small>Your preparation is complete. The scored challenge begins now: {agentName} is your examiner and only Round 3 answers earn points.</small></li>
-        if (item.author === 'member') return [divider, <li key={item.message_id} className="private-message private-message--member"><span className="private-author">{selfName}</span><p>{item.text}</p></li>]
-        const isCurrent = item === current
-        let body
-        if (item.status === 'failed') body = <p className="private-failed">{item.text || 'This reply could not be prepared.'}</p>
-        else if (item.status === 'pending') body = <div className="opening-shimmer private-shimmer" aria-busy="true"><span /><span /></div>
-        else if (isCurrent && waitingForVoice) body = <p className="private-waiting">Preparing live voice…</p>
-        else if (isCurrent && !blocked) body = <p><Typewriter key={item.message_id} text={item.text} onDone={markTyped} /></p>
-        else body = <p>{item.text}</p>
-        return [divider, <li key={item.message_id} className={`private-message private-message--agent private-message--${item.kind} private-message--r${item.round}${isCurrent ? ' is-current' : ''}`}>
-            <span className="private-author">{item.round === 3 ? `${agentName} · examiner` : agentName}</span>
-            {body}
-        </li>]
-    }
-
-    const transcript = <ol className="private-transcript" aria-label="Private conversation">
-        {messages.slice(0, visibleCount).flatMap(renderMessage)}
-        {autoPlaying && <li className="private-message private-message--member is-live"><span className="private-author">{selfName} · saved answer</span><p>{autoCaption}</p></li>}
-    </ol>
-
     const problem = error || notice
 
+    const dockContent = session && !complete && <div className="private-dock">
+        {showComposer && session.expecting && <AnswerComposer question={questionText(session)} draft={draftText} setDraft={setDraft} disabled={sending || session.busy}
+            onSubmit={() => void submit()} dictation={dictation} />}
+        {auto.playing && <p className="private-note" role="status">Playing your saved answer. It is submitted when the clip ends.</p>}
+        {!showComposer && !auto.playing && session.expecting && !caughtUp && <p className="private-note">The answer box opens when {agentName} finishes speaking.</p>}
+        {session.busy && !session.retryable && session.stage !== 'card' && <p className="private-note" role="status">{session.stage === 'assessment' ? `${agentName} is scoring your answer…` : `${agentName} is thinking…`}</p>}
+        {session.retryable && <div className="private-retry" role="alert">
+            <p>{agentName} could not respond. Your answers are kept.</p>
+            <button type="button" className="opening-play" disabled={sending || session.busy} onClick={() => void handle.retry()}>Retry</button>
+        </div>}
+        {session.stage === 'card' && caughtUp && (session.card?.status === 'draft'
+            ? <ResponseCardForm key={session.card.fields.action} initial={session.card.fields} disabled={sending || session.busy} onConfirm={handle.confirmCard} />
+            : session.card?.status === 'confirmed' ? <p className="private-note" role="status">Response card confirmed. The assessment begins shortly.</p>
+            : <div className="opening-shimmer private-card-recording" aria-busy="true"><p className="opening-shimmer-label">{agentName} is recording your response card from your answers…</p><span /><span /></div>)}
+    </div>
+
     return <motion.section
-        className={`opening-stage private-stage${speaking ? ' is-speaking' : ''}${examiner ? ' is-examiner' : ''}`}
+        className={`call-stage private-call${examiner ? ' is-examiner' : ''}`}
         aria-labelledby="private-title"
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.98 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
     >
-        <div className="opening-meta">
+        <div className="call-stage-head private-head">
             <h2 id="private-title" className="opening-pill private-pill">{privateRoundLabel(round)}</h2>
+            <span className="private-lock"><LockIcon />Private: only you and your crisis coach</span>
+            {round === 3 && session && <ol className="private-chips private-chips--compact" aria-label="Assessment stages">
+                {stageChips(session.assessment).map((chip) => <li key={chip.step} className={`private-chip private-chip--${chip.status}`}><span>Stage {chip.step}</span><strong>{chip.text}</strong></li>)}
+            </ol>}
             <span className="private-meta-end">
                 {round === 3 && session && <span className="private-score" role="status">{scoreText(session.assessment)}</span>}
                 {room.game?.phase_deadline && <Countdown key={room.game.phase_id + (room.game.server_time ?? '')} deadline={room.game.phase_deadline} serverTime={room.game.server_time} className="opening-countdown" format={formatClock} />}
             </span>
         </div>
-        <div className="private-head">
-            <div className="opening-presence">
-                <Orb />
-                <div className="opening-identity">
-                    <span className="opening-name">{agentName}{examiner ? ' · examiner' : ''}</span>
-                    <span className="opening-state" role="status">{stateText}</span>
-                </div>
-            </div>
-            <p className="private-lock"><LockIcon />Private: only you and your crisis coach</p>
-        </div>
-        {round === 3 && session && <ol className="private-chips" aria-label="Assessment stages">
-            {stageChips(session.assessment).map((chip) => <li key={chip.step} className={`private-chip private-chip--${chip.status}`}><span>Stage {chip.step}</span><strong>{chip.text}</strong></li>)}
-        </ol>}
+        <p className="game-visually-hidden" role="status">{coachTalking ? `${agentName} is speaking. Their words are in the live transcript.` : ''}</p>
 
         {unavailable && <p className="opening-problem" role="alert">{PRIVATE_UNAVAILABLE}</p>}
         {handle.notEligible && <p className="opening-problem" role="status">{PRIVATE_OBSERVER}</p>}
         {handle.notEligible && <PrivateBoard progress={room.game?.private_progress} selfId={room.self_member_id} />}
-        {!session && !unavailable && !handle.notEligible && <div className="opening-shimmer" aria-busy="true"><p className="opening-shimmer-label">Opening your private session…</p><span /><span /></div>}
 
-        {complete && session ? <>
+        {complete && session ? <div className="private-complete">
             <AssessmentResults assessment={session.assessment} />
-            <details className="private-history"><summary>Your private conversation</summary>{transcript}</details>
-        </> : session && transcript}
-
-        {session?.retryable && <div className="private-retry" role="alert">
-            <p>{agentName} could not respond. Your answers are kept.</p>
-            <button type="button" className="opening-play" disabled={sending || session.busy} onClick={() => void handle.retry()}>Retry</button>
+            <PrivateBoard progress={room.game?.private_progress} selfId={room.self_member_id} />
+        </div> : !handle.notEligible && <div className="call-duo">
+            <CallTile name={`${selfName} (you)`} role={selfRole} size="main" talking={selfTalking} status={selfState}
+                avatar={{ kind: 'initials', text: playerInitials(selfName), color: playerAvatarColor(room.self_member_id) }} />
+            <CallTile name={examiner ? `${agentName} · examiner` : agentName} role={examiner ? 'AI examiner · scored assessment' : 'AI crisis coach · private'} size="main"
+                talking={coachTalking} status={coachState} avatar={{ kind: 'orb' }} accent={examiner ? '#b58c28' : undefined} className="call-tile--coach" />
         </div>}
 
-        {showComposer && session?.expecting && <AnswerComposer key={expectingKey(session) ?? 'answer'} question={questionText(session)} disabled={sending || session.busy}
-            onSubmit={(text) => handle.answer(text, false)} dictation={dictation} attachDictation={attachDictation} />}
-
-        {session?.stage === 'card' && caughtUp && (session.card?.status === 'draft'
-            ? <ResponseCardForm key={session.card.fields.action} initial={session.card.fields} disabled={sending || session.busy} onConfirm={handle.confirmCard} />
-            : session.card?.status === 'confirmed' ? <p className="private-note" role="status">Response card confirmed. The assessment begins shortly.</p>
-            : <div className="opening-shimmer" aria-busy="true"><p className="opening-shimmer-label">{agentName} is recording your response card from your answers…</p><span /><span /></div>)}
-
-        {session?.stage === 'complete' && <PrivateBoard progress={room.game?.private_progress} selfId={room.self_member_id} />}
-
         {activeUrl && current && <audio key={current.speech_id} ref={audioRef} src={activeUrl}
-            onPlay={() => { setPlaying(true); setStartedId(current.message_id) }} onPause={() => setPlaying(false)}
-            onEnded={() => { setPlaying(false); markSpoken(current.message_id) }}
-            onError={() => { setPlaying(false); setBlocked(false); setBrokenSpeech(current.speech_id) }} />}
+            onPlaying={(event) => { setPlaying(true); setStartedId(current.message_id); live.start(privateEntry(current, agentName, selfName), audioDurationMs(event.currentTarget), audioElapsedMs(event.currentTarget)) }}
+            onPause={() => setPlaying(false)}
+            onEnded={() => { setPlaying(false); live.end(); markSpoken(current.message_id) }}
+            onError={() => { setPlaying(false); setBlocked(false); live.end(); setBrokenSpeech(current.speech_id) }} />}
 
-        <div className="opening-footer">
-            {sourceLabel && <span className={`opening-source${lastSource === 'offline' ? ' is-offline' : ''}`}>{sourceLabel}</span>}
+        <div className="opening-footer call-stage-footer">
             {blocked && activeUrl && <button type="button" className="opening-play" onClick={() => { void audioRef.current?.play().then(() => setBlocked(false)).catch(() => undefined) }}>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
                 Tap to hear
             </button>}
             {blocked && activeUrl && <p className="opening-voice-notice" role="status">The browser blocked autoplay. Tap once to hear your coach.</p>}
             {voice?.state === 'unavailable' && <p className="opening-voice-notice" role="status">{voice.message}</p>}
-            {current && current.status === 'ready' && <button type="button" className="opening-link" onClick={showAll}>Show full text</button>}
+            {current && current.status === 'ready' && <button type="button" className="opening-link" onClick={showAll} title="Stop the coach's voice and put the remaining lines in the transcript">Skip ahead</button>}
             {problem && !unavailable && <p className="opening-voice-notice" role="alert">{problem}</p>}
         </div>
-        <div ref={endRef} />
+
+        {dockContent && (dock ? createPortal(dockContent, dock) : <div className="private-dock-float">{dockContent}</div>)}
     </motion.section>
 }

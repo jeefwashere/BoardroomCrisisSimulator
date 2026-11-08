@@ -2,15 +2,27 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { RecordedClip } from '../../services/facilitation'
 import type { RoomSnapshot } from '../../services/rooms'
 import { facilitationApi } from '../facilitation/facilitationClient'
-import { assignSavedClips, clipForMember, isOwnTurn, turnKey } from './savedClips'
+import { clipForTurn, isOwnTurn, turnKey } from './savedClips'
 
 type Execute = (path: string, fields?: Record<string, unknown>) => Promise<void>
 
 export type AutoResponseState = 'unavailable' | 'ready' | 'playing' | 'saving' | 'done'
 
+/** The clip actually playing: its key (turn or question) and audio length, known once playback starts. */
+export type AutoPlayback = { key: string; durationMs: number | null }
+
+export function audioDurationMs(audio: HTMLAudioElement): number | null {
+    return Number.isFinite(audio.duration) && audio.duration > 0 ? Math.round(audio.duration * 1000) : null
+}
+
+/** How far into its audio an element is, so a resumed line keeps its caption in step. */
+export function audioElapsedMs(audio: HTMLAudioElement): number {
+    return Number.isFinite(audio.currentTime) ? Math.round(audio.currentTime * 1000) : 0
+}
+
 /**
- * "Auto response" for the caller's speaking turn: plays the caller's prerecorded demo clip,
- * shows its caption as subtitles, then commits the exact caption and passes the turn.
+ * "Auto response" for the caller's speaking turn: plays the caller's prerecorded demo clip for this turn,
+ * then commits the exact caption and passes the turn. Its caption goes to the live transcript, never onto the call.
  */
 export function useAutoResponse(room: RoomSnapshot, execute: Execute, onError: (failure: unknown) => void) {
     const game = room.game
@@ -20,6 +32,7 @@ export function useAutoResponse(room: RoomSnapshot, execute: Execute, onError: (
     }
     const [catalog, setCatalog] = useState<RecordedClip[]>([])
     const [state, setState] = useState<{ turn: string | null; status: AutoResponseState }>({ turn: null, status: 'ready' })
+    const [playback, setPlayback] = useState<AutoPlayback | null>(null)
     const audio = useRef<HTMLAudioElement | null>(null)
     const latestTurn = useRef<string | null>(null)
 
@@ -32,8 +45,7 @@ export function useAutoResponse(room: RoomSnapshot, execute: Execute, onError: (
     const view = { phase: room.phase, phaseId: game?.phase_id ?? '', activeSpeakerId: game?.active_speaker_id, selfId: room.self_member_id }
     const turn = turnKey(view)
     const ownTurn = isOwnTurn(view)
-    const eligible = game?.eligible_member_ids
-    const clip = useMemo(() => clipForMember(assignSavedClips(eligible ?? [], catalog), room.self_member_id), [eligible, catalog, room.self_member_id])
+    const clip = useMemo(() => clipForTurn(game, catalog, room.self_member_id), [game, catalog, room.self_member_id])
 
     useEffect(() => {
         latestTurn.current = turn
@@ -57,6 +69,7 @@ export function useAutoResponse(room: RoomSnapshot, execute: Execute, onError: (
         const player = new Audio(facilitationApi.recordingUrl(clip))
         audio.current = player
         setState({ turn: forTurn, status: 'playing' })
+        player.addEventListener('playing', () => { if (audio.current === player) setPlayback({ key: forTurn, durationMs: audioDurationMs(player) }) }, { once: true })
         player.onended = () => { if (audio.current === player) void commit(forTurn, clip.text) }
         // If the browser refuses playback, still commit the caption so the turn moves on.
         player.play().catch(() => { if (audio.current === player) void commit(forTurn, clip.text) })
@@ -67,5 +80,14 @@ export function useAutoResponse(room: RoomSnapshot, execute: Execute, onError: (
         if (turn) setState({ turn, status: 'ready' })
     }
 
-    return { status, caption: clip?.text ?? '', start, stop }
+    return {
+        status,
+        caption: clip?.text ?? '',
+        /** The turn this response belongs to (null outside the caller's speaking turn). */
+        turn: ownTurn ? turn : null,
+        playback: status === 'playing' && playback?.key === turn ? playback : null,
+        catalog,
+        start,
+        stop,
+    }
 }

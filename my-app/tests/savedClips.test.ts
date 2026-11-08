@@ -52,3 +52,23 @@ test('commit needs your own live turn, your clip and a full playback in this sam
     assert.equal(commitEligibility({ view: speaking('a'), clip: own, finishedTurn: 'p1:a', busy: true }).allowed, false, 'busy')
     assert.match(commitEligibility({ view: speaking('a', 'a', 'p2'), clip: own, finishedTurn: 'p1:a', busy: false }).reason, /previous turn/)
 })
+
+test('a looped speaking order gives each turn its own dialogue clip, otherwise the participant clip', async () => {
+    const { clipForTurn, dialogueClipId } = await import('../src/features/game/savedClips.ts')
+    const dialogue = Array.from({ length: 9 }, (_, index) => clip(dialogueClipId(index), 'discussion'))
+    const full = [...catalog, ...dialogue]
+    const eligible = ['a', 'b', 'c']
+    const order = [...eligible, ...eligible, ...eligible]
+    assert.equal(dialogueClipId(0), 't01_dialogue_01')
+    assert.equal(dialogueClipId(8), 't01_dialogue_09')
+    assert.equal(clipForTurn({ eligible_member_ids: eligible, speaker_order: order, speaker_index: 0 }, full, 'a')?.clip_id, 't01_dialogue_01')
+    assert.equal(clipForTurn({ eligible_member_ids: eligible, speaker_order: order, speaker_index: 4 }, full, 'b')?.clip_id, 't01_dialogue_05')
+    assert.equal(clipForTurn({ eligible_member_ids: eligible, speaker_order: order, speaker_index: 8 }, full, 'c')?.clip_id, 't01_dialogue_09')
+    // Not looped, no index, another member's turn, or a missing dialogue clip: the member's participant clip.
+    assert.equal(clipForTurn({ eligible_member_ids: eligible, speaker_order: eligible, speaker_index: 1 }, full, 'b')?.clip_id, 't01_recovery_turn')
+    assert.equal(clipForTurn({ eligible_member_ids: eligible, speaker_order: order, speaker_index: null }, full, 'c')?.clip_id, 't01_communications_turn')
+    assert.equal(clipForTurn({ eligible_member_ids: eligible, speaker_order: order, speaker_index: 3 }, full, 'b')?.clip_id, 't01_recovery_turn')
+    assert.equal(clipForTurn({ eligible_member_ids: eligible, speaker_order: order, speaker_index: 3 }, catalog, 'a')?.clip_id, 't01_leadership_turn')
+    assert.equal(clipForTurn({ eligible_member_ids: eligible, speaker_order: order, speaker_index: 0 }, full, 'z'), null)
+    assert.equal(clipForTurn(null, full, 'a'), null)
+})

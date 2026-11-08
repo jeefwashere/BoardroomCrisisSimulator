@@ -279,6 +279,8 @@ class GameView(View):
     private_rounds: bool = False
     # From the private_session phase on: each electorate member's stage, never content or scores.
     private_progress: list[PrivateProgressView] | None = None
+    # Index of the active turn in speaker_order; members repeat when the discussion has several speaking rounds.
+    speaker_index: int | None = None
 
 
 class RoomFields(View):

@@ -3,7 +3,7 @@ import { RoomApiError } from '../../services/rooms'
 import type { RoomApi, RoomSnapshot } from '../../services/rooms'
 import { createFacilitationApi } from '../../services/facilitation'
 import type { RecordedClip } from '../../services/facilitation'
-import { assignSavedClips, clipForMember } from '../game/savedClips'
+import { clipForTurn } from '../game/savedClips'
 import { botDecisionStep, botSpeakingTurn, botVoteChoice, nextBotAction, turnBudgetMs } from './demoModel'
 import type { BotAction, BotActivity, BotSeat } from './demoModel'
 
@@ -130,7 +130,8 @@ export function useSoloBots({ enabled, roomId, apis, snapshots, onSnapshot }: {
         async function speak() {
             const own = latest.current[bot.index]
             if (!own?.game) return
-            const clip = clipForMember(assignSavedClips(own.game.eligible_member_ids, clips ?? []), own.self_member_id)
+            // Looped speaking orders give each of the bot's turns its own discussion clip.
+            const clip = clipForTurn(own.game, clips ?? [], own.self_member_id)
             const text = clip?.text.trim() || bot.fallback
             show(clip ? 'clip' : 'fallback')
             const outcome = clip ? await playClip(createFacilitationApi(api).recordingUrl(clip), turnBudgetMs(own.game), signal) : 'blocked'

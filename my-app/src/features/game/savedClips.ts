@@ -20,6 +20,36 @@ export function assignSavedClips(eligibleMemberIds: readonly string[], catalog: 
     return assignments
 }
 
+/** Nine discussion clips for a looped speaking order: 01, 04, 07 leadership (seat 0), 02, 05, 08 recovery, 03, 06, 09 communications. */
+export const DIALOGUE_CLIP_COUNT = 9
+
+export function dialogueClipId(speakerIndex: number): string {
+    return `t01_dialogue_${String(speakerIndex + 1).padStart(2, '0')}`
+}
+
+export type TurnClipGame = {
+    eligible_member_ids: readonly string[]
+    speaker_order?: readonly string[] | null
+    speaker_index?: number | null
+}
+
+/**
+ * The clip for a member's current speaking turn. When the speaking order loops (longer than the eligible list) and the
+ * server names the active turn index, each turn gets its own discussion clip (`t01_dialogue_01` to `_09`), so repeated
+ * turns never replay the same line. Otherwise (or when that clip is missing) the member's participant clip is used.
+ */
+export function clipForTurn(game: TurnClipGame | null | undefined, catalog: readonly RecordedClip[], memberId: string): RecordedClip | null {
+    if (!game) return null
+    const order = game.speaker_order ?? []
+    const index = game.speaker_index
+    if (order.length > game.eligible_member_ids.length && typeof index === 'number' && index >= 0 && index < DIALOGUE_CLIP_COUNT && order[index] === memberId) {
+        const clipId = dialogueClipId(index)
+        const dialogue = catalog.find((item) => item.clip_id === clipId)
+        if (dialogue) return dialogue
+    }
+    return clipForMember(assignSavedClips(game.eligible_member_ids, catalog), memberId)
+}
+
 export function clipForMember(assignments: readonly ClipAssignment[], memberId: string): RecordedClip | null {
     return assignments.find((item) => item.memberId === memberId)?.clip ?? null
 }

@@ -37,7 +37,8 @@
       "decision_mode": "individual",
       "individual_decision_seconds": 180,
       "private_rounds": true,
-      "private_session_seconds": 1500
+      "private_session_seconds": 1500,
+      "speaking_rounds": 3
     },
     "fast_15": {
       "briefing_seconds": 90,
@@ -60,7 +61,8 @@
       "decision_mode": "individual",
       "individual_decision_seconds": 180,
       "private_rounds": true,
-      "private_session_seconds": 1500
+      "private_session_seconds": 1500,
+      "speaking_rounds": 3
     }
   },
   "timing_note": "Profile IDs and per round durations mirror maplecart_cybersecurity version 3 so existing clients can select them. This package has one decision round, so the base totals are shorter than the profile names suggest. The saved T01 participant clips last 14 to 18 seconds, within the 30 second speaker maximum. Both profiles use the individual decision mode: after the expert panel each member writes a private decision within 180 seconds instead of voting, and the game then ends.",

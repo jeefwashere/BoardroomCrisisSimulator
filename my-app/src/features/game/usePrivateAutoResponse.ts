@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import type { PrivateSession } from '../../services/facilitation'
 import { facilitationApi } from '../facilitation/facilitationClient'
-import type { AutoResponseState } from './useAutoResponse'
+import { audioDurationMs } from './useAutoResponse'
+import type { AutoPlayback, AutoResponseState } from './useAutoResponse'
 
 /**
  * "Auto response" during a private session: plays the caller's saved answer clip for the current question with
- * subtitles, then submits its exact caption as the answer (`used_clip: true`). Mirrors `useAutoResponse`.
+ * its caption in the live transcript, then submits its exact caption as the answer (`used_clip: true`). Mirrors `useAutoResponse`.
  */
 export function usePrivateAutoResponse(session: PrivateSession | null, sending: boolean, answer: (text: string, usedClip: boolean) => Promise<boolean>) {
     const [state, setState] = useState<{ key: string | null; status: AutoResponseState }>({ key: null, status: 'ready' })
+    const [playback, setPlayback] = useState<AutoPlayback | null>(null)
     const audio = useRef<HTMLAudioElement | null>(null)
     const latestKey = useRef<string | null>(null)
     const clip = session?.expecting && !session.busy ? session.clip : null
@@ -36,6 +38,7 @@ export function usePrivateAutoResponse(session: PrivateSession | null, sending: 
         const player = new Audio(facilitationApi.privateClipUrl(clip))
         audio.current = player
         setState({ key: forKey, status: 'playing' })
+        player.addEventListener('playing', () => { if (audio.current === player) setPlayback({ key: forKey, durationMs: audioDurationMs(player) }) }, { once: true })
         player.onended = () => { if (audio.current === player) void commit(forKey, clip.text) }
         // If the browser refuses playback, still submit the caption so the session moves on.
         player.play().catch(() => { if (audio.current === player) void commit(forKey, clip.text) })
@@ -46,5 +49,5 @@ export function usePrivateAutoResponse(session: PrivateSession | null, sending: 
         if (key) setState({ key, status: 'ready' })
     }
 
-    return { status, caption: clip?.text ?? '', start, stop }
+    return { status, caption: clip?.text ?? '', key, playback: status === 'playing' && playback?.key === key ? playback : null, start, stop }
 }

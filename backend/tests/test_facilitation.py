@@ -232,8 +232,13 @@ class ExpertPanelTests(unittest.IsolatedAsyncioTestCase):
         if early_get:
             body = (await self.clients[0].get(self.facilitation_path)).json()
             self.assertIsNone(body['expert_panel'])
-        for answer in ANSWERS:
+        # Cedar goes round the table three times: nine turns, each member speaking three times in order.
+        self.assertEqual(view['game']['speaker_order'], self.ids[:3] * 3)
+        for turn in range(9):
+            self.assertEqual(view['game']['speaker_index'], turn)
+            answer = ANSWERS[turn % len(ANSWERS)]
             index = self.ids.index(view['game']['active_speaker_id'])
+            self.assertEqual(index, turn % 3)
             saved = await self.clients[index].post(self.path + '/contributions', json=fixture.command(
                 phase_id=view['game']['phase_id'], kind='answer', source='typed', text=answer))
             self.assertEqual(saved.status_code, 201, saved.text)
@@ -401,7 +406,8 @@ class RecordingCatalogTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(catalog.status_code, 200)
         self.assertEqual(catalog.headers.get('access-control-allow-origin'), 'http://localhost:5173')
         clips = {item['clip_id']: item for item in catalog.json()}
-        self.assertEqual(len(clips), 58)
+        self.assertEqual(len(clips), 67)
+        self.assertEqual(clips['t01_dialogue_09']['group'], 'discussion')
         self.assertEqual(clips['r2_member_1_step_1']['group'], 'private_coaching')
         self.assertEqual(clips['r3_member_3_step_3']['group'], 'private_assessment')
         self.assertEqual(clips['t01_decision_prompt']['group'], 'decision_guide')

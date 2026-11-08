@@ -29,9 +29,34 @@ import { DICTATION_UNAVAILABLE } from '../features/game/dictationModel'
 import { useDictation } from '../features/game/useDictation'
 import { useTurnRecorder } from '../features/game/useTurnRecorder'
 import RoomNameEditor from '../features/rooms/RoomNameEditor'
+import TranscriptPanel from '../features/game/TranscriptPanel'
+import { useSpokenLine, useTranscript } from '../features/game/useTranscript'
+import { CAPTIONS_STORAGE_KEY, captionsPreference, speechDurationMs, turnEntry } from '../features/game/transcriptModel'
+import { clipForTurn } from '../features/game/savedClips'
+import { playerRoleLabel } from '../features/game/playerPresentation'
+import { DEMO_STORAGE_KEY, readStoredDemo } from '../features/demo/demoModel'
+import { seatFromSearch } from '../services/tabSession'
 import './Game.css'
 
 const CONTEXT_PHASES = ['reading', 'speaking', 'discussion']
+
+function tabStorage(): Storage | null {
+    try { return window.sessionStorage } catch { return null }
+}
+
+function readCaptions(): boolean {
+    try { return captionsPreference(tabStorage()?.getItem(CAPTIONS_STORAGE_KEY)) } catch { return true }
+}
+
+function storeCaptions(on: boolean) {
+    try { tabStorage()?.setItem(CAPTIONS_STORAGE_KEY, on ? '1' : '0') } catch { /* The choice lasts for this view only. */ }
+}
+
+/** Alex's frame in the solo demo: Morgan's and Sam's clips play from the parent page, so this view captions them. */
+function drivesSoloBots(): boolean {
+    if (typeof window === 'undefined' || seatFromSearch(window.location.search) !== 'alex') return false
+    try { return readStoredDemo(tabStorage()?.getItem(DEMO_STORAGE_KEY) ?? null)?.mode === 'solo' } catch { return false }
+}
 
 function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: { room: RoomSnapshot; scenarios: Scenario[]; error: string; rename: (name: string) => Promise<void>; execute: (path: string, fields?: Record<string, unknown>) => Promise<void>; onViewSummary: () => void; chat: RoomChatHandle }) {
     const [notice, setNotice] = useState('')
@@ -57,6 +82,14 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const [chatOpen, setChatOpen] = useState(false)
     const [promptedPhase, setPromptedPhase] = useState('')
     const closeChat = useCallback(() => setChatOpen(false), [])
+    // CC: the live transcript panel, on by default and remembered for this tab. Chat replaces it while open.
+    const [captions, setCaptions] = useState(readCaptions)
+    const toggleCaptions = useCallback(() => setCaptions((on) => { storeCaptions(!on); return !on }), [])
+    const hideCaptions = useCallback(() => { storeCaptions(false); setCaptions(false) }, [])
+    const transcriptOpen = captions && !chatOpen
+    const [dock, setDock] = useState<HTMLDivElement | null>(null)
+    const { entries: transcriptEntries, writer: transcript } = useTranscript()
+    const [soloBots] = useState(drivesSoloBots)
     // Unread counts other members' messages that arrived after the drawer was last open (history at entry counts as read).
     const [seenChat, setSeenChat] = useState<number | null>(null)
     const others = othersCount(chat.state.records, room.self_member_id)
@@ -73,12 +106,32 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const seenDecision = game?.individual_decisions?.self?.text
     if (seenDecision && seenDecision !== ownDecision) setOwnDecision(seenDecision)
     useEffect(() => { const audio = speechRef.current; return () => { audio?.pause(); if (speech.url) URL.revokeObjectURL(speech.url) } }, [speech.url, game?.phase_id])
+    const scenario = game ? scenarios.find((option) => option.scenario_id === game.scenario.scenario_id && option.version === game.scenario.version) : undefined
+    const members = game ? roomMembers(room, {}, scenario) : []
+    const selfMember = members.find((member) => member.id === room.self_member_id)
+    const selfName = selfMember?.name ?? 'You'
+    const selfRole = selfMember ? selfMember.roleLabel ?? playerRoleLabel(selfMember.role) : 'Board member'
+    // Speaking turns: your Auto response clip is captioned in step with its audio; it is never shown on the call.
+    const selfLine = auto.playback && auto.turn ? { entry: turnEntry(auto.turn, { name: selfName, role: selfRole }, auto.caption, true), durationMs: auto.playback.durationMs } : null
+    useSpokenLine(transcript, selfLine)
+    useEffect(() => {
+        // A clip the browser refused to play is still committed: its caption goes to the transcript in full.
+        if (auto.turn && auto.caption && (auto.status === 'saving' || auto.status === 'done')) transcript.upsert(turnEntry(auto.turn, { name: selfName, role: selfRole }, auto.caption, true))
+    }, [auto.turn, auto.caption, auto.status, selfName, selfRole, transcript])
+    // Solo demo: a bot's turn plays its assigned clip from the parent page, so its caption is added here for the turn.
+    const activeSpeakerId = room.phase === 'speaking' ? game?.active_speaker_id ?? null : null
+    const botMember = soloBots && activeSpeakerId && activeSpeakerId !== room.self_member_id ? members.find((member) => member.id === activeSpeakerId) : undefined
+    const botClip = botMember && game ? clipForTurn(game, auto.catalog, botMember.id) : null
+    const botLine = botMember && botClip && game ? {
+        entry: turnEntry(`${game.phase_id}:${botMember.id}`, { name: botMember.name, role: botMember.roleLabel ?? playerRoleLabel(botMember.role) }, botClip.text, false),
+        durationMs: speechDurationMs(botClip.duration_seconds, botClip.text),
+    } : null
+    useSpokenLine(transcript, botLine)
     // The decision prompt arrives in the chat: open the drawer once when the decision phase starts.
     if (game && room.phase === 'individual_decision' && promptedPhase !== game.phase_id) { setPromptedPhase(game.phase_id); setChatOpen(true) }
     // Private sessions are one to one with the coach: close the room chat once when they begin.
     if (game && room.phase === 'private_session' && promptedPhase !== game.phase_id) { setPromptedPhase(game.phase_id); setChatOpen(false) }
     if (!game) return null
-    const scenario = scenarios.find((option) => option.scenario_id === game.scenario.scenario_id && option.version === game.scenario.version)
     const self = room.members.find((member) => member.member_id === room.self_member_id)
     const actions = game.allowed_actions ?? []
     const rounds = `rounds/${game.round_id}/`
@@ -121,6 +174,13 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     if (speaker && room.phase === 'speaking') badges[speaker.member_id] = { label: 'Speaking', tone: 'speaking' }
     if (room.phase === 'voting' && actions.includes('vote')) badges[room.self_member_id] = game.self_vote ? { label: 'Voted', tone: 'voted' } : { label: 'Decide now', tone: 'decide' }
     if (room.phase === 'tie_break' && actions.includes('tie_decision')) badges[room.self_member_id] = { label: 'Decide now', tone: 'decide' }
+    // Who animates on the call: the member holding the floor (your own tile only while your clip plays or your mic is live).
+    const talking = new Set<string>()
+    if (speaker && room.phase === 'speaking') {
+        if (speaker.member_id !== room.self_member_id) talking.add(speaker.member_id)
+        else if (auto.status === 'playing' || recorder.state.status === 'recording') talking.add(speaker.member_id)
+    }
+    if (dictation.listening) talking.add(room.self_member_id)
 
     const mic = micControl({
         phase: room.phase, phaseId: game.phase_id, ownTurn: recorder.ownTurn, recording: recorder.state,
@@ -142,14 +202,14 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
         : {
             label: activeAuto.status === 'playing' ? 'Stop response' : activeAuto.status === 'saving' ? 'Saving…' : activeAuto.status === 'done' ? 'Response sent' : 'Auto response',
             live: activeAuto.status === 'playing', disabled: pending || (privatePhase && privateSession.sending) || activeAuto.status === 'saving' || activeAuto.status === 'done',
-            title: privatePhase ? 'Play your saved answer with subtitles, then submit it to your coach' : undefined,
+            title: privatePhase ? 'Play your saved answer (captioned in the live transcript), then submit it to your coach' : undefined,
             onClick: () => { if (activeAuto.status === 'playing') activeAuto.stop(); else activeAuto.start() },
         }
     const node = game.current_node
     const nodeArticle = node && <article className="game-situation"><h3>{node.title}</h3><p>{node.situation}</p>{node.study_questions.map((question) => <p key={question} className="game-question">{question}</p>)}</article>
     const answering = self?.eligible_current_round && ((room.phase === 'speaking' && recorder.ownTurn) || room.phase === 'discussion')
 
-    return <MotionConfig reducedMotion="user"><div className="game-call-screen game-live-screen">
+    return <MotionConfig reducedMotion="user"><div className={`game-call-screen game-live-screen${transcriptOpen || chatOpen ? ' has-side-panel' : ''}`}>
         <header className="game-call-header">
             <div className="room-personal-controls"><button className="game-back-button" type="button" onClick={() => { window.location.hash = '/' }}><LobbyIcon name="back" /><span>Leave room</span></button><RoomNameEditor room={room} rename={rename} /></div>
             <div className="game-call-heading"><h1>Boardroom</h1><span>Room {room.room_code}</span></div>
@@ -157,10 +217,12 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
         </header>
         <main className={`game-call-main game-live-main${layout}`}>
             <AnimatePresence mode="wait" initial={false}>
-                {opening ? <OpeningBriefing key="opening" room={room} onDismiss={() => setDismissedOpening(game.phase_id)} finishBriefing={actions.includes('finish_briefing') ? () => act(rounds + 'briefing/finish') : undefined} />
-                    : experts ? <ExpertPanelStage key={`experts-${game.round_id}`} room={room} notice={error || notice} finishPanel={actions.includes('skip_phase') ? () => act(rounds + 'skip-phase') : undefined} />
-                    : privateStage ? <PrivateSessionStage key="private" room={room} handle={privateSession} autoPlaying={privateAuto.status === 'playing'} autoCaption={privateAuto.caption}
-                        selfName={self?.display_name ?? 'You'} dictation={dictation} attachDictation={attachDictation} notice={error || notice} />
+                {opening ? <OpeningBriefing key="opening" room={room} members={members} transcript={transcript} onDismiss={() => setDismissedOpening(game.phase_id)} finishBriefing={actions.includes('finish_briefing') ? () => act(rounds + 'briefing/finish') : undefined} />
+                    : experts ? <ExpertPanelStage key={`experts-${game.round_id}`} room={room} members={members} transcript={transcript} notice={error || notice} finishPanel={actions.includes('skip_phase') ? () => act(rounds + 'skip-phase') : undefined} />
+                    : privateStage ? <PrivateSessionStage key="private" room={room} handle={privateSession}
+                        auto={{ playing: privateAuto.status === 'playing', caption: privateAuto.caption, key: privateAuto.key, playback: privateAuto.playback }}
+                        selfName={selfName} selfRole={selfRole} dictation={dictation} attachDictation={attachDictation} notice={error || notice}
+                        transcript={transcript} dock={transcriptOpen ? dock : null} />
                     : card ? <motion.section key={`card-${room.phase}`} className="game-briefing game-center-card" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: 'easeOut' }}>
                         {(error || notice) && <p className="game-alert" role="alert">{error || notice}</p>}
                         {room.phase === 'ended' && game.private_rounds && <h2 className="private-ended-title">{game.ending_title || endingTitle(game.ending_label)}</h2>}
@@ -171,8 +233,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
                         {room.phase === 'ended' && <TurnMedia room={room} recorder={recorder} />}
                     </motion.section>
                     : <motion.div key="call" className="game-stage-call" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4, ease: 'easeOut' }}>
-                        <CallGrid members={roomMembers(room, {}, scenario)} badges={badges} />
-                        {auto.status === 'playing' && <p className="game-subtitles" aria-live="polite"><strong>{self?.display_name ?? 'You'}:</strong> {auto.caption}</p>}
+                        <CallGrid members={members} badges={badges} talking={talking} />
                         {!sidePanel && (error || notice) && <p className="game-alert game-alert--float" role="alert">{error || notice}</p>}
                     </motion.div>}
             </AnimatePresence>
@@ -200,12 +261,14 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
             showCountdown={!fullStage} pending={pending}
             mic={{ ...mic, onClick: pressMic }}
             chat={{ open: chatOpen, unread, onToggle: () => setChatOpen((open) => !open) }}
+            captions={{ on: captions, onToggle: toggleCaptions }}
             autoResponse={autoControl}
             finishTurn={actions.includes('finish_speaking') ? () => void act(rounds + 'speaker/finish') : undefined}
             skip={actions.includes('skip_phase') ? { label: skipLabel(room.phase), onClick: () => void act(rounds + 'skip-phase') } : undefined}
             skipSpeaker={actions.includes('skip_speaker') ? () => void act(rounds + 'speaker/skip', { reason: 'Skipped by the host' }) : undefined}
             end={actions.includes('end') ? () => void act('end') : undefined}
         />
+        <TranscriptPanel entries={transcriptEntries} open={transcriptOpen} onClose={hideCaptions} dockRef={setDock} />
         <ChatDrawer room={room} scenarios={scenarios} chat={chat} open={chatOpen} onClose={closeChat}
             pinned={individual && room.phase === 'individual_decision' ? <div className="game-briefing chat-decision"><p className="chat-decision-from">Facilitator · Round 1</p><IndividualDecisionPanel key={game.phase_id} room={room} pending={pending} act={act} notice={notice} dictation={dictation} attachDictation={attachDictation} /></div> : undefined} />
     </div></MotionConfig>

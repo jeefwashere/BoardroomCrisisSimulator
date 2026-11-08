@@ -516,3 +516,37 @@
   .demo-board__bot--live .demo-board__status,
   .demo-record { animation: none; }
 }
+
+/* Solo game: no top bar, the call fills the window; a quiet Reset floats in the top right corner. */
+.demo-room--solo { position: relative; background: #1e1f22; }
+.demo-room--solo .demo-frame iframe { background: #1e1f22; }
+.demo-reset-float {
+  position: absolute;
+  top: 2px;
+  right: 6px;
+  z-index: 5;
+  padding: 1px 8px;
+  border: 1px solid #ffffff1a;
+  border-radius: 6px;
+  background: #00000033;
+  color: #ffffff73;
+  font: inherit;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+.demo-reset-float:hover, .demo-reset-float:focus-visible { background: #00000066; color: #ffffffd9; }
+.demo-reset-float:focus-visible { outline: 2px solid #9da4ff; outline-offset: 2px; }
+.demo-error--float {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  z-index: 5;
+  max-width: min(720px, 80vw);
+  margin: 0;
+  font-size: 13px;
+  transform: translateX(-50%);
+  box-shadow: 0 6px 20px #00000040;
+}

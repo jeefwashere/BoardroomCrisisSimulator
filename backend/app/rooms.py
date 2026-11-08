@@ -165,6 +165,8 @@ class GameSnapshot:
     private_rounds: bool = False
     # From the private_session phase on: every electorate member's stage, never their content or scores.
     private_progress: tuple[dict, ...] | None = None
+    # Index of the active turn in speaker_order (members repeat when the profile has several speaking rounds).
+    speaker_index: int | None = None
 
     @property
     def facts(self) -> dict:
@@ -391,6 +393,7 @@ class Room:
                 gameplay.ENDING_TITLES.get(state.phase.ending_label)
                 if isinstance(state.phase, sim.EndedPhase) else None,
                 state.timing.private_rounds, self.private_progress(state, assignments),
+                state.phase.index if isinstance(state.phase, sim.SpeakingPhase) else None,
             )
         members = []
         for seat in self.members.values():

@@ -452,6 +452,8 @@ PRIVATE_CLIP_GROUPS = {"2": "private_coaching", "3": "private_assessment"}
 def clip_group(clip_id: str) -> str | None:
     if re.fullmatch(r"t01_[a-z]+_turn", clip_id):
         return "participant"
+    if re.fullmatch(r"t01_dialogue_0[1-9]", clip_id):
+        return "discussion"
     private = re.fullmatch(r"r([23])_member_[1-3]_step_[1-3]", clip_id)
     if private:
         return PRIVATE_CLIP_GROUPS[private[1]]

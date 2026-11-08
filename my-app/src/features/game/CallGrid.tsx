@@ -3,11 +3,13 @@ import { motion } from 'motion/react'
 import type { LobbyMember } from '../lobby/lobbyModel'
 import LobbyIcon from '../lobby/LobbyIcon'
 import { calculateCallLayout } from './callLayout'
+import { TalkingBars } from './CallTile'
 import { playerAvatarColor, playerInitials, playerRoleLabel } from './playerPresentation'
 
 export type TileBadge = { label: string; tone: 'decide' | 'voted' | 'speaking' }
 
-function CallGrid({ members, badges = {} }: { members: LobbyMember[]; badges?: Record<string, TileBadge> }) {
+/** The participant grid. `talking` members animate (pulsing ring and audio bars); the call never shows their words. */
+function CallGrid({ members, badges = {}, talking }: { members: LobbyMember[]; badges?: Record<string, TileBadge>; talking?: ReadonlySet<string> }) {
     const viewportRef = useRef<HTMLDivElement>(null)
     const [size, setSize] = useState({ width: 0, height: 0 })
 
@@ -35,7 +37,7 @@ function CallGrid({ members, badges = {} }: { members: LobbyMember[]; badges?: R
                     <motion.article
                         key={member.id}
                         role="listitem"
-                        className={`game-player-card${badges[member.id] ? ` game-player-card--${badges[member.id].tone}` : ''}`}
+                        className={`game-player-card${badges[member.id] ? ` game-player-card--${badges[member.id].tone}` : ''}${talking?.has(member.id) ? ' game-player-card--talking' : ''}`}
                         style={{ width: layout.tileWidth, height: layout.tileHeight }}
                         initial={{ opacity: 0, scale: 0.97 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -46,6 +48,7 @@ function CallGrid({ members, badges = {} }: { members: LobbyMember[]; badges?: R
                         {member.isHost && <span className="game-host-indicator" title="Host"><LobbyIcon name="crown" /><span className="game-visually-hidden">Host</span></span>}
                         <div className="game-player-presence" aria-hidden="true">
                             <span className="game-player-avatar" style={{ width: avatarSize, height: avatarSize, fontSize: Math.max(13, avatarSize * 0.36), backgroundColor: playerAvatarColor(member.id) }}>
+                                <span className="call-tile-ring" /><span className="call-tile-ring call-tile-ring--late" />
                                 {playerInitials(member.name)}
                             </span>
                         </div>
@@ -53,6 +56,7 @@ function CallGrid({ members, badges = {} }: { members: LobbyMember[]; badges?: R
                             <h2 title={member.name}>{member.name}</h2>
                             {member.connected !== undefined && <small>{member.connected ? 'Active' : 'Away'}</small>}
                             <span title={(member.roleLabel ?? playerRoleLabel(member.role))}>{(member.roleLabel ?? playerRoleLabel(member.role))}</span>
+                            {talking?.has(member.id) && <TalkingBars />}
                         </div>
                     </motion.article>
                 ))}

@@ -192,6 +192,13 @@ def next_speaker(game: sim.Game, instant: float, last_seen: dict[UUID, float],
 
 def begin_speaking(game: sim.Game, instant: float, electorate: tuple[UUID, ...],
                    last_seen: dict[UUID, float]) -> sim.Game:
+    rounds = getattr(game.timing, "speaking_rounds", 1)
+    if rounds > 1:
+        # Several times round the table: each turn keeps the full speaker slot and the discussion lasts as long
+        # as all the turns together.
+        order = electorate * rounds
+        slot = game.timing.speaker_max_seconds
+        return select_speaker(game, instant, last_seen, order, 0, slot, instant + slot * len(order))
     slot = min(game.timing.speaker_max_seconds, game.timing.discussion_seconds // len(electorate))
     return select_speaker(game, instant, last_seen, electorate, 0, slot,
                           instant + game.timing.discussion_seconds)

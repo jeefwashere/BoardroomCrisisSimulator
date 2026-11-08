@@ -1,21 +1,26 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { CSSProperties } from 'react'
-import { motion, useReducedMotion } from 'motion/react'
+import { motion } from 'motion/react'
 import type { RoomSnapshot } from '../../services/rooms'
 import type { Adviser, ExpertPanel, ExpertTake } from '../../services/facilitation'
 import { facilitationApi, facilitationErrorMessage } from '../facilitation/facilitationClient'
 import { pollRoom } from '../rooms/roomState'
 import { seatFromSearch } from '../../services/tabSession'
 import Countdown from './Countdown'
+import type { LobbyMember } from '../lobby/lobbyModel'
+import CallTile, { MemberStrip } from './CallTile'
+import { expertEntry, silentHoldMs } from './transcriptModel'
+import { audioDurationMs, audioElapsedMs } from './useAutoResponse'
+import { useLiveSpeech } from './useTranscript'
+import type { TranscriptWriter } from './useTranscript'
 import {
     EXPERT_ORDER, EXPERT_STATUS_LABELS, PANEL_EXPERT_ORDER, activeExpertIndex, expertAccent, expertCardStatus, expertInitials,
     expertPersona, normalizeExperts, panelForRound, panelSettled, panelSourceLabel,
 } from './expertPanelModel'
 
 const POLL_MS = 1500
-// Roughly the pace of spoken ElevenLabs speech, so the text keeps up with the voice and silent frames stay close to the host.
+// Roughly the pace of spoken ElevenLabs speech, so silent frames (no voice here) hold each take about as long as the host.
 const CHARS_PER_SECOND = 15
-// Pause after a silent take finishes typing, before the next expert starts.
+// Pause after a silent take, before the next expert starts.
 const HOLD_MS = 1600
 const SPEECH_RETRIES = 12
 // In the one window demo only the first seat (the host) plays sound, so three frames never talk over each other.
@@ -87,38 +92,20 @@ function useExpertVoices(roomId: string, experts: readonly ExpertTake[], enabled
     }, [enabled, voices])
 }
 
-function Typewriter({ text, onDone }: { text: string; onDone: () => void }) {
-    const reduceMotion = useReducedMotion()
-    const [count, setCount] = useState(0)
-    const complete = reduceMotion || count >= text.length
-    useEffect(() => {
-        if (complete) { onDone(); return }
-        const timer = setInterval(() => setCount((current) => Math.min(text.length, current + 1)), 1000 / CHARS_PER_SECOND)
-        return () => clearInterval(timer)
-    }, [complete, text, onDone])
-    return <div className="opening-text expert-text">
-        <p className="game-visually-hidden">{text}</p>
-        <p aria-hidden="true">{complete ? text : text.slice(0, count)}{!complete && <span className="opening-caret" />}</p>
-    </div>
-}
-
-function Orb() {
-    return <div className="opening-orb expert-orb" aria-hidden="true">
-        <span className="opening-ring" />
-        <span className="opening-ring opening-ring--late" />
-        <span className="opening-core"><span className="opening-wave" /><span className="opening-wave" /><span className="opening-wave" /><span className="opening-wave" /></span>
-    </div>
-}
-
 type Props = {
     room: RoomSnapshot
     /** Host only: ends the panel for the whole room and opens voting (or individual decisions). */
     finishPanel?: () => Promise<boolean>
     /** Room command error to surface while the briefing column is hidden. */
     notice?: string
+    /** Members shown as small tiles under the experts. */
+    members: readonly LobbyMember[]
+    /** Each take goes to the live transcript, in step with its audio. */
+    transcript: TranscriptWriter
 }
 
-export default function ExpertPanelStage({ room, finishPanel, notice }: Props) {
+/** The expert panel as a call: three expert windows plus the members' small tiles; the takes are audio only. */
+export default function ExpertPanelStage({ room, finishPanel, notice, members, transcript }: Props) {
     const game = room.game
     const roundId = game?.round_id ?? ''
     const { panel, advisers, error } = useExpertPanel(room.room_id, roundId)
@@ -127,7 +114,6 @@ export default function ExpertPanelStage({ room, finishPanel, notice }: Props) {
     const experts = useMemo(() => normalizeExperts(panel, individual ? PANEL_EXPERT_ORDER : EXPERT_ORDER), [panel, individual])
     const voiceFor = useExpertVoices(room.room_id, experts, PLAYS_VOICE)
     const [step, setStep] = useState(0)
-    const [typedIndex, setTypedIndex] = useState(-1)
     const [startedIndex, setStartedIndex] = useState(-1)
     const [playing, setPlaying] = useState(false)
     const [blocked, setBlocked] = useState(false)
@@ -144,14 +130,18 @@ export default function ExpertPanelStage({ room, finishPanel, notice }: Props) {
     const activeUrl = voiceDriven && activeVoice?.state === 'ready' ? activeVoice.url : null
     const complete = panel !== null && active === -1
 
-    const markTyped = useCallback(() => setTypedIndex(active), [active])
+    const live = useLiveSpeech(transcript)
+    const activeText = activeTake?.status === 'ready' ? activeTake.text : null
+    const activeKind = activeTake?.kind
+    const activeLabel = activeTake?.label ?? ''
 
-    // Silent takes (other frames, or no voice available) advance after their text has typed out.
+    // Silent takes (other frames, or no voice available) go to the transcript in full and hold the floor for about their speaking time.
     useEffect(() => {
-        if (active < 0 || activeTake?.status !== 'ready' || voiceDriven || typedIndex !== active) return
-        const timer = setTimeout(() => setStep(active + 1), HOLD_MS)
+        if (active < 0 || activeText === null || voiceDriven || !activeKind) return
+        transcript.upsert(expertEntry(roundId, { kind: activeKind, label: activeLabel, text: activeText }, expertAccent(activeKind)))
+        const timer = setTimeout(() => setStep(active + 1), silentHoldMs(activeText, CHARS_PER_SECOND, HOLD_MS))
         return () => clearTimeout(timer)
-    }, [active, activeTake?.status, voiceDriven, typedIndex])
+    }, [active, activeText, activeKind, activeLabel, voiceDriven, roundId, transcript])
 
     useEffect(() => {
         const element = audioRef.current
@@ -170,6 +160,7 @@ export default function ExpertPanelStage({ room, finishPanel, notice }: Props) {
 
     function endTurn(index: number) {
         setPlaying(false)
+        live.end()
         setStep((current) => Math.max(current, index + 1))
     }
 
@@ -186,57 +177,41 @@ export default function ExpertPanelStage({ room, finishPanel, notice }: Props) {
     const problem = finishFailed ? (notice || words.failed) : ''
 
     return <motion.section
-        className="opening-stage expert-stage"
+        className="call-stage expert-call"
         aria-labelledby="expert-panel-title"
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.98 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
     >
-        <div className="opening-meta">
+        <div className="call-stage-head">
             <h2 id="expert-panel-title" className="opening-pill expert-heading">{words.heading}</h2>
             <Countdown key={game.phase_id + (game.server_time ?? '')} deadline={game.phase_deadline} serverTime={game.server_time} className="opening-countdown" />
         </div>
-        <p className="game-visually-hidden" role="status">{complete ? 'The expert panel has finished.' : speakingNow ? `${speakingNow} is speaking.` : 'The experts are preparing.'}</p>
+        <p className="game-visually-hidden" role="status">{complete ? 'The expert panel has finished.' : speakingNow ? `${speakingNow} is speaking. Their take is in the live transcript.` : 'The experts are preparing.'}</p>
 
-        {!panel && <div className="opening-shimmer" aria-busy="true">
-            <p className="opening-shimmer-label">The experts are reviewing the discussion…</p>
-            <span /><span /><span />
-            {error && <p className="opening-voice-notice">{error} Retrying automatically.</p>}
-        </div>}
-
-        <ol className="expert-cards">
+        <ol className="call-experts" aria-label="Expert panel">
             {experts.map((take, index) => {
                 const status = panel ? expertCardStatus(experts, index, active) : 'preparing'
                 const isActive = panel !== null && index === active
                 const waitingForVoice = isActive && voiceDriven && startedIndex !== active
-                const speaking = isActive && status === 'speaking' && !waitingForVoice && (playing || typedIndex !== active)
-                const accent = expertAccent(take.kind)
-                return <li key={take.kind} className={`expert-card expert-card--${status}${isActive ? ' is-active' : ''}${speaking ? ' is-speaking' : ''}`} style={{ '--expert-accent': accent } as CSSProperties}>
-                    <div className="expert-card-head">
-                        {isActive ? <Orb /> : <span className="expert-avatar" aria-hidden="true">{expertInitials(take.kind, take.label)}</span>}
-                        <span className="expert-identity">
-                            <span className="expert-name">{take.label}</span>
-                            <span className="expert-persona">{expertPersona(take.kind, advisers)}</span>
-                        </span>
-                        <span className={`expert-status expert-status--${status}`}>{EXPERT_STATUS_LABELS[status]}</span>
-                    </div>
-                    {isActive && status === 'preparing' && <div className="opening-shimmer expert-shimmer" aria-busy="true"><span /><span /></div>}
-                    {isActive && status === 'speaking' && waitingForVoice && <p className="expert-waiting">{blocked ? 'Waiting for you to allow sound…' : 'Preparing live voice…'}</p>}
-                    {isActive && status === 'speaking' && !waitingForVoice && <Typewriter key={take.kind + take.text} text={take.text} onDone={markTyped} />}
-                    {!isActive && status === 'done' && <p className="expert-text expert-text--done">{take.text}</p>}
-                    {status === 'unavailable' && <p className="expert-text expert-text--done">No take this round{take.error ? `: ${take.error}` : '.'}</p>}
+                const talking = isActive && status === 'speaking' && !waitingForVoice && (voiceDriven ? playing : true)
+                const label = isActive && status === 'speaking' && waitingForVoice ? (blocked ? 'Waiting for sound' : 'Preparing voice') : EXPERT_STATUS_LABELS[status]
+                return <li key={take.kind} className={`call-expert${isActive ? ' is-active' : ''}`}>
+                    <CallTile name={take.label} role={expertPersona(take.kind, advisers)} size={isActive ? 'main' : 'side'} talking={talking} status={label}
+                        accent={expertAccent(take.kind)} avatar={isActive ? { kind: 'orb' } : { kind: 'initials', text: expertInitials(take.kind, take.label), color: expertAccent(take.kind) }} />
                 </li>
             })}
         </ol>
+        <MemberStrip members={members} selfId={room.self_member_id} />
 
         {activeUrl && activeTake && <audio key={activeTake.speech_id} ref={audioRef} src={activeUrl}
-            onPlay={() => { setPlaying(true); setStartedIndex(active) }} onPause={() => setPlaying(false)} onEnded={() => endTurn(active)}
-            onError={() => { setPlaying(false); setBlocked(false); setBrokenSpeech(activeTake.speech_id) }} />}
+            onPlaying={(event) => { setPlaying(true); setStartedIndex(active); live.start(expertEntry(roundId, activeTake, expertAccent(activeTake.kind)), audioDurationMs(event.currentTarget), audioElapsedMs(event.currentTarget)) }}
+            onPause={() => setPlaying(false)} onEnded={() => endTurn(active)}
+            onError={() => { setPlaying(false); setBlocked(false); live.end(); setBrokenSpeech(activeTake.speech_id) }} />}
 
-        <div className="opening-footer">
-            <span className="opening-source">{words.advisory}</span>
-            {source && <span className={`opening-source${source === 'Offline reply' ? ' is-offline' : ''}`}>{source}</span>}
+        <div className="opening-footer call-stage-footer">
+            {!panel && <p className="opening-voice-notice" role="status">The experts are reviewing the discussion…{error ? ` ${error} Retrying automatically.` : ''}</p>}
             {blocked && <button type="button" className="opening-play" onClick={() => { void audioRef.current?.play().then(() => setBlocked(false)).catch(() => undefined) }}>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
                 Tap to hear the experts
@@ -246,6 +221,8 @@ export default function ExpertPanelStage({ room, finishPanel, notice }: Props) {
             {!PLAYS_VOICE && !complete && <p className="opening-voice-notice" role="status">Experts are speaking on the host's screen.</p>}
             {complete && !finishFailed && <p className="opening-voice-notice" role="status">{words.opens}</p>}
             {problem && <p className="opening-voice-notice" role="alert">{problem}</p>}
+            <span className="opening-source">{words.advisory}</span>
+            {source && <span className={`opening-source${source === 'Offline reply' ? ' is-offline' : ''}`}>{source}</span>}
             {finishPanel && <button type="button" className="opening-link" onClick={skipToVote}>{words.skip}</button>}
         </div>
     </motion.section>

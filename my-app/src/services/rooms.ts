@@ -139,6 +139,9 @@ export type RoomApi = {
     start(roomId: string, input: StartRoomInput, signal?: AbortSignal): Promise<RoomSnapshot>
     contributions(roomId: string, signal?: AbortSignal): Promise<Contribution[]>
     contribute(roomId: string, input: ContributionInput, signal?: AbortSignal): Promise<Contribution>
+    /** Authenticated raw request to the backend; used by feature clients such as facilitation. */
+    authorized(path: string, init?: RequestInit): Promise<Response>
+    readonly baseUrl: string
 }
 
 type ValidationDetail = { loc: (string | number)[]; msg: string; type: string }
@@ -327,5 +330,10 @@ export function createRoomApi(options: { baseUrl?: string; fetch?: typeof global
         contributions: (roomId, signal) => request(`/api/rooms/${encodeURIComponent(roomId)}/contributions`,
             (value): value is Contribution[] => Array.isArray(value) && value.every(contribution), signal),
         contribute: (roomId, input, signal) => request(`/api/rooms/${encodeURIComponent(roomId)}/contributions`, contribution, signal, input),
+        async authorized(path, init = {}) {
+            const token = await sessionToken()
+            return fetchRequest(`${baseUrl}${path}`, { credentials: 'include', ...init, headers: { 'X-Boardroom-Session': token, ...(init.headers ?? {}) } })
+        },
+        baseUrl,
     }
 }

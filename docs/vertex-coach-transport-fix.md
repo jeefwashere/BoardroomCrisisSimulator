@@ -8,7 +8,7 @@ Coach acknowledgements extract only the acknowledgement string from a JSON objec
 
 ## Verification
 
-1. Six new regression tests fail against the original source and pass after the fix. They cover native context selection, secure fallback, redirect refusal, injected openers and actual hosted acknowledgement processing.
+1. A suite of six new regression tests fails against the original source and passes after the fix. They cover native context selection, secure fallback, redirect refusal, injected openers and actual hosted acknowledgement processing.
 2. The full backend suite runs 218 tests with three failures and five errors. The same eight failing checks reproduce in 25 original source tests for private sessions and narration. They concern pending asynchronous coaching fixtures and the existing speech output format expectation. They were not weakened or changed by this repair.
 3. The real Vertex client completes a TLSv1.3 handshake with certificate and hostname verification. One bounded Gemini 3.8 Flash request returns OK in 1.255 seconds, reporting seven input tokens and one output token. The unchanged shared ledger reserves US$0.05 conservatively; this is not an invoice amount.
 4. Native trust was exercised on macOS. Missing truststore fallback was exercised offline. Windows and Linux were not physically tested.
@@ -22,3 +22,7 @@ backend/.venv/bin/python -m unittest discover -s backend/tests -v
 ```
 
 [Truststore platform support and native contexts](https://truststore.readthedocs.io/en/latest/) and [Python HTTPS handlers](https://docs.python.org/3.12/library/urllib.request.html#urllib.request.HTTPSHandler) describe the transport mechanism. [Google pricing](https://cloud.google.com/model-garden/pricing) was opened before the bounded live check.
+
+## Local activation
+
+The user requested rebuilding after the repair. Published integration a87338b retains the repair and the current a9ea52c Demo UI. The local checkout fast forwards to that verified source. Backend reloader9730 and worker9742 run with the existing privately loaded model settings; Vite97219 remains on5173. The frontend build passes with566modules, index-x6dKdMoU.js and index-Ce5f0CWl.css. Local frontend, backend health, LAN API health and the current Demo setup module all return HTTP200. The authorized backend restart resets in memory rooms, so testing starts with a full page refresh and a new game. Voice transcription and speech playback settings remain unchanged.

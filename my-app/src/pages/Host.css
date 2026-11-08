@@ -249,8 +249,34 @@
   cursor: pointer;
 }
 
-.lobby-role-picker > span { position: absolute; right: 7px; color: #85725e; pointer-events: none; }
+.lobby-role-trigger { position: relative; outline: none; box-shadow: none; }
+.lobby-role-trigger > span { position: absolute; right: 7px; color: #85725e; pointer-events: none; }
+.host-lobby .lobby-role-trigger:focus-visible { outline: none; color: var(--lobby-accent); text-decoration: underline; text-underline-offset: 5px; }
 .lobby-role-select:hover { color: var(--lobby-accent); }
+
+.lobby-role-menu {
+  position: fixed;
+  z-index: 1000;
+  margin: 0;
+  padding: 6px 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 0;
+  border-radius: 0;
+  outline: none;
+  box-shadow: none;
+  background: var(--paper);
+  color: #422820;
+  font-family: var(--font-heading);
+  list-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: #42282035 transparent;
+}
+
+.lobby-role-option { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; padding: 8px 12px; border: 0; background: transparent; font-size: 13px; cursor: pointer; }
+.lobby-role-option.is-active > span:first-child { color: #8b362c; text-decoration: underline; text-underline-offset: 4px; }
+.lobby-role-option[aria-selected='true'] { font-weight: 650; }
+.lobby-role-option > span:last-child { color: #8b362c; }
 
 .lobby-context {
   display: flex;

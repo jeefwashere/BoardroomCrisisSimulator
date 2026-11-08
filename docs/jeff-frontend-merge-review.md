@@ -92,3 +92,44 @@ Ignored local evidence: `artifacts/jeff-update-ui.json`, `artifacts/jeff-update-
 The app package manifest, package lock and Vite configuration all change relative to the old live checkout. After root merges the reviewed PR, the existing frontend checkout needs clean `npm ci --ignore-scripts`, a rebuild, and restart of its owned Vite process to load the new dependency and dummy middleware. Root owns that update. A final documentation correction labels `docs/local-development.md` and I04 as the initial historical runtime verification and directs readers to ignored process metadata for the active commit and PIDs. It makes no new runtime activation claim. Backend, rehearsal, tests, tools, scenarios and requirement documents remain unchanged.
 
 I01 remains partial. The verified flow is a local frontend demonstration, not multiple authenticated browsers sharing a FastAPI room, real speaking and voting, model evaluation, microphone recording, transcription, saved original audio or audible playback. There was no paid provider call or cloud deployment.
+
+
+# Connected application animation merge
+
+Review date: November 8, 2026. Owner: Jeff animation merge Codex agent. Harness window: 00:02:49 UTC through 00:32:49 UTC. The user now owns frontend and backend integration. The previous sections describe earlier snapshots and remain historical.
+
+## Source and preserved application behavior
+
+This review integrates Jeff Tieng's animation commit `ce8976b6f8ba6f865958ad0f25e643d9770b50e7` from `website` into connected main `1f531567ae4c1fcfb1dfe1442efad164e965474e`, using isolated branch `integration/jeff-animations-20261108`. Merge `7f7bd23` retains both histories. The only textual conflict was PlayerRoster; Home, Home.css and Host.css merged automatically and were reviewed for behavior.
+
+Jeff adds animated menu and identity presentation, name prompt exit readiness, and a portal based RolePicker with keyboard navigation. The role menu now accepts server scenario options and disabled state. PlayerRoster retains public member IDs, presence and host badges. Only the host can edit role drafts. The actual scenario role `communications_privacy` remains distinct from Jeff's earlier local preview labels. A separate lint repair in `ae01d3e` replaces the incoming `performance.now()` call with the keyboard event timestamp for typeahead.
+
+Home retains the real Join navigation handler and encoded room code. Authenticated room entry, automatic valid invitation joining, private tab sessions, server rename, snapshot polling, focus recovery, scenario selection, Start and briefing are unchanged. No dummy players, local Start fallback, cookie identity replacement, backend modification, voting bypass or provider call is introduced. Independent read only semantic review through `ae01d3e` found no blocker.
+
+The backend, rehearsal, existing Python tests, tools, scenarios, specifications, AI architecture, API clients, tab session implementation, room hooks, RoomEntry, App and Host are byte unchanged against the main base. Package manifests, lockfile and Vite configuration are also unchanged. Root owns the final merge and frontend rebuild. No backend restart or dependency update is needed for this source change.
+
+## Checked commands and results
+
+1. `npm ci --ignore-scripts` from `my-app/`: passes. The unchanged dependency audit reports the same ten moderate advisories recorded earlier.
+2. `npm --prefix my-app run lint`: passes after the event timestamp repair.
+3. `npm --prefix my-app test`: all 65 tests pass, retaining the 61 connected application checks and Jeff's four role menu checks.
+4. `env VITE_API_BASE_URL=http://127.0.0.1:18004 npm --prefix my-app run build`: passes, transforming 481 modules. This frozen QA build points only at the disposable backend.
+5. `env BOARDROOM_TTS_ENABLED=false /Users/gz/BoardroomCrisisSimulator/backend/.venv/bin/python -m unittest discover -s backend/tests -q`: 96 tests pass.
+6. `python3 -m unittest discover -s tests -q`: 31 existing tests pass.
+7. `node --test backend/examples/narration-player.test.mjs`: seven tests pass.
+8. `python3 -m rehearsal demo --output artifacts/jeff-animations-prototype-demo.json`: authored offline demo passes.
+9. `env BOARDROOM_TTS_ENABLED=false /Users/gz/BoardroomCrisisSimulator/backend/.venv/bin/python -m backend.narrative_demo --output artifacts/jeff-animations-narrative-demo.json`: actual localhost internal narrative fixture passes with four cookie clients, three trusted internal decisions, ten contributions and zero paid calls. It remains separate from normal speaking and voting.
+
+## Actual connected browser acceptance
+
+The frozen production build was served on a separate owned port `4180`, with an owned speech disabled FastAPI process on `18004` and an exact CORS origin. Three task owned pages shared one headless browser context and registered three distinct server seats in one room through the actual UI. Two valid guest invitations with missing names joined automatically after the visible name prompt, without clicking Join, with exactly one join POST each.
+
+The server Start control remained disabled at two active seats. Guest role pickers were disabled and no guest Start control existed. The host used the custom role menu's keyboard typeahead and Enter to select Security lead. It assigned a different participant CEO and selected the dynamic `communications_privacy` option for the third participant. All three pages reached the same server briefing with Security lead, CEO and Communications and privacy lead respectively. The host and CEO remained distinct.
+
+A guest renamed through the server backed UI. Its public member ID stayed unchanged after refresh, with three seats retained. Refresh during the active briefing also retained the same three seat room. The successful run captured no runtime exceptions. The host lobby screenshot was visually inspected.
+
+Two earlier attempts retained a submitted name prompt on hidden background pages while animation frames did not complete. The failed evidence is preserved. The final bounded acceptance brought only the exact task owned headless page to the front before animated actions, then passed without a product source workaround. This does not prove that hidden animations complete while a tab remains hidden. The [WAI listbox pattern](https://www.w3.org/WAI/ARIA/apg/patterns/listbox/) was consulted for accessible option labels, active descendants, keyboard movement and typeahead.
+
+Ignored evidence: `artifacts/animations-room-qa.json`, the two hidden failure JSON records, prompt screenshots and `artifacts/animations-host-lobby.png`. No cookies, browser storage, credentials or authentication headers were inspected. All exact QA targets were closed, the exact lease was released with managed browser stop confirmed, and both disposable servers were stopped. The user's live runtime and root checkout were untouched.
+
+I01 and I04 remain partial for complete multiplayer gameplay and deployment acceptance. Timed speaking, ballots, complete results, microphone recording, original audio storage, production transcription and audible playback remain outside this merge.

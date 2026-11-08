@@ -16,6 +16,7 @@ export function roomMembers(room: RoomSnapshot, draft: RoleDraft = {}, scenario?
         role: room.phase === 'lobby' ? draft[member.member_id] ?? 'unassigned' : member.role_id ?? 'unassigned',
         roleLabel: scenario?.roles.find((role) => role.role_id === member.role_id)?.name,
         connected: member.connected,
+        ...(member.has_left === undefined ? {} : { hasLeft: member.has_left }),
         eligibleFromRound: member.eligible_from_round,
         eligibleCurrentRound: member.eligible_current_round,
     }))

@@ -88,6 +88,7 @@ class MemberView(View):
     role_id: str | None
     eligible_from_round: int | None
     eligible_current_round: bool
+    has_left: bool = False
 
 
 class PublicDocumentView(View):

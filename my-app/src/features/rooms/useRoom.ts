@@ -30,7 +30,7 @@ export function useRoom(roomId: string, initialRoom?: RoomSnapshot) {
         let stop: (() => void) | undefined
         function failed(failure: unknown) {
             if (controller.signal.aborted) return
-            if (failure instanceof RoomApiError && ['room_closed', 'not_a_member', 'room_not_found'].includes(failure.code)) {
+            if (failure instanceof RoomApiError && ['room_closed', 'not_a_member', 'member_left', 'room_not_found'].includes(failure.code)) {
                 setAccessError(failure)
                 stop?.()
             } else setError(errorMessage(failure))

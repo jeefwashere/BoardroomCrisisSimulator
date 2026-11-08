@@ -4,6 +4,7 @@ import PlayerRoster from '../features/lobby/PlayerRoster'
 import DocumentUpload from '../features/lobby/DocumentUpload'
 import LobbyIcon from '../features/lobby/LobbyIcon'
 import RolePicker from '../features/lobby/RolePicker'
+import RoomCodeButton from '../features/lobby/RoomCodeButton'
 import { useRoom } from '../features/rooms/useRoom'
 import { roomMembers, startInput, startProblem } from '../features/rooms/roomState'
 import type { RoleDraft } from '../features/rooms/roomState'
@@ -31,15 +32,9 @@ function Host({ roomId, initialRoom }: { roomId: string; initialRoom?: RoomSnaps
     const isHost = room?.self_member_id === room?.host_member_id
     const controlsDisabled = starting || leaving || isDocumentUploading
 
-    async function leaveLobby() {
-        try { await leave(); window.location.hash = '/' }
-        catch (failure) { setNotice(failure instanceof Error ? failure.message : 'The lobby could not be left. Please try again.') }
-    }
-
-    async function copyRoomCode() {
-        if (!room) return
-        try { await navigator.clipboard.writeText(room.room_code); setNotice('Room code copied.') }
-        catch { setNotice(`Your room code is ${room.room_code}.`) }
+    async function leaveRoom() {
+        await leave()
+        window.location.hash = '/'
     }
 
     function submitStart() {
@@ -52,17 +47,17 @@ function Host({ roomId, initialRoom }: { roomId: string; initialRoom?: RoomSnaps
         } catch (failure) { setNotice(failure instanceof Error ? failure.message : 'Check the role assignments.') }
     }
 
-    if (accessError) return <main className="room-loading"><h1>{accessError.code === 'room_closed' ? 'Lobby closed' : 'Lobby unavailable'}</h1><p role="alert">{accessError.message}</p><button className="room-text-button" type="button" onClick={() => { window.location.hash = '/' }}>Back home</button></main>
+    if (accessError) return <main className="room-loading"><h1>{accessError.code === 'room_closed' ? 'Lobby closed' : 'Room unavailable'}</h1><p role="alert">{accessError.message}</p><button className="room-text-button" type="button" onClick={() => { window.location.hash = '/' }}>Back home</button></main>
     if (!room) return <main className="room-loading"><h1>Opening boardroom</h1><p role={error ? 'alert' : 'status'}>{error || 'Connecting to the room server…'}</p><button onClick={() => { window.location.hash = '/' }}>Back home</button></main>
     const problem = startProblem(room, scenario, draft)
     const members = roomMembers(room, isHost ? draft : {})
 
     return <>
-        {summaryPreview ? <Summary members={roomMembers(room, {}, scenario)} roomCode={room.room_code} onBackToCall={returnToRoom} /> : room.phase !== 'lobby' ? <Game room={room} scenarios={scenarios} error={error} rename={rename} execute={execute} onViewSummary={showSummaryPreview} /> : <MotionConfig reducedMotion="user">
+        {summaryPreview ? <Summary members={roomMembers(room, {}, scenario)} roomCode={room.room_code} onBackToCall={returnToRoom} /> : room.phase !== 'lobby' ? <Game room={room} scenarios={scenarios} error={error} rename={rename} execute={execute} onViewSummary={showSummaryPreview} onLeaveRoom={leaveRoom} leaving={leaving} /> : <MotionConfig reducedMotion="user">
         <div className="host-lobby">
             <header className="lobby-toolbar">
-                <button className="lobby-leave-button" type="button" disabled={controlsDisabled} title={isHost ? 'Close this lobby for everyone' : 'Leave this lobby and remove your seat'} onClick={() => void leaveLobby()}>{leaving ? 'Leaving…' : 'Leave'}</button>
-                <button className="lobby-room-code" type="button" onClick={() => void copyRoomCode()} aria-label={`Copy room code ${room.room_code}`} title="Copy room code"><span>Room code</span><strong>{room.room_code}</strong></button>
+                <button className="lobby-leave-button" type="button" disabled={controlsDisabled} title={isHost ? 'Close this lobby for everyone' : 'Leave this lobby and remove your seat'} onClick={() => { void leaveRoom().catch((failure: unknown) => setNotice(failure instanceof Error ? failure.message : 'The room could not be left. Please try again.')) }}>{leaving ? 'Leaving…' : 'Leave'}</button>
+                <RoomCodeButton key={room.room_code} code={room.room_code} />
                 {isHost ? <DocumentUpload onUploadingChange={setIsDocumentUploading} roomCode={room.room_code} onContextChange={(context) => setDocumentNotice(`${context} This upload is not processed or used by the briefing.`)} /> : <span className="lobby-waiting">Waiting for the host</span>}
             </header>
             <main className="lobby-main" aria-labelledby="lobby-title">

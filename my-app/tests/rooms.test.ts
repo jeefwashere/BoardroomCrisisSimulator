@@ -116,6 +116,14 @@ test('snapshot keeps equal room versions and current presence fields from the se
     assert.deepEqual(await api.snapshot('room-1'), current)
 })
 
+test('snapshots retain explicit departure separately from inactivity and reject malformed departure flags', async () => {
+    const left = { ...lobby, members: [{ ...lobby.members[0], connected: false, has_left: true }] }
+    const api = createRoomApi({ fetch: async () => json(left) })
+    assert.equal((await api.snapshot('room-1')).members[0].has_left, true)
+    const invalid = createRoomApi({ fetch: async () => json({ ...left, members: [{ ...left.members[0], has_left: 'yes' }] }) })
+    await assert.rejects(invalid.snapshot('room-1'), (error: unknown) => error instanceof RoomApiError && error.code === 'invalid_response')
+})
+
 test('accepts the real started projection and leaves released documents unchanged', async () => {
     const started: RoomSnapshot = { ...lobby, phase: 'briefing', game: {
         phase_id: 'phase-1', round_id: 'round-1', round_number: 1, started_at: '2026-11-07T23:00:00Z',

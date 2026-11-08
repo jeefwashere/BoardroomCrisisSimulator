@@ -17,7 +17,7 @@ function Countdown({ deadline, serverTime }: { deadline?: string | null; serverT
     return remaining === null ? null : <span className="game-countdown" aria-label="Seconds remaining">{remaining}s remaining</span>
 }
 
-function Game({ room, scenarios, error, rename, execute, onViewSummary }: { room: RoomSnapshot; scenarios: Scenario[]; error: string; rename: (name: string) => Promise<void>; execute: (path: string, fields?: Record<string, unknown>) => Promise<void>; onViewSummary: () => void }) {
+function Game({ room, scenarios, error, rename, execute, onViewSummary, onLeaveRoom, leaving }: { room: RoomSnapshot; scenarios: Scenario[]; error: string; rename: (name: string) => Promise<void>; execute: (path: string, fields?: Record<string, unknown>) => Promise<void>; onViewSummary: () => void; onLeaveRoom: () => Promise<void>; leaving: boolean }) {
     const [notice, setNotice] = useState('')
     const [pending, setPending] = useState(false)
     const [text, setText] = useState('')
@@ -30,6 +30,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary }: { room
     if (!game) return null
     const scenario = scenarios.find((option) => option.scenario_id === game.scenario.scenario_id && option.version === game.scenario.version)
     const self = room.members.find((member) => member.member_id === room.self_member_id)
+    const callMembers = roomMembers(room, {}, scenario).filter((member) => !member.hasLeft)
     const actions = game.allowed_actions ?? []
     const rounds = `rounds/${game.round_id}/`
     async function act(path: string, fields: Record<string, unknown> = {}) {
@@ -51,11 +52,11 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary }: { room
     const speaker = room.members.find((member) => member.member_id === game.active_speaker_id)
     return <MotionConfig reducedMotion="user"><div className="game-call-screen game-live-screen">
         <header className="game-call-header">
-            <div className="room-personal-controls"><button className="game-back-button" type="button" onClick={() => { window.location.hash = '/' }}><LobbyIcon name="back" /><span>Leave room</span></button><RoomNameEditor room={room} rename={rename} /></div>
+            <div className="room-personal-controls"><button className="game-back-button" type="button" disabled={pending || leaving} aria-busy={leaving} onClick={() => { void onLeaveRoom().catch((failure: unknown) => setNotice(errorMessage(failure))) }}><LobbyIcon name="back" /><span>{leaving ? 'Leaving…' : 'Leave room'}</span></button><RoomNameEditor room={room} rename={rename} disabled={leaving} /></div>
             <div className="game-call-heading"><h1>Boardroom</h1><span>{room.phase.replaceAll('_', ' ')} · {room.room_code}</span></div>
-            <span className="game-player-count">{room.members.length} / {room.capacity}</span>
+            <span className="game-player-count">{callMembers.length} / {room.capacity}</span>
         </header>
-        <main className="game-call-main game-live-main"><CallGrid members={roomMembers(room, {}, scenario)} />
+        <main className="game-call-main game-live-main"><CallGrid members={callMembers} />
             <section className="game-briefing" aria-labelledby="briefing-title">
                 <h2 id="briefing-title">{game.scenario.title}</h2>
                 <p className="game-phase" role="status">{room.phase.replaceAll('_', ' ')} · Round {game.round_number} <Countdown key={game.phase_id + (game.server_time ?? '')} deadline={game.phase_deadline} serverTime={game.server_time} /></p>

@@ -29,6 +29,7 @@ class Seat:
     display_name: str
     last_seen: float
     joined_at: datetime
+    has_left: bool = False
 
 
 @dataclass(frozen=True)
@@ -68,6 +69,7 @@ class MemberSnapshot:
     role_id: str | None
     eligible_from_round: int | None
     eligible_current_round: bool
+    has_left: bool = False
 
 
 @dataclass(frozen=True)
@@ -216,7 +218,7 @@ class EvaluationEvidence:
 
 
 def active(seat: Seat, now: float) -> bool:
-    return 0 <= now - seat.last_seen < PRESENCE_WINDOW_SECONDS
+    return not seat.has_left and 0 <= now - seat.last_seen < PRESENCE_WINDOW_SECONDS
 
 
 def identity(state: sim.Game) -> ScenarioIdentity:
@@ -244,7 +246,10 @@ class Room:
         self.ensure_open()
         if session not in self.members:
             raise RoomError(403, "not_a_member", "Join this room before reading it")
-        return self.members[session]
+        seat = self.members[session]
+        if seat.has_left:
+            raise RoomError(403, "member_left", "You left this room. Join again to return.")
+        return seat
 
     def touch(self, session: str, now: float) -> None:
         self.members[session] = replace(self.member(session), last_seen=now)
@@ -321,7 +326,7 @@ class Room:
             members.append(MemberSnapshot(
                 seat.member_id, seat.display_name, seat.member_id == self.host_member_id, active(seat, now),
                 assignment.role_id if assignment else None,
-                assignment.eligible_from_round if assignment else None, seat.member_id in electorate,
+                assignment.eligible_from_round if assignment else None, seat.member_id in electorate, seat.has_left,
             ))
         return RoomSnapshot(self.room_id, self.code, self.version, self.host_member_id,
                             caller.member_id, tuple(members), game)
@@ -510,11 +515,16 @@ class Rooms:
             if previous := self.retry(session, command_id, intent):
                 return previous
             caller = room.member(session)
-            if not isinstance(room.phase, Lobby):
-                raise RoomError(409, "already_started", "Leaving a lobby is only available before the game starts")
-            room.closed = caller.member_id == room.host_member_id
-            del room.members[session]
+            if isinstance(room.phase, Lobby):
+                room.closed = caller.member_id == room.host_member_id
+                del room.members[session]
+            else:
+                # Preserve the frozen game roster and evidence, but revoke live participation
+                # until the same authenticated player explicitly joins again.
+                room.members[session] = replace(caller, has_left=True,
+                                               last_seen=self.clock() - PRESENCE_WINDOW_SECONDS)
             room.version += 1
+            self.reconcile(room, self.clock())
             receipt = LeaveReceipt(room.room_id, room.version, "closed" if room.closed else "left")
             self.receipts[(session, command_id)] = (intent, receipt)
             return receipt
@@ -567,7 +577,10 @@ class Rooms:
                     if any(seat.member_id != existing.member_id and seat.display_name.casefold() == display_name.casefold()
                            for seat in room.members.values()):
                         raise RoomError(409, "name_taken", "Choose another display name")
-                    room.members[session] = replace(existing, display_name=display_name, last_seen=now)
+                    room.members[session] = replace(existing, display_name=display_name, last_seen=now, has_left=False)
+                    room.version += 1
+                elif existing.has_left:
+                    room.members[session] = replace(existing, last_seen=now, has_left=False)
                     room.version += 1
                 else:
                     room.touch(session, now)

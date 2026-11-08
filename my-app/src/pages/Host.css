@@ -81,7 +81,7 @@
   color: var(--ink);
 }
 
-.lobby-room-code > span {
+.lobby-room-code-label {
   color: #8b7a6d;
   font-size: 9px;
   font-weight: 500;
@@ -97,6 +97,10 @@
 }
 
 .lobby-room-code:hover strong { color: var(--lobby-accent); }
+.lobby-room-code-value { display: inline-flex; align-items: center; gap: 10px; }
+.lobby-room-code-icon, .lobby-room-code-icon > span { display: inline-grid; place-items: center; width: 18px; height: 18px; }
+.host-lobby .lobby-room-code-icon svg { width: 18px; height: 18px; }
+.lobby-room-code.is-copied .lobby-room-code-icon { color: var(--lobby-accent); }
 
 .lobby-document-upload {
   display: flex;
@@ -399,7 +403,7 @@
   .lobby-toolbar { gap: 10px; padding-block: 18px 12px; }
   .lobby-leave-button { padding-inline: 7px; font-size: 19px; }
   .lobby-room-code strong { font-size: 18px; letter-spacing: 0.12em; }
-  .lobby-room-code > span { font-size: 7px; }
+  .lobby-room-code-label { font-size: 7px; }
   .lobby-upload-button { gap: 6px; padding-inline: 0; font-size: 12px; }
   .lobby-upload-label-detail { display: none; }
   .lobby-upload-button svg { width: 16px; height: 16px; }

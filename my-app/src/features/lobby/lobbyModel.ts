@@ -21,6 +21,7 @@ export type LobbyMember = {
     isHost: boolean
     roleLabel?: string
     connected?: boolean
+    hasLeft?: boolean
     eligibleFromRound?: number | null
     eligibleCurrentRound?: boolean
 }

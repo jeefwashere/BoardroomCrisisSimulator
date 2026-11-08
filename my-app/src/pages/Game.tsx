@@ -90,7 +90,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary }: { room
                 <div className="game-actions">
                     {actions.includes('finish_speaking') && <button disabled={pending} onClick={() => void act(rounds + 'speaker/finish')}>Finish my turn</button>}
                     {actions.includes('skip_phase') && <button className="game-skip-phase" disabled={pending} onClick={() => void act(rounds + 'skip-phase')}>{SKIP_LABELS[room.phase] ?? 'Skip phase'}</button>}
-                    {actions.includes('skip_speaker') && <button disabled={pending} onClick={() => { const reason = window.prompt('Reason for skipping this speaker'); if (reason?.trim()) void act(rounds + 'speaker/skip', { reason }) }}>Skip speaker</button>}
+                    {actions.includes('skip_speaker') && <button disabled={pending} onClick={() => void act(rounds + 'speaker/skip', { reason: 'Skipped by the host' })}>Skip speaker</button>}
                     {actions.includes('reassign_ceo') && <><label>Replacement CEO<select value={ceo} onChange={(event) => setCeo(event.target.value)}><option value="">Choose a participant</option>{room.members.filter((member) => member.connected && member.eligible_current_round && member.role_id !== 'ceo').map((member) => <option key={member.member_id} value={member.member_id}>{member.display_name}</option>)}</select></label><button disabled={pending || !ceo} onClick={() => void act(rounds + 'ceo-reassignment', { member_id: ceo })}>Assign CEO</button></>}
                 </div>
                 <SavedClipTurn room={room} pending={pending} act={act} finishPath={rounds + 'speaker/finish'} />

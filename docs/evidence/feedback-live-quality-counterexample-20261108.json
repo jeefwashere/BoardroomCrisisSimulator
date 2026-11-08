@@ -1,0 +1,92 @@
+{
+  "mode": "real_loopback_http_with_controlled_server_clock",
+  "provider_calls": 3,
+  "distinct_members": 4,
+  "resumed_member_preserved": true,
+  "phases": [
+    {
+      "round": 1,
+      "phase": "briefing"
+    },
+    {
+      "round": 1,
+      "phase": "reading"
+    },
+    {
+      "round": 1,
+      "phase": "speaking"
+    },
+    {
+      "round": 1,
+      "phase": "discussion"
+    },
+    {
+      "round": 1,
+      "phase": "voting"
+    },
+    {
+      "round": 1,
+      "phase": "tie_break"
+    },
+    {
+      "round": 1,
+      "phase": "result"
+    },
+    {
+      "round": 2,
+      "phase": "reading"
+    },
+    {
+      "round": 2,
+      "phase": "speaking"
+    },
+    {
+      "round": 2,
+      "phase": "discussion"
+    },
+    {
+      "round": 2,
+      "phase": "voting"
+    },
+    {
+      "round": 2,
+      "phase": "result"
+    },
+    {
+      "round": 3,
+      "phase": "reading"
+    },
+    {
+      "round": 3,
+      "phase": "speaking"
+    },
+    {
+      "round": 3,
+      "phase": "discussion"
+    },
+    {
+      "round": 3,
+      "phase": "voting"
+    },
+    {
+      "round": 3,
+      "phase": "ended"
+    }
+  ],
+  "decisions": 3,
+  "retained_contributions": 9,
+  "recorded_speaking_turns": 11,
+  "ending": "controlled_recovery_plan",
+  "monotonic_snapshot_versions": true,
+  "final_evidence_frozen": true,
+  "boundary": "Actual hosted LFM3 and real loopback HTTP with controlled server clock. No browser or paid speech.",
+  "live_feedback": {
+    "status": "ready",
+    "text": "Committed decisions: 3. Ending: controlled_recovery_plan.\nRound 1: Isolate affected finance devices and bridge, suspend the suspicious account, preserve available logs, and appoint an incident lead. Keep the separate storefront under active monitoring.. The investigation boundary narrows. At least 160 customer records were exported before access was suspended. The incident is still under investigation.\nRound 2: Publish a limited factual notice about service disruption and the data investigation, commit to another update in 30 simulated minutes, and assign privacy coordination.. Customers receive an accurate limited update with accountable follow through. The verified export count does not change.\nRound 3: Begin staged recovery in a validated environment, address compromised access, use the limited manual process, and move the promotion with an owned recovery plan.. A controlled recovery plan is authorized with reduced near term capacity. Recovery is still in progress, not proven complete.\n\nEvidence based feedback:\nInvestigation boundary narrows after isolating finance devices; 160+ records exported before suspension. [decision:81bb00b2-9371-4bae-80e2-efe2dfe2e56d]\n\nOnly security round 2 and 3 entries; no CEO (E2/E5) or other rounds listed. [contribution:5eec0d13-0c2a-40af-b8bc-22f49bc0e497]\n\nE1 shows elapsed reason with start and end timestamps; duration ~29s for first task. [turn:917b32b2-ab88-44a9-ae84-8a2da61f5147]",
+    "error": null,
+    "completed_parts": 3,
+    "total_parts": 3
+  },
+  "paid_speech_calls": 0,
+  "quality_review": "Functional transport passed. One output inferred missing participants from a partial batch; this is a preserved quality counterexample, not accepted factual evaluation."
+}

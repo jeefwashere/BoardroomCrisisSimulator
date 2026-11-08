@@ -12,7 +12,7 @@ import RoomNameEditor from '../features/rooms/RoomNameEditor'
 import './Host.css'
 
 function Host({ roomId }: { roomId: string }) {
-    const { room, scenarios, error, starting, start, rename } = useRoom(roomId)
+    const { room, scenarios, error, starting, start, rename, execute } = useRoom(roomId)
     const [draft, setDraft] = useState<RoleDraft>({})
     const [selectedScenario, setSelectedScenario] = useState('')
     const [selectedTiming, setSelectedTiming] = useState('')
@@ -40,7 +40,7 @@ function Host({ roomId }: { roomId: string }) {
     }
 
     if (!room) return <main className="room-loading"><h1>Opening boardroom</h1><p role={error ? 'alert' : 'status'}>{error || 'Connecting to the room server…'}</p><button onClick={() => { window.location.hash = '/' }}>Back home</button></main>
-    if (room.phase !== 'lobby') return <Game room={room} scenarios={scenarios} error={error} rename={rename} />
+    if (room.phase !== 'lobby') return <Game room={room} scenarios={scenarios} error={error} rename={rename} execute={execute} />
     const problem = startProblem(room, scenario, draft)
     const members = roomMembers(room, isHost ? draft : {})
 

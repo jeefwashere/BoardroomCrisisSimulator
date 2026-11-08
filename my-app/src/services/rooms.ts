@@ -53,7 +53,7 @@ type RoomFields = {
 
 // Public projection used by the lobby and briefing. Other server game fields
 // remain server owned and can be added here when a screen needs them.
-type RoomGame = {
+export type RoomGame = {
     phase_id: string
     round_id: string
     round_number: number
@@ -67,14 +67,42 @@ type RoomGame = {
     public_documents: { id: string; text: string }[]
     eligible_member_ids: string[]
     ending_label: string | null
+    server_time?: string
+    phase_deadline?: string | null
+    session_deadline?: string | null
+    active_speaker_id?: string | null
+    speaker_order?: string[]
+    self_vote?: string | null
+    vote_counts?: Record<string, number> | null
+    tied_option_ids?: string[]
+    allowed_actions?: string[]
+    current_node?: { node_id: string; title: string; situation: string; study_questions: string[]; options: { option_id: string; label: string }[] } | null
+    history?: Decision[]
+    last_result?: Decision | null
+    turns?: { member_id: string; phase_id: string; round_id: string; reason: string; started_at: string; ended_at: string }[]
+    narration?: { narration_id: string; phase_id: string; text: string } | null
+    proposals?: { option_id: string; member_id: string; text: string }[]
+    resolution?: { status: string; error: string | null; attempts: number } | null
+    feedback?: { status: string; text: string; error: string | null } | null
 }
+export type Decision = { decision_id: string; round_number: number; question: string; selected_option_label: string | null; text: string; selection_method: string; vote_counts: Record<string, number> }
+export type Recording = { recording_id: string; member_id: string; round_number: number; phase_id: string; status: string; transcript: string; reviewed_text: string | null; error: string | null; mime_type: string | null; audio_available: boolean }
+export type Extras = { feedback?: { status: string; text: string; error: string | null; completed_parts: number; total_parts: number }; recordings: Recording[]; contributions: { member_id: string; round_number: number | null; text: string; kind: string }[] }
+
 
 export type RoomSnapshot = RoomFields & (
     { phase: 'lobby'; game: null } |
-    { phase: 'briefing' | 'decision' | 'result' | 'ended'; game: RoomGame }
+    { phase: 'briefing' | 'reading' | 'speaking' | 'discussion' | 'voting' | 'tie_break' | 'resolving' | 'resolution_failed' | 'decision' | 'result' | 'ended'; game: RoomGame }
 )
 
 export type RoomApi = {
+    command(roomId: string, path: string, input: object, signal?: AbortSignal): Promise<RoomSnapshot>
+    extras(roomId: string, signal?: AbortSignal): Promise<Extras>
+    mediaPost(roomId: string, path: string, input: object, signal?: AbortSignal): Promise<Recording>
+    audio(roomId: string, recordingId: string, signal?: AbortSignal): Promise<Blob>
+    prepareNarration(roomId: string, narrationId: string): Promise<{ status: string; error?: string }>
+    narrationEvent(roomId: string, narrationId: string, event: string): Promise<{ status: string }>
+    narration(roomId: string, narrationId: string, signal?: AbortSignal): Promise<Blob>
     initializeSession(signal?: AbortSignal): Promise<void>
     scenarios(signal?: AbortSignal): Promise<Scenario[]>
     create(input: CreateRoomInput, signal?: AbortSignal): Promise<RoomSnapshot>
@@ -147,7 +175,7 @@ function snapshot(value: unknown): value is RoomSnapshot {
         && typeof value.host_member_id === 'string' && typeof value.self_member_id === 'string'
         && Array.isArray(value.members) && value.members.every(member)
         && (value.phase === 'lobby' ? value.game === null
-            : ['briefing', 'decision', 'result', 'ended'].includes(String(value.phase)) && game(value.game))
+            : ['briefing', 'reading', 'speaking', 'discussion', 'voting', 'tie_break', 'resolving', 'resolution_failed', 'decision', 'result', 'ended'].includes(String(value.phase)) && game(value.game))
 }
 
 function cleanMessage(value: string): string {
@@ -222,7 +250,26 @@ export function createRoomApi(options: { baseUrl?: string; fetch?: typeof global
         return payload
     }
 
+    async function bytes(path: string, signal?: AbortSignal): Promise<Blob> {
+        const token = await sessionToken()
+        const response = await fetchRequest(`${baseUrl}${path}`, { headers: { 'X-Boardroom-Session': token }, signal })
+        if (!response.ok) throw new RoomApiError('Audio is unavailable.', 'audio_unavailable', response.status)
+        return response.blob()
+    }
     return {
+        command: async (roomId, path, input, signal) => {
+            if (path === 'contributions') {
+                await request(`/api/rooms/${encodeURIComponent(roomId)}/${path}`, (value): value is { contribution_id: string } => record(value) && typeof value.contribution_id === 'string', signal, input)
+                return request(`/api/rooms/${encodeURIComponent(roomId)}`, snapshot, signal)
+            }
+            return request(`/api/rooms/${encodeURIComponent(roomId)}/${path}`, snapshot, signal, input)
+        },
+        extras: (roomId, signal) => request(`/api/rooms/${encodeURIComponent(roomId)}/extras`, (value): value is Extras => record(value) && Array.isArray(value.recordings) && Array.isArray(value.contributions), signal),
+        mediaPost: (roomId, path, input, signal) => request(`/api/rooms/${encodeURIComponent(roomId)}/${path}`, (value): value is Recording => record(value) && typeof value.recording_id === 'string' && typeof value.status === 'string', signal, input),
+        audio: (roomId, recordingId, signal) => bytes(`/api/rooms/${encodeURIComponent(roomId)}/recordings/${encodeURIComponent(recordingId)}/audio`, signal),
+        prepareNarration: (roomId, id) => request(`/api/rooms/${encodeURIComponent(roomId)}/narration/${encodeURIComponent(id)}/prepare`, (value): value is { status: string; error?: string } => record(value) && typeof value.status === 'string', undefined, {}),
+        narrationEvent: (roomId, id, event) => request(`/api/rooms/${encodeURIComponent(roomId)}/narration/${encodeURIComponent(id)}/delivery`, (value): value is { status: string } => record(value) && typeof value.status === 'string', undefined, { event }),
+        narration: (roomId, narrationId, signal) => bytes(`/api/rooms/${encodeURIComponent(roomId)}/narration/${encodeURIComponent(narrationId)}/audio`, signal),
         async initializeSession(signal) {
             await sessionToken()
             signal?.throwIfAborted()

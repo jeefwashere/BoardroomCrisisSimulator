@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { createRoomApi } from '../../services/rooms'
+import { createRoomApi, RoomApiError } from '../../services/rooms'
 import type { JoinRoomInput, RoomSnapshot, Scenario, StartRoomInput } from '../../services/rooms'
 import { acceptSnapshot, pollRoom } from './roomState'
 
@@ -14,6 +14,7 @@ export function useRoom(roomId: string) {
     const [starting, setStarting] = useState(false)
     const commandRef = useRef<AbortController | null>(null)
     const activeRef = useRef(false)
+    const playIntentRef = useRef<{ key: string; body: object } | null>(null)
     const renameIntentRef = useRef<JoinRoomInput | null>(null)
     const receive = useCallback((incoming: RoomSnapshot) => {
         setRoom((current) => acceptSnapshot(current, incoming))
@@ -89,5 +90,24 @@ export function useRoom(roomId: string) {
         } finally { commandRef.current = null }
     }
 
-    return { room, scenarios, error: commandError || error, starting, start, rename }
+    async function execute(path: string, fields: Record<string, unknown> = {}) {
+        if (!room?.game) throw new Error('Wait for the game to load.')
+        if (commandRef.current) throw new Error('Wait for the current action to finish.')
+        const input = { phase_id: room.game.phase_id, ...fields }
+        const key = JSON.stringify([path, fields])
+        if (playIntentRef.current?.key !== key) playIntentRef.current = { key, body: { command_id: crypto.randomUUID(), ...input } }
+        const controller = new AbortController()
+        commandRef.current = controller
+        try {
+            const incoming = await roomApi.command(roomId, path, playIntentRef.current.body, controller.signal)
+            if (activeRef.current && !controller.signal.aborted) receive(incoming)
+            playIntentRef.current = null
+        } catch (failure) {
+            if (failure instanceof RoomApiError && failure.status !== null && failure.status >= 400 && failure.status < 500) playIntentRef.current = null
+            try { const incoming = await roomApi.snapshot(roomId, controller.signal); if (activeRef.current) receive(incoming) } catch { /* Original command error remains actionable. */ }
+            throw failure
+        } finally { commandRef.current = null }
+    }
+
+    return { room, scenarios, error: commandError || error, starting, start, rename, execute }
 }

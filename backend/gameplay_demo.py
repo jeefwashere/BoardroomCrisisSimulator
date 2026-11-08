@@ -26,7 +26,10 @@ def command(**fields):
     return {'command_id': str(uuid4()), **fields}
 
 
-def run(output: Path):
+def run(output: Path, model_env: Path | None = None):
+    if model_env is not None:
+        from rehearsal.adapters import load_env
+        load_env(model_env)
     clock = Clock()
     rooms = Rooms(ScenarioCatalog(), clock)
     app = create_app(rooms=rooms)
@@ -160,6 +163,21 @@ def run(output: Path):
             'monotonic_snapshot_versions': True, 'final_evidence_frozen': True,
             'boundary': 'HTTP backend acceptance only. No browser UI, microphone, paid speech or live model.',
         }
+        if model_env is not None:
+            checked(clients[0].post(path + '/feedback', json=command(phase_id=final['game']['phase_id'])))
+            for _ in range(90):
+                feedback = checked(clients[0].get(path + '/extras'))['feedback']
+                if feedback['status'] not in ('pending', 'running'):
+                    break
+                time.sleep(2)
+            result['live_feedback'] = feedback
+            result['provider_calls'] = feedback['completed_parts']
+            result['paid_speech_calls'] = 0
+            result['boundary'] = 'Real HTTP with controlled server clock and actual hosted LFM3 reflection questions. No browser or paid speech.'
+            if feedback['status'] != 'ready':
+                entry = app.state.feedback.entries[next(iter(rooms.rooms))]
+                Path('artifacts/failed-live-feedback.json').write_text(json.dumps({'feedback': feedback, 'failure_kind': entry.get('failure_kind'), 'responses': entry.get('responses')}, indent=2))
+            assert feedback['status'] == 'ready', feedback
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(json.dumps(result, indent=2) + '\n')
         print(json.dumps(result, indent=2))
@@ -177,4 +195,6 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--output', type=Path, default=Path('artifacts/gameplay-http.json'))
-    run(parser.parse_args().output)
+    parser.add_argument('--model-env', type=Path, help='Explicit backend model environment file for a live LFM feedback check')
+    args = parser.parse_args()
+    run(args.output, args.model_env)

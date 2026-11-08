@@ -165,3 +165,17 @@
   .game-live-screen { height: auto; min-height: 100dvh; overflow: auto; }
   .game-briefing { max-height: 60vh; }
 }
+.game-countdown { display: inline-block; margin-left: 12px; padding: 5px 10px; background: #e4ead9; border-radius: 6px; font-weight: 700; }
+.game-actions, .game-briefing fieldset { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 14px; }
+.game-briefing button { padding: 9px 13px; margin: 4px; background: #354c3c; color: #fff9ee; border: 1px solid #354c3c; border-radius: 6px; cursor: pointer; font: inherit; font-size: 13px; }
+.game-briefing button:disabled { opacity: .5; cursor: wait; }
+.game-briefing button[aria-pressed="true"] { outline: 3px solid #b58c28; outline-offset: 2px; }
+.game-briefing label { display: block; margin-top: 12px; line-height: 1.5; }
+.game-briefing textarea, .game-briefing select { width: 100%; padding: 9px; background: #fffdf8; color: #422820; border: 1px solid #bba38a; border-radius: 5px; font: inherit; }
+.game-briefing textarea { min-height: 80px; resize: vertical; }
+.game-result { padding: 16px; border-left: 4px solid #698261; background: #f1eddf; }
+.game-media { margin-block: 20px; padding-top: 14px; border-top: 1px solid #bba38a; }
+.game-media audio { width: 100%; }
+.game-media article { border-bottom: 1px solid #d9ccb8; padding-bottom: 12px; }
+.game-feedback { white-space: pre-wrap; overflow-wrap: anywhere; }
+.game-briefing .game-end { background: #783e32; border-color: #783e32; }

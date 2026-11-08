@@ -189,3 +189,42 @@ test('concurrent room commands await one tab bootstrap before sending the origin
         assert.deepEqual(JSON.parse(String(call.init?.body)), input)
     }
 })
+
+test('accepts every implemented gameplay phase and preserves caller ballot privacy', async () => {
+    for (const phase of ['reading', 'speaking', 'discussion', 'voting', 'tie_break', 'result', 'ended'] as const) {
+        const value = { ...lobby, phase, game: {
+            phase_id: 'phase-current', round_id: 'round-current', round_number: 1, started_at: '2026-11-08T00:00:00Z',
+            scenario: catalog[0], timing_profile: 'standard_18', briefing_seconds: 90, result_seconds: 30,
+            initial_node_id: 'incident', facts: {}, public_documents: [], eligible_member_ids: ['host-1'],
+            ending_label: null, self_vote: 'prepared-1', vote_counts: phase === 'voting' ? null : {},
+            allowed_actions: ['vote'], phase_deadline: '2026-11-08T00:01:00Z', server_time: '2026-11-08T00:00:00Z',
+        } }
+        const api = createRoomApi({ fetch: async () => json(value) })
+        assert.deepEqual(await api.snapshot('room-1'), value)
+    }
+})
+
+test('retained contributions are followed by an authoritative snapshot without resubmitting', async () => {
+    const calls: { url: string; init?: RequestInit }[] = []
+    const api = createRoomApi({ baseUrl: '', fetch: async (url, init) => {
+        calls.push({ url: String(url), init })
+        return String(url).endsWith('/contributions') ? json({ contribution_id: 'accepted' }, 201) : json(lobby)
+    } })
+    const input = { command_id: 'stable', phase_id: 'phase', kind: 'chat', source: 'typed', text: 'Preserve evidence.' }
+    assert.deepEqual(await api.command('room-1', 'contributions', input), lobby)
+    assert.deepEqual(calls.map((call) => call.url), ['/api/rooms/room-1/contributions', '/api/rooms/room-1'])
+    assert.deepEqual(JSON.parse(String(calls[0].init?.body)), input)
+    assert.equal(calls[1].init?.method, 'GET')
+})
+
+test('original recording playback is fetched with the private tab header and no JSON body', async () => {
+    const api = createRoomApi({ baseUrl: '', fetch: async (url, init) => {
+        assert.equal(String(url), '/api/rooms/room%2F1/recordings/record%2F1/audio')
+        assert.equal(new Headers(init?.headers).get('X-Boardroom-Session'), 'test-tab-token')
+        assert.equal(new Headers(init?.headers).get('Content-Type'), null)
+        assert.equal(init?.body, undefined)
+        return new Response(new Blob(['original'], { type: 'audio/webm' }))
+    } })
+    const audio = await api.audio('room/1', 'record/1')
+    assert.equal(await audio.text(), 'original')
+})

@@ -195,6 +195,7 @@ class GameView(View):
     turns: list[TurnView]
     ceo_changes: list[CeoChangeView]
     ended_at: datetime | None
+    feedback: dict[str, Any] | None = None
 
 
 class RoomFields(View):
@@ -274,6 +275,23 @@ class EvidenceMemberView(View):
     joined_at: datetime
 
 
+class RecordingView(View):
+    recording_id: UUID
+    member_id: UUID
+    round_id: UUID
+    round_number: int
+    phase_id: UUID
+    status: str
+    transcript: str
+    reviewed_text: str | None
+    error: str | None
+    mime_type: str | None
+    audio_available: bool
+    started_at: datetime
+    ended_at: datetime | None
+    duration_seconds: float | None
+
+
 class EvaluationEvidenceView(View):
     room_id: UUID
     scenario: ScenarioRef
@@ -286,6 +304,7 @@ class EvaluationEvidenceView(View):
     contributions: list[ContributionView]
     turns: list[TurnView]
     ceo_changes: list[CeoChangeView]
+    recordings: list[RecordingView] = Field(default_factory=list)
 
 
 class PhaseCommand(BaseModel):
@@ -311,6 +330,21 @@ class SkipCommand(PhaseCommand):
 
 class CeoCommand(PhaseCommand):
     member_id: UUID
+
+
+class BeginRecording(PhaseCommand):
+    round_id: UUID
+
+
+class AudioBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    audio_base64: str = Field(min_length=1, max_length=13_333_336)
+    mime_type: str = Field(min_length=1, max_length=80)
+
+
+class ReviewBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    text: str = Field(min_length=1, max_length=12000)
 
 
 class MediaView(View):

@@ -1,5 +1,7 @@
 # Backend architecture
 
+Current prepared gameplay update: [gameplay HTTP contract](gameplay-api.md) now documents automatic reading, sequential speaking, ballots, CEO ties, results, ending and rejoin. Custom actions, final AI evaluation, audio capture and gameplay frontend integration remain separate. Historical foundation descriptions below retain their original evidence scope.
+
 Status: proposed architecture, based on [the function specification](backend-spec.md). The full game type and interface sketches remain a design. The initial lobby implementation and exact API are documented in [room-api.md](room-api.md). The existing prototype and hosted inference service are described in [ai-architecture.md](ai-architecture.md); their existence does not complete the room service.
 
 ## 1. Recommendation and rationale

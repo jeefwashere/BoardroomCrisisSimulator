@@ -1,5 +1,7 @@
 # Backend specification
 
+Current prepared gameplay update: [gameplay HTTP contract](gameplay-api.md) now documents automatic reading, sequential speaking, ballots, CEO ties, results, ending and rejoin. Custom actions, final AI evaluation, audio capture and gameplay frontend integration remain separate. Historical foundation descriptions below retain their original evidence scope.
+
 Status: multiplayer specification with confirmed requirements and explicitly proposed policies. The separate rehearsal prototype and model service now exist; this specification is not yet fully implemented. The selected speech and model stack is documented in [ai-architecture.md](ai-architecture.md).
 
 ## 1. Summary
@@ -37,7 +39,7 @@ Confirmed means selected in the user's latest discussion. Proposed means an arch
 21. Confirmed update: this unit implements the internally verified narrative engine first. Nonterminal consequences use a 30 second presentation guard; terminal consequences end immediately. Display what happened as text, then narrate that same committed text. Real media calls remain subject to the existing speech budget rule.
 22. Confirmed update: record every participant during their own speaking turn and transcribe through backend ElevenLabs integration while the game is ongoing. Store both the original recording and its transcript, linked to the authenticated member, room, round, speaking turn, and timestamps. The end screen shows the accumulated records and supplies them to the later AI evaluator. This is a recorded requirement; microphone capture, production transcription, original audio storage, and the end screen are not implemented in the narrative foundation.
 
-The implemented registration contract is documented in [room-api.md](room-api.md), with scenario admission, batch roles, Start, and next round eligibility in [start-api.md](start-api.md). The full game flow remains unimplemented.
+The implemented registration contract is documented in [room-api.md](room-api.md), with scenario admission, batch roles, Start, and next round eligibility in [start-api.md](start-api.md). The prepared backend game flow is implemented in the gameplay update. The complete custom action, media and AI experience remains unfinished.
 
 At the initial design review, remote `main` contained only the initial README and `.gitignore`. Existing story scripts had not been located in the repository. This specification defines their required shape without inventing their contents.
 
@@ -105,7 +107,7 @@ Proposed defaults:
 
 Speaking time is a turn permission and timer requirement. Recording and transcription of each participant's own speaking turn are confirmed requirements under [Route A](ai-architecture.md). The backend must retain original audio and its associated transcript with authenticated member, room, round, speaking turn, and timestamps while play continues. Exact capture transport and storage backend remain implementation choices. Production microphone capture, transcription, original audio storage, and the complete voice client remain unimplemented work tracked by O02; a WebSocket connection or reviewed text submission alone does not implement them.
 
-At 30 players, 30 seconds each consumes 15 minutes before a vote. The lobby should show the estimated minimum duration for the configured roster and scenario. The exact speaker and total session durations remain team choices.
+At 30 players, 30 seconds each consumes 15 minutes before a vote. The lobby should show the estimated minimum duration for the configured roster and scenario. The user selected the existing scenario profiles and capped equal speaker allocation for this delivery. These are explicit Start profile choices, not a universal room default.
 
 ## 7. Voting and ties
 
@@ -124,7 +126,7 @@ Proposed exact policy:
 9. Proposed: allow 30 seconds for the CEO decision. If the CEO is disconnected, the connected host may explicitly reassign the CEO role to a connected player within that period. The action is broadcast. If no valid CEO choice arrives, use the scenario's no decision outcome.
 10. Zero votes uses the authored no decision outcome directly. It is not treated as a tie between every available option.
 
-These rules, especially vote replacement, visibility, CEO absence, and abstention handling, remain proposals for team selection.
+The user accepted these exact voting, visibility, abstention and CEO absence policies for the current prepared gameplay delivery. See the gameplay HTTP contract for executable endpoints.
 
 ## 8. Custom actions and AI
 

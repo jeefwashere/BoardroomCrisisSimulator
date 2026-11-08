@@ -137,6 +137,26 @@ class DecisionView(View):
     facts_after: dict[str, FactValue] = Field(validation_alias="facts_after_view")
     contribution_ids: list[UUID]
     resolved_at: datetime
+    vote_counts: dict[str, int] = Field(validation_alias="vote_counts_view")
+    selection_method: str
+
+
+class TurnView(View):
+    member_id: UUID
+    round_id: UUID
+    phase_id: UUID
+    reason: str
+    started_at: datetime
+    ended_at: datetime
+    actor_id: UUID | None
+
+
+class CeoChangeView(View):
+    round_id: UUID
+    previous_member_id: UUID
+    member_id: UUID
+    actor_id: UUID
+    at: datetime
 
 
 class NarrationCaptionView(View):
@@ -163,6 +183,18 @@ class GameView(View):
     last_result: DecisionView | None
     ending_label: str | None
     narration: NarrationCaptionView | None
+    server_time: datetime
+    phase_deadline: datetime | None
+    session_deadline: datetime | None
+    active_speaker_id: UUID | None
+    speaker_order: list[UUID]
+    self_vote: str | None
+    vote_counts: dict[str, int] | None
+    tied_option_ids: list[str]
+    allowed_actions: list[str]
+    turns: list[TurnView]
+    ceo_changes: list[CeoChangeView]
+    ended_at: datetime | None
 
 
 class RoomFields(View):
@@ -182,7 +214,7 @@ class LobbyRoomView(RoomFields):
 
 
 class StartedRoomView(RoomFields):
-    phase: Literal["briefing", "decision", "result", "ended"]
+    phase: Literal["briefing", "reading", "speaking", "discussion", "voting", "tie_break", "decision", "result", "ended"]
     game: GameView
 
 
@@ -252,6 +284,33 @@ class EvaluationEvidenceView(View):
     public_documents: list[PublicDocumentView]
     decisions: list[DecisionView]
     contributions: list[ContributionView]
+    turns: list[TurnView]
+    ceo_changes: list[CeoChangeView]
+
+
+class PhaseCommand(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    command_id: UUID
+    phase_id: UUID
+
+
+class VoteCommand(PhaseCommand):
+    option_id: str = Field(min_length=1, max_length=128)
+
+
+class SkipCommand(PhaseCommand):
+    reason: str = Field(min_length=1, max_length=200)
+
+    @field_validator("reason")
+    @classmethod
+    def require_reason(cls, value):
+        if not value.strip():
+            raise ValueError("Provide a reason")
+        return value
+
+
+class CeoCommand(PhaseCommand):
+    member_id: UUID
 
 
 class MediaView(View):

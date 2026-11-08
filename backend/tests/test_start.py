@@ -374,7 +374,7 @@ class StartApiTests(unittest.TestCase):
         for client in self.clients:
             self.assertNotIn(client.cookies[COOKIE_NAME], response.text)
         self.clock.now += 10000
-        self.assertEqual(self.snapshot()["phase"], "briefing")
+        self.assertEqual(self.snapshot()["phase"], "ended")
 
 
 class ConcurrentStartTests(unittest.IsolatedAsyncioTestCase):

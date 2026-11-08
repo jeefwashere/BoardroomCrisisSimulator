@@ -1,5 +1,7 @@
 # Selected AI and speech architecture
 
+Current prepared gameplay update: [gameplay HTTP contract](gameplay-api.md) now documents automatic reading, sequential speaking, ballots, CEO ties, results, ending and rejoin. Custom actions, final AI evaluation, audio capture and gameplay frontend integration remain separate. Historical foundation descriptions below retain their original evidence scope.
+
 Status: selected implementation direction, November 7, 2026. This document governs provider selection, model responsibilities, and the AI integration boundary. [backend-spec.md](backend-spec.md) continues to govern confirmed multiplayer behavior. [TODO.md](../TODO.md) records implementation progress.
 
 ## 1. Required architecture

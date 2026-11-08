@@ -1,5 +1,7 @@
 """Run from the repository root: python -m uvicorn backend.app.main:app."""
 
+import asyncio
+from contextlib import asynccontextmanager, suppress
 import os
 import time
 from collections.abc import Callable
@@ -11,7 +13,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyCookie, APIKeyHeader
 
-from .models import (ContributionBody, ContributionView, CreateRoom, DeliveryBody, ErrorResponse,
+from .models import (CeoCommand, PhaseCommand, SkipCommand, VoteCommand,
+                     ContributionBody, ContributionView, CreateRoom, DeliveryBody, ErrorResponse,
                      EvaluationEvidenceView, JoinRoom, MediaView, RoomView, ScenarioView, StartRoom,
                      TabSessionBody, TabSessionView, ValidationErrorResponse)
 from .narration import NarrationService
@@ -37,7 +40,23 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     ]
     if "*" in origins:
         raise ValueError("Cookie authentication requires explicit allowed origins")
-    app = FastAPI(title="Boardroom narrative and evidence API", version="0.3.0")
+    async def run_clock():
+        while True:
+            await rooms.tick()
+            await asyncio.sleep(0.1)
+
+    @asynccontextmanager
+    async def lifespan(app):
+        task = asyncio.create_task(run_clock())
+        app.state.clock_task = task
+        try:
+            yield
+        finally:
+            task.cancel()
+            with suppress(asyncio.CancelledError):
+                await task
+
+    app = FastAPI(title="Boardroom gameplay and evidence API", version="0.4.0", lifespan=lifespan)
     app.add_middleware(
         CORSMiddleware, allow_origins=origins, allow_credentials=True,
         allow_methods=["GET", "POST"], allow_headers=["Content-Type", SESSION_HEADER],
@@ -108,6 +127,30 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     @app.get("/api/rooms/{room_id}", response_model=RoomView, responses=errors)
     async def get_room(room_id: UUID, member_session: authenticated):
         return await rooms.snapshot(member_session, room_id)
+
+    @app.post("/api/rooms/{room_id}/rounds/{round_id}/speaker/finish", response_model=RoomView, responses=errors)
+    async def finish_speaking(room_id: UUID, round_id: UUID, body: PhaseCommand, member_session: authenticated):
+        return await rooms.play(member_session, room_id, body.command_id, body.phase_id, round_id, "finish")
+
+    @app.post("/api/rooms/{room_id}/rounds/{round_id}/speaker/skip", response_model=RoomView, responses=errors)
+    async def skip_speaker(room_id: UUID, round_id: UUID, body: SkipCommand, member_session: authenticated):
+        return await rooms.play(member_session, room_id, body.command_id, body.phase_id, round_id, "skip", body.reason)
+
+    @app.post("/api/rooms/{room_id}/rounds/{round_id}/vote", response_model=RoomView, responses=errors)
+    async def vote(room_id: UUID, round_id: UUID, body: VoteCommand, member_session: authenticated):
+        return await rooms.play(member_session, room_id, body.command_id, body.phase_id, round_id, "vote", body.option_id)
+
+    @app.post("/api/rooms/{room_id}/rounds/{round_id}/tie-decision", response_model=RoomView, responses=errors)
+    async def tie_decision(room_id: UUID, round_id: UUID, body: VoteCommand, member_session: authenticated):
+        return await rooms.play(member_session, room_id, body.command_id, body.phase_id, round_id, "tie_decision", body.option_id)
+
+    @app.post("/api/rooms/{room_id}/rounds/{round_id}/ceo-reassignment", response_model=RoomView, responses=errors)
+    async def reassign_ceo(room_id: UUID, round_id: UUID, body: CeoCommand, member_session: authenticated):
+        return await rooms.play(member_session, room_id, body.command_id, body.phase_id, round_id, "reassign_ceo", body.member_id)
+
+    @app.post("/api/rooms/{room_id}/end", response_model=RoomView, responses=errors)
+    async def end_room(room_id: UUID, body: PhaseCommand, member_session: authenticated):
+        return await rooms.play(member_session, room_id, body.command_id, body.phase_id, None, "end")
 
     @app.post("/api/rooms/{room_id}/contributions", response_model=ContributionView, status_code=201, responses=errors)
     async def contribute(room_id: UUID, body: ContributionBody, member_session: authenticated):

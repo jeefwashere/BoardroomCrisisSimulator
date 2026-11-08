@@ -1,0 +1,83 @@
+{
+  "mode": "real_loopback_http_with_controlled_server_clock",
+  "provider_calls": 0,
+  "distinct_members": 4,
+  "resumed_member_preserved": true,
+  "phases": [
+    {
+      "round": 1,
+      "phase": "briefing"
+    },
+    {
+      "round": 1,
+      "phase": "reading"
+    },
+    {
+      "round": 1,
+      "phase": "speaking"
+    },
+    {
+      "round": 1,
+      "phase": "discussion"
+    },
+    {
+      "round": 1,
+      "phase": "voting"
+    },
+    {
+      "round": 1,
+      "phase": "tie_break"
+    },
+    {
+      "round": 1,
+      "phase": "result"
+    },
+    {
+      "round": 2,
+      "phase": "reading"
+    },
+    {
+      "round": 2,
+      "phase": "speaking"
+    },
+    {
+      "round": 2,
+      "phase": "discussion"
+    },
+    {
+      "round": 2,
+      "phase": "voting"
+    },
+    {
+      "round": 2,
+      "phase": "result"
+    },
+    {
+      "round": 3,
+      "phase": "reading"
+    },
+    {
+      "round": 3,
+      "phase": "speaking"
+    },
+    {
+      "round": 3,
+      "phase": "discussion"
+    },
+    {
+      "round": 3,
+      "phase": "voting"
+    },
+    {
+      "round": 3,
+      "phase": "ended"
+    }
+  ],
+  "decisions": 3,
+  "retained_contributions": 9,
+  "recorded_speaking_turns": 11,
+  "ending": "controlled_recovery_plan",
+  "monotonic_snapshot_versions": true,
+  "final_evidence_frozen": true,
+  "boundary": "HTTP backend acceptance only. No browser UI, microphone, paid speech or live model."
+}

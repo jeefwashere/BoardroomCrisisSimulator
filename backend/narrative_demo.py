@@ -31,7 +31,7 @@ def command(**fields):
 
 async def run(output: Path, fake_audio: bool):
     clock = FixtureClock()
-    rooms = Rooms(ScenarioCatalog(), clock)
+    rooms = Rooms(ScenarioCatalog(), clock, automatic=False)
     generated = []
 
     def fake_synthesize(text):

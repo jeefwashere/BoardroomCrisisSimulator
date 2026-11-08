@@ -43,6 +43,67 @@ class EndedPhase:
 
 
 @dataclass(frozen=True)
+class ReadingPhase:
+    phase_id: UUID
+    deadline: float
+    kind: Literal["reading"] = "reading"
+
+
+@dataclass(frozen=True)
+class SpeakingPhase:
+    phase_id: UUID
+    deadline: float
+    discussion_deadline: float
+    order: tuple[UUID, ...]
+    index: int
+    slot_seconds: int
+    started_at: float
+    kind: Literal["speaking"] = "speaking"
+
+
+@dataclass(frozen=True)
+class DiscussionPhase:
+    phase_id: UUID
+    deadline: float
+    kind: Literal["discussion"] = "discussion"
+
+
+@dataclass(frozen=True)
+class VotingPhase:
+    phase_id: UUID
+    deadline: float
+    kind: Literal["voting"] = "voting"
+
+
+@dataclass(frozen=True)
+class TiePhase:
+    phase_id: UUID
+    deadline: float
+    leaders: tuple[str, ...]
+    kind: Literal["tie_break"] = "tie_break"
+
+
+@dataclass(frozen=True)
+class TurnRecord:
+    member_id: UUID
+    round_id: UUID
+    phase_id: UUID
+    reason: str
+    started_at: datetime
+    ended_at: datetime
+    actor_id: UUID | None = None
+
+
+@dataclass(frozen=True)
+class CeoChange:
+    round_id: UUID
+    previous_member_id: UUID
+    member_id: UUID
+    actor_id: UUID
+    at: datetime
+
+
+@dataclass(frozen=True)
 class DecisionRecord:
     decision_id: UUID
     round_id: UUID
@@ -58,6 +119,8 @@ class DecisionRecord:
     facts_after: Facts
     contribution_ids: tuple[UUID, ...]
     resolved_at: datetime
+    vote_counts: tuple[tuple[str, int], ...] = ()
+    selection_method: str = "internal"
 
     @property
     def facts_before_view(self) -> dict:
@@ -66,6 +129,10 @@ class DecisionRecord:
     @property
     def facts_after_view(self) -> dict:
         return dict(self.facts_after)
+
+    @property
+    def vote_counts_view(self) -> dict:
+        return dict(self.vote_counts)
 
 
 @dataclass(frozen=True)
@@ -78,7 +145,14 @@ class Game:
     node_id: str
     facts: Facts
     history: tuple[DecisionRecord, ...]
-    phase: BriefingPhase | DecisionPhase | ResultPhase | EndedPhase
+    phase: BriefingPhase | DecisionPhase | ResultPhase | EndedPhase | ReadingPhase | SpeakingPhase | DiscussionPhase | VotingPhase | TiePhase
+    started_mono: float = 0
+    session_deadline: float | None = None
+    ballots: tuple[tuple[UUID, str], ...] = ()
+    last_tally: tuple[tuple[str, int], ...] = ()
+    turns: tuple[TurnRecord, ...] = ()
+    ceo_changes: tuple[CeoChange, ...] = ()
+    ended_at: datetime | None = None
 
 
 @dataclass(frozen=True)
@@ -114,7 +188,8 @@ class TransitionIds:
 def initialize(scenario: Scenario, timing: Timing, now: float, at: datetime,
                phase_id: UUID, round_id: UUID) -> Game:
     return Game(scenario, timing, at, round_id, 1, scenario.initial_node_id,
-                tuple(sorted(scenario.initial_facts)), (), BriefingPhase(phase_id, now + timing.briefing_seconds))
+                tuple(sorted(scenario.initial_facts)), (), BriefingPhase(phase_id, now + timing.briefing_seconds),
+                started_mono=now)
 
 
 def current_node(game: Game) -> Node:
@@ -165,4 +240,5 @@ def transition(game: Game, event: InternalEvent, now: float, at: datetime,
         next_phase = EndedPhase(ids.phase_id, outcome.ending_label)
     else:
         next_phase = ResultPhase(ids.phase_id, now + game.timing.result_seconds, outcome.next_node_id)
-    return replace(game, facts=next_facts, history=game.history + (record,), phase=next_phase)
+    return replace(game, facts=next_facts, history=game.history + (record,), phase=next_phase,
+                   ended_at=at if outcome.terminal else None)

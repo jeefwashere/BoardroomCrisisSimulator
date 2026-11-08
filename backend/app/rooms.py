@@ -11,6 +11,7 @@ from uuid import UUID, uuid4
 from .rules import MINIMUM_TO_START, PRESENCE_WINDOW_SECONDS, ROOM_CAPACITY
 from .scenarios import Facts, PublicDocument, ScenarioCatalog
 from . import simulation as sim
+from . import gameplay
 
 
 class RoomError(Exception):
@@ -124,10 +125,26 @@ class GameSnapshot:
     last_result: sim.DecisionRecord | None
     ending_label: str | None
     narration: NarrationCaption | None
+    server_time: datetime
+    phase_deadline: datetime | None
+    session_deadline: datetime | None
+    active_speaker_id: UUID | None
+    speaker_order: tuple[UUID, ...]
+    self_vote: str | None
+    vote_count_items: tuple[tuple[str, int], ...] | None
+    tied_option_ids: tuple[str, ...]
+    allowed_actions: tuple[str, ...]
+    turns: tuple[sim.TurnRecord, ...]
+    ceo_changes: tuple[sim.CeoChange, ...]
+    ended_at: datetime | None
 
     @property
     def facts(self) -> dict:
         return dict(self.fact_items)
+
+    @property
+    def vote_counts(self) -> dict | None:
+        return dict(self.vote_count_items) if self.vote_count_items is not None else None
 
 
 @dataclass(frozen=True)
@@ -182,6 +199,8 @@ class EvaluationEvidence:
     public_documents: tuple[PublicDocument, ...]
     decisions: tuple[sim.DecisionRecord, ...]
     contributions: tuple[Contribution, ...]
+    turns: tuple[sim.TurnRecord, ...]
+    ceo_changes: tuple[sim.CeoChange, ...]
 
 
 def active(seat: Seat, now: float) -> bool:
@@ -218,6 +237,8 @@ class Room:
         state = self.phase.state
         if not state.history or not isinstance(state.phase, (sim.ResultPhase, sim.EndedPhase)):
             return None
+        if isinstance(state.phase, sim.EndedPhase) and state.phase.ending_label in {"host_ended", "total_timeout"}:
+            return None
         if isinstance(state.phase, sim.ResultPhase) and now >= state.phase.not_before:
             return None
         record = state.history[-1]
@@ -232,16 +253,44 @@ class Room:
             assignments = {item.member_id: item for item in phase.assignments}
             electorate = phase.electorate
             current = None
-            if isinstance(state.phase, sim.DecisionPhase):
+            if isinstance(state.phase, (sim.DecisionPhase, sim.ReadingPhase, sim.SpeakingPhase,
+                                        sim.DiscussionPhase, sim.VotingPhase, sim.TiePhase)):
                 node = sim.current_node(state)
                 current = CurrentNode(node.node_id, node.title, sim.render(node.inject, state.facts),
                                       node.study_questions, tuple(VisibleOption(option.option_id, option.label) for option in node.options))
+            actions = []
+            if not isinstance(state.phase, sim.EndedPhase):
+                if caller.member_id == self.host_member_id:
+                    actions.append("end")
+                if isinstance(state.phase, sim.SpeakingPhase):
+                    if caller.member_id == state.phase.order[state.phase.index]:
+                        actions.append("finish_speaking")
+                    if caller.member_id == self.host_member_id:
+                        actions.append("skip_speaker")
+                if isinstance(state.phase, sim.VotingPhase) and caller.member_id in electorate:
+                    actions.append("vote")
+                if isinstance(state.phase, sim.TiePhase):
+                    if assignments[caller.member_id].role_id == "ceo":
+                        actions.append("tie_decision")
+                    ceo = next(item.member_id for item in phase.assignments if item.role_id == "ceo")
+                    ceo_seat = next(item for item in self.members.values() if item.member_id == ceo)
+                    if caller.member_id == self.host_member_id and not active(ceo_seat, now):
+                        actions.append("reassign_ceo")
+            due = gameplay.deadline(state)
             game = GameSnapshot(
                 state.phase.kind, state.phase.phase_id, state.round_id, state.round_number, state.started_at,
                 identity(state), state.timing.profile_id, state.timing.briefing_seconds, state.timing.result_seconds,
                 state.scenario.initial_node_id, state.facts, state.scenario.public_documents, electorate, current,
                 state.history, state.history[-1] if state.history else None,
                 state.phase.ending_label if isinstance(state.phase, sim.EndedPhase) else None, self.narration(now),
+                gameplay.at(state, now), gameplay.at(state, due) if due is not None else None,
+                gameplay.at(state, state.session_deadline) if state.session_deadline is not None else None,
+                state.phase.order[state.phase.index] if isinstance(state.phase, sim.SpeakingPhase) else None,
+                state.phase.order if isinstance(state.phase, sim.SpeakingPhase) else (),
+                dict(state.ballots).get(caller.member_id),
+                None if isinstance(state.phase, sim.VotingPhase) else state.last_tally,
+                state.phase.leaders if isinstance(state.phase, sim.TiePhase) else (), tuple(actions),
+                state.turns, state.ceo_changes, state.ended_at,
             )
         members = []
         for seat in self.members.values():
@@ -256,14 +305,122 @@ class Room:
 
 
 class Rooms:
-    def __init__(self, catalog: ScenarioCatalog, clock: Callable[[], float] = time.monotonic):
+    def __init__(self, catalog: ScenarioCatalog, clock: Callable[[], float] = time.monotonic,
+                 *, automatic: bool = True):
         self.catalog, self.clock = catalog, clock
+        self.automatic = automatic
         self.sessions: set[str] = set()
         self.rooms: dict[UUID, Room] = {}
         self.codes: dict[str, UUID] = {}
         self.receipts: dict[tuple[str, UUID], tuple[tuple, RoomSnapshot | Contribution]] = {}
         self.internal_receipts: dict[tuple[UUID, UUID], tuple[tuple, sim.Game]] = {}
         self.creation_lock = asyncio.Lock()
+
+    def reconcile(self, room: Room, now: float) -> None:
+        if not self.automatic or not isinstance(room.phase, StartedGame):
+            return
+        phase = room.phase
+        seen = {seat.member_id: seat.last_seen for seat in room.members.values()}
+        roster = tuple((item.member_id, item.eligible_from_round, seen[item.member_id])
+                       for item in phase.assignments)
+        evidence = tuple((item.contribution_id, item.round_id) for item in room.contributions)
+        state = gameplay.reconcile(phase.state, now, roster, evidence)
+        if state is not phase.state:
+            electorate = tuple(item.member_id for item in phase.assignments
+                               if item.eligible_from_round <= state.round_number)
+            room.phase = replace(phase, state=state, electorate=electorate)
+            room.version += 1
+
+    async def tick(self) -> None:
+        for room in tuple(self.rooms.values()):
+            async with room.lock:
+                self.reconcile(room, self.clock())
+
+    async def play(self, session: str, room_id: UUID, command_id: UUID, phase_id: UUID,
+                   round_id: UUID | None, action: str, value: str | UUID | None = None) -> RoomSnapshot:
+        room = self.require_room(room_id)
+        intent = (action, room_id, phase_id, round_id, value)
+        async with room.lock:
+            caller = room.member(session)
+            now = self.clock()
+            self.reconcile(room, now)
+            if previous := self.retry(session, command_id, intent):
+                room.touch(session, now)
+                return previous
+            if not isinstance(room.phase, StartedGame):
+                raise RoomError(409, "not_started", "Start this room first")
+            group, state = room.phase, room.phase.state
+            phase = state.phase
+            if isinstance(phase, sim.EndedPhase):
+                raise RoomError(409, "game_ended", "Gameplay is already complete")
+            if phase.phase_id != phase_id or (round_id is not None and round_id != state.round_id):
+                raise RoomError(409, "stale_phase", "Refresh the room before submitting")
+            if not self.automatic:
+                raise RoomError(409, "internal_fixture", "This fixture does not run timed gameplay")
+            assignments = group.assignments
+            if action == "end":
+                if caller.member_id != room.host_member_id:
+                    raise RoomError(403, "host_required", "Only the host can end the meeting")
+                state = gameplay.end(state, now, "host_ended")
+            elif action in {"finish", "skip"}:
+                if not isinstance(phase, sim.SpeakingPhase):
+                    raise RoomError(409, "not_speaking", "There is no active speaker")
+                speaker = phase.order[phase.index]
+                if action == "finish" and caller.member_id != speaker:
+                    raise RoomError(403, "speaker_required", "Only the active speaker can finish")
+                if action == "skip" and caller.member_id != room.host_member_id:
+                    raise RoomError(403, "host_required", "Only the host can skip a speaker")
+                seen = {seat.member_id: seat.last_seen for seat in room.members.values()}
+                state = gameplay.next_speaker(state, now, seen,
+                                              f"host_skip: {value}" if action == "skip" else "finished",
+                                              caller.member_id)
+            elif action == "vote":
+                if not isinstance(phase, sim.VotingPhase):
+                    raise RoomError(409, "not_voting", "Voting is not open")
+                if caller.member_id not in group.electorate:
+                    raise RoomError(403, "not_eligible", "Participation begins next round")
+                if value not in {option.option_id for option in sim.current_node(state).options}:
+                    raise RoomError(422, "invalid_option", "Choose a current prepared option")
+                ballots = dict(state.ballots)
+                ballots[caller.member_id] = value
+                state = replace(state, ballots=tuple(ballots.items()))
+            elif action == "tie_decision":
+                if not isinstance(phase, sim.TiePhase):
+                    raise RoomError(409, "not_tied", "There is no pending CEO decision")
+                ceo = next(item.member_id for item in assignments if item.role_id == "ceo")
+                if caller.member_id != ceo:
+                    raise RoomError(403, "ceo_required", "Only the current CEO can decide a tie")
+                if value not in phase.leaders:
+                    raise RoomError(422, "not_a_leader", "Choose one of the tied leaders")
+                evidence = tuple(item.contribution_id for item in room.contributions if item.round_id == state.round_id)
+                state = gameplay.resolve(state, now, value, evidence, "ceo")
+            elif action == "reassign_ceo":
+                if not isinstance(phase, sim.TiePhase):
+                    raise RoomError(409, "not_tied", "CEO reassignment is limited to an active tie")
+                if caller.member_id != room.host_member_id:
+                    raise RoomError(403, "host_required", "Only the host can reassign the CEO")
+                previous = next(item for item in assignments if item.role_id == "ceo")
+                old_seat = next(seat for seat in room.members.values() if seat.member_id == previous.member_id)
+                if previous.member_id == caller.member_id or active(old_seat, now):
+                    raise RoomError(409, "ceo_connected", "The current CEO is still connected")
+                target = next((item for item in assignments if item.member_id == value), None)
+                target_seat = next((seat for seat in room.members.values() if seat.member_id == value), None)
+                if target is None or value not in group.electorate or not (
+                    value == caller.member_id or target_seat is not None and active(target_seat, now)
+                ):
+                    raise RoomError(422, "invalid_ceo", "Choose a connected eligible member")
+                assignments = tuple(replace(item, role_id="ceo" if item.member_id == value else target.role_id)
+                                    if item.member_id in (value, previous.member_id) else item for item in assignments)
+                change = sim.CeoChange(state.round_id, previous.member_id, value, caller.member_id, gameplay.at(state, now))
+                state = replace(state, ceo_changes=state.ceo_changes + (change,))
+            else:
+                raise RoomError(422, "invalid_action", "Unknown gameplay command")
+            room.phase = replace(group, state=state, assignments=assignments)
+            room.version += 1
+            room.touch(session, now)
+            view = room.snapshot(session, now)
+            self.receipts[(session, command_id)] = (intent, view)
+            return view
 
     def session(self, cookie: str | None) -> str:
         if cookie in self.sessions:
@@ -297,6 +454,7 @@ class Rooms:
             if previous := self.retry(session, command_id, intent):
                 room = self.require_room(previous.room_id)
                 async with room.lock:
+                    self.reconcile(room, self.clock())
                     room.touch(session, self.clock())
                 return previous
             if room_code in self.codes:
@@ -318,6 +476,7 @@ class Rooms:
             raise RoomError(404, "room_not_found", "Room code was not found")
         room = self.rooms[room_id]
         async with room.lock:
+            self.reconcile(room, self.clock())
             if previous := self.retry(session, command_id, intent):
                 room.touch(session, self.clock())
                 return previous
@@ -371,6 +530,7 @@ class Rooms:
             caller = room.member(session)
             if caller.member_id != room.host_member_id:
                 raise RoomError(403, "host_required", "Only the room host can start")
+            self.reconcile(room, self.clock())
             if previous := self.retry(session, command_id, intent):
                 room.touch(session, self.clock())
                 return previous
@@ -401,6 +561,8 @@ class Rooms:
             phase = StartedGame(sim.initialize(scenario, timing, now, utc_now(), uuid4(), uuid4()), tuple(
                 Assignment(seat.member_id, roles[seat.member_id], 1) for seat in room.members.values()
             ), tuple(seat.member_id for seat in room.members.values()))
+            if self.automatic:
+                phase = replace(phase, state=replace(phase.state, session_deadline=now + timing.session_seconds))
             candidate = replace(room, phase=phase, version=room.version + 1,
                                 members={**room.members, session: replace(caller, last_seen=now)})
             view = candidate.snapshot(session, now)
@@ -413,6 +575,7 @@ class Rooms:
         async with room.lock:
             room.member(session)
             now = self.clock()
+            self.reconcile(room, now)
             room.touch(session, now)
             return room.snapshot(session, now)
 
@@ -452,6 +615,7 @@ class Rooms:
         intent = ("contribute", room_id, phase_id, kind, source, text)
         async with room.lock:
             member = room.member(session)
+            self.reconcile(room, self.clock())
             if previous := self.retry(session, command_id, intent):
                 room.touch(session, self.clock())
                 return previous
@@ -466,7 +630,7 @@ class Rooms:
                 raise RoomError(422, "invalid_contribution", "Choose an allowed contribution kind and source")
             if not isinstance(text, str) or not text.strip() or len(text) > 4000:
                 raise RoomError(422, "invalid_contribution", "Submit 1 to 4000 characters of final text")
-            if kind == "answer" and (state is None or not isinstance(state.phase, sim.DecisionPhase) or member.member_id not in game.electorate):
+            if kind == "answer" and (state is None or not isinstance(state.phase, (sim.DecisionPhase, sim.SpeakingPhase, sim.DiscussionPhase)) or member.member_id not in game.electorate):
                 raise RoomError(403, "answer_not_allowed", "Answers require current round eligibility")
             assigned = next((item for item in game.assignments if item.member_id == member.member_id), None) if game else None
             record = Contribution(uuid4(), len(room.contributions) + 1, member.member_id,
@@ -484,12 +648,14 @@ class Rooms:
         room = self.require_room(room_id)
         async with room.lock:
             room.member(session)
+            self.reconcile(room, self.clock())
             return room.contributions
 
     async def evaluation_evidence(self, session: str, room_id: UUID) -> EvaluationEvidence:
         room = self.require_room(room_id)
         async with room.lock:
             room.member(session)
+            self.reconcile(room, self.clock())
             if not isinstance(room.phase, StartedGame) or not isinstance(room.phase.state.phase, sim.EndedPhase):
                 raise RoomError(409, "evidence_not_final", "Final evaluation evidence is available after ending")
             game, state = room.phase, room.phase.state
@@ -497,14 +663,15 @@ class Rooms:
             members = tuple(EvidenceMember(seat.member_id, seat.display_name, roles[seat.member_id].role_id,
                                            roles[seat.member_id].eligible_from_round, seat.joined_at)
                             for seat in room.members.values())
-            return EvaluationEvidence(room.room_id, identity(state), state.started_at, state.history[-1].resolved_at,
+            return EvaluationEvidence(room.room_id, identity(state), state.started_at, state.ended_at,
                                       state.phase.ending_label, members, state.scenario.public_documents,
-                                      state.history, room.contributions)
+                                      state.history, room.contributions, state.turns, state.ceo_changes)
 
     async def narration(self, session: str, room_id: UUID, narration_id: UUID) -> NarrationGrant:
         room = self.require_room(room_id)
         async with room.lock:
             member = room.member(session)
+            self.reconcile(room, self.clock())
             caption = room.narration(self.clock())
             if caption is None or caption.narration_id != narration_id:
                 raise RoomError(410, "narration_expired", "This narration is not current")

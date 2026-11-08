@@ -410,6 +410,76 @@ class GameplayTests(unittest.IsolatedAsyncioTestCase):
         expired = await self.clients[0].get(self.path + '/narration/' + narration_id)
         self.assertEqual(expired.status_code, 410)
 
+    async def test_chat_survives_every_gameplay_phase_and_retries_after_ending(self):
+        view = await self.ready()
+        expected, intents = [], []
+
+        async def chat(current):
+            body = command(phase_id=current['game']['phase_id'], kind='chat',
+                           source='typed', text='Discussion during ' + current['phase'])
+            response = await self.clients[2].post(self.path + '/contributions', json=body)
+            self.assertEqual(response.status_code, 201, response.text)
+            record = response.json()
+            self.assertEqual(record['phase'], current['phase'])
+            self.assertEqual(record['member_id'], self.ids[2])
+            self.assertEqual(record['role_id'], 'security')
+            self.assertEqual(record['round_id'], current['game']['round_id'])
+            expected.append(record)
+            intents.append((body, record))
+
+        await chat(view)
+        reading = await self.reach('reading')
+        await chat(reading)
+        speaking = await self.reach('speaking')
+        await chat(speaking)
+        for index in range(3):
+            speaking = await self.action(index, speaking, 'speaker/finish')
+        self.assertEqual(speaking['phase'], 'discussion')
+        await chat(speaking)
+        voting = await self.reach('voting')
+        await chat(voting)
+        options = voting['game']['current_node']['options']
+        await self.action(0, voting, 'vote', option_id=options[0]['option_id'])
+        await self.action(1, voting, 'vote', option_id=options[1]['option_id'])
+        tied = await self.advance(60)
+        self.assertEqual(tied['phase'], 'tie_break')
+        await chat(tied)
+        result = await self.action(1, tied, 'tie-decision', option_id=options[0]['option_id'])
+        await chat(result)
+        self.assertEqual(set(result['game']['last_result']['contribution_ids']),
+                         {item['contribution_id'] for item in expected[:-1]})
+        self.assertEqual(sum(result['game']['vote_counts'].values()), 2)
+
+        await self.advance(30)
+        speaking = await self.reach('speaking')
+        proposal = await self.action(0, speaking, 'proposal', text='Preserve the original logs.')
+        expected.append((await self.clients[0].get(self.path + '/contributions')).json()[-1])
+        option_id = proposal['game']['proposals'][0]['option_id']
+        voting = await self.reach('voting')
+        await self.action(0, voting, 'vote', option_id=option_id)
+        resolving = await self.advance(60)
+        self.assertEqual(resolving['phase'], 'resolving')
+        await chat(resolving)
+        failed = await self.advance(15)
+        self.assertEqual(failed['phase'], 'resolution_failed')
+        await chat(failed)
+
+        ended = await self.clients[0].post(self.path + '/end', json=command(
+            phase_id=failed['game']['phase_id']))
+        self.assertEqual(ended.status_code, 200, ended.text)
+        frozen = (await self.clients[0].get(self.path + '/evaluation-evidence')).json()
+        self.assertEqual(frozen['contributions'], expected)
+        for body, original in intents:
+            recovered = await self.clients[2].post(self.path + '/contributions', json=body)
+            self.assertEqual(recovered.status_code, 201, recovered.text)
+            self.assertEqual(recovered.json(), original)
+        rejected = await self.clients[2].post(self.path + '/contributions', json=command(
+            phase_id=ended.json()['game']['phase_id'], kind='chat', source='typed', text='Too late'))
+        self.assertEqual(rejected.status_code, 409)
+        self.assertEqual(rejected.json()['detail']['code'], 'game_ended')
+        self.assertEqual((await self.clients[1].get(self.path + '/contributions')).json(), expected)
+        self.assertEqual((await self.clients[1].get(self.path + '/evaluation-evidence')).json(), frozen)
+
 
 if __name__ == '__main__':
     unittest.main()

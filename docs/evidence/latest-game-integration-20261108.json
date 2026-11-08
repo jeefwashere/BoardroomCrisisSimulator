@@ -1,0 +1,82 @@
+{
+  "source_base": "849c6f13f7dab11d6c4f29b044d6a09941f79bf8",
+  "checks": {
+    "frontend_build": "pass",
+    "frontend_lint": "pass",
+    "frontend_tests": 89,
+    "backend_tests": 139,
+    "existing_python_tests": 31,
+    "pip_check": "pass",
+    "offline_demos": [
+      "authored prototype",
+      "internal narrative HTTP",
+      "prepared gameplay TCP HTTP"
+    ],
+    "narration_player": {
+      "tests": 7,
+      "source_unchanged_from_prior_checked_version": true
+    },
+    "ffmpeg_version": "7.1.1"
+  },
+  "actual_browser": {
+    "one_context": true,
+    "initial_independent_tabs": 3,
+    "late_observer": true,
+    "final_members": 4,
+    "prepared_rounds": 3,
+    "ending": "controlled_recovery_plan",
+    "history_selection_methods": [
+      "ceo",
+      "vote",
+      "vote"
+    ],
+    "positive_tie_counts": [
+      1,
+      1
+    ],
+    "finished_turns": 11,
+    "attributed_records": 16,
+    "all_four_tabs_same_ordered_records": true,
+    "same_seat_vote_and_final_refresh": true,
+    "ballot_privacy": true,
+    "lobby_to_voting_draft_preserved": true,
+    "ended_compose_present": false,
+    "feedback_status": "disabled",
+    "factual_history_visible": true,
+    "recorded_ballot_totals_readable": [
+      2,
+      4
+    ],
+    "desktop_mobile390_visually_inspected": true,
+    "horizontal_overflow": false,
+    "custom_action_control_preserved_without_product_character_cap": true
+  },
+  "clock": {
+    "type": "Isolated local file controlled monotonic clock",
+    "step_seconds": 5,
+    "all_members_refreshed_before_each_next_step": true,
+    "authored_durations_unchanged": true,
+    "public_test_routes": false,
+    "human_duration_trial": false
+  },
+  "boundaries": [
+    "No microphone, speech provider, paid call or model inference in this acceptance",
+    "Prepared gameplay only; latest custom AI, rubric and live voice acceptance retain their prior evidence",
+    "Room storage is process memory; refresh recovery does not imply restart recovery",
+    "Existing live5173 and8000 services untouched",
+    "Earlier superseded candidate evidence remains separate"
+  ],
+  "cleanup": {
+    "owned_targets_closed": 4,
+    "target_absence_verified": true,
+    "exact_managed_lease_released": true,
+    "managed_browser_stopped": true,
+    "disposable_api18005_and_vite4181_stopped": true
+  },
+  "reviewed_screenshots_sha256": {
+    "ceo-tie.png": "689f780f36dc47877a0d3be84e26b4ff5ad1444cca4319d6d65b4d59349cc997",
+    "result-chat.png": "9b27e2abfb197016d499f85991436336efdae0d6a12e4bc4894403b22c177bdd",
+    "ended-chat.png": "6ba8b68dd87002d92587ab08171902ae96851d6baccc5a0aecae40f00ce33f79",
+    "ended-mobile.png": "dda37157220db97f1a2ff6287f88946c40e01035db05cd6bf5e8e7989dd7f6a6"
+  }
+}

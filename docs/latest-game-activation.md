@@ -1,0 +1,21 @@
+# Latest game integration and local activation
+
+The user authorized reviewing PR 22, integrating it with complete room chat, verifying the prepared game and rebuilding locally. During the run, the independent full game delivery advanced and merged as `c464478`; its merge record followed as `849c6f1`. The earlier isolated `e119271` candidate was stopped without publication. Its browser checks are preserved locally and do not count as acceptance of latest main.
+
+This unit starts from `849c6f1` and preserves its custom proposal resolution, original audio pipeline and rubric assessment. The only product changes unify discussion in the existing stable RoomChat panel and replace raw option IDs in result or ended vote counts with the complete recorded ballot total when labels are unavailable. Actual option labels remain visible when supplied. No dependency or scenario changes are required.
+
+## Independent checks
+
+Clean frontend install, build, lint and 89 tests pass. The current backend suite passes 139 tests, including a new regression for chat across briefing, reading, speaking, discussion, voting, tie, result, custom resolution and failed resolution. It checks server attribution, complete retained evidence, unchanged ballots, exact receipts after ending and rejection of new ended writes. The independent latest source review found no blocker in custom option freezing, operation deadline and retry limit, callback identity checks or complete rubric excerpts.
+
+The 31 existing Python tests, updated authored prototype demo, internal narrative HTTP demo, prepared gameplay TCP HTTP demo and backend package consistency pass. Narration player sources are byte unchanged from the previously checked seven test suite. ffmpeg 7.1.1 is available. The actual TCP prepared fixture completed three rounds with four members, a CEO tie, next round admission, resumed identity, nine answers and eleven turns.
+
+Actual latest source acceptance used three independent tabs in one Chrome context plus a fourth next round observer. All clients completed three prepared rounds, with a positive 1:1 CEO tie followed by two four vote decisions, eleven finished speaking turns and sixteen retained records. A host refresh retained its seat and ballot; a final refresh retained the ending and all records. The draft survived lobby through voting. Counts stayed hidden during voting, all four clients ended with matching history and ordered records, the composer disappeared and the disabled model retained a factual report. The current custom action control remains present without a product character cap. Desktop and 390 pixel mobile screenshots were visually inspected with no horizontal overflow. The exact browser targets, lease, managed process and disposable servers were cleaned up. See [sanitized current evidence](evidence/latest-game-integration-20261108.json). Local activation follows reviewed publication.
+
+## Evidence boundaries
+
+Current browser acceptance uses independent player tabs, real frontend and backend HTTP, and a local file controlled server clock. It adds no public clock route and does not change scenario durations. This is a game flow check, not an eighteen minute human session.
+
+TTS, STT and hosted models are disabled in this unit's disposable acceptance services. No paid provider or hosted model call is repeated. The earlier published actual LFM and ElevenLabs evidence retains its own synthetic spoken MediaStream and controlled timing boundary in [the full game report](full-game-integration.md). Physical microphone hardware, human duration acceptance, game WebSockets, cloud deployment and durable room recovery remain separate.
+
+Shared activation requires a backend restart and therefore resets existing memory test rooms. Voice defaults off. Existing hosted model settings remain on the backend; no credentials are printed or delivered to browsers. Original recording files do not establish recovery of room authority after restart.

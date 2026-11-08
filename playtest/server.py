@@ -121,6 +121,10 @@ def create_app(engine=None, provider=None, speech=None, port=8788, recordings=No
     def preparation_script():
         return FileResponse(STATIC / 'preparation.js')
 
+    @app.get('/four-round-ui.js')
+    def four_round_ui_js():
+        return FileResponse(STATIC / 'four-round-ui.js')
+
     @app.get('/roundtable.css')
     def roundtable_style():
         return FileResponse(STATIC / 'roundtable.css')

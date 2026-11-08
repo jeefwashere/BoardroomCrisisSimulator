@@ -10,9 +10,10 @@ import uuid
 from .engine import RuleError, SCENARIO, bounded_text, require
 from .roundtable_scenario import DECISION
 from .round_one import RoundOne, EXPERTS
+from .four_rounds import FourRounds
 
 
-class Roundtable(RoundOne):
+class Roundtable(RoundOne, FourRounds):
     """An ephemeral meeting whose membership tokens never enter public snapshots."""
 
     DURATIONS = {'preparation': 30, 'discussion': 300, 'consultation': 60}
@@ -121,6 +122,10 @@ class Roundtable(RoundOne):
             blockers.append('All joined participants must be connected.')
         if any(not member['ready'] for member in room['members'].values()):
             blockers.append('All participants must mark themselves ready.')
+        if self.is_four_rounds(room) and len(room['members']) != 3:
+            blockers.append('This four round beta uses exactly three members.')
+        if self.is_four_rounds(room) and [d['id'] for d in room['documents']] != ['T01']:
+            blockers.append('This four round beta uses the included T01 incident report only.')
         if not room['documents_ready'] or not room['documents']:
             blockers.append('Selected documents must finish indexing.')
         if sum(member['role'] == 'ceo' for member in room['members'].values()) != 1:
@@ -130,7 +135,7 @@ class Roundtable(RoundOne):
     def join(self, name, code=None, token=None, role=None, flow=None):
         with self.lock:
             name = bounded_text(name, 40)
-            require(flow in (None, "legacy", "board_round1"), "Unknown meeting flow", 422)
+            require(flow in (None, "legacy", "board_round1", "four_rounds"), "Unknown meeting flow", 422)
             if isinstance(token, str) and token in self.identities:
                 old_code, _ = self.identities[token]
                 require(code in (None, old_code), 'Membership belongs to another room', 403)
@@ -242,6 +247,8 @@ class Roundtable(RoundOne):
             for target, role in roles.items():
                 room['members'][target].update(role=role, ready=False)
             self.event(room, 'roles_assigned', member=mid, roles=deepcopy(roles))
+            return
+        if self.four_round_command(room, mid, action, data):
             return
         if self.round_one_command(room, mid, action, data):
             return
@@ -441,6 +448,7 @@ class Roundtable(RoundOne):
             'electorate', 'documents', 'documents_ready', 'transcript', 'summary', 'decision_prompts',
             'history', 'suggestions', 'speaker', 'turn_index', 'turn_number', 'active_stream', 'flow')}
         public.update(self.round_one_snapshot(room, mid))
+        public.update(self.four_round_snapshot(room, mid))
         public.update(me=mid, ceo=self._ceo(room), fixed_scenario=self._fixed_scenario(room), server_time=self.clock(), roles=deepcopy(self.roles),
                       recording_policy=self.RECORDING_POLICY, speaking=list(room['electorate']) if room['phase'] == 'discussion' else [])
         lease = room.get('active_audio')

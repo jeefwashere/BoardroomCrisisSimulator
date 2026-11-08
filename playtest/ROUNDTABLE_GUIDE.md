@@ -1,70 +1,64 @@
-# Test Round 1 in one window
+# Test all four rounds in one window
 
-Open [the local meeting](http://127.0.0.1:8788/roundtable). The new default is Round 1 of [the four round design](FOUR_ROUND_DESIGN.md). One PDF, **Service outage and unavailable director**, loads automatically. It describes fictional Cedar Bridge Community Services, not MapleCart.
+Open [the local meeting](http://127.0.0.1:8788/roundtable) and create a new room. The attached report is **Service outage and unavailable director**, about fictional Cedar Bridge Community Services. [The AI workflow](FOUR_ROUND_WORKFLOW.md) explains Gemini, ElevenLabs and document memory; [the report](FOUR_ROUND_REPORT.md) records verification and limitations.
 
-## Start and hear the preparation agent
+## Start and choose the test mode
 
-1. Refresh the page and click **Load 3 test participants**. Alex, Morgan and Sam receive separate memberships. Alex starts as CEO.
-2. Click **CEO: Start meeting**. The preparation agent still opens the meeting. Gemma retrieves the report passages, Gemini introduces the situation, and ElevenLabs streams the speech while text appears.
-3. After 30 seconds, participant discussion opens. If the browser blocks sound, use **Resume audio**. **Stop agent** cancels output. Uncheck **Speak with ElevenLabs** for text only.
+1. Refresh and click **Load 3 test participants**. Alex, Morgan and Sam have separate memberships. Alex is CEO.
+2. Keep **Beta test mode** checked for fixed questions matching the saved answers. To test adaptive Gemini questions, the CEO unchecks it before Start. The setting cannot change during the exercise.
+3. Keep **Speak with ElevenLabs** on for live speech, or turn it off for text only. Saved human MP3 clips are separate and optional.
+4. Click **CEO: Start meeting** when the three members and PDF are ready. The live preparation agent introduces the report. After 30 seconds, discussion begins. Use **Resume audio** if the browser blocks sound.
 
-The selected PDF and all members must be ready before Start. Loading the report or test seats makes no paid generation request. **Preview introduction** is an optional additional live request.
+The new browser flow is `four_rounds`. Existing rooms created in the older Round 1 or ballot experiment retain their old flow; create a fresh room to test this update.
 
-## Discuss using nine manual recorded turns
+## Round 1: shared discussion and individual decisions
 
-Each participant has three scripted turns. Click the current speaker's **Play this participant’s saved clip**, wait for it to finish, then click **Commit caption and pass**. Playback alone does not submit text or pass the turn. **Stop** discards the playback without committing.
+Play the current speaker's saved discussion clip, wait for completion, then choose **Commit caption and pass**. There are nine distinct discussion turns, three per participant. Playback alone does not submit or pass. You can stop, type your own contribution, or explicitly record, transcribe and review microphone input.
 
-The first seven clips discuss leadership, recovery uncertainty, community appointments and communication. The revised final two clips ask for expert perspectives and prepare each member to write their own response. They no longer tell participants to cast a winning board ballot. These are labelled fictional recordings, not live agent replies or real member speech.
+After the clips, the CEO can finish discussion early. The five minute discussion also ends automatically. The IT/security, operations/community services and governance/finance experts respond live in sequence. Wait for all three; use **CEO: Hear next expert** if a request fails. Then select **CEO: Begin individual decisions**.
 
-After turn nine, the script does not repeat. Continue typing or use **CEO: Finish discussion** to proceed. The discussion also ends automatically at five minutes. **Next participant** passes the floor without committing a recording.
+Select each member. In **Saved answer for this turn**, play that person's decision clip. After it finishes, choose **Review this answer as a draft**. Review the four fields, check the confirmation box and submit the individual decision. You can write your own action, reasoning, evidence and unknowns instead. Repeat for all three members.
 
-Typed contributions and explicit microphone transcription remain available under **Type or record your own contribution**. Record locally, stop, request transcription, correct the provisional text, then separately commit. There is no continuous microphone capture.
+Select the CEO and choose **CEO: Start private sessions**. There is no group winning ballot, CEO override or scoring in this first round.
 
-## Hear three experts respond to the discussion
+## Round 2: one member and one crisis coach
 
-After discussion, three live perspectives run in sequence in the CEO's window:
+Select Alex. Their private coach introduces the unavailable IT specialist and asks one question. Only Alex's original decision and private history are included. The selected member's first agent turn starts automatically; **Continue with my agent** or **Hear my agent again** provides manual control. Failed requests need an explicit retry.
 
-1. **IT / security:** technical facts, uncertainty and verification.
-2. **Operations / community services:** staff, service users, continuity and dependencies.
-3. **Governance / finance:** authority, responsibilities and resources, without invented policies or spending limits.
+1. Read or hear the question.
+2. Play the offered saved human answer, wait, then choose **Review this answer as a draft**. Alternatively type an answer or explicitly record and transcribe your voice.
+3. Review and edit the text. Check **I reviewed this answer** and click **Submit my answer**.
+4. Repeat for the three coaching questions.
+5. Review all seven fields of the generated response card. Correct omissions, check its confirmation box, and choose **Confirm card and begin assessment**.
 
-Each response uses the selected report and recent shared discussion. The current request includes up to eighteen contributions, each bounded to 400 characters. The full transcript remains available separately. The expert cards preserve completed replies and source references for everyone in the room. Streaming sound plays in the requesting browser; this is not a synchronized audio conference across separate browsers.
+Preparation earns no points. A recording never confirms its own text or card. To abandon a sample, use **Use my own answer**; the editable text stays available.
 
-This stage waits for all three completed perspectives. It does not silently advance when a model fails. As CEO, use **CEO: Hear next expert** to retry an incomplete request. Retrying a live provider request may incur a new charge. The completed perspectives are not regenerated automatically.
+## Round 3: the same agent becomes examiner
 
-Then click **CEO: Begin individual decisions**. Members can ask the facilitator during the group session using **Ask selected agent**. AI advice cannot submit a decision or award points.
+The transition is announced before the first assessment question. The same member and agent continue; no other expert joins.
 
-## Each member submits their own decision
+Answer the three stages with the corresponding saved clip or your own reviewed answer. The questions ask you to explain the response, adapt to a delayed provider, then give a final instruction. Confirm and submit each answer separately. Gemini assesses the submitted evidence and the server displays cumulative points, with maxima of 30, 40 and 30.
 
-Select a participant card. Fill in all four fields:
+Detailed feedback stays hidden until that member completes all three stages. A failed scoring call preserves the answer; use **Score submitted answer and continue** or the retry button. A completed member waits for the others.
 
-1. **I would do this:** your proposed action.
-2. **For these reasons:** why you chose it.
-3. **Using this information:** evidence from the report, discussion or expert advice. Distinguish suggestions from verified facts.
-4. **I still need to establish:** unknowns and assumptions to check.
+Switch to Morgan and then Sam to complete their coaching and assessment. In one window these are separate selected identities; in independent participant browsers sessions can progress at the same time. Do not expect one member's decisions to alter another branch.
 
-Check the confirmation box, then click **Submit my individual decision**. Repeat under each of the three test memberships. Each member may revise their own response until Round 1 closes. Fields are saved as drafts while switching test seats in the same page; unsubmitted drafts are not durable across a reload.
+## Round 4: reunion, evidence review and winner
 
-For spoken answers, expand **Speak your decision instead**, choose the target field, click **Record answer**, then **Stop recording** and **Transcribe and review**. Correct the text before confirming and submitting. Neither recording nor transcription submits a decision.
+When all three finish, the shared reunion opens. Select the CEO to hear the live summary. It compares separate approaches, shows scores with supporting quotes, and identifies strengths and improvements.
 
-There is no winning vote, CEO override, score or leaderboard in this Round 1 mode. The CEO sees submission status but cannot write another member's response through their own membership. The single window test view explicitly holds three separate memberships so you can test all three yourself. Separate participant browsers receive only their own decision content.
+1. Select each member and inspect their stage evidence.
+2. To flag an overlooked passage, choose its stage and copy an exact quote from that member's existing Round 3 answer into the review field. Submit the review request. A new argument cannot earn points. A failed review can be retried with the same quote or withdrawn.
+3. Use either of the two offered reunion clips per member as an optional reflection, or write your own. Play, load the editable draft, then separately submit the reflection. Reflections add no points.
+4. Each member clicks **I have reviewed my results** after any correction finishes. A correction requires an updated reunion summary.
+5. Select the CEO and click **CEO: Announce final winner** once enabled. Highest final Round 3 score wins; equal highest scores are joint winners.
 
-## Finish and inspect the saved context
+## Records, speech and practical limits
 
-After all members submit, select the CEO and click **CEO: Complete Round 1**. Individual responses then become read only.
+**Export written record** contains the current member's private session and, once reunited, the shared branch comparison. **Export my preparation context** preserves the caller's Round 1 context. Other members' private answers are hidden before reunion. The single window testing bundle intentionally lets you select all three memberships.
 
-Select a member and click **Export my preparation context**. The export contains the selected documents, opening preparation, shared discussion, expert perspectives, that member's contributions and their own individual decision. Other members' individual decisions are excluded. No private coaching agent starts yet.
+There are 36 current exercise clips: nine discussion turns, three decisions, nine coaching answers, nine assessment answers and six reflections. They are fictional human fixtures. All AI responses use the live workflow, with canonical beta questions supplied by the server. Fixed question order improves repeatability; live wording and scoring can still vary.
 
-**Export written record** also saves the shared transcript and current member's decision. The right panel keeps quote based AI minutes alongside the full transcript. Minutes can be partial or stale and are labelled accordingly.
+The prototype enforces three members and the included T01 report. It has a 30 second opening, up to five minutes of discussion and explicit completion gates thereafter; it does not force the complete exercise into 15 minutes. Rooms are in memory and disappear on server restart. Export before restarting. Audio plays in the requesting browser, not as a synchronized call across separate browsers.
 
-## What is implemented and what is planned
-
-Round 1 is implemented. Rounds 2 and 3 remain planned private conversations with one coach becoming the examiner. Round 4 reunion, assessment scores, appeals and winner announcement are also planned. No twist is released during this group round, and no score is fabricated.
-
-The full design proposes a 15 minute exercise. This prototype keeps the existing 30 second opening and up to five minutes of discussion, then waits for experts and individual submissions. It does not enforce a five minute total for Round 1 yet.
-
-The earlier CEO custom ballot experiment remains in the backend under `flow: legacy`. New browser rooms explicitly use `flow: board_round1`. The old voting recordings remain on disk and are not played in the new flow.
-
-The application is local, uses test memberships, and stores rooms in process memory. Restarting the server loses rooms. Both paid usage ledgers remain unlimited as authorized, with reservations retained. Credentials are never included in exports.
-
-[Implementation and verification](ROUND_ONE_REPORT.md). Repeat the live provider check with `python -m playtest.round_one_benchmark --live`. Browser visuals, human microphone permissions and listening quality still require manual review.
+This page remains localhost only. Browser visuals, human microphone permissions and listening quality need manual review. Run the optional paid HTTP check with `python -m playtest.four_round_benchmark --live`.

@@ -1,5 +1,12 @@
 # Rehearsal implementation progress
 
+## Current X19 four round beta
+
+Working Rounds 2 through 4 now extend the preserved opening and group Round 1. The private coach, response card, same agent examiner, evidence based 100 point assessment, reunion corrections and winner gates are implemented. Beta questions align with 27 new human recordings; switching beta off before Start enables adaptive Gemini follow ups. The current exercise has 36 human clips in total. Read [the workflow](FOUR_ROUND_WORKFLOW.md), [controls](ROUNDTABLE_GUIDE.md) and [verification](FOUR_ROUND_REPORT.md).
+
+Earlier sections below describe historical checkpoints. X19 supersedes their private rounds deferred and legacy ballot default statements. The user approved unlimited ledgers remain intact.
+
+
 Status snapshot: November 7, 2026, updated for task X18. The single window local model experiment is implemented and evaluated. The active test application now routes all text agents and extraction to Gemini 3.8 Flash with LOW reasoning through Google Vertex AI, with no local model fallback. The same fourteen case comparison has completed. The custom proposal round and Vertex speech integration check also passed.
 
 The work is isolated on branch `experiment/ai-voice-playtest` in `/Users/arjunbehl/Developer/CommuniHacks/BoardroomCrisisSimulator-ai-playtest`. It has not been merged into the production application. Existing teammate modules and the shared GPU service are preserved.

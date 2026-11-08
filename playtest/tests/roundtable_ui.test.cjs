@@ -4,12 +4,13 @@ const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),asse
 const {webcrypto}=require('node:crypto');
 const source=fs.readFileSync(path.join(__dirname,'../static/roundtable.js'),'utf8');
 assert(source.includes('async function init()'));
-function harness(){
+function harness(exercise=false){
  const nodes=new Map();
- function node(id){if(!nodes.has(id))nodes.set(id,{textContent:'',value:'',children:[],files:[],pause(){},removeAttribute(name){delete this[name];},play(){return Promise.resolve();},replaceChildren(...children){this.children=children;},append(...children){this.children.push(...children);},prepend(...children){this.children.unshift(...children);},querySelectorAll(q){return this.children.flatMap(c=>[...(q==='button'&&c.onclick?[c]:[]),...(c.querySelectorAll?.(q)||[])]);},click(){}});return nodes.get(id);}
+ function node(id){if(!nodes.has(id)&&typeof id==='string'){const existing=[...nodes.values()].find(n=>n.id===id);if(existing)return existing;}if(!nodes.has(id))nodes.set(id,{textContent:'',value:'',children:[],files:[],pause(){},removeAttribute(name){delete this[name];},play(){return Promise.resolve();},replaceChildren(...children){this.children=children;},append(...children){this.children.push(...children);},prepend(...children){this.children.unshift(...children);},querySelectorAll(q){return this.children.flatMap(c=>[...(q==='button'&&c.onclick?[c]:[]),...(c.querySelectorAll?.(q)||[])]);},click(){}});return nodes.get(id);}
  const ctx=vm.createContext({Blob,AbortController,crypto:webcrypto,console,Date,setInterval(){},setTimeout,clearTimeout,document:{getElementById:node,createElement:()=>node(Symbol())},window:{addEventListener(){}},sessionStorage:{getItem(){return null;},setItem(){}},URL:{createObjectURL(){return 'blob:test';},revokeObjectURL(){}},fetch(){throw Error('Unexpected network request');}});
  const run=s=>vm.runInContext(s,ctx,{timeout:1000});
  run(source.split('async function init()')[0]);
+ if(exercise)run(fs.readFileSync(path.join(__dirname,'../static/four-round-ui.js'),'utf8'));
  run(`bundle={code:'DEMO',test:true,seats:[{name:'A',token:'secret'},{name:'B',token:'b'},{name:'C',token:'c'}]};states=[{code:'DEMO',me:'a',host:'a',ceo:'a',phase:'lobby',speaker:'a',speaking:['a','b','c'],turn_number:1,server_time:100,received:Date.now(),members:[{id:'a',name:'A',role:'ceo',ready:false,connected:true},{id:'b',name:'B',role:'finance',ready:false,connected:true},{id:'c',name:'C',role:'technology',ready:false,connected:true}],can_start:false,start_blockers:['Everyone must be ready'],documents_ready:true,documents:[{id:'doc',title:'Test PDF',pages:2}],transcript:[],summary:{items:[]},decisions:[],jobs:[],suggestions:[]}];render();`);
  return {ctx,run,node};
 }
@@ -214,4 +215,43 @@ test('Round 1 automatically presents three experts without requesting a vote gui
  const {run,ctx}=harness();ctx.calls=[];run(`states[0]={...states[0],flow:'board_round1',phase:'consultation',expert_order:['it','operations','governance'],expert_briefings:{},decision_submissions:[]};startPreparation=async(mode,kind,extra)=>{calls.push(kind);states[0].expert_briefings[kind]={text:kind};};`);
  await run('automaticAgents()');await run('automaticAgents()');await run('automaticAgents()');await run('automaticAgents()');assert.deepEqual([...ctx.calls],['it','operations','governance']);
  run(`states[0].phase='decision';`);await run('automaticAgents()');run(`states[0].phase='ended';`);await run('automaticAgents()');assert.equal(ctx.calls.length,3);
+});
+
+function privateFixture(run,phase='coaching'){
+ run(`loadExerciseClips=async()=>{};states[0]={...states[0],flow:'four_rounds',phase:'private',beta_mode:true,exercise_round:2,expert_order:['it','operations','governance'],expert_briefings:{},decision_submissions:[],private_session:{agent_id:'agent-a',phase:${JSON.stringify(phase)},turn:1,revision:1,prompt:'What would you do next?',history:[],answers:{},scores:{},total:0,busy:false,error:null,appeals:{}},private_progress:[]};render();`);
+}
+test('private UI hides shared controls and does not submit an unchecked answer',async()=>{
+ const {run,node,ctx}=harness(true);privateFixture(run);ctx.commands=[];run(`command=async(action,data,owner)=>commands.push({action,data,owner});$('privateAnswer').value='My own response';`);
+ assert(!node('privatePanel').hidden);assert(node('groupDiscussion').hidden);assert(node('individualPanel').hidden);assert(node('submitPrivate').disabled);assert(node('privateScore').textContent.includes('no points'));
+ await run(`$('submitPrivate').onclick()`);assert.equal(ctx.commands.length,0);
+ run(`$('confirmPrivateAnswer').checked=true;`);await run(`$('submitPrivate').onclick()`);assert.equal(ctx.commands[0].action,'private_answer');assert.equal(ctx.commands[0].data.text,'My own response');assert.equal(ctx.commands[0].data.revision,1);assert.equal(ctx.commands[0].owner.token,'secret');
+ run(`states[0].me='b';states[0].private_session={...states[0].private_session,agent_id:'agent-b'};render();`);assert.equal(node('privateAnswer').value,'');assert(!node('confirmPrivateAnswer').checked);
+});
+test('private card requires review and submits editable fields before assessment',async()=>{
+ const {run,node,ctx}=harness(true);privateFixture(run,'card_review');ctx.commands=[];run(`states[0].private_session.card=Object.fromEntries(exerciseFields.map(k=>[k,'Needs confirmation']));command=async(action,data)=>commands.push({action,data});render();`);
+ assert(!node('responseCard').hidden);assert(node('submitCard').disabled);
+ node('card_review').value='Review in thirty minutes';run(`$('confirmCard').checked=true;`);await run(`$('submitCard').onclick()`);
+ assert.equal(ctx.commands[0].action,'confirm_response_card');assert.equal(ctx.commands[0].data.review,'Review in thirty minutes');
+});
+test('automatic private agent runs once per turn and leaves failures for an explicit retry',async()=>{
+ const {run,ctx}=harness(true);privateFixture(run);ctx.calls=0;run(`states[0].private_session.prompt=null;runExerciseAgent=async()=>{calls++;throw new Error('fixture failure');};`);
+ await run('automaticFourRounds()');await run('automaticFourRounds()');assert.equal(ctx.calls,1);
+ run(`states[0].private_session.revision++;`);await run('automaticFourRounds()');assert.equal(ctx.calls,2);
+});
+test('saved answer playback is separate from draft loading and submission',async()=>{
+ const {run,node,ctx}=harness(true);privateFixture(run);const calls=[];
+ ctx.fetch=async(url,options)=>{calls.push(url);return {ok:true,json:async()=>url.endsWith('/play')?{id:'lease'}:{text:'Recorded sample',lease_id:'lease'},blob:async()=>new Blob(['mp3'])};};
+ run(`fixtureClips=[{id:'sample',duration_seconds:1,text:'Recorded sample'}];$('fixtureSelect').value='sample';refresh=async()=>{};`);
+ const pending=run(`$('playFixture').onclick()`);await new Promise(resolve=>setImmediate(resolve));assert(!calls.some(p=>p.endsWith('/complete')));node('fixtureAudio').onended();await pending;
+ assert.equal(node('privateAnswer').value,'');await run(`$('useFixture').onclick()`);assert.equal(node('privateAnswer').value,'Recorded sample');assert(!node('confirmPrivateAnswer').checked);assert(!calls.some(p=>p.includes('private_answer')));
+});
+
+test('late private transcription cannot overwrite a later assessment question',async()=>{
+ const {ctx,run,node}=harness(true);let release;
+ ctx.fetch=()=>new Promise(r=>release=r);
+ run(`loadExerciseClips=async()=>{};states[0].flow='four_rounds';states[0].phase='private';states[0].private_session={agent_id:'agent-a',phase:'assessment',turn:1,revision:8,prompt:'First question?',history:[],scores:{},total:0,appeals:{},busy:false};clip=new Blob(['wav']);clipOwner={...context(),phase:'private',target:'private',privateRevision:8};health=async()=>{};$('privateAnswer').value='draft';render();`);
+ const pending=run(`$('transcribe').onclick()`);
+ run(`states[0].private_session.revision=9;states[0].private_session.turn=2;render();$('privateAnswer').value='Keep the new answer';`);
+ release({ok:true,json:async()=>({text:'Old transcribed answer'})});await pending;
+ assert.equal(node('privateAnswer').value,'Keep the new answer');
 });

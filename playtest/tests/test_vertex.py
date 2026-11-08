@@ -45,6 +45,13 @@ class VertexTests(unittest.TestCase):
         self.assertEqual(result['usage']['thoughtsTokenCount'], 5)
         self.assertTrue(p.request('/api/status')['verified'])
 
+    def test_private_beta_sampling_is_zero_without_changing_existing_default(self):
+        opener=Opener();provider=VertexModels('test-secret',self.temp.name,opener=opener)
+        provider.run('Return JSON',temperature=0)
+        self.assertEqual(json.loads(opener.requests[-1].data)['generationConfig']['temperature'],0)
+        with self.assertRaises(ValueError):provider.run('Return JSON',temperature=True)
+        self.assertEqual(len(opener.requests),1)
+
     def test_extraction_requires_literal_source_spans_and_does_not_invent_scores(self):
         text = 'Jeff will call IT before 3 PM. Is the backup verified?'
         obj = {'kind': 'mixed', 'spans': [{'label': 'person', 'text': 'Jeff'},

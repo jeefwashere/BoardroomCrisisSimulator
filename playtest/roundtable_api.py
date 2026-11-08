@@ -19,6 +19,7 @@ from .preparation_stream import PreparationStreams
 from .roundtable_recordings import RoundtableRecordings
 from .recordings import RecordingLibrary
 from .decision_prompt import DecisionPrompt
+from .four_round_api import FourRoundService
 
 
 def bearer(request):
@@ -45,6 +46,8 @@ class RoundtableService:
         self.router.include_router(self.recorded_turns.router)
         self.decision_prompt = DecisionPrompt(self, RecordingLibrary())
         self.router.include_router(self.decision_prompt.router)
+        self.exercise = FourRoundService(self)
+        self.router.include_router(self.exercise.router)
 
     def start(self):
         if self.warm_memory:
@@ -347,6 +350,8 @@ class RoundtableService:
             with engine.lock:
                 room, mid = engine.identity(auth)
                 individual = engine.is_round_one(room) and room['phase'] == 'decision'
+                private = engine.is_four_rounds(room) and (room['phase']=='reunion' or (room['phase']=='private' and room['private_sessions'][mid]['phase'] in ('coaching','assessment')))
+                individual = individual or private
                 require((room['phase'] == 'discussion' or individual) and mid in room['electorate'], 'Record during discussion or your individual decision')
                 require(individual or room['speaker'] == mid, 'Wait for your speaking turn', 403)
             payload = await request.body()

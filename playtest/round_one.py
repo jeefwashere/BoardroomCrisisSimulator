@@ -9,7 +9,7 @@ FIELDS = ('action', 'reasoning', 'evidence', 'unknowns')
 class RoundOne:
     @staticmethod
     def is_round_one(room):
-        return room.get('flow') == 'board_round1'
+        return room.get('flow') in ('board_round1','four_rounds')
 
     def round_one_command(self, room, mid, action, data):
         if not self.is_round_one(room):
@@ -29,6 +29,7 @@ class RoundOne:
             card = {field: bounded_text(data.get(field), 1200) for field in FIELDS}
             card.update(member=mid, revision=revision+1, submitted_at=self.clock())
             room['individual_decisions'][mid] = card
+            if self.is_four_rounds(room):self.clear_fixture(room,mid)
             self.event(room, 'individual_decision_submitted', member=mid, revision=revision+1)
             return True
         if action == 'end':
@@ -37,7 +38,10 @@ class RoundOne:
             require(set(room['individual_decisions']) == set(room['electorate']),
                     'Every member must submit their own decision before Round 1 ends', 409)
             self.event(room, 'round_one_completed', member=mid)
-            self._transition(room, 'ended')
+            if self.is_four_rounds(room):
+                self.start_private(room)
+            else:
+                self._transition(room, 'ended')
             return True
         return False
 
@@ -57,14 +61,14 @@ class RoundOne:
             'individual_decision': deepcopy(room['individual_decisions'].get(mid)),
             'decision_submissions': [{'member': person, 'submitted': person in room['individual_decisions']}
                                      for person in room['electorate']],
-            'round_one_complete': room['phase'] == 'ended', 'private_rounds_available': False}
+            'round_one_complete': room['phase'] in ('private','reunion','ended'), 'private_rounds_available': self.is_four_rounds(room)}
 
     def round_one_context(self, token):
         with self.lock:
             room, mid = self.identity(token)
             require(self.is_round_one(room), 'This room does not use the four round design', 409)
-            require(room['phase'] == 'ended', 'Complete Round 1 before exporting the private preparation context', 409)
-            return {'round': 1, 'branch_owner': mid, 'score': None, 'private_session_implemented': False,
+            require(room['phase'] in ('private','reunion','ended'), 'Complete Round 1 before exporting the private preparation context', 409)
+            return {'round': 1, 'branch_owner': mid, 'score': None, 'private_session_implemented': self.is_four_rounds(room),
                 'documents': deepcopy(room['documents']),
                 'preparation': deepcopy([r for r in room['suggestions'] if r['kind'] == 'preparation_stream']),
                 'shared_discussion': deepcopy(room['transcript']),

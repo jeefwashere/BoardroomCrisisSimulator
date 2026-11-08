@@ -2,8 +2,12 @@ import { useEffect, useId, useRef, useState } from 'react'
 import type { PrivateQuiz, QuizQuestion } from '../../services/facilitation'
 import {
     COUNTDOWN_TICK_MS, canChoose, choiceLetter, countdownAnnouncement, countdownFraction, countdownLabel, countdownPhase, earnedText, focusQuestion,
-    isClosed, previousResult, previousResultText, questionHeading, remainingMs, reviewQuestions, secondsLeft, totalText,
+    isClosed, outcomeTag, previousResult, previousResultText, questionHeading, quizOutcome, remainingMs, reviewQuestions, secondsLeft, totalText,
 } from './quizModel'
+import { playQuizSound, preloadQuizSounds } from './quizSounds'
+
+/** How long an answered question stays on screen, coloured by its result, before the next one shows. */
+const REVEAL_MS = 1800
 
 /** Milliseconds since `key` last changed, redrawn every tick; 0 right after a change (a fresh payload resets the clock). */
 function useElapsed(key: string, active: boolean): number {
@@ -43,6 +47,16 @@ function QuizCard({ quiz, question, blocked, onChoose }: {
     const expired = ms === 0
     const open = canChoose(quiz, question, blocked || pending !== null || expired)
     const previous = previousResult(quiz)
+    const outcome = closed ? quizOutcome(question) : null
+
+    // The ticker: one tick per second while the question is open, quiet at first and louder in the last ten seconds.
+    const seconds = ms === null ? null : secondsLeft(ms)
+    const ticking = useRef(false)
+    useEffect(() => { ticking.current = open }, [open])
+    useEffect(() => {
+        if (seconds === null || seconds <= 0 || !ticking.current) return
+        playQuizSound('tick', seconds <= 10 ? 0.85 : 0.3)
+    }, [seconds])
 
     async function pick(choiceId: string) {
         if (!open) return
@@ -55,25 +69,25 @@ function QuizCard({ quiz, question, blocked, onChoose }: {
             <p className="private-eyebrow">Round 3 · {questionHeading(question.step)}</p>
             {ms !== null && <QuizCountdown step={question.step} ms={ms} totalSeconds={quiz.question_seconds} />}
         </header>
-        {previous && <p className="private-quiz-previous">{previousResultText(previous)} · {totalText(quiz)}</p>}
+        {previous && !closed && <p className="private-quiz-previous">{previousResultText(previous)} · {totalText(quiz)}</p>}
         <h3 id={headingId} className="private-question private-quiz-question" tabIndex={-1}>{question.question}</h3>
         <div className="private-quiz-choices" role="group" aria-labelledby={headingId} aria-busy={pending !== null}>
             {question.choices.map((choice, index) => {
                 const chosen = choice.choice_id === question.chosen
                 const sending = choice.choice_id === pending
                 return <button key={choice.choice_id} type="button" disabled={!open}
-                    className={`private-quiz-choice${chosen ? ' is-chosen' : ''}${sending ? ' is-sending' : ''}`}
+                    className={`private-quiz-choice${chosen ? ' is-chosen' : ''}${chosen && outcome ? ` is-${outcome}` : ''}${sending ? ' is-sending' : ''}`}
                     onClick={() => void pick(choice.choice_id)}>
                     <span className="private-quiz-letter">{choiceLetter(choice.choice_id, index)}</span>
                     <span className="private-quiz-text">{choice.text}</span>
-                    {chosen && <span className="private-quiz-tag">Your answer</span>}
+                    {chosen && <span className="private-quiz-tag">{outcomeTag(outcome, question.points)}</span>}
                     {sending && <span className="private-quiz-tag">Sending…</span>}
                 </button>
             })}
         </div>
         <div className="private-quiz-foot" role="status">
             {closed
-                ? <p className={`private-quiz-result${question.timed_out ? ' is-timed-out' : ''}`}><strong>{earnedText(question)}</strong><span>{totalText(quiz)}</span></p>
+                ? <p className={`private-quiz-result${question.timed_out ? ' is-timed-out' : ''}${outcome ? ` is-${outcome}` : ''}`}><strong>{earnedText(question)}</strong><span>{totalText(quiz)}</span></p>
                 : expired ? <p className="private-hint">Time is up. The examiner is closing this question…</p>
                 : <p className="private-hint">Choose one answer. Your choice is final.</p>}
         </div>
@@ -92,6 +106,30 @@ export function QuizStage({ quiz, blocked, agentName, retryable, onChoose, onRet
     // Keyboard users who were in the card follow it to the next question.
     const inside = useRef(false)
     const focus = focusQuestion(quiz)
+
+    // When a question closes (a pick or a timeout), play its result sound and keep it on screen briefly, coloured red,
+    // amber or green, before the next question. Questions already closed when the stage mounts stay silent.
+    const seen = useRef<Set<number> | null>(null)
+    const [reveal, setReveal] = useState<number | null>(null)
+    useEffect(() => { preloadQuizSounds() }, [])
+    useEffect(() => {
+        const closed = quiz.questions.filter(isClosed)
+        if (seen.current === null) { seen.current = new Set(closed.map((item) => item.step)); return }
+        const known = seen.current
+        const fresh = closed.filter((item) => !known.has(item.step))
+        if (!fresh.length) return
+        fresh.forEach((item) => known.add(item.step))
+        const latest = fresh[fresh.length - 1]
+        const outcome = quizOutcome(latest)
+        if (outcome) playQuizSound(outcome)
+        setReveal(latest.step)
+    }, [quiz.questions])
+    useEffect(() => {
+        if (reveal === null) return
+        const timer = setTimeout(() => setReveal(null), REVEAL_MS)
+        return () => clearTimeout(timer)
+    }, [reveal])
+    const shown = (reveal !== null && quiz.questions.find((item) => item.step === reveal)) || focus
     const step = focus && !isClosed(focus) ? focus.step : null
     useEffect(() => {
         if (step !== null && inside.current) wrapper.current?.querySelector<HTMLElement>('.private-quiz-question')?.focus()
@@ -113,8 +151,8 @@ export function QuizStage({ quiz, blocked, agentName, retryable, onChoose, onRet
     </div>
     return <div ref={wrapper} className="private-quiz-stage" onFocus={() => { inside.current = true }}
         onBlur={(event) => { if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget as Node)) inside.current = false }}>
-        {focus
-            ? <QuizCard key={focus.step} quiz={quiz} question={focus} blocked={blocked} onChoose={onChoose} />
+        {shown
+            ? <QuizCard key={shown.step} quiz={quiz} question={shown} blocked={blocked} onChoose={onChoose} />
             : <div className="private-quiz"><p className="private-note" role="status">The first question is on its way…</p></div>}
     </div>
 }

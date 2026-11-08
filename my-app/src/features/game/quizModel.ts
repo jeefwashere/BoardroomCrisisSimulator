@@ -172,6 +172,24 @@ export function earnedText(item: Pick<QuizQuestion, 'points' | 'max' | 'timed_ou
     return item.timed_out ? `Time's up: 0 of ${max}` : `You earned ${item.points ?? 0} of ${max}`
 }
 
+export type QuizOutcome = 'wrong' | 'partial' | 'best'
+
+/** How a closed question went: the worst choice (0) or a timeout is wrong, the full 20 is best, anything between partial. */
+export function quizOutcome(item: Pick<QuizQuestion, 'points' | 'max' | 'timed_out' | 'chosen'>): QuizOutcome | null {
+    if (item.timed_out) return 'wrong'
+    if (item.points === null || item.points === undefined) return null
+    if (item.points <= 0) return 'wrong'
+    return item.points >= (item.max || QUIZ_QUESTION_MAX) ? 'best' : 'partial'
+}
+
+/** The tag on the member's pick once it is scored. */
+export function outcomeTag(outcome: QuizOutcome | null, points: number | null): string {
+    if (outcome === 'wrong') return 'Wrong answer · 0'
+    if (outcome === 'best') return `Best answer · ${points ?? QUIZ_QUESTION_MAX}`
+    if (outcome === 'partial') return `Partly right · ${points ?? 0}`
+    return 'Your answer'
+}
+
 /** The previous question's outcome, named, for the line above the next question. */
 export function previousResultText(item: Pick<QuizQuestion, 'step' | 'points' | 'max' | 'timed_out'>): string {
     const max = item.max || QUIZ_QUESTION_MAX

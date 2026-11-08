@@ -98,22 +98,28 @@ function QuestionCard({ question, draft, clear, disabled, onSubmit, dictation }:
     question: string; draft: string; clear: () => void; disabled: boolean; onSubmit: () => void; dictation: Dictation
 }) {
     const spoken = draft.trim()
-    const answering = dictation.listening || Boolean(spoken)
+    const answering = dictation.listening || dictation.transcribing || Boolean(spoken)
+    const seconds = dictation.seconds
     // While answering, the question shrinks to one line (full text on hover) so your character stays in view.
     return <div className={`private-composer private-question-card${answering ? ' is-answering' : ''}`}>
         <span className="private-eyebrow">Your coach asks</span>
         <p className="private-question" title={answering ? question : undefined}>{question}</p>
         {answering ? <div className="private-dictated">
-            <p className="private-dictated-text" aria-live="polite">
-                {dictation.listening && <span className="private-listening" role="status"><span className="vote-waiting-dot" aria-hidden="true" />Listening…</span>}
-                {spoken}{dictation.listening && dictation.interim ? <span className="private-interim"> {dictation.interim}</span> : null}
-            </p>
-            <div className="private-actions">
+            {dictation.listening && <div className="private-mic" role="status">
+                <span className="private-listening"><span className="vote-waiting-dot" aria-hidden="true" />Listening {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, '0')}</span>
+                <span className="private-level" aria-hidden="true"><span style={{ transform: `scaleX(${Math.max(0.04, dictation.level)})` }} /></span>
+                <span className="private-hint">Press <strong>Stop</strong> when you finish; your words appear here.</span>
+            </div>}
+            {dictation.transcribing && <p className="private-hint" role="status"><span className="vote-waiting-dot" aria-hidden="true" /> Transcribing what you said…</p>}
+            {(spoken || dictation.interim) && <p className="private-dictated-text" aria-live="polite">
+                {spoken}{dictation.interim ? <span className="private-interim">{spoken ? ' ' : ''}{dictation.interim}</span> : null}
+            </p>}
+            {!dictation.listening && !dictation.transcribing && <div className="private-actions">
                 <button type="button" className="private-discard" disabled={disabled || !spoken} onClick={clear}>Discard</button>
                 <button type="button" className="opening-play" disabled={disabled || !canSubmitAnswer(draft)} onClick={onSubmit}>Submit answer</button>
-            </div>
+            </div>}
         </div> : <p className="private-hint">Answer with <strong>Dictate</strong>, <strong>AI reply</strong> or <strong>Chat</strong>. Only your crisis coach sees it.</p>}
-        {dictation.note && <p className="private-hint" role="status">{dictation.note}</p>}
+        {dictation.note && <p className="private-hint private-hint--problem" role="status">{dictation.note}</p>}
     </div>
 }
 
@@ -229,7 +235,8 @@ export default function PrivateSessionStage({ room, handle, auto, selfName, self
     const answerKey = expectingKey(session ?? null) ?? ''
     const draftText = draft.key === answerKey ? draft.text : ''
     const setDraft = useCallback((text: string) => setDraftState({ key: answerKey, text }), [answerKey])
-    const showComposer = Boolean(session?.expecting && caughtUp && !auto.playing && (session.stage === 'coaching' || session.stage === 'assessment'))
+    const dictating = dictation.listening || dictation.transcribing
+    const showComposer = Boolean(session?.expecting && (caughtUp || dictating) && !auto.playing && (session.stage === 'coaching' || session.stage === 'assessment'))
     // The control bar's Mic dictates into the answer box; final words are appended and stay editable.
     useEffect(() => {
         if (!showComposer) return

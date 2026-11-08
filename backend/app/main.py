@@ -288,6 +288,20 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
             raise RoomError(422, "invalid_audio", "Submit valid audio encoding and type") from error
         return await recordings.upload(member_session, room_id, recording_id, body.audio_base64, body.mime_type)
 
+    @app.post("/api/rooms/{room_id}/dictation", responses=errors)
+    async def dictation(room_id: UUID, request: Request, member_session: authenticated):
+        chunks, size = [], 0
+        async for chunk in request.stream():
+            size += len(chunk)
+            if size > 13_335_000:
+                raise RoomError(413, "audio_too_large", "Dictation exceeds 10 MB")
+            chunks.append(chunk)
+        try:
+            body = AudioBody.model_validate_json(b"".join(chunks))
+        except ValueError as error:
+            raise RoomError(422, "invalid_audio", "Submit valid audio encoding and type") from error
+        return await recordings.dictate(member_session, room_id, body.audio_base64, body.mime_type)
+
     @app.post("/api/rooms/{room_id}/recordings/{recording_id}/review", responses=errors)
     async def review_recording(room_id: UUID, recording_id: UUID, body: ReviewBody, member_session: authenticated):
         return await recordings.review(member_session, room_id, recording_id, body.text)

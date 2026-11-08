@@ -167,6 +167,8 @@ export type RoomApi = {
     command(roomId: string, path: string, input: object, signal?: AbortSignal): Promise<RoomSnapshot>
     extras(roomId: string, signal?: AbortSignal): Promise<Extras>
     mediaPost(roomId: string, path: string, input: object, signal?: AbortSignal): Promise<Recording>
+    /** Dictation: one short clip transcribed by the server (ElevenLabs Scribe); nothing is stored. */
+    dictate(roomId: string, clip: { audio_base64: string; mime_type: string }, signal?: AbortSignal): Promise<string>
     audio(roomId: string, recordingId: string, signal?: AbortSignal): Promise<Blob>
     prepareNarration(roomId: string, narrationId: string): Promise<{ status: string; error?: string }>
     narrationEvent(roomId: string, narrationId: string, event: string): Promise<{ status: string }>
@@ -352,6 +354,7 @@ export function createRoomApi(options: { baseUrl?: string; fetch?: typeof global
         },
         extras: (roomId, signal) => request(`/api/rooms/${encodeURIComponent(roomId)}/extras`, (value): value is Extras => record(value) && Array.isArray(value.recordings) && Array.isArray(value.contributions), signal),
         mediaPost: (roomId, path, input, signal) => request(`/api/rooms/${encodeURIComponent(roomId)}/${path}`, (value): value is Recording => record(value) && typeof value.recording_id === 'string' && typeof value.status === 'string', signal, input),
+        dictate: async (roomId, clip, signal) => (await request(`/api/rooms/${encodeURIComponent(roomId)}/dictation`, (value): value is { text: string } => record(value) && typeof value.text === 'string', signal, clip)).text,
         audio: (roomId, recordingId, signal) => bytes(`/api/rooms/${encodeURIComponent(roomId)}/recordings/${encodeURIComponent(recordingId)}/audio`, signal),
         prepareNarration: (roomId, id) => request(`/api/rooms/${encodeURIComponent(roomId)}/narration/${encodeURIComponent(id)}/prepare`, (value): value is { status: string; error?: string } => record(value) && typeof value.status === 'string', undefined, {}),
         narrationEvent: (roomId, id, event) => request(`/api/rooms/${encodeURIComponent(roomId)}/narration/${encodeURIComponent(id)}/delivery`, (value): value is { status: string } => record(value) && typeof value.status === 'string', undefined, { event }),

@@ -239,3 +239,7 @@
 .game-call-screen .private-discard { border: 1px solid #d9ccb8; border-radius: 999px; background: transparent; color: var(--call-ink); padding: 6px 14px; font: inherit; font-size: 13px; cursor: pointer; }
 .game-call-screen .private-discard:disabled { opacity: 0.5; cursor: default; }
 .game-call-screen .private-question-card.is-answering .private-question { -webkit-line-clamp: 1; }
+.game-call-screen .private-mic { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.game-call-screen .private-level { position: relative; width: 90px; height: 6px; border-radius: 999px; background: #eadfce; overflow: hidden; }
+.game-call-screen .private-level > span { position: absolute; inset: 0; background: var(--call-red); transform-origin: left center; transition: transform 90ms linear; }
+.game-call-screen .private-hint--problem { color: #a8321f; }

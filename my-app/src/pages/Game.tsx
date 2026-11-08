@@ -117,7 +117,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     // Dictation is owned here so the control bar's Mic can drive it; the decision panel attaches its text box as the sink.
     const dictationSink = useRef<((words: string) => void) | null>(null)
     const [dictationReady, setDictationReady] = useState(false)
-    const dictation = useDictation((words) => dictationSink.current?.(words))
+    const dictation = useDictation((words) => dictationSink.current?.(words), (clip) => roomApi.dictate(room.room_id, clip))
     const { stop: stopDictation } = dictation
     const attachDictation = useCallback<AttachDictation>((sink) => {
         dictationSink.current = sink

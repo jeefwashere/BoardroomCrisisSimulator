@@ -59,6 +59,7 @@ class FourRoundService:
         return {'documents':evidence,'original_decision':deepcopy(room['individual_decisions'][mid]),
                 'experts':{k:v['text'][:600] for k,v in room['expert_briefings'].items()},
                 'member_discussion':[t['text'][:300] for t in room['transcript'] if t['member']==mid][-6:],
+                'skipped_preparation':bool(session.get('preparation_skipped')),
                 'private_answers':deepcopy(session['answers']),'response_card':deepcopy(session['card'])}
 
     @staticmethod
@@ -165,7 +166,7 @@ class FourRoundService:
                                 'The alternate provider cannot begin immediately; staff still need instructions. ' if phase=='assessment' and turn==2 else '')
                         text=acknowledgement+' '+(update if not beta else '')+adaptive
                     if phase=='assessment' and turn==1:
-                        text='Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. '+text
+                        text=('Preparation was skipped for this test. ' if private.get('preparation_skipped') else 'Your preparation is complete. ')+'The scored challenge begins now. I will ask you to explain your response and adapt to new information. '+text
                     text=prefix+text
                 result['prompt']=text
             with self.engine.lock:
@@ -192,6 +193,14 @@ class FourRoundService:
             if old and old['score_version']==room['score_version']:return {'text':old['text'],'cached':True}
             room['_reunion_busy']=True;version=room['score_version'];snapshot=self.engine.four_round_snapshot(room,mid)['reunion']
         try:
+            if any(b['assessment_skipped'] for b in snapshot['branches']):
+                text='Test summary: assessment was skipped for one or more members. Missing answers were not graded. '
+                text+=' '.join(b['name']+': '+str(b['total'])+' earned points recorded; '+('assessment incomplete.' if b['assessment_skipped'] else 'assessment completed.') for b in snapshot['branches'])
+                text+=' No winner is announced for this skipped test. Submitted work remains in the written record.'
+                with self.engine.lock:
+                    require(room['phase']=='reunion' and room['score_version']==version,'The reunion changed',409)
+                    room['reunion_summary']={'text':text,'members':[],'score_version':version,'test_summary':True}
+                return {'text':text}
             branches=[{'member':b['member'],'original_action':b['original_decision']['action'][:400],
                        'final_instruction':b['assessment_answers']['assessment_3']['text'][:1000],
                        'criteria':[{**c,'evidence':c['evidence'][:160],'reason':c['reason'][:160]} for c in sorted([c for score in b['scores'].values() for c in score['criteria']],key=lambda c:c['points'])[::3]]} for b in snapshot['branches']]
@@ -205,7 +214,7 @@ class FourRoundService:
             for row in clean:
                 b=next(b for b in snapshot['branches'] if b['member']==row['member'])
                 text+=f'{b["name"]}: {b["total"]} out of 100. '+row['adaptation']+' Strength: '+row['strength']+' Improvement: '+row['improvement']+' '
-            text+='Review your scoring evidence and flag an overlooked passage before the winner is announced. What should the board change in its actual plan?'
+            text+=('This test skipped rounds, so no winner is announced. Review the submitted evidence. ' if self.engine.test_skip_controls(room)['ranking_disabled'] else 'Review your scoring evidence and flag an overlooked passage before the winner is announced. ')+'What should the board change in its actual plan?'
             with self.engine.lock:
                 require(room['phase']=='reunion' and room['score_version']==version,'Scores changed; request the updated summary',409)
                 room['reunion_summary']={'text':text,'members':clean,'score_version':version}
@@ -219,6 +228,7 @@ class FourRoundService:
         with self.engine.lock:
             room,mid=self.identity(auth);require(room['phase']=='reunion','Flag overlooked evidence during reunion',409)
             session=room['private_sessions'][mid];require(not session['busy'],'A review is already pending',409)
+            require(str(stage) in session['scores'] and f'assessment_{stage}' in session['answers'],'This stage has no scored answer to review',409)
             require(quote in session['answers'][f'assessment_{stage}']['text'],'Only existing Round 3 words may support a correction',422)
             old=session['appeals'].get(str(stage))
             require(not old or (old['status']=='failed' and old['quote']==quote),'This stage already has a review request',409)

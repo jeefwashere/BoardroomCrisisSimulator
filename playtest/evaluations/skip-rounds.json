@@ -1,0 +1,55 @@
+{
+  "room": "S649Y3",
+  "method": "Real localhost HTTP transitions with three test memberships; no browser interaction or paid generation. Cached document memory initialized.",
+  "steps": [
+    {
+      "skipped": "opening",
+      "phase": "discussion",
+      "revision": 1
+    },
+    {
+      "skipped": "round1",
+      "phase": "private",
+      "revision": 2,
+      "available_recordings": [
+        "r2_member_1_step_1"
+      ]
+    },
+    {
+      "skipped": "coaching",
+      "phase": "private",
+      "revision": 3,
+      "available_recordings": [
+        "r3_member_1_step_1"
+      ]
+    },
+    {
+      "skipped": "assessment",
+      "phase": "reunion",
+      "revision": 4,
+      "summary_events": [
+        {
+          "type": "text",
+          "text": "Test summary: assessment was skipped for one or more members. Missing answers were not graded. Skip Alex: 0 earned points recorded; assessment incomplete. Skip Morgan: 0 earned points recorded; assessment incomplete. Skip Sam: 0 earned points recorded; assessment incomplete. No winner is announced for this skipped test. Submitted work remains in the written record."
+        },
+        {
+          "type": "done",
+          "status": "done",
+          "agent": {}
+        }
+      ]
+    },
+    {
+      "skipped": "reunion",
+      "phase": "ended",
+      "revision": 5
+    }
+  ],
+  "checks": {
+    "ended": true,
+    "no_winner": true,
+    "no_invented_answers_or_scores": true,
+    "no_new_model_reservations": true,
+    "no_new_speech_reservations": true
+  }
+}

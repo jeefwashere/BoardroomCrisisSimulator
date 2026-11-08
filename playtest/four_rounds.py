@@ -42,9 +42,61 @@ class FourRounds:
         if room['phase']=='private' and all(s['phase']=='assessment_done' for s in room['private_sessions'].values()):
             self._transition(room,'reunion')
 
+    def test_skip_controls(self, room):
+        phase=room['phase'];actions=[]
+        if phase=='preparation':actions.append({'stage':'opening','label':'Skip introduction'})
+        if phase in ('preparation','discussion','consultation','decision'):
+            actions.append({'stage':'round1','label':'Skip Round 1 → private preparation'})
+        elif phase=='private':
+            preparing=any(s['phase'] in ('coaching','card_review') for s in room['private_sessions'].values())
+            actions.append({'stage':'coaching' if preparing else 'assessment',
+                'label':'Skip remaining preparation → assessment' if preparing else 'Skip remaining assessment → reunion'})
+        elif phase=='reunion':actions.append({'stage':'reunion','label':'Finish test meeting'})
+        blocked=bool(room.get('_reunion_busy')) or any(s['busy'] for s in room.get('private_sessions',{}).values())
+        return {'actions':actions,'revision':room.get('skip_revision',0),'blocked':blocked,
+                'history':deepcopy(room.get('test_skips',[])),
+                'ranking_disabled':any(x['stage'] not in ('opening','reunion') for x in room.get('test_skips',[]))}
+
+    def skip_test_stage(self, room, mid, data):
+        require(mid==self._ceo(room),'Only the CEO can skip a test round',403)
+        controls=self.test_skip_controls(room)
+        require(data.get('expected_phase')==room['phase'] and type(data.get('skip_revision')) is int and
+                data['skip_revision']==controls['revision'],'The round changed. Review the current skip control',409)
+        stage=data.get('stage')
+        require(stage in [a['stage'] for a in controls['actions']],'This stage cannot be skipped now',409)
+        require(not controls['blocked'],'Stop Live audio and wait for active agent requests before skipping',409)
+        room.setdefault('test_skips',[]).append({'stage':stage,'by':mid,'at':self.clock()})
+        room['skip_revision']=controls['revision']+1
+        for person in room['electorate']:self.clear_fixture(room,person)
+        self.cancel_audio(room,'test_skip')
+        if stage=='opening':self._transition(room,'discussion',reason='test_skip')
+        elif stage=='round1':
+            for person in room['electorate']:
+                room['individual_decisions'].setdefault(person,{'action':'Not submitted: Round 1 was skipped for testing.',
+                    'reasoning':'','evidence':'','unknowns':'','skipped':True,'revision':0})
+            self.start_private(room)
+        elif stage=='coaching':
+            for session in room['private_sessions'].values():
+                if session['phase'] in ('coaching','card_review'):
+                    session.update(phase='assessment',turn=1,prompt=None,revision=session['revision']+1,
+                                   preparation_skipped=True,error=None)
+        elif stage=='assessment':
+            for session in room['private_sessions'].values():
+                if session['phase']!='assessment_done':
+                    session.update(phase='assessment_done',prompt=None,revision=session['revision']+1,
+                                   assessment_skipped=True,error=None)
+            self.maybe_reunion(room)
+        else:
+            room['winners']=[]
+            self._transition(room,'ended',reason='test_skip')
+        self.event(room,'test_stage_skipped',member=mid,stage=stage)
+
     def four_round_command(self, room, mid, action, data):
         if not self.is_four_rounds(room):
             return False
+        if action=='skip_test_stage':
+            self.skip_test_stage(room,mid,data)
+            return True
         if action=='set_beta_mode':
             require(room['phase']=='lobby' and mid==self._ceo(room),'Only the CEO can change beta mode before Start',403)
             require(type(data.get('enabled')) is bool,'Choose true or false',422)
@@ -117,6 +169,7 @@ class FourRounds:
             self.event(room,'score_review_withdrawn',member=mid,stage=stage)
             return True
         if action=='announce_winner':
+            require(not self.test_skip_controls(room)['ranking_disabled'],'This test skipped rounds; finish without a winner',409)
             require(room['phase']=='reunion' and mid==self._ceo(room),'Only the CEO can finish the reunion',403)
             require(all(room['reviews'].get(person) for person in room['electorate']),
                     'Every member must review their results before the winner is announced',409)
@@ -134,7 +187,7 @@ class FourRounds:
         if not self.is_four_rounds(room):
             return {}
         result={'beta_mode':room.get('beta_mode',True),'exercise_round':1,'private_session':None,
-                'private_progress':[],'reunion':None}
+                'private_progress':[],'reunion':None,'test_skip':self.test_skip_controls(room)}
         if 'private_sessions' not in room:
             return result
         own=room['private_sessions'][mid]
@@ -149,6 +202,7 @@ class FourRounds:
             result['reunion']={'branches':[{'member':person,'name':room['members'][person]['name'],
                 'original_decision':deepcopy(room['individual_decisions'][person]),'response_card':deepcopy(s['card']),
                 'assessment_answers':{k:deepcopy(v) for k,v in s['answers'].items() if k.startswith('assessment_')},
+                'assessment_skipped':bool(s.get('assessment_skipped')),'preparation_skipped':bool(s.get('preparation_skipped')),
                 'scores':deepcopy(s['scores']),'total':self.private_total(s),'reviewed':bool(room['reviews'].get(person))}
                 for person,s in room['private_sessions'].items()], 'discussion':deepcopy(room['reunion_discussion']),
                 'summary':deepcopy(room.get('reunion_summary')),'score_version':room['score_version'],

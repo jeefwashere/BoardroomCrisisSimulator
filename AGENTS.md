@@ -128,3 +128,8 @@ X20 replaces the four visible Round 1 fields with one guided answer box. Preserv
 ## Optional Gemini Live private audio
 
 X21 authorizes explicit continuous microphone capture only while a user started Live conversation is active in private Rounds 2 or 3. Read [the Live workflow](playtest/LIVE_AUDIO_WORKFLOW.md). This supersedes the older no continuous capture guidance for that optional mode only. Native Gemini Live speech is the explicit exception to the ordinary Gemini plus ElevenLabs path. Preserve provisional transcript review, explicit answer submission, canonical beta questions, member isolation and server authority. Keys stay backend only. Temperature zero and fixed voice improve repeatability but do not guarantee identical output. Never mark generated PCM as audibly verified without a listening check.
+
+
+## Explicit test round skipping
+
+X22 adds CEO only controls to skip the opening and remaining exercise rounds. Read [the skip guide](playtest/SKIP_ROUNDS.md). Preserve submitted work, retain earned scores, mark missing work explicitly and disable winner ranking after skipped exercise rounds. The opening skip alone preserves normal competition. Never synthesize participant answers, confirm a missing card or grade an unanswered stage. Block skips while private model or Live requests are active, and reject stale phase and skip revisions. These controls belong to the isolated test app, not production gameplay.

@@ -1,0 +1,40 @@
+{
+  "main_source": "717b823582155ec9bc416fe6351f85207174a61b",
+  "jeff_deployment_source": "f6f8d798a2f5d850b2903905c4599248f9e966f8",
+  "game_paths_identical_to_main": [
+    "backend/app",
+    "my-app",
+    "scenarios",
+    "playtest",
+    "rehearsal",
+    "backend/requirements.txt",
+    "backend/__init__.py"
+  ],
+  "frontend_tests": 260,
+  "frontend_lint": "pass",
+  "frontend_build": "pass",
+  "backend_targeted_tests": 34,
+  "prototype_tests": 31,
+  "offline_demo": "pass",
+  "compose_configuration": "pass",
+  "compose_contract_checks": "pass",
+  "image_copy_layout": {
+    "original_deployment_image_layout": {
+      "exit": 1,
+      "stdout": "",
+      "stderr_tail": [
+        "    from playtest.vertex import ENDPOINT, MODEL, THINKING, DollarBudget, NoRedirect, VertexError",
+        "ModuleNotFoundError: No module named 'playtest'"
+      ]
+    },
+    "integrated_image_layout": {
+      "exit": 0,
+      "stdout": "{\"app_import\": true, \"routes\": 57, \"clips\": 67, \"incident_documents\": 3}",
+      "stderr_tail": []
+    }
+  },
+  "actual_container_build": "not run; Docker daemon unavailable; existing local services were not changed",
+  "live_site": "https://boardroomcrisis.duckdns.org",
+  "live_probe": "Public DNS resolved64.177.58.170 through Google DNS. TLS verification rejected TRAEFIK DEFAULT CERT; no insecure HTTP probe made.",
+  "paid_provider_calls": 0
+}

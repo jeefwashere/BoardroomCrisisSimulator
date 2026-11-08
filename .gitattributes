@@ -1,1 +1,3 @@
 output/pdf/*.pdf binary
+# Container entrypoints must keep Unix line endings on Windows checkouts.
+deploy/*.sh text eol=lf

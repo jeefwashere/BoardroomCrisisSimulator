@@ -1,11 +1,12 @@
 import { useEffect } from 'react'
+import type { ReactNode } from 'react'
 import type { RoomSnapshot, Scenario } from '../../services/rooms'
 import RoomChatPanel from '../rooms/RoomChatPanel'
 import type { RoomChatHandle } from '../rooms/useRoomChat'
 import '../rooms/RoomChat.css'
 
 /** Right side chat drawer opened from the control bar. Escape closes it. */
-export default function ChatDrawer({ room, scenarios, chat, open, onClose }: { room: RoomSnapshot; scenarios: Scenario[]; chat: RoomChatHandle; open: boolean; onClose: () => void }) {
+export default function ChatDrawer({ room, scenarios, chat, open, onClose, pinned }: { room: RoomSnapshot; scenarios: Scenario[]; chat: RoomChatHandle; open: boolean; onClose: () => void; pinned?: ReactNode }) {
     useEffect(() => {
         if (!open) return
         const close = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose() }
@@ -17,6 +18,6 @@ export default function ChatDrawer({ room, scenarios, chat, open, onClose }: { r
             <h2>Room chat</h2>
             <button type="button" className="chat-drawer-close" aria-label="Close chat" onClick={onClose}>×</button>
         </header>
-        <div className="chat-drawer-body">{open && <RoomChatPanel room={room} scenarios={scenarios} chat={chat} compact autoFocus />}</div>
+        <div className="chat-drawer-body">{pinned && <div className="chat-drawer-pinned">{pinned}</div>}{open && <RoomChatPanel room={room} scenarios={scenarios} chat={chat} compact autoFocus={!pinned} />}</div>
     </aside>
 }

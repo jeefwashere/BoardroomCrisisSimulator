@@ -513,3 +513,21 @@ details.game-notice { display: block; border-color: #b58c28; background: #fbf1d6
 @media (prefers-reduced-motion: reduce) {
   .decision-board-list li.is-writing .decision-badge--waiting, .decision-listening .vote-waiting-dot { animation: none; }
 }
+
+/* Individual decision games: full width call, centered decision/result card, no side window. */
+.game-live-main--call { grid-template-columns: minmax(0, 1fr); max-width: 1180px; width: 100%; margin-inline: auto; }
+.game-live-main--card { grid-template-columns: minmax(0, 1fr); max-width: 820px; width: 100%; margin-inline: auto; }
+.game-live-main--call .game-stage-call { position: relative; flex-direction: column; }
+.game-center-card { overflow: auto; max-height: 100%; padding: 26px 28px; border-radius: 16px; background: #fffaf0; color: #2b211b; box-shadow: 0 18px 50px #00000040; }
+.game-subtitles { position: absolute; left: 50%; bottom: 18px; z-index: 2; max-width: min(860px, 92%); margin: 0; padding: 10px 16px; border-radius: 10px; background: #000000c7; color: #fff; font-size: 16px; line-height: 1.45; text-align: center; transform: translateX(-50%); }
+.game-alert--float { position: absolute; top: 8px; left: 50%; z-index: 2; transform: translateX(-50%); }
+@media (max-width: 1100px) {
+  .game-live-main--call, .game-live-main--card { grid-template-columns: 1fr; grid-template-rows: auto; }
+}
+
+/* The decision prompt is pinned at the top of the chat drawer. */
+.chat-drawer-pinned { flex: 0 1 auto; overflow-y: auto; max-height: 68%; padding: 12px; border-bottom: 1px solid #ffffff12; }
+.chat-decision { padding: 12px 14px; border-radius: 12px; }
+.chat-decision-from { margin: 0 0 6px; color: #796655; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.chat-decision .vote-panel { padding: 0; border: 0; background: transparent; box-shadow: none; }
+.game-center-card.game-briefing { border: 0; }

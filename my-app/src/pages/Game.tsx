@@ -16,7 +16,7 @@ import type { AttachDictation } from '../features/game/IndividualDecisionPanel'
 import IndividualDecisionReport from '../features/game/IndividualDecisionReport'
 import { decisionBadges, isIndividualMode } from '../features/game/individualDecisionModel'
 import TurnMedia from '../features/game/TurnMedia'
-import SavedClipTurn from '../features/game/SavedClipTurn'
+import { useAutoResponse } from '../features/game/useAutoResponse'
 import ControlBar from '../features/game/ControlBar'
 import ChatDrawer from '../features/game/ChatDrawer'
 import { chatUnread, micControl, othersCount, phaseCaption, skipLabel } from '../features/game/controlBarModel'
@@ -50,6 +50,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
         if (!sink) stopDictation()
     }, [stopDictation])
     const [chatOpen, setChatOpen] = useState(false)
+    const [promptedPhase, setPromptedPhase] = useState('')
     const closeChat = useCallback(() => setChatOpen(false), [])
     // Unread counts other members' messages that arrived after the drawer was last open (history at entry counts as read).
     const [seenChat, setSeenChat] = useState<number | null>(null)
@@ -57,10 +58,13 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     if (chat.state.loaded && (seenChat === null || (chatOpen && seenChat !== others))) setSeenChat(others)
     const unread = seenChat === null ? 0 : chatUnread(chat.state.records, room.self_member_id, seenChat)
     const game = room.game
+    const auto = useAutoResponse(room, execute, (failure) => setNotice(errorMessage(failure)))
     // Keep the caller's last recorded decision so the ended report can show it even if that projection omits it.
     const seenDecision = game?.individual_decisions?.self?.text
     if (seenDecision && seenDecision !== ownDecision) setOwnDecision(seenDecision)
     useEffect(() => { const audio = speechRef.current; return () => { audio?.pause(); if (speech.url) URL.revokeObjectURL(speech.url) } }, [speech.url, game?.phase_id])
+    // The decision prompt arrives in the chat: open the drawer once when the decision phase starts.
+    if (game && room.phase === 'individual_decision' && promptedPhase !== game.phase_id) { setPromptedPhase(game.phase_id); setChatOpen(true) }
     if (!game) return null
     const scenario = scenarios.find((option) => option.scenario_id === game.scenario.scenario_id && option.version === game.scenario.version)
     const self = room.members.find((member) => member.member_id === room.self_member_id)
@@ -91,7 +95,10 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const experts = !opening && showsExpertStage(room.phase, game.discussion_mode)
     // Full stage phases keep their own on stage countdown, so the control bar omits its clock there.
     const fullStage = opening || experts
-    const layout = fullStage ? ' game-live-main--opening' : ' game-live-main--focus'
+    // Individual decision games keep the call full width; the decision and the result appear as a centered card, never a side window.
+    const card = individual && room.phase === 'ended'
+    const sidePanel = !fullStage && !individual
+    const layout = fullStage ? ' game-live-main--opening' : sidePanel ? ' game-live-main--focus' : card ? ' game-live-main--card' : ' game-live-main--call'
     // Only the caller's own ballot is known, so ballot badges are limited to the self tile.
     const badges: Record<string, TileBadge> = room.phase === 'individual_decision' ? decisionBadges(game.individual_decisions, room.self_member_id) : {}
     if (speaker && room.phase === 'speaking') badges[speaker.member_id] = { label: 'Speaking', tone: 'speaking' }
@@ -123,15 +130,23 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
             <AnimatePresence mode="wait" initial={false}>
                 {opening ? <OpeningBriefing key="opening" room={room} onDismiss={() => setDismissedOpening(game.phase_id)} finishBriefing={actions.includes('finish_briefing') ? () => act(rounds + 'briefing/finish') : undefined} />
                     : experts ? <ExpertPanelStage key={`experts-${game.round_id}`} room={room} notice={error || notice} finishPanel={actions.includes('skip_phase') ? () => act(rounds + 'skip-phase') : undefined} />
-                    : <motion.div key="call" className="game-stage-call" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4, ease: 'easeOut' }}><CallGrid members={roomMembers(room, {}, scenario)} badges={badges} /></motion.div>}
+                    : card ? <motion.section key={`card-${room.phase}`} className="game-briefing game-center-card" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: 'easeOut' }}>
+                        {(error || notice) && <p className="game-alert" role="alert">{error || notice}</p>}
+                        {room.phase === 'ended' && <IndividualDecisionReport decisions={game.individual_decisions} ownText={game.individual_decisions?.self?.text ?? ownDecision} selfId={room.self_member_id} endingLabel={game.ending_label} />}
+                        {room.phase === 'ended' && <TurnMedia room={room} recorder={recorder} />}
+                    </motion.section>
+                    : <motion.div key="call" className="game-stage-call" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4, ease: 'easeOut' }}>
+                        <CallGrid members={roomMembers(room, {}, scenario)} badges={badges} />
+                        {auto.status === 'playing' && <p className="game-subtitles" aria-live="polite"><strong>{self?.display_name ?? 'You'}:</strong> {auto.caption}</p>}
+                        {!sidePanel && (error || notice) && <p className="game-alert game-alert--float" role="alert">{error || notice}</p>}
+                    </motion.div>}
             </AnimatePresence>
-            {!fullStage && <section className="game-briefing" aria-labelledby="briefing-title">
+            {sidePanel && <section className="game-briefing" aria-labelledby="briefing-title">
                 <h2 id="briefing-title">{game.scenario.title}</h2>
                 {(error || notice) && <p className="game-alert" role="alert">{error || notice}</p>}
                 {individual && <IndividualDecisionPanel key={game.phase_id} room={room} pending={pending} act={act} notice={notice} dictation={dictation} attachDictation={attachDictation} />}
                 {nodeArticle && (CONTEXT_PHASES.includes(room.phase) ? nodeArticle : room.phase !== 'ended' && <details className="game-situation-toggle"><summary>Situation: {node?.title}</summary>{nodeArticle}</details>)}
                 {actions.includes('reassign_ceo') && <div className="game-actions"><label>Replacement CEO<select value={ceo} onChange={(event) => setCeo(event.target.value)}><option value="">Choose a participant</option>{room.members.filter((member) => member.connected && member.eligible_current_round && member.role_id !== 'ceo').map((member) => <option key={member.member_id} value={member.member_id}>{member.display_name}</option>)}</select></label><button disabled={pending || !ceo} onClick={() => void act(rounds + 'ceo-reassignment', { member_id: ceo })}>Assign CEO</button></div>}
-                {room.phase === 'speaking' && <SavedClipTurn room={room} pending={pending} act={act} finishPath={rounds + 'speaker/finish'} />}
                 {!individual && <VotingPanel key={game.round_id} room={room} pending={pending} act={act} notice={notice} />}
                 {answering && <form className="game-answer" onSubmit={(event) => { event.preventDefault(); void act('contributions', { kind: 'answer', source: 'typed', text }).then((ok) => { if (ok) setText('') }) }}><label>Your answer<textarea required maxLength={4000} value={text} onChange={(event) => setText(event.target.value)} /></label><button disabled={pending || !text.trim()}>Save answer</button></form>}
                 {actions.includes('proposal') && room.phase !== 'voting' && <form onSubmit={(event) => { event.preventDefault(); void act(rounds + 'proposal', { text: proposal }) }}><label>Custom action<textarea required value={proposal} onChange={(event) => setProposal(event.target.value)} /></label><button disabled={pending || !proposal.trim()}>Save custom action</button>{game.proposals?.some((item) => item.member_id === room.self_member_id) && <button type="button" disabled={pending} onClick={() => void act(rounds + 'proposal', { text: '' })}>Withdraw action</button>}</form>}
@@ -150,12 +165,18 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
             showCountdown={!fullStage} pending={pending}
             mic={{ ...mic, onClick: pressMic }}
             chat={{ open: chatOpen, unread, onToggle: () => setChatOpen((open) => !open) }}
+            autoResponse={auto.status === 'unavailable' ? undefined : {
+                label: auto.status === 'playing' ? 'Stop response' : auto.status === 'saving' ? 'Saving…' : auto.status === 'done' ? 'Response sent' : 'Auto response',
+                live: auto.status === 'playing', disabled: pending || auto.status === 'saving' || auto.status === 'done',
+                onClick: () => { if (auto.status === 'playing') auto.stop(); else auto.start() },
+            }}
             finishTurn={actions.includes('finish_speaking') ? () => void act(rounds + 'speaker/finish') : undefined}
             skip={actions.includes('skip_phase') ? { label: skipLabel(room.phase), onClick: () => void act(rounds + 'skip-phase') } : undefined}
             skipSpeaker={actions.includes('skip_speaker') ? () => void act(rounds + 'speaker/skip', { reason: 'Skipped by the host' }) : undefined}
             end={actions.includes('end') ? () => void act('end') : undefined}
         />
-        <ChatDrawer room={room} scenarios={scenarios} chat={chat} open={chatOpen} onClose={closeChat} />
+        <ChatDrawer room={room} scenarios={scenarios} chat={chat} open={chatOpen} onClose={closeChat}
+            pinned={individual && room.phase === 'individual_decision' ? <div className="game-briefing chat-decision"><p className="chat-decision-from">Facilitator · Round 1</p><IndividualDecisionPanel key={game.phase_id} room={room} pending={pending} act={act} notice={notice} dictation={dictation} attachDictation={attachDictation} /></div> : undefined} />
     </div></MotionConfig>
 }
 export default Game

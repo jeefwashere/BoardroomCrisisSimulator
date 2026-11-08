@@ -71,6 +71,8 @@ class StartRoom(BaseModel):
     ballot_source: Literal["ai", "authored"] = "ai"
     # Untimed speaking turns and no session ceiling: each turn waits for the speaker to finish.
     manual_turns: bool = False
+    # Test shortcut: "assessment" opens directly at Round 3 with prerecorded Round 1 and 2 answers.
+    start_at: Literal["beginning", "assessment"] = "beginning"
 
 
 class View(BaseModel):
@@ -295,6 +297,7 @@ class GameView(View):
     # Open floor rooms: nobody holds the floor and any member may take it.
     floor_open: bool = False
     last_speaker_id: UUID | None = None
+    start_at: Literal["beginning", "assessment"] = "beginning"
 
 
 class RoomFields(View):
@@ -483,7 +486,7 @@ class DeliveryBody(BaseModel):
 class ReplyBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     command_id: UUID
-    mode: Literal["turn", "private"]
+    mode: Literal["turn", "private", "decision"]
     # Private answers only: the coach's current question, as shown to the member.
     question: str | None = Field(default=None, min_length=1, max_length=1200)
 

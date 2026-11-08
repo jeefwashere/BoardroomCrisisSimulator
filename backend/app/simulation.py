@@ -268,6 +268,8 @@ class Game:
     # Open floor meeting (three window demo): the CEO speaks first; after each turn anyone may take the floor, one at
     # a time, until the CEO ends the meeting. Turns are untimed.
     manual_turns: bool = False
+    # Test shortcut: "assessment" starts in the private_session phase with prerecorded Round 1 and 2 answers.
+    start_at: str = "beginning"
 
 
 @dataclass(frozen=True)

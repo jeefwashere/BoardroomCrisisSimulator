@@ -11,9 +11,10 @@ import OpeningBriefing from '../features/game/OpeningBriefing'
 import ExpertPanelStage from '../features/game/ExpertPanelStage'
 import { showsExpertStage } from '../features/game/expertPanelModel'
 import VotingPanel from '../features/game/VotingPanel'
-import IndividualDecisionPanel from '../features/game/IndividualDecisionPanel'
+import { DecisionStatusPanel } from '../features/game/IndividualDecisionPanel'
 import DiscussionDraftPanel from '../features/game/DiscussionDraftPanel'
 import { useDiscussionDraft } from '../features/game/useDiscussionDraft'
+import { useDecisionAutoResponse } from '../features/game/useDecisionAutoResponse'
 import type { AttachDictation } from '../features/game/IndividualDecisionPanel'
 import IndividualDecisionReport from '../features/game/IndividualDecisionReport'
 import { decisionBadges, endingTitle, isIndividualMode } from '../features/game/individualDecisionModel'
@@ -153,6 +154,8 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const privatePhase = room.phase === 'private_session'
     const privateRecord = privatePhase || (room.phase === 'ended' && Boolean(game?.private_rounds))
     const privateSession = usePrivateSession(room.room_id, privateRecord, room.phase)
+    // Round 1 individual decision: AI reply writes and speaks the caller's decision (heard only here), then saves it.
+    const decisionAuto = useDecisionAutoResponse(room, submitDecision, (failure) => setNotice(errorMessage(failure)))
     const privateAuto = usePrivateAutoResponse(room.room_id, privatePhase ? privateSession.session : null, privateSession.sending, privateSession.answer, (failure) => setNotice(errorMessage(failure)))
     // Keep the caller's last recorded decision so the ended report can show it even if that projection omits it.
     const seenDecision = game?.individual_decisions?.self?.text
@@ -203,6 +206,12 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const centered = individual || Boolean(game.private_rounds)
     const ownRound = privatePhase ? ownPrivateRound(privateSession.session, game.private_progress, room.self_member_id) : null
     const reportAvailable = offersReport(room.phase)
+    async function submitDecision(text: string) {
+        dictation.stop()
+        const saved = await act(`rounds/${room.game?.round_id}/decision`, { text })
+        if (saved) answerDraft.submitted(text)
+        return saved
+    }
     async function act(path: string, fields: Record<string, unknown> = {}) {
         if (pending) return false
         setPending(true); setNotice('')
@@ -270,7 +279,8 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     }
     // AI reply: a Vertex written, ElevenLabs spoken reply for the caller's speaking turn, or for the current private question.
     // In a private session the button stays (disabled) between questions so the bar does not jump.
-    const activeAuto = privatePhase ? privateAuto : auto
+    const decisionPhase = room.phase === 'individual_decision'
+    const activeAuto = privatePhase ? privateAuto : decisionPhase ? decisionAuto : auto
     const privateAnswering = privatePhase && (privateSession.session?.stage === 'coaching' || privateSession.session?.stage === 'assessment')
     const privateQuiz = privatePhase && privateSession.session?.stage === 'assessment' && Boolean(privateSession.session.quiz)
     const autoControl = activeAuto.status === 'unavailable'
@@ -279,7 +289,8 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
         : {
             label: activeAuto.status === 'playing' ? 'Stop reply' : activeAuto.status === 'writing' ? 'Writing…' : activeAuto.status === 'saving' ? 'Saving…' : activeAuto.status === 'done' ? 'Reply sent' : 'AI reply',
             live: activeAuto.status === 'playing', disabled: pending || (privatePhase && privateSession.sending) || activeAuto.status === 'writing' || activeAuto.status === 'saving' || activeAuto.status === 'done',
-            title: privatePhase ? 'Let the AI write and speak an answer to your coach in your voice, then submit it' : 'Let the AI write and speak your turn in your voice (Vertex AI and ElevenLabs), then add it to the transcript',
+            title: privatePhase ? 'Let the AI write and speak an answer to your coach in your voice, then submit it'
+                : decisionPhase ? (decisionAuto.saved ? 'Let the AI write and speak a new decision for you; it replaces the one recorded' : 'Let the AI write your decision for your role and speak it in your voice (only you hear it), then save it') : 'Let the AI write and speak your turn in your voice (Vertex AI and ElevenLabs), then add it to the transcript',
             onClick: () => { if (activeAuto.status === 'playing') activeAuto.stop(); else activeAuto.start() },
         }
     const node = game.current_node
@@ -318,7 +329,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
             {sidePanel && <section className="game-briefing" aria-labelledby="briefing-title">
                 <h2 id="briefing-title">{game.scenario.title}</h2>
                 {(error || notice) && <p className="game-alert" role="alert">{error || notice}</p>}
-                {individual && <IndividualDecisionPanel key={game.round_id} room={room} pending={pending} act={act} notice={notice} dictation={dictation} attachDictation={attachDictation} answerDraft={answerDraft} />}
+                {individual && <DecisionStatusPanel room={room} speaking={decisionAuto.status === 'playing'} saving={decisionAuto.status === 'saving'} caption={decisionAuto.caption} draft={answerDraft} />}
                 {nodeArticle && (CONTEXT_PHASES.includes(room.phase) ? nodeArticle : room.phase !== 'ended' && <details className="game-situation-toggle"><summary>Situation: {node?.title}</summary>{nodeArticle}</details>)}
                 {actions.includes('reassign_ceo') && <div className="game-actions"><label>Replacement CEO<select value={ceo} onChange={(event) => setCeo(event.target.value)}><option value="">Choose a participant</option>{room.members.filter((member) => member.connected && member.eligible_current_round && member.role_id !== 'ceo').map((member) => <option key={member.member_id} value={member.member_id}>{member.display_name}</option>)}</select></label><button disabled={pending || !ceo} onClick={() => void act(rounds + 'ceo-reassignment', { member_id: ceo })}>Assign CEO</button></div>}
                 {!individual && <VotingPanel key={game.round_id} room={room} pending={pending} act={act} notice={notice} />}
@@ -353,7 +364,8 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
         <ReportDialog report={report} open={reportOpen && reportAvailable} onClose={closeReport} />
         <TranscriptPanel entries={transcriptEntries} open={transcriptOpen} onClose={hideCaptions} dockRef={setDock} minimized={transcriptMinimized} onToggleMinimized={toggleTranscriptMinimized} />
         <ChatDrawer room={room} scenarios={scenarios} chat={chat} open={chatOpen} onClose={closeChat}
-            pinned={individual && room.phase === 'individual_decision' ? <div className="game-briefing chat-decision"><p className="chat-decision-from">Facilitator · Round 1</p><IndividualDecisionPanel key={game.round_id} room={room} pending={pending} act={act} notice={notice} dictation={dictation} attachDictation={attachDictation} answerDraft={answerDraft} /></div> : individual && answerDraft.active ? <DiscussionDraftPanel draft={answerDraft} /> : individual ? <DiscussionDraftPanel draft={answerDraft} closed /> : undefined} />
+            pinned={individual && room.phase === 'individual_decision' ? <div className="game-briefing chat-decision"><p className="chat-decision-from">Facilitator · Round 1</p><DecisionStatusPanel room={room} speaking={decisionAuto.status === 'playing'} saving={decisionAuto.status === 'saving'} caption={decisionAuto.caption} draft={answerDraft} /></div> : individual && answerDraft.active ? <DiscussionDraftPanel draft={answerDraft} /> : individual ? <DiscussionDraftPanel draft={answerDraft} closed /> : undefined}
+            decision={individual && room.phase === 'individual_decision' && actions.includes('submit_decision') ? { submit: submitDecision, pending, recorded: game.individual_decisions?.self?.text ?? null, attachDictation, draft: answerDraft } : undefined} />
     </div></MotionConfig></AgentPresenceContext.Provider>
 }
 export default Game

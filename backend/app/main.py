@@ -28,6 +28,7 @@ from .feedback import Feedback
 from .custom_resolution import CustomResolver
 from .facilitation import Facilitation, IncidentDocuments, RecordedClips
 from .ai_options import AiOptions
+from .prerecorded import load_prerecorded
 from .private_sessions import PrivateSessions
 from .vertex_text import VertexText
 from .discussion_summaries import DiscussionSummaries
@@ -60,7 +61,8 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     ai_options = AiOptions(rooms, vertex, documents)
     clips = recorded_clips if recorded_clips is not None else RecordedClips()
     # Rounds 2 and 3: one private crisis coach and examiner per member (Cedar Bridge private_rounds profiles).
-    private = PrivateSessions(rooms, facilitation, vertex, clips)
+    prerecorded = load_prerecorded()
+    private = PrivateSessions(rooms, facilitation, vertex, clips, prerecorded=prerecorded)
     facilitation.private = private
     discussion_summaries = DiscussionSummaries(rooms, recordings, facilitation)
     secure = secure_cookie if secure_cookie is not None else os.getenv("BOARDROOM_SECURE_COOKIE", "false").lower() == "true"
@@ -183,8 +185,13 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     async def start_room(room_id: UUID, body: StartRoom, member_session: authenticated):
         spec = StartSpec(body.room_code, body.scenario_id, body.scenario_version, body.timing_profile,
                          tuple((player.member_id, player.role_id) for player in body.players), body.ballot_source,
-                         body.manual_turns)
-        return await rooms.start(member_session, room_id, body.command_id, spec)
+                         body.manual_turns, body.start_at,
+                         tuple(item["decision"] for item in prerecorded) if body.start_at == "assessment" else ())
+        view = await rooms.start(member_session, room_id, body.command_id, spec)
+        if body.start_at == "assessment":
+            # Every member's branch and quiz job start now, so the questions are ready sooner.
+            await private.begin_assessment(member_session, room_id)
+        return view
 
     @app.get("/api/rooms/{room_id}", response_model=RoomView, responses=errors)
     async def get_room(room_id: UUID, member_session: authenticated):

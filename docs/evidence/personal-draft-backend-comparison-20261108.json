@@ -1,0 +1,28 @@
+{
+  "baseline_head": "03810f972fbee4bf652087a265be37d10940dda2",
+  "feature_full_tests": 228,
+  "feature_failures": 4,
+  "feature_errors": 7,
+  "baseline_focused_tests": 27,
+  "baseline_failures": 4,
+  "baseline_errors": 7,
+  "failure_identity_sets_equal": true,
+  "feature_only": [],
+  "baseline_only": [],
+  "matched_identities": [
+    "ERROR: test_bots_complete_without_speech_and_phase_ends (test_private_sessions.PrivateSessionTests.test_bots_complete_without_speech_and_phase_ends)",
+    "ERROR: test_deadline_ends_phase_and_closed_sessions_stay_readable (test_private_sessions.PrivateSessionTests.test_deadline_ends_phase_and_closed_sessions_stay_readable)",
+    "ERROR: test_invalid_quiz_retries_once_then_fails_and_retries (test_private_sessions.PrivateSessionTests.test_invalid_quiz_retries_once_then_fails_and_retries)",
+    "ERROR: test_private_isolation_between_members (test_private_sessions.PrivateSessionTests.test_private_isolation_between_members)",
+    "ERROR: test_question_timer_closes_with_zero_and_rejects_late_picks (test_private_sessions.PrivateSessionTests.test_question_timer_closes_with_zero_and_rejects_late_picks)",
+    "ERROR: test_quiz_choices_are_shuffled (test_private_sessions.PrivateSessionTests.test_quiz_choices_are_shuffled)",
+    "ERROR: test_start_at_assessment_uses_prerecorded_answers (test_private_sessions.PrivateSessionTests.test_start_at_assessment_uses_prerecorded_answers)",
+    "FAIL: test_accepts_valid_and_rejects_every_rule_break (test_private_sessions.QuizValidationTests.test_accepts_valid_and_rejects_every_rule_break)",
+    "FAIL: test_concurrent_first_reads_create_one_branch_with_twist_and_question (test_private_sessions.PrivateSessionTests.test_concurrent_first_reads_create_one_branch_with_twist_and_question)",
+    "FAIL: test_full_branch_coaching_card_and_scored_assessment (test_private_sessions.PrivateSessionTests.test_full_branch_coaching_card_and_scored_assessment)",
+    "FAIL: test_selected_real_adapter_wiring_uses_mocks_only (test_narration.NarrationEnvironmentTests.test_selected_real_adapter_wiring_uses_mocks_only)"
+  ],
+  "focused_new_feature_and_recordings_tls_ack_tests": 24,
+  "focused_exit_code": 0,
+  "full_exit_code": 1
+}

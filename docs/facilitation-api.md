@@ -258,10 +258,10 @@ Returns the caller's own branch only. It works during `private_session` and afte
     "current": 2,
     "questions": [
       {"step": 1, "question": "...", "choices": [{"choice_id": "a", "text": "..."}, "... four"],
-       "chosen": "c", "points": 15, "max": 20}
+       "chosen": "c", "points": 15, "max": 20, "deadline": "ISO timestamp or null", "timed_out": false}
     ],
-    "total": 15, "max": 100,
-    "review": [{"step": 1, "question": "...", "chosen": "c", "points": 15,
+    "total": 15, "max": 100, "question_seconds": 60, "server_time": "ISO timestamp",
+    "review": [{"step": 1, "question": "...", "chosen": "c", "points": 15, "timed_out": false,
                 "choices": [{"choice_id": "a", "text": "...", "points": 0, "rationale": "..."}, "... four"]}]
   },
   "retryable": false
@@ -285,7 +285,15 @@ Returns the caller's own branch only. It works during `private_session` and afte
 
 ### `POST /api/rooms/{room_id}/private-session/choice`
 
-`{"command_id": "UUID", "step": 1, "choice_id": "a"}` with `step` 1 to 5 (extra fields forbidden). Records the member's final pick for the current Round 3 question and returns the session payload. Errors: 409 `quiz_not_ready` (not Round 3, generating or failed), 409 `already_answered`, 409 `private_session_closed` after the phase ends, 409 `not_current_question` when `step` is not `quiz.current`, 422 `invalid_choice` when `choice_id` is not one of `a` to `d`. Idempotent by `command_id`: a replay returns the current payload, and reusing an ID with a different body returns 409 `command_conflict`.
+`{"command_id": "UUID", "step": 1, "choice_id": "a"}` with `step` 1 to 5 (extra fields forbidden). Records the member's final pick for the current Round 3 question and returns the session payload. Errors: 409 `quiz_not_ready` (not Round 3, generating or failed), 409 `question_timed_out` (that question's time ran out), 409 `already_answered`, 409 `private_session_closed` after the phase ends, 409 `not_current_question` when `step` is not `quiz.current`, 422 `invalid_choice` when `choice_id` is not one of `a` to `d`. Idempotent by `command_id`: a replay returns the current payload, and reusing an ID with a different body returns 409 `command_conflict`.
+
+### Question timer
+
+Each Round 3 question has `QUESTION_SECONDS = 60`, counted from when its question message is posted (the member may answer while the examiner reads it). `deadline` is set for the current question and kept for answered ones; clients compute the remaining time from `deadline` minus `server_time`, which corrects clock skew. When the deadline passes (plus 1.5 seconds of grace for network latency) the question closes with `points: 0`, `chosen: null`, `timed_out: true`, the examiner posts "Question n: time is up, 0 of 20 points." and the next question follows, or the quiz completes after question 5. Expiry runs lazily on every GET and choice and from a scheduled task at the deadline, so it advances even when nobody polls; it is idempotent. A pick for a closed question returns 409 `question_timed_out`. Timed out questions count 0 in the totals.
+
+### Start at Round 3 (test shortcut)
+
+`POST /api/rooms/{room_id}/start` accepts `start_at: "beginning" | "assessment"` (default `"beginning"`), echoed as `game.start_at`. With `"assessment"` (only for timing profiles with private rounds, otherwise 422 `start_at_unavailable`) the game opens directly in `private_session` with every member's stage at `assessment`, and the phase deadline is at least 600 seconds. Earlier rounds are filled with the saved fictional answers from `playtest/fixtures/recordings.json`, by electorate seat: the Round 1 individual decision `r1_member_{seat}_step_1` is recorded in the game state and as that member's private contribution, and the branch replays the canonical Round 2 developments and questions with the answers `r2_member_{seat}_step_{1..3}` (stored with `used_clip: true`), then a response card built by the offline helper from those texts (no model call). The examiner posts "Test start: prerecorded answers were used for Rounds 1 and 2. ..." and every member's quiz job starts at game start. A seat with no saved set starts with an empty history. Completion and the room ending work as after a normal Round 2.
 
 ### `POST /api/rooms/{room_id}/private-session/retry`
 

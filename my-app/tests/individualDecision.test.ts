@@ -36,7 +36,7 @@ test('board rows show only submission status, counting the caller once recorded'
 })
 
 test('decision badges mark every listed member, and the caller even when unlisted', () => {
-    assert.deepEqual(decisionBadges(decisions(null, { a: false, b: true }), 'a'), { a: { label: 'Writing…', tone: 'decide' }, b: { label: 'Submitted', tone: 'voted' } })
+    assert.deepEqual(decisionBadges(decisions(null, { a: false, b: true }), 'a'), { a: { label: 'Deciding…', tone: 'decide' }, b: { label: 'Submitted', tone: 'voted' } })
     assert.deepEqual(decisionBadges(decisions(null, {}), 'a'), { a: { label: 'Decide now', tone: 'decide' } })
     assert.deepEqual(decisionBadges(decisions({ text: 't', at: '' }, {}), 'a'), { a: { label: 'Submitted', tone: 'voted' } })
     assert.deepEqual(decisionBadges(null, 'a'), {})

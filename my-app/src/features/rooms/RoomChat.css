@@ -21,3 +21,10 @@
 .room-chat-retry { margin: 10px 16px 16px; line-height: 1.4; }
 .room-chat-retry p { margin: 0 0 8px; }
 @media (max-width: 600px) { .room-chat { right: 16px; bottom: 12px; } .room-chat-history { max-height: 30vh; } }
+
+/* Round 1: the composer switches between the member's private decision and a message to everyone. */
+.room-chat-target { display: flex; gap: 4px; padding: 3px; border: 1px solid #42282018; border-radius: 999px; background: #ffffff70; }
+.room-chat-compose .room-chat-target > button { flex: 1 1 0; min-height: 30px; padding: 4px 10px; border: 0; border-radius: 999px; background: transparent; color: #6b5a4c; box-shadow: none; font: inherit; font-size: 12px; font-weight: 650; cursor: pointer; }
+.room-chat-compose .room-chat-target > button.is-active { background: #8b362c; color: #fff8ec; }
+.room-chat-compose .room-chat-target > button:focus-visible { outline: 2px solid #8b362c; outline-offset: 2px; }
+.room-chat-compose.is-decision textarea { border-color: #8b362c66; }

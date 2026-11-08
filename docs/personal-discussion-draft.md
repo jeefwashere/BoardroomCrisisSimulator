@@ -10,9 +10,9 @@ The same editable text continues from speaking through expert discussion and the
 
 ```tsx
 const draft = useDiscussionDraft(room)
-// Both discussion preview and decision form consume this one controller.
+// Both discussion preview and decision chat composer consume this one controller.
 draft.edit('My own revised answer')
-draft.useSuggestion()
+draft.accept()
 // Only the existing explicit submit action commits the visible text.
 await act(`rounds/${room.game.round_id}/decision`, { text: draft.state.text })
 ```
@@ -39,4 +39,16 @@ Both candidates preserve the same review authority: recording audio alone is not
 
 ## Validation record
 
-Implementation checks and activation evidence will be recorded here after execution. Synthetic audio proves the transport and recognition path only. Physical microphone and other device acceptance require those devices to be tested.
+The original feature passed 247 frontend tests, build and lint, plus 29 targeted backend tests. A real synthetic eight second fixture passed the backend recording upload, ElevenLabs transcription, explicit owner review and Vertex summary path. It selected exactly two own sources, returned an empty artifact to a different member and left gameplay in speaking without a submitted decision. The existing shared voice ledger increased from US$0.0765066667 to US$0.0831733333 against the previously authorized US$100 ceiling. The conservative reservation is not a provider billing receipt. See [live evidence](evidence/personal-draft-live-20261108.json).
+
+A disposable browser game verified automatic text fill, human edit protection, explicit suggestion acceptance, own member isolation, same tab reload, phase continuity, explicit final confirmation and retained unsent changes after decisions close. A responsive toolbar overlap was reproduced and repaired by measuring the actual toolbar height. The original complete backend run retained its three failures and five errors in the private session and narration fixtures, with six additional timing dependent errors from one thirty member TestClient test. The unchanged baseline reproduced the original eight failures; its thirty member test passed on that run. These results are not a fully passing backend suite.
+
+Remote test UI advanced to03810f9 during development. Its quiz sounds, assessment start selection and compact chat based decision UI are integrated before final checks. Final merged checks and publication follow below. The user requested branch publication only, so the current live game service is not changed.
+
+Synthetic audio proves the transport and recognition path only. Physical microphone and other device acceptance require those devices to be tested. Live STT remains deployment configuration gated and was enabled only inside the bounded acceptance process. No key, budget ledger or runtime flag is distributed to browsers.
+
+
+Final merged verification: all255 frontend tests, production build and lint pass. The24 backend summary, recording and transport regressions pass. The complete backend run executes228 tests with4 failures and7 errors. An independent clean03810f9 upstream private session and narration run reproduces exactly those11 failure identities, with no additional feature failure. No tests were weakened. Current branch publication follows user instruction without a main merge or live service restart.
+
+
+The final merged browser run again passes source fill, manual protection, suggestion acceptance, reload recovery, private decision composer prefill, explicit three member confirmations and unsent copy retention after closure. It reports zero page errors. The actual toolbar clearance repair keeps Send clickable. A narrow screenshot was inspected; the existing demo toolbar can still scroll horizontally, so this is not a complete mobile layout acceptance. Test pages, the exact browser lease and disposable servers are cleaned up. See [browser record](evidence/personal-draft-browser-20261108.json).

@@ -1,4 +1,4 @@
-import type { RoomSnapshot, Scenario } from '../../services/rooms.ts'
+import type { RoomSnapshot, Scenario, StartAt } from '../../services/rooms.ts'
 import type { RoleDraft } from '../rooms/roomState.ts'
 import { progressStatus } from '../game/privateSessionModel.ts'
 import { STAGE_STORAGE_KEY } from '../boardroom3d/boardroomModel.ts'
@@ -425,4 +425,9 @@ export function windowSeats(room: Pick<RoomSnapshot, 'host_member_id' | 'members
 /** Links built on a loopback address only open on this computer. */
 export function isLoopbackOrigin(origin: string): boolean {
     try { return ['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin).hostname) } catch { return false }
+}
+
+/** The start body addition for the demo's start point: only sent for the Round 3 shortcut, so a normal start works on any server. */
+export function startAtInput(value: StartAt): { start_at?: StartAt } {
+    return value === 'assessment' ? { start_at: 'assessment' } : {}
 }

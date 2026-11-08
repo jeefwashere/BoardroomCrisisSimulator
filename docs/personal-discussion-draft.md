@@ -55,3 +55,10 @@ The final merged browser run again passes source fill, manual protection, sugges
 
 
 Final toolbar correction: review of the disposable Vite log caught a ResizeObserver observation error that the pageerror listener did not capture. The callback now coalesces writes into one animation frame, writes only changed heights and cancels pending work on cleanup, following [MDN observation error guidance](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver#observation_errors). A fresh browser captured window errors and console errors while resizing five times between390 and1440 pixels. Every measured drawer bottom matched the toolbar top, Send remained clickable, and both error lists were empty. Build and lint pass after this correction. See [toolbar regression evidence](evidence/personal-draft-toolbar-20261108.json). Both disposable servers and the second exact browser lease are closed.
+
+
+## Authorized local activation
+
+The user subsequently requested a rebuild for testing. At13:57UTC on November8 the clean local test UI checkout was fast forwarded to the published feature and rebuilt successfully. The owned frontend and backend were restarted, resetting rooms. Local page, both local and LAN API health, current draft and Game modules return200; OpenAPI includes the summary route. Vertex and speech recognition configuration passed preflight. Recognition now uses the existing authorized US$100 ceiling and the unchanged shared ledger, with the existing conservative US$0.0066666667 per minute reservation. Speech output remains off. No additional paid acceptance request was made during activation.
+
+Open http://127.0.0.1:5173/#/demo and start a fresh demo. Sent discussion text fills the personal summary in Chat. Microphone input requires recording and explicit transcript review before summarization. During decisions the same draft appears in Your decision and remains editable until explicit confirmation. Existing browser state may need Reset demo after this backend restart. Shared deployment and public HTTPS access remain outside this local activation.

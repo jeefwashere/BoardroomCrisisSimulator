@@ -5,7 +5,11 @@
  */
 
 export const MODELS = `${import.meta.env.BASE_URL}models/`
-export const CHARACTER_IDS = ['01-coo', '03-cto', '06-head-of-communications']
+/** The ten seated characters, in seat fill order: the first member gets the first character, and so on (rooms hold 10). */
+export const CHARACTER_IDS = [
+    '01-coo', '03-cto', '06-head-of-communications', '02-cfo', '04-general-counsel',
+    '05-head-of-hr', '07-marketing-director', '08-sales-manager', '09-operations-manager', '10-project-manager',
+]
 /** Props the scene places, matched by a word in their file name (see props.json). */
 export const PROP_WORDS = ['table', 'chair', 'credenza', 'water-service', 'plant', 'clock', 'holo-hub', 'display', 'laptop', 'console'] as const
 export type PropWord = (typeof PROP_WORDS)[number]
@@ -43,14 +47,18 @@ export function propUrl(entries: Manifest['models'], word: string): string | nul
 }
 
 let started = false
+const swallow = (download: Promise<unknown>) => { download.catch(() => undefined) }
 
-/** Starts every model download in parallel (once); safe to call from any screen. */
-export function preloadBoardroomAssets(): void {
-    if (started || typeof fetch === 'undefined') return
+/**
+ * Starts the model downloads in parallel; safe to call from any screen and again as members join. Only the characters
+ * for the first `seats` seats are fetched, so a three person game does not download all ten.
+ */
+export function preloadBoardroomAssets(seats = 3): void {
+    if (typeof fetch === 'undefined') return
+    for (const id of CHARACTER_IDS.slice(0, Math.max(0, Math.min(seats, CHARACTER_IDS.length)))) swallow(fetchAsset(`${MODELS}characters/${id}.glb`))
+    if (started) return
     started = true
-    const swallow = (download: Promise<unknown>) => { download.catch(() => undefined) }
     swallow(fetchAsset(`${MODELS}characters/animations.glb`))
-    for (const id of CHARACTER_IDS) swallow(fetchAsset(`${MODELS}characters/${id}.glb`))
     swallow(fetchAsset(`${MODELS}room/room.glb`))
     void propManifest().then((found) => {
         if (!found) return

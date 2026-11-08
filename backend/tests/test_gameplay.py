@@ -203,23 +203,23 @@ class GameplayTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(frozen['game']['history'], result['game']['history'])
         self.assertEqual((await self.clients[0].get(self.path + '/evaluation-evidence')).json(), record)
 
-    async def test_thirty_concurrent_voters_replacement_and_cutoff_equality(self):
-        started = await self.ready(30)
+    async def test_full_room_concurrent_voters_replacement_and_cutoff_equality(self):
+        started = await self.ready(10)
         began = datetime.fromisoformat(started['game']['started_at'])
         total = datetime.fromisoformat(started['game']['session_deadline'])
         self.assertEqual((total - began).total_seconds(), 1110)
         speaking = await self.reach('speaking')
         due = datetime.fromisoformat(speaking['game']['phase_deadline'])
         now = datetime.fromisoformat(speaking['game']['server_time'])
-        self.assertEqual((due - now).total_seconds(), 5)
-        self.assertEqual(len(speaking['game']['speaker_order']), 30)
+        self.assertEqual((due - now).total_seconds(), 15)
+        self.assertEqual(len(speaking['game']['speaker_order']), 10)
         voting = await self.reach('voting')
         due = datetime.fromisoformat(voting['game']['phase_deadline'])
         now = datetime.fromisoformat(voting['game']['server_time'])
         self.assertEqual((due - now).total_seconds(), 60)
         options = voting['game']['current_node']['options']
         await asyncio.gather(*(self.action(index, voting, 'vote', option_id=options[0]['option_id'])
-                               for index in range(30)))
+                               for index in range(10)))
         replaced = await self.action(0, voting, 'vote', option_id=options[1]['option_id'])
         self.assertEqual(replaced['game']['self_vote'], options[1]['option_id'])
         self.assertIsNone(replaced['game']['vote_counts'])
@@ -227,7 +227,7 @@ class GameplayTests(unittest.IsolatedAsyncioTestCase):
         self.clock.now = state.phase.deadline
         await self.action(0, voting, 'vote', expected=409, option_id=options[0]['option_id'])
         result = await self.view()
-        self.assertEqual(result['game']['vote_counts'][options[0]['option_id']], 29)
+        self.assertEqual(result['game']['vote_counts'][options[0]['option_id']], 9)
         self.assertEqual(result['game']['vote_counts'][options[1]['option_id']], 1)
         self.assertEqual(len(result['game']['history']), 1)
 

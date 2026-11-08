@@ -304,7 +304,7 @@ class RoomFields(View):
     room_id: UUID
     room_code: str
     room_version: int
-    capacity: Literal[30] = ROOM_CAPACITY
+    capacity: Literal[10] = ROOM_CAPACITY
     presence_window_seconds: Literal[30] = PRESENCE_WINDOW_SECONDS
     host_member_id: UUID
     self_member_id: UUID

@@ -96,10 +96,12 @@ const PRIVATE_ANSWER_COPY = {
     limit: ANSWER_LIMIT, canSubmit: canSubmitAnswer,
 }
 
-function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: { room: RoomSnapshot; scenarios: Scenario[]; error: string; rename: (name: string) => Promise<void>; execute: (path: string, fields?: Record<string, unknown>) => Promise<void>; onViewSummary: () => void; chat: RoomChatHandle }) {
+function Game({ room, scenarios, error, rename, execute, onViewSummary, chat, leave }: { leave?: () => Promise<void>; room: RoomSnapshot; scenarios: Scenario[]; error: string; rename: (name: string) => Promise<void>; execute: (path: string, fields?: Record<string, unknown>) => Promise<void>; onViewSummary: () => void; chat: RoomChatHandle }) {
     const [notice, setNotice] = useState('')
     // Fetch the 3D boardroom models while players are still in the lobby or setup.
-    useEffect(() => preloadBoardroomAssets(), [])
+    // Characters for every seated member (one per member, up to 10), fetched while the game screen opens.
+    const seatCount = room.members.length
+    useEffect(() => preloadBoardroomAssets(seatCount), [seatCount])
     const [pending, setPending] = useState(false)
     const [text, setText] = useState('')
     const [dismissedOpening, setDismissedOpening] = useState('')
@@ -120,6 +122,18 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const [dictationReady, setDictationReady] = useState(false)
     const dictation = useDictation((words) => dictationSink.current?.(words), (clip) => roomApi.dictate(room.room_id, clip))
     const { stop: stopDictation } = dictation
+    // Leave room tells the server. The CEO leaving during Round 1 ends the game and deletes the room for everyone,
+    // so that needs a second click; anyone else leaving is one member fewer.
+    const leaverRole = room.members.find((member) => member.member_id === room.self_member_id)?.role_id
+    const leaveEndsGame = leaverRole === 'ceo' && room.phase !== 'ended' && (room.game?.round_number ?? 1) === 1
+    const [leaveArmed, setLeaveArmed] = useState(false)
+    const [leavingRoom, setLeavingRoom] = useState(false)
+    async function leaveRoom() {
+        if (leaveEndsGame && !leaveArmed) { setLeaveArmed(true); window.setTimeout(() => setLeaveArmed(false), 4000); return }
+        setLeavingRoom(true)
+        try { await leave?.() } catch { /* The room may already be gone; going home is still right. */ }
+        window.location.hash = '/'
+    }
     // Ending the call stops everything in this window: voices, clips, speech streams and dictation. Leaving the room does too.
     const callEnded = room.phase === 'ended'
     useEffect(() => {
@@ -317,7 +331,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
 
     return <AgentPresenceContext.Provider value={setStageAgent}><MotionConfig reducedMotion="user"><div className={`game-call-screen game-live-screen${chatOpen ? ' has-side-panel' : ''}${transcriptOpen ? ' has-transcript' : ''}`}>
         <header className="game-call-header">
-            <div className="room-personal-controls"><button className="game-back-button" type="button" onClick={() => { window.location.hash = '/' }}><LobbyIcon name="back" /><span>Leave room</span></button><RoomNameEditor room={room} rename={rename} /></div>
+            <div className="room-personal-controls"><button className={`game-back-button${leaveArmed ? ' is-armed' : ''}`} type="button" disabled={leavingRoom} title={leaveEndsGame ? 'You are the CEO: leaving during Round 1 ends the game and deletes the room for everyone.' : 'Leave this game'} onClick={() => void leaveRoom()}><LobbyIcon name="back" /><span>{leavingRoom ? 'Leaving…' : leaveArmed ? 'Click again: ends the game for everyone' : 'Leave room'}</span></button><RoomNameEditor room={room} rename={rename} /></div>
             <div className="game-call-heading"><h1>Boardroom</h1><span>Room {room.room_code}</span></div>
             <div className="game-header-end"><button className="game-summary-button" type="button" onClick={onViewSummary}>Summary preview <span aria-hidden="true">↗</span></button><span className="game-player-count">{room.members.length} / {room.capacity}</span></div>
         </header>

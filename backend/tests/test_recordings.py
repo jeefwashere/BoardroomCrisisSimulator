@@ -159,9 +159,10 @@ class RecordingsTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(self.media.entries), 1)
 
     async def test_recording_cannot_exceed_short_remaining_turn(self):
-        await self.ready(30)
+        # A full room (10) gets 15 s turns; 14 s in, a 3 s clip no longer fits.
+        await self.ready(10)
         await self.reach('speaking')
-        await self.advance(4)
+        await self.advance(14)
         speaking = await self.view()
         response = await self.clients[0].post(self.path + '/recordings/begin', json=command(
             phase_id=speaking['game']['phase_id'], round_id=speaking['game']['round_id']))

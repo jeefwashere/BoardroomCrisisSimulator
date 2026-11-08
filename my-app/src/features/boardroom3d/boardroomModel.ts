@@ -32,8 +32,8 @@ export type BoardroomView = {
     screen: { title: string; subtitle: string }
 }
 
-/** The solo T01 demo is played by three members; the table keeps its full size and only three seats are used. */
-export const BOARD_SEATS = 3
+/** Seats round the table: a room holds 3 to 10 members and each gets a seat and a character. */
+export const BOARD_SEATS = 10
 
 const AGENT_PHASES = new Set(['briefing', 'reading', 'discussion', 'private_session'])
 
@@ -47,7 +47,7 @@ const PHASE_LABELS: Record<string, string> = {
     ended: 'Game over',
 }
 
-/** Members in seat order: the electorate order first, then anyone else, at most three. */
+/** Members in seat order: the electorate order first, then anyone else, at most `BOARD_SEATS`. */
 export function boardMembers<T extends { id: string }>(members: readonly T[], eligibleIds: readonly string[]): T[] {
     const ordered = eligibleIds.map((id) => members.find((member) => member.id === id)).filter((member): member is T => Boolean(member))
     const rest = members.filter((member) => !eligibleIds.includes(member.id))
@@ -89,7 +89,7 @@ export function stagePreference(stored: string | null, search: string): '3d' | '
     return viewFromSearch(search) ?? 'call'
 }
 
-/** The 3D table seats three; larger rooms keep the call tiles only. */
+/** The 3D table seats ten (the room maximum). */
 export function offersStageSwitch(memberCount: number): boolean {
     return memberCount > 0 && memberCount <= BOARD_SEATS
 }

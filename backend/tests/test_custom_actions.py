@@ -236,8 +236,9 @@ class VotingCustomTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(record['outcome_id'], allowed[1])
         self.assertEqual(record['vote_counts'][custom], 2)
         self.assertEqual(record['vote_counts'][prepared], 1)
-        self.assertEqual(self.provider.prompts, [])
-        (prompt,) = self.vertex.prompts
+        # The resolution went to Vertex, never the hosted fallback (the opening briefing, started at game start, may use it).
+        self.assertEqual([item for item in self.provider.prompts if self.TEXT in item], [])
+        (prompt,) = [item for item in self.vertex.prompts if self.TEXT in item]
         self.assertIn(self.TEXT, prompt)
         self.assertEqual(self.resolver.traces[UUID(record['ai_job_id'])]['source'], 'vertex')
 

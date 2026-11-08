@@ -10,7 +10,7 @@ const scenario: Scenario = {
 }
 function lobby(): RoomSnapshot {
     return {
-        room_id: 'room', room_code: 'ABC123', room_version: 3, capacity: 30, presence_window_seconds: 30,
+        room_id: 'room', room_code: 'ABC123', room_version: 3, capacity: 10, presence_window_seconds: 30,
         phase: 'lobby', game: null, host_member_id: 'a', self_member_id: 'a',
         members: ['a', 'b', 'c'].map((id) => ({ member_id: id, display_name: `Server ${id}`, is_host: id === 'a', connected: true, role_id: null, eligible_from_round: null, eligible_current_round: false })),
     }

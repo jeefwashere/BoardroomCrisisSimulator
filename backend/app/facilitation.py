@@ -78,6 +78,15 @@ EXPERT_RULES = ("Use only the supplied scenario, situation, study questions, rou
                 "winning option, and never claim a decision was made. Speak 60 to 90 words of plain spoken prose with no "
                 "markdown, lists, headings or bullet points.")
 EXPERT_CONTRIBUTIONS_BUDGET = 1400
+# The opening is spoken whole: at most 500 characters reach ElevenLabs (`spoken`), so it asks for about 75 words
+# (roughly 30 seconds of speech) instead of the 120 word adviser limit, whose last third was never heard.
+OPENING_RULES = RULES.replace("at most 120 words", "55 to 70 words, at most 450 characters")
+# Opening Vertex requests: a duplicate starts at each mark (seconds) still without an answer, each attempt may take
+# HEDGE_ATTEMPT_TIMEOUT, and the hosted model or offline text takes over after HEDGE_DEADLINE.
+HEDGE_STARTS = (0.0, 4.5, 9.0)
+HEDGE_ATTEMPT_TIMEOUT = 12
+HEDGE_DEADLINE = 15.0
+OPENING_HOSTED_TIMEOUT = 20
 
 
 def now_iso() -> str:
@@ -285,22 +294,63 @@ class Facilitation:
                      f"A question still open: {question}" if question else ""]
         return " ".join(part for part in parts if part)
 
-    async def generate(self, prompt: str, fallback: str) -> tuple[str, str]:
+    async def generate(self, prompt: str, fallback: str, *, hedged: bool = False,
+                       hosted_timeout: float = 45) -> tuple[str, str]:
         if getattr(self.vertex, "configured", False):
             try:
-                text = (await self.vertex.text(prompt, 30, 600)).strip()
+                text = await (self._hedged_vertex(prompt) if hedged else self.vertex.text(prompt, 30, 600))
+                text = text.strip()
                 if text:
                     return text[:1500], "vertex"
             except Exception:
                 pass  # Never surface provider details; try the next source.
         if getattr(self.provider, "configured", False):
             try:
-                text = (await self.provider.run(prompt, uuid4(), 45)).strip()
+                text = (await self.provider.run(prompt, uuid4(), hosted_timeout)).strip()
                 if text:
                     return text[:1500], "hosted"
             except Exception:
                 pass  # Provider errors can contain private details; fall back to grounded offline text.
         return fallback, "offline"
+
+    async def _hedged_vertex(self, prompt: str) -> str:
+        """First good Vertex answer from staggered duplicate requests.
+
+        Measured Nov 8 2026: the opening answers in 2.4 to 3.1 s, but about one request in eight hangs until its 30 s
+        timeout, which left the room silent for 30 s and then spoke the offline text. A duplicate starts whenever no
+        answer has arrived by the next mark in HEDGE_STARTS (or at once when an attempt fails), and the first good
+        answer wins. A hung attempt keeps its worker thread until its own socket timeout; nothing waits for it.
+        """
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + HEDGE_DEADLINE
+
+        async def attempt() -> str:
+            text = (await self.vertex.text(prompt, HEDGE_ATTEMPT_TIMEOUT, 600)).strip()
+            if not text:
+                raise ValueError("empty")
+            return text
+
+        pending: set[asyncio.Task] = set()
+        starts = list(HEDGE_STARTS)
+        try:
+            while True:
+                now = loop.time() - (deadline - HEDGE_DEADLINE)
+                if starts and (starts[0] <= now or not pending):
+                    starts.pop(0)
+                    pending.add(asyncio.ensure_future(attempt()))
+                    continue
+                remaining = deadline - loop.time()
+                if not pending or remaining <= 0:
+                    raise TimeoutError("No Vertex answer in time")
+                wait = min(remaining, starts[0] - now) if starts else remaining
+                done, pending = await asyncio.wait(pending, timeout=max(wait, 0), return_when=asyncio.FIRST_COMPLETED)
+                # Reading every exception keeps asyncio from logging failed attempts as never retrieved.
+                answers = [task.result() for task in done if not task.cancelled() and task.exception() is None]
+                if answers:
+                    return answers[0]
+        finally:
+            for task in pending:
+                task.cancel()
 
     def spawn(self, coroutine) -> None:
         task = asyncio.create_task(coroutine)
@@ -315,16 +365,48 @@ class Facilitation:
         except Exception:
             pass  # The window's own request reports any failure.
 
+    async def _prewarm_stream(self, room_id: UUID, speech_id: str, text: str, voice: str) -> None:
+        """Like `_prewarm`, but through the streaming synthesis. A full file prewarm makes a later /stream request wait
+        for the whole file; this way a window streaming the line gets the chunks already made at once and the rest
+        live, so its playback starts with the first audio."""
+        try:
+            async for _ in self.speech.stream(room_id, UUID(speech_id), spoken(text), voice):
+                pass
+        except Exception:
+            pass  # The window's own request reports any failure.
+
     async def _opening(self, entry: dict, context: dict, room_id: UUID | None = None) -> None:
         instructions = ("You are the AI facilitator opening a fictional board crisis exercise. Introduce the incident, "
                         "what the public documents say, and what the board must discuss.")
         try:
-            entry["text"], entry["source"] = await self.generate(self.prompt(instructions, context), self.offline_opening(context))
+            entry["text"], entry["source"] = await self.generate(
+                self.prompt(instructions, context, rules=OPENING_RULES), self.offline_opening(context),
+                hedged=True, hosted_timeout=OPENING_HOSTED_TIMEOUT)
             entry["speech_id"], entry["status"] = str(uuid4()), "ready"
             if room_id is not None:
-                self.spawn(self._prewarm(room_id, entry["speech_id"], entry["text"], "facilitator"))
+                self.spawn(self._prewarm_stream(room_id, entry["speech_id"], entry["text"], "facilitator"))
         except Exception:
             entry["status"], entry["error"] = "failed", "Opening briefing unavailable"
+
+    def _ensure_opening(self, room_id: UUID, snapshot) -> dict:
+        """The room's one opening job, created on first need. No await here, so concurrent callers share one job."""
+        opening = self.openings.get(room_id)
+        if opening is None:
+            opening = {"status": "pending", "title": "Opening briefing", "text": "", "source": None,
+                       "speech_id": None, "error": None}
+            self.openings[room_id] = opening
+            self.spawn(self._opening(opening, self.context(snapshot), room_id))
+        return opening
+
+    async def begin_opening(self, session: str, room_id: UUID) -> None:
+        """Called as the game starts, so the briefing is written while the windows load instead of after their
+        first facilitation poll. Never fails the start."""
+        try:
+            snapshot = await self.rooms.snapshot(session, room_id)
+            if snapshot.game is not None and snapshot.game.phase == "briefing":
+                self._ensure_opening(room_id, snapshot)
+        except Exception:
+            pass  # The first facilitation poll creates the opening instead.
 
     async def _consult(self, item: dict, context: dict) -> None:
         kind, question = item["kind"], item["question"]
@@ -381,14 +463,7 @@ class Facilitation:
                     self.spawn(self._panel(panel, self.expert_context(snapshot, contributions), room_id))
             if rounds:
                 expert_panel = self.panel_view(next(reversed(rounds.values())))
-            opening = self.openings.get(room_id)
-            if opening is None:
-                # No await between the check and insert, so concurrent callers share one job.
-                opening = {"status": "pending", "title": "Opening briefing", "text": "", "source": None,
-                           "speech_id": None, "error": None}
-                self.openings[room_id] = opening
-                self.spawn(self._opening(opening, self.context(snapshot), room_id))
-            opening = dict(opening)
+            opening = dict(self._ensure_opening(room_id, snapshot))
         return {"opening": opening, "expert_panel": expert_panel, "advisers": [dict(item) for item in ADVISERS],
                 "consultations": [dict(item) for item in self.consultations.get(room_id, [])],
                 "documents": self.documents.attached()}

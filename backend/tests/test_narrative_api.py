@@ -208,7 +208,8 @@ class NarrativeApiTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(response.status_code, 200, response.text)
             self.assertEqual(response.json()["status"], "ready")
             self.assertEqual(response.json()["text"], caption)
-        synthesize.assert_called_once_with(caption)
+        # The opening briefing also prepares its voice at game start; the narration itself is synthesized once.
+        self.assertEqual([call.args for call in synthesize.call_args_list if call.args == (caption,)], [(caption,)])
         for client in self.clients:
             audio = await client.get(path + "/audio")
             self.assertEqual(audio.status_code, 200, audio.text)
@@ -291,7 +292,9 @@ class NarrativeApiTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(response.json()["text"], before["game"]["narration"]["text"])
             self.assertNotIn("private-provider", response.text)
             self.assertNotIn("/private", response.text)
-        synthesize.assert_called_once()
+        # One narration attempt (no retry); the opening briefing's own head start is the other call.
+        narration_text = before["game"]["narration"]["text"]
+        self.assertEqual(sum(call.args == (narration_text,) for call in synthesize.call_args_list), 1)
         self.assertEqual((await self.snapshot())["game"], before["game"])
         unavailable = await self.host.get(path + "/audio")
         self.assertEqual(unavailable.status_code, 404)

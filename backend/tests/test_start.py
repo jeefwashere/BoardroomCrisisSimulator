@@ -350,14 +350,14 @@ class StartApiTests(unittest.TestCase):
         ))
         self.assertEqual(existing.status_code, 409, existing.text)
 
-    def test_thirty_members_start_with_shared_perspectives_and_full_room_stays_full(self):
-        body = self.ready(30)
+    def test_full_room_of_ten_starts_with_shared_perspectives_and_stays_full(self):
+        body = self.ready(10)
         response = self.start(body)
         self.assertEqual(response.status_code, 200, response.text)
-        self.assertEqual(len(response.json()["game"]["eligible_member_ids"]), 30)
+        self.assertEqual(len(response.json()["game"]["eligible_member_ids"]), 10)
         members = response.json()["members"]
         self.assertEqual(sum(member["role_id"] == "ceo" for member in members), 1)
-        self.assertEqual(sum(member["role_id"] == "security" for member in members), 29)
+        self.assertEqual(sum(member["role_id"] == "security" for member in members), 9)
         overflow = self.client().post("/api/rooms/join", json=command(
             display_name="Overflow", room_code=self.room["room_code"], role_id="finance",
         ))

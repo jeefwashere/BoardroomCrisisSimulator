@@ -441,3 +441,30 @@
 }
 
 .lobby-context { padding-bottom: max(88px, env(safe-area-inset-bottom)); }
+
+/* Room code with its Invite button, centred in the toolbar. */
+.lobby-code-group { display: inline-flex; align-items: center; gap: 18px; }
+.lobby-invite-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 6px 14px;
+  border: 1px solid #c9b6a3;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 150ms ease, border-color 150ms ease;
+}
+.lobby-invite-button:hover:not(:disabled) { color: var(--lobby-accent); border-color: var(--lobby-accent); }
+.lobby-invite-button:disabled { opacity: 0.5; cursor: not-allowed; }
+/* The scenario brief, loaded automatically (a link styled like the old upload button). */
+.lobby-brief { display: inline-flex; align-items: center; gap: 7px; text-decoration: none; }
+.host-lobby .lobby-brief-check { width: 15px; height: 15px; color: #3f7a4a; }
+.lobby-scenario-fixed { font-weight: 600; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 34ch; }

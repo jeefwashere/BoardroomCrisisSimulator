@@ -79,7 +79,7 @@ type RoomFields = {
     room_id: string
     room_code: string
     room_version: number
-    capacity: 30
+    capacity: 10
     presence_window_seconds: 30
     host_member_id: string
     self_member_id: string
@@ -272,7 +272,7 @@ function game(value: unknown): value is RoomGame {
 
 function snapshot(value: unknown): value is RoomSnapshot {
     return record(value) && typeof value.room_id === 'string' && typeof value.room_code === 'string'
-        && Number.isInteger(value.room_version) && value.capacity === 30 && value.presence_window_seconds === 30
+        && Number.isInteger(value.room_version) && value.capacity === 10 && value.presence_window_seconds === 30
         && typeof value.host_member_id === 'string' && typeof value.self_member_id === 'string'
         && Array.isArray(value.members) && value.members.every(member)
         && (value.phase === 'lobby' ? value.game === null

@@ -59,17 +59,21 @@ interface Seat {
 }
 
 /**
- * Three seats spread round the full size table. Alex sits at the head nearest the overview
- * camera; Morgan and Sam sit on opposite sides, offset along the table so they are about 2.5 m
- * apart (Alex is 2.1 m from Morgan and 3.5 m from Sam) and neither blocks the other's close up.
+ * Ten seats round the full size table: one at each end and four down each side, 1 m apart.
+ * They are listed in fill order, so small groups still spread out: the first member sits at the
+ * head nearest the overview camera, the next two on opposite sides offset along the table (so
+ * neither blocks the other's close up), then the far end, then the remaining side seats.
  */
 function makeSeats(): Seat[] {
   const side = TABLE.width / 2 + EDGE_GAP
   const end = TABLE.length / 2 + EDGE_GAP
+  const near = (x: number): Seat => ({ position: new THREE.Vector3(x, 0, side), yaw: Math.PI })
+  const far = (x: number): Seat => ({ position: new THREE.Vector3(x, 0, -side), yaw: 0 })
   return [
     { position: new THREE.Vector3(end, 0, 0), yaw: -Math.PI / 2 },
-    { position: new THREE.Vector3(0.5, 0, side), yaw: Math.PI },
-    { position: new THREE.Vector3(-1.0, 0, -side), yaw: 0 },
+    near(0.5), far(-0.5),
+    { position: new THREE.Vector3(-end, 0, 0), yaw: Math.PI / 2 },
+    near(-1.5), far(1.5), near(1.5), far(-1.5), near(-0.5), far(0.5),
   ]
 }
 
@@ -435,7 +439,7 @@ export class Boardroom {
     this.resizeObserver.observe(container)
     this.resize()
     void this.start()
-    void this.loadModels()
+    this.loadModels()
     void this.loadProps()
     void this.loadRoom()
   }
@@ -531,7 +535,7 @@ export class Boardroom {
         speaking: seat.talking,
         away: !seat.connected,
       } : null)
-      if (seat) avatar.setMood(seat.mood)
+      if (seat) { this.loadCharacter(index); avatar.setMood(seat.mood) }
     })
     const agent = view.agent
     this.tags.set(CHARACTER_IDS.length, agent ? {
@@ -553,24 +557,48 @@ export class Boardroom {
     return this.loader.parseAsync(await fetchAsset(url), '')
   }
 
-  private async loadModels() {
-    const total = CHARACTER_IDS.length + 1
-    let loaded = 0
-    const tick = () => this.onProgress(++loaded, total)
-    // Every download starts at once (most are already in memory from the lobby preload); only attaching waits for
-    // the shared animation clips.
-    const library = this.gltf(`${MODELS}characters/animations.glb`)
-    void library.then(tick, () => undefined)
-    await Promise.all(
-      CHARACTER_IDS.map(async (id, index) => {
-        const [gltf, { animations: clips }] = await Promise.all([this.gltf(`${MODELS}characters/${id}.glb`), library])
-        this.avatars[index].attach(gltf, clips)
-        if (index === 0) this.calibrateSeat(this.avatars[0])
-        tick()
-      }),
-    )
-    this.avatars.forEach((avatar, index) => this.chairs[index]?.position.copy(this.chairPosition(avatar)))
-    this.loadedAtFrame = this.frame
+  /** The shared animation clips; every character waits for them before it can sit. */
+  private library: Promise<GLTF> | null = null
+  /** Characters requested so far (by seat index) and how many have attached, for the loading counter. */
+  private characters = new Map<number, Promise<void>>()
+  private attached = 0
+  private libraryReady = false
+
+  private reportProgress() {
+    this.onProgress(this.attached + (this.libraryReady ? 1 : 0), Math.max(1, this.characters.size) + 1)
+  }
+
+  private loadModels() {
+    this.library = this.gltf(`${MODELS}characters/animations.glb`)
+    this.library.then(() => { this.libraryReady = true; this.reportProgress() }, () => undefined)
+    // Before the first snapshot arrives, start the first seat so the head of the table is never empty.
+    this.loadCharacter(0)
+  }
+
+  /**
+   * A seat's character, downloaded and attached the first time someone sits there (most bytes are already in memory
+   * from the lobby preload). Empty seats never download their model.
+   */
+  private loadCharacter(index: number) {
+    if (this.characters.has(index) || !this.library || index >= CHARACTER_IDS.length) return
+    const library = this.library
+    const job = (async () => {
+      const [gltf, { animations: clips }] = await Promise.all([this.gltf(`${MODELS}characters/${CHARACTER_IDS[index]}.glb`), library])
+      if (this.disposed) return
+      const avatar = this.avatars[index]
+      avatar.attach(gltf, clips)
+      if (this.view?.seats[index]) avatar.setMood(this.view.seats[index].mood)
+      if (this.attached === 0) {
+        this.calibrateSeat(avatar)
+        this.avatars.forEach((other, seat) => this.chairs[seat]?.position.copy(this.chairPosition(other)))
+      }
+      this.attached += 1
+      this.reportProgress()
+      this.loadedAtFrame = this.frame
+    })()
+    job.catch((error) => { this.characters.delete(index); console.warn('[boardroom] character failed to load', CHARACTER_IDS[index], error) })
+    this.characters.set(index, job)
+    this.reportProgress()
   }
 
   /** Measure where the seated pose puts the hips so chairs sit under every character. */

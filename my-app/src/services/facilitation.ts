@@ -91,6 +91,23 @@ export type CriterionFeedback = { id: string; label: string; max: number; points
 export type StageFeedback = { step: number; criteria: CriterionFeedback[] }
 export type Assessment = { stages: AssessmentStage[]; total: number | null; max: number; feedback: StageFeedback[] | null }
 export type PrivateClip = { clip_id: string; audio_url: string; text: string; duration_seconds: number | null }
+// Round 3: five multiple choice questions (`quiz` in the private session payload). Points are revealed per question once answered.
+export type QuizChoice = { choice_id: string; text: string }
+export type QuizQuestion = { step: number; question: string; choices: QuizChoice[]; chosen: string | null; points: number | null; max: number }
+/** One choice in the released review: its points (0 to 20) and why. */
+export type QuizReviewChoice = QuizChoice & { points: number; rationale: string }
+export type QuizReview = { step: number; question: string; chosen: string | null; points: number | null; choices: QuizReviewChoice[] }
+export type PrivateQuiz = {
+    status: 'generating' | 'ready' | 'failed'
+    /** The question to answer now (1 to 5); null while generating, after a failure and once complete. */
+    current: number | null
+    /** Only questions already reached: the answered ones plus the current one. */
+    questions: QuizQuestion[]
+    total: number
+    max: number
+    /** Every choice's points and rationale, released once the stage is complete. */
+    review: QuizReview[] | null
+}
 export type PrivateSession = {
     round: PrivateRound
     stage: PrivateStage
@@ -102,6 +119,8 @@ export type PrivateSession = {
     clip: PrivateClip | null
     card: ResponseCard | null
     assessment: Assessment
+    /** Round 3 multiple choice assessment; null before Round 3. */
+    quiz: PrivateQuiz | null
     retryable: boolean
 }
 
@@ -162,6 +181,10 @@ export function createFacilitationApi(api: RoomApi) {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input), signal,
         })),
         privateCard: async (roomId: string, input: { command_id: string; fields: ResponseCardFields }, signal?: AbortSignal) => json<unknown>(await api.authorized(`/api/rooms/${encodeURIComponent(roomId)}/private-session/card`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input), signal,
+        })),
+        /** Round 3: the member's final pick for the current question (`choice_id` is "a" to "d"). */
+        privateChoice: async (roomId: string, input: { command_id: string; step: number; choice_id: string }, signal?: AbortSignal) => json<unknown>(await api.authorized(`/api/rooms/${encodeURIComponent(roomId)}/private-session/choice`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input), signal,
         })),
         privateRetry: async (roomId: string, input: { command_id: string }, signal?: AbortSignal) => json<unknown>(await api.authorized(`/api/rooms/${encodeURIComponent(roomId)}/private-session/retry`, {

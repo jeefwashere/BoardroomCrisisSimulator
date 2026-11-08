@@ -591,6 +591,36 @@ details.game-notice { display: block; border-color: #b58c28; background: #fbf1d6
 .private-criterion p { margin: 0; color: #d6d8de; font-size: 13px; line-height: 1.5; }
 .private-criterion blockquote { margin: 2px 0 0; padding: 4px 10px; border-left: 3px solid #ecc783; color: #f3e4c6; font-size: 13px; font-style: italic; line-height: 1.5; }
 
+/* Round 3 multiple choice: one question card at a time, then the review. */
+.private-chip--current { border-color: #ecc78399; }
+.private-quiz-wrap { display: grid; gap: 8px; }
+.private-quiz { display: grid; gap: 10px; padding: 14px 16px; border: 1px solid #ffffff1f; border-radius: 12px; background: #1e1f22b3; }
+.private-quiz-head { display: grid; gap: 4px; }
+.private-quiz-head .private-question { margin: 0; }
+.private-quiz-head .private-question:focus { outline: none; }
+.private-quiz-head .private-question:focus-visible { outline: 2px solid #9da4ff; outline-offset: 2px; }
+.private-quiz-choices { display: grid; gap: 8px; }
+.private-quiz-choice { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 9px 12px; border: 1px solid #ffffff26; border-radius: 10px; background: #ffffff0a; color: #f2f3f5; font: inherit; font-size: 14px; line-height: 1.45; text-align: left; cursor: pointer; transition: background-color 150ms ease, border-color 150ms ease; }
+.private-quiz-choice:hover:not(:disabled) { border-color: #ecc78399; background: #ecc7831a; }
+.private-quiz-choice:disabled { cursor: default; }
+.private-quiz-choice:disabled:not(.is-chosen):not(.is-sending) { opacity: .6; }
+.private-quiz-choice.is-chosen, .private-quiz-choice.is-sending { border-color: #ecc783; border-width: 2px; padding: 8px 11px; background: #ecc78324; }
+.private-quiz-letter { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 999px; background: #ffffff1a; font-size: 12px; font-weight: 800; }
+.private-quiz-choice.is-chosen .private-quiz-letter { background: #ecc783; color: #2b2112; }
+.private-quiz-text { overflow-wrap: anywhere; }
+.private-quiz-tag { justify-self: end; padding: 2px 8px; border-radius: 999px; background: #ecc783; color: #2b2112; font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+.private-quiz-tag.is-best { background: #3b5e47; color: #e4f3e7; }
+.private-quiz-foot { min-height: 20px; }
+.private-quiz-foot p { margin: 0; }
+.private-quiz-result { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; font-size: 14px; }
+.private-quiz-result strong { font-size: 16px; font-variant-numeric: tabular-nums; }
+.private-quiz-result span { color: #c4c6ce; font-variant-numeric: tabular-nums; }
+.private-review-question { margin: 0 0 8px; font-size: 14px; font-weight: 600; line-height: 1.45; }
+.private-review-choice { border: 1px solid transparent; }
+.private-review-choice.is-best { border-color: #6fa57f88; }
+.private-review-choice.is-chosen { border: 2px solid #ecc783; padding: 9px 11px; }
+.private-review-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+
 .private-board { display: grid; gap: 8px; padding-top: 10px; border-top: 1px solid #ffffff14; }
 .private-board ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .private-board-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; border-radius: 8px; background: #ffffff0a; font-size: 14px; font-weight: 600; }
@@ -610,6 +640,10 @@ details.game-notice { display: block; border-color: #b58c28; background: #fbf1d6
 .game-center-card .private-criterion p { color: #4a3a30; }
 .game-center-card .private-criterion blockquote { border-left-color: #b58c28; color: #5c4630; }
 .game-center-card .private-note { color: #796655; }
+.game-center-card .private-review-choice.is-best { border-color: #9cbf9f; }
+.game-center-card .private-review-choice.is-chosen { border-color: #b58c28; }
+.game-center-card .private-quiz-tag { background: #f1dfb2; color: #4a3510; }
+.game-center-card .private-quiz-tag.is-best { background: #3b5e47; color: #e4f3e7; }
 .private-card-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px 14px; margin: 0; }
 .private-card-summary div { padding: 8px 10px; border-radius: 8px; background: #f6f2e6; }
 .private-card-summary dt { color: #796655; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
@@ -758,12 +792,12 @@ details.game-notice { display: block; border-color: #b58c28; background: #fbf1d6
 .private-chips--compact .private-chip span { font-size: 10px; }
 .private-chips--compact .private-chip strong { font-size: 13px; }
 .private-dock { display: grid; gap: 10px; }
-.private-dock .private-composer, .private-dock .private-card, .private-dock .private-retry { padding: 12px; }
+.private-dock .private-composer, .private-dock .private-card, .private-dock .private-retry, .private-dock .private-quiz { padding: 12px; }
 .private-dock .private-card-fields { grid-template-columns: 1fr; }
 .private-dock .private-question { font-size: 14px; }
 .private-dock .private-actions { gap: 6px; }
 .private-dock-float { position: sticky; bottom: 0; z-index: 3; align-self: center; width: min(640px, 100%); margin-top: auto; padding: 12px; border: 1px solid #ffffff1f; border-radius: 14px; background: #1b1c1fee; box-shadow: 0 12px 40px #00000066; }
-.private-dock-float .private-composer { padding: 0; border: 0; background: none; }
+.private-dock-float .private-composer, .private-dock-float .private-quiz { padding: 0; border: 0; background: none; }
 .private-card-recording { max-width: none; }
 .private-complete { display: grid; gap: 16px; align-self: center; width: min(760px, 100%); padding: 20px 22px; border: 1px solid #ffffff14; border-radius: 16px; background: #1e1f22cc; }
 

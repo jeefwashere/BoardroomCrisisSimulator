@@ -1,9 +1,10 @@
 // Pure helpers for Rounds 2 and 3 (private coaching, then private assessment). No JSX, no network, so they can be unit tested.
 import type {
-    Assessment, AssessmentStage, CardFieldKey, CriterionFeedback, PrivateClip, PrivateMessage, PrivateRound, PrivateSession, PrivateStage,
+    Assessment, AssessmentStage, CardFieldKey, CriterionFeedback, PrivateClip, PrivateMessage, PrivateQuiz, PrivateRound, PrivateSession, PrivateStage,
     ResponseCard, ResponseCardFields, StageFeedback,
 } from '../../services/facilitation.ts'
 import type { PrivateProgress, PrivateProgressStage } from '../../services/rooms.ts'
+import { botChoice, currentQuestion, normalizeQuiz, quizStatusText } from './quizModel.ts'
 
 export const PRIVATE_POLL_MS = 1200
 export const ANSWER_LIMIT = 1200
@@ -124,15 +125,16 @@ export function normalizePrivateSession(value: unknown): PrivateSession | null {
         clip: clip(value.clip),
         card: card(value.card),
         assessment: assessment(value.assessment),
+        quiz: normalizeQuiz(value.quiz),
         retryable: value.retryable === true,
     }
 }
 
-/** Keep polling while the coach is working: busy, a reply still pending, a card being drafted or a stage being scored. */
+/** Keep polling while the coach is working: busy, a reply still pending, a card being drafted, a stage being scored or questions being written. */
 export function shouldPollPrivate(session: PrivateSession | null): boolean {
     if (!session) return true
     return session.busy || session.messages.some((item) => item.status === 'pending') || session.card?.status === 'drafting'
-        || session.assessment.stages.some((stage) => stage.status === 'scoring')
+        || session.assessment.stages.some((stage) => stage.status === 'scoring') || session.quiz?.status === 'generating'
 }
 
 /** The member's own round: from the session when loaded, else from the room's progress list. */
@@ -179,10 +181,18 @@ export function feedbackHeading(feedback: StageFeedback, value: Assessment): str
 /**
  * Agent messages that should not be replayed when the stage first opens: everything before the member's latest answer.
  * A fresh session therefore voices its twist and first question; a reload only voices the current question.
+ * In the Round 3 quiz (picks are not member messages) everything before the current question is treated as heard,
+ * and a finished quiz replays nothing.
  */
-export function initiallySpoken(messages: readonly PrivateMessage[]): Set<string> {
+export function initiallySpoken(messages: readonly PrivateMessage[], quiz: PrivateQuiz | null = null): Set<string> {
     let lastAnswer = -1
     messages.forEach((item, index) => { if (item.author === 'member') lastAnswer = index })
+    if (quiz?.status === 'ready') {
+        const current = currentQuestion(quiz)
+        const asked = current ? messages.findLastIndex((item) => item.author === 'agent' && item.kind === 'question' && item.round === 3 && item.step === current.step) : -1
+        if (asked >= 0) lastAnswer = Math.max(lastAnswer, asked - 1)
+        else if (!current && quiz.questions.length > 0 && quiz.questions.every((item) => item.chosen !== null)) lastAnswer = messages.length - 1
+    }
     return new Set(messages.slice(0, lastAnswer + 1).filter((item) => item.author === 'agent').map((item) => item.message_id))
 }
 
@@ -238,6 +248,7 @@ function clampStep(step: number): number {
 export function privateStatusText(session: PrivateSession): string {
     if (session.stage === 'complete') return 'complete'
     if (session.stage === 'card') return 'response card'
+    if (session.stage === 'assessment' && session.quiz) return quizStatusText(session.quiz)
     if (session.stage === 'assessment') {
         const done = session.assessment.stages.filter((stage) => stage.status === 'scored' || stage.status === 'scoring').length
         return `assessment ${clampStep(session.expecting?.round === 3 ? session.expecting.step : done + 1)}/3`
@@ -270,12 +281,14 @@ export type BotPrivateStep =
     | { kind: 'retry'; key: string }
     | { kind: 'answer'; key: string; text: string; usedClip: boolean }
     | { kind: 'card'; key: string; fields: ResponseCardFields }
+    | { kind: 'choose'; key: string; step: number; choiceId: string }
 
 /**
  * What an automated board member does next in its own branch. It answers each question once (its saved clip, else
- * `fallback`), confirms the drafted card as is, retries a failed reply once per failure, and otherwise waits.
+ * `fallback`), confirms the drafted card as is, picks one choice per Round 3 question (spread by `seed`), retries a
+ * failed reply once per failure, and otherwise waits.
  */
-export function botPrivateStep(session: PrivateSession, handled: ReadonlySet<string>, fallback: (round: PrivateRound, step: number) => string): BotPrivateStep {
+export function botPrivateStep(session: PrivateSession, handled: ReadonlySet<string>, fallback: (round: PrivateRound, step: number) => string, seed = 0): BotPrivateStep {
     if (session.stage === 'complete') return { kind: 'done' }
     if (session.busy) return { kind: 'wait' }
     if (session.retryable) {
@@ -283,6 +296,12 @@ export function botPrivateStep(session: PrivateSession, handled: ReadonlySet<str
         return handled.has(key) ? { kind: 'wait' } : { kind: 'retry', key }
     }
     if (shouldPollPrivate(session)) return { kind: 'wait' }
+    const question = session.stage === 'assessment' ? currentQuestion(session.quiz) : null
+    if (question) {
+        const key = `choice:${question.step}`
+        const choiceId = botChoice(question, seed)
+        return handled.has(key) || !choiceId ? { kind: 'wait' } : { kind: 'choose', key, step: question.step, choiceId }
+    }
     if (session.expecting) {
         const key = `answer:${session.expecting.round}:${session.expecting.step}`
         if (handled.has(key)) return { kind: 'wait' }

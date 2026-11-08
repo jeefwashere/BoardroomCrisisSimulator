@@ -27,7 +27,8 @@ export type PrivateBots = { status: Partial<Record<BotSeat, string>>; error: str
 /**
  * Solo mode, Rounds 2 and 3: Morgan and Sam each work through their own private branch with their own API client.
  * Text only: no audio is played and speech is never prepared. Each bot sends one request at a time, answers each
- * question once (saved clip caption, else a short role answer), confirms its drafted card as is, and stops when complete.
+ * question once (saved clip caption, else a short role answer), confirms its drafted card as is, picks one choice per
+ * Round 3 question, and stops when complete.
  */
 export function usePrivateBots({ enabled, roomId, apis, snapshots }: { enabled: boolean; roomId: string | null; apis: readonly RoomApi[] | null; snapshots: Snapshots }): PrivateBots {
     const [status, setStatus] = useState<Partial<Record<BotSeat, string>>>({})
@@ -65,7 +66,7 @@ export function usePrivateBots({ enabled, roomId, apis, snapshots }: { enabled: 
                 }
                 if (!session) { await wait(ERROR_RETRY_MS, signal); continue }
                 show(bot, privateStatusText(session))
-                const step = botPrivateStep(session, handled, (round) => botPrivateAnswer(bot, round))
+                const step = botPrivateStep(session, handled, (round) => botPrivateAnswer(bot, round), bot.index)
                 if (step.kind === 'done') return
                 if (step.kind === 'wait') { await wait(PRIVATE_POLL_MS, signal); continue }
                 handled.add(step.key)
@@ -73,6 +74,9 @@ export function usePrivateBots({ enabled, roomId, apis, snapshots }: { enabled: 
                     if (step.kind === 'answer') {
                         await wait(ANSWER_MS, signal)
                         await facilitation.privateAnswer(room, { command_id: commandId(step.key), text: step.text, used_clip: step.usedClip }, signal)
+                    } else if (step.kind === 'choose') {
+                        await wait(ANSWER_MS, signal)
+                        await facilitation.privateChoice(room, { command_id: commandId(step.key), step: step.step, choice_id: step.choiceId }, signal)
                     } else if (step.kind === 'card') {
                         await wait(ANSWER_MS / 2, signal)
                         await facilitation.privateCard(room, { command_id: commandId(step.key), fields: step.fields }, signal)

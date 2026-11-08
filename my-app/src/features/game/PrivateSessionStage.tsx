@@ -12,6 +12,8 @@ import type { PrivateSessionHandle } from './usePrivateSession'
 import { PRIVATE_OBSERVER, PRIVATE_UNAVAILABLE } from './usePrivateSession'
 import { formatClock } from './controlBarModel'
 import { AssessmentResults, PrivateBoard } from './PrivateSessionReport'
+import { QuizPanel, QuizResults } from './PrivateQuiz'
+import { currentQuestion, quizChips, quizScoreText } from './quizModel'
 import Countdown from './Countdown'
 import { useReportAgent } from '../boardroom3d/agentPresence'
 import CallTile from './CallTile'
@@ -167,7 +169,7 @@ export default function PrivateSessionStage({ room, handle, auto, selfName, self
     const [captionedCount, setCaptionedCount] = useState(0)
     const live = useLiveSpeech(transcript)
     // Earlier messages are not replayed when the stage opens again (reload); the current question is.
-    if (session && spoken === null) setSpoken(initiallySpoken(session.messages))
+    if (session && spoken === null) setSpoken(initiallySpoken(session.messages, session.quiz))
     const voiceFor = useAgentVoices(room.room_id, messages, spoken, PLAYS_VOICE)
     const current = spoken ? nextToSpeak(messages, spoken) : null
     // Auto response plays the member's own clip: the coach falls silent and its pending lines go to the transcript in full.
@@ -242,6 +244,10 @@ export default function PrivateSessionStage({ room, handle, auto, selfName, self
         setSpoken(new Set(messages.filter((item) => item.author === 'agent').map((item) => item.message_id)))
     }
 
+    // Round 3 is multiple choice: no answer box, the question card lives in the dock instead.
+    const quiz = session?.stage === 'assessment' ? session.quiz : null
+    const choosing = Boolean(quiz && caughtUp && currentQuestion(quiz))
+
     const coachTalking = playing || Boolean(current && current.status === 'ready' && !voiceDriven)
     const selfTalking = auto.playing || dictation.listening
     // The 3D boardroom lights the table hub while the coach (or examiner) speaks.
@@ -251,12 +257,13 @@ export default function PrivateSessionStage({ room, handle, auto, selfName, self
         : current?.status === 'pending' ? 'Thinking'
         : waitingForVoice ? 'Preparing voice'
         : coachTalking ? 'Speaking'
+        : quiz?.status === 'generating' ? 'Writing questions'
         : session.busy ? (session.stage === 'assessment' ? 'Scoring' : 'Thinking')
         : session.stage === 'complete' ? 'Complete'
         : session.stage === 'card' ? (session.card?.status === 'draft' ? 'Waiting for your card' : 'Recording card')
-        : session.expecting ? 'Listening'
+        : choosing ? 'Waiting for your answer'
         : 'Listening'
-    const selfState = auto.playing ? 'Saved answer' : dictation.listening ? 'Dictating' : showComposer ? 'Your turn' : undefined
+    const selfState = auto.playing ? 'Saved answer' : dictation.listening ? 'Dictating' : showComposer || choosing ? 'Your turn' : undefined
     const complete = session?.stage === 'complete' && caughtUp
     const problem = error || notice
 
@@ -265,9 +272,10 @@ export default function PrivateSessionStage({ room, handle, auto, selfName, self
             onSubmit={() => void submit()} dictation={dictation} />}
         {auto.playing && <p className="private-note" role="status">Playing your saved answer. It is submitted when the clip ends.</p>}
         {!showComposer && !auto.playing && session.expecting && !caughtUp && <p className="private-note">The answer box opens when {agentName} finishes speaking.</p>}
-        {session.busy && !session.retryable && session.stage !== 'card' && <p className="private-note" role="status">{session.stage === 'assessment' ? `${agentName} is scoring your answer…` : `${agentName} is thinking…`}</p>}
+        {quiz && <QuizPanel quiz={quiz} caughtUp={caughtUp} blocked={sending || session.busy} agentName={agentName} onChoose={handle.choose} />}
+        {session.busy && !session.retryable && session.stage !== 'card' && !quiz && <p className="private-note" role="status">{session.stage === 'assessment' ? `${agentName} is scoring your answer…` : `${agentName} is thinking…`}</p>}
         {session.retryable && <div className="private-retry" role="alert">
-            <p>{agentName} could not respond. Your answers are kept.</p>
+            <p>{quiz?.status === 'failed' ? `${agentName} could not prepare your assessment questions. Your coaching and response card are kept.` : `${agentName} could not respond. Your answers are kept.`}</p>
             <button type="button" className="opening-play" disabled={sending || session.busy} onClick={() => void handle.retry()}>Retry</button>
         </div>}
         {session.stage === 'card' && caughtUp && (session.card?.status === 'draft'
@@ -287,11 +295,15 @@ export default function PrivateSessionStage({ room, handle, auto, selfName, self
         <div className="call-stage-head private-head">
             <h2 id="private-title" className="opening-pill private-pill">{privateRoundLabel(round)}</h2>
             <span className="private-lock"><LockIcon />Private: only you and your crisis coach</span>
-            {round === 3 && session && <ol className="private-chips private-chips--compact" aria-label="Assessment stages">
+            {round === 3 && session && (session.quiz ? <ol className="private-chips private-chips--compact" aria-label="Assessment questions">
+                {quizChips(session.quiz).map((chip) => <li key={chip.step} className={`private-chip private-chip--${chip.status}`}>
+                    <span><span aria-hidden="true">Q{chip.step}</span><span className="game-visually-hidden">Question {chip.step}</span></span><strong>{chip.text}</strong>
+                </li>)}
+            </ol> : <ol className="private-chips private-chips--compact" aria-label="Assessment stages">
                 {stageChips(session.assessment).map((chip) => <li key={chip.step} className={`private-chip private-chip--${chip.status}`}><span>Stage {chip.step}</span><strong>{chip.text}</strong></li>)}
-            </ol>}
+            </ol>)}
             <span className="private-meta-end">
-                {round === 3 && session && <span className="private-score" role="status">{scoreText(session.assessment)}</span>}
+                {round === 3 && session && <span className="private-score" role="status">{session.quiz ? quizScoreText(session.quiz) : scoreText(session.assessment)}</span>}
                 {room.game?.phase_deadline && <Countdown key={room.game.phase_id + (room.game.server_time ?? '')} deadline={room.game.phase_deadline} serverTime={room.game.server_time} className="opening-countdown" format={formatClock} />}
             </span>
         </div>
@@ -302,7 +314,7 @@ export default function PrivateSessionStage({ room, handle, auto, selfName, self
         {handle.notEligible && <PrivateBoard progress={room.game?.private_progress} selfId={room.self_member_id} />}
 
         {complete && session ? <div className="private-complete">
-            <AssessmentResults assessment={session.assessment} />
+            {session.quiz ? <QuizResults quiz={session.quiz} /> : <AssessmentResults assessment={session.assessment} />}
             <PrivateBoard progress={room.game?.private_progress} selfId={room.self_member_id} />
         </div> : !handle.notEligible && <div className="call-duo">
             <CallTile name={`${selfName} (you)`} role={selfRole} size="main" talking={selfTalking} status={selfState}

@@ -18,7 +18,7 @@ from .models import (LeaveRoom, LeaveView, ProposalCommand, RecordingView, Audio
                      ContributionBody, ContributionView, CreateRoom, DeliveryBody, ErrorResponse,
                      EvaluationEvidenceView, JoinRoom, MediaView, RoomView, ScenarioView, StartRoom,
                      TabSessionBody, TabSessionView, ValidationErrorResponse, ConsultBody, ReplyBody,
-                     PrivateAnswerBody, PrivateCardBody, PrivateRetryBody)
+                     PrivateAnswerBody, PrivateCardBody, PrivateChoiceBody, PrivateRetryBody)
 from .narration import NarrationService
 from .rooms import RoomError, Rooms, StartSpec
 from .scenarios import ScenarioCatalog
@@ -379,6 +379,11 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     @app.post("/api/rooms/{room_id}/private-session/card", responses=errors)
     async def private_card(room_id: UUID, body: PrivateCardBody, member_session: authenticated):
         return await private.confirm_card(member_session, room_id, body.command_id, body.fields.model_dump())
+
+    @app.post("/api/rooms/{room_id}/private-session/choice", responses=errors,
+              summary="The caller's final pick for the current Round 3 multiple choice question")
+    async def private_choice(room_id: UUID, body: PrivateChoiceBody, member_session: authenticated):
+        return await private.choose(member_session, room_id, body.command_id, body.step, body.choice_id)
 
     @app.post("/api/rooms/{room_id}/private-session/retry", responses=errors)
     async def private_retry(room_id: UUID, body: PrivateRetryBody, member_session: authenticated):

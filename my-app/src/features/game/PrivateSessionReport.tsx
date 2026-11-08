@@ -1,6 +1,8 @@
 import type { Assessment, PrivateSession } from '../../services/facilitation'
 import type { PrivateProgress } from '../../services/rooms'
 import { CARD_FIELDS, allComplete, feedbackHeading, progressText, runningScore, stageChips } from './privateSessionModel'
+import { QuizResults } from './PrivateQuiz'
+import { answeredCount } from './quizModel'
 
 /** Round 3 result: the total, points per stage and, once released, detailed feedback with quoted evidence. */
 export function AssessmentResults({ assessment, heading = 'Round 3 · Assessment complete' }: { assessment: Assessment; heading?: string }) {
@@ -49,7 +51,9 @@ export default function PrivateSessionReport({ session, unavailable, notStarted,
 }) {
     if (!session) return unavailable || notEligible ? null : <section className="vote-panel decision-panel private-report"><p className="vote-note">{notStarted ? 'The game ended before your private session began.' : 'Loading your private session record…'}</p></section>
     const card = session.card
-    const scored = session.assessment.stages.some((stage) => stage.status === 'scored')
+    const quiz = session.quiz
+    const scored = quiz ? answeredCount(quiz) > 0 : session.assessment.stages.some((stage) => stage.status === 'scored')
+    const heading = session.stage === 'complete' ? 'Round 3 · Assessment' : 'Round 3 · Assessment (ended early)'
     return <>
         <section className="vote-panel decision-panel private-report" aria-labelledby="private-card-title">
             <header className="vote-panel-header"><div><p className="vote-eyebrow">Round 2 · Private coaching</p><h3 id="private-card-title">Your response card</h3></div></header>
@@ -59,10 +63,10 @@ export default function PrivateSessionReport({ session, unavailable, notStarted,
         </section>
         <section className="vote-panel decision-panel private-report">
             {scored || session.stage === 'complete'
-                ? <AssessmentResults assessment={session.assessment} heading={session.stage === 'complete' ? 'Round 3 · Assessment' : 'Round 3 · Assessment (ended early)'} />
-                : <><p className="vote-eyebrow">Round 3 · Assessment</p><p className="vote-note">No assessment stage was scored before the private sessions ended.</p></>}
+                ? quiz ? <QuizResults quiz={quiz} heading={heading} /> : <AssessmentResults assessment={session.assessment} heading={heading} />
+                : <><p className="vote-eyebrow">Round 3 · Assessment</p><p className="vote-note">{quiz ? 'No assessment question was answered before the private sessions ended.' : 'No assessment stage was scored before the private sessions ended.'}</p></>}
             {session.retryable && retry && <div className="vote-confirm-actions">
-                <p className="vote-note">{session.busy ? 'Scoring your answer…' : 'Scoring failed. Your answer is saved.'}</p>
+                <p className="vote-note">{quiz ? (session.busy ? 'Preparing your assessment questions…' : 'Your assessment questions could not be prepared.') : session.busy ? 'Scoring your answer…' : 'Scoring failed. Your answer is saved.'}</p>
                 <button type="button" className="vote-primary" disabled={sending || session.busy} onClick={() => void retry()}>Retry</button>
             </div>}
         </section>

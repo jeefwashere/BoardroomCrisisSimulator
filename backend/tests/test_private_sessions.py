@@ -11,7 +11,7 @@ from backend.app import gameplay
 from backend.app.facilitation import Facilitation
 from backend.app.main import create_app
 from backend.app.private_sessions import (CARD_RECORDED, CARD_FIELDS, COACH_UPDATE, EXAM_UPDATE, QUESTIONS, TRANSITION, TWIST,
-                                          full_question)
+                                          QuizError, full_question, validate_quiz)
 from backend.app.rooms import Rooms
 from backend.app.scenarios import ScenarioCatalog
 from backend.tests import test_gameplay as fixture
@@ -24,14 +24,21 @@ ANSWERS = {
     (2, 1): 'COACH_ONE_{who}: I would keep coordination separate and request another approved provider.',
     (2, 2): 'COACH_TWO_{who}: I would check the delegation policy and who can authorize access.',
     (2, 3): 'COACH_THREE_{who}: The coordinator acts, paper appointments are the fallback, review at noon.',
-    (3, 1): 'EXAM_ONE_{who}: First appoint an authorized coordinator because nobody owns the response yet.',
-    (3, 2): 'EXAM_TWO_{who}: The delay means staff get paper instructions now while the provider is arranged.',
-    (3, 3): 'EXAM_THREE_{who}: The coordinator instructs staff, falls back to paper if access fails, review at noon.',
 }
 
 
+def quiz_reply(tag='EXAM'):
+    """A valid Gemini assessment: the best choice is always listed first, so shuffling is observable."""
+    return {'questions': [{'question': f'{tag}_Q{n}: The provider is delayed. Who should authorize access first?',
+                           'choices': [{'text': f'{tag} best choice {n}', 'points': 20, 'rationale': f'{tag} best reason {n}'},
+                                       {'text': f'{tag} good choice {n}', 'points': 12, 'rationale': 'Partly right.'},
+                                       {'text': f'{tag} weak choice {n}', 'points': 5, 'rationale': 'Misses a dependency.'},
+                                       {'text': f'{tag} worst choice {n}', 'points': 0, 'rationale': 'Invents a fact.'}]}
+                          for n in range(1, 6)]}
+
+
 class FakeVertex:
-    """Answers acknowledgement, card and rubric prompts. Modes inject invalid scoring output."""
+    """Answers acknowledgement, card and quiz prompts. Modes inject invalid or failing quiz output."""
 
     configured = True
 
@@ -44,16 +51,16 @@ class FakeVertex:
         self.prompts.append(prompt)
         self.temperatures.append(temperature)
         await self.gate.wait()
-        task, data = prompt.split('\n', 1)
-        data = json.loads(data)
-        if 'criteria' in data:
+        task = prompt.split('\n', 1)[0]
+        if 'multiple choice assessment' in task:
             if self.mode == 'fail':
                 raise RuntimeError('private provider detail')
-            quote = 'An invented quotation' if self.mode == 'fabricate' else data['answer'][:40]
-            points = 11 if self.mode == 'range' else 7
-            rows = [{'id': item['id'], 'points': points, 'evidence': quote, 'reason': 'Supported by the quote.'}
-                    for item in data['criteria']]
-            return {'criteria': rows[:-1] if self.mode == 'missing' else rows}
+            reply = quiz_reply()
+            if self.mode == 'points':
+                reply['questions'][0]['choices'][2]['points'] = 12
+            elif self.mode == 'short':
+                reply['questions'].pop()
+            return reply
         if 'draft card' in task:
             return {'card': {field: f'Draft {field} from my plan.' for field in CARD_FIELDS}}
         return {'acknowledgement': 'You named a dependency to check? That is useful.'}
@@ -139,10 +146,22 @@ class PrivateSessionTests(individual.IndividualDecisionTests):
         self.assertEqual((body['stage'], body['card']['status']), ('assessment', 'confirmed'))
         return body
 
-    async def complete(self, who):
-        await self.coach(who)
-        for step in (1, 2, 3):
-            _, body = await self.answer(who, 3, step)
+    def choice_with(self, who, step, points):
+        """Test only: read the hidden points on the server to pick a known choice."""
+        branch = next(item for (_, member), item in self.facilitation.private.branches.items()
+                      if str(member) == str(self.ids[who]))
+        question = branch['quiz']['questions'][step - 1]
+        return next(item['choice_id'] for item in question['choices'] if item['points'] == points)
+
+    async def choose(self, who, step, points, expected=200, command_id=None):
+        return await self.post(who, 'choice', expected=expected, command_id=command_id, step=step,
+                               choice_id=self.choice_with(who, step, points))
+
+    async def complete(self, who, points=(20, 20, 20, 20, 20)):
+        body = await self.coach(who)
+        self.assertEqual(body['quiz']['current'], 1)
+        for step in range(1, 6):
+            body = await self.choose(who, step, points[step - 1])
         self.assertEqual(body['stage'], 'complete')
         return body
 
@@ -189,12 +208,12 @@ class PrivateSessionTests(individual.IndividualDecisionTests):
         body = bodies[0]
         self.assertEqual(len(self.facilitation.private.branches), 1)
         self.assertEqual([(item['kind'], item['text']) for item in body['messages']],
-                         [('twist', TWIST), ('question', QUESTIONS[2][0])])
+                         [('twist', TWIST), ('question', QUESTIONS[0])])
         self.assertTrue(all(item['author'] == 'agent' and item['source'] == 'canonical' and item['speech_id']
                             for item in body['messages']))
         self.assertEqual((body['round'], body['stage'], body['agent']),
                          (2, 'coaching', {'label': 'Crisis coach', 'role': 'coach'}))
-        self.assertEqual(body['expecting'], {'round': 2, 'step': 1, 'question': full_question(2, 1)})
+        self.assertEqual(body['expecting'], {'round': 2, 'step': 1, 'question': full_question(1)})
         self.assertEqual(body['decision_text'], DECISIONS[0])
         self.assertEqual(body['clip']['clip_id'], 'r2_member_1_step_1')
         self.assertEqual(body['clip']['audio_url'], '/api/recordings/r2_member_1_step_1/audio')
@@ -204,10 +223,9 @@ class PrivateSessionTests(individual.IndividualDecisionTests):
         self.assertEqual((audio.status_code, audio.headers['content-type']), (200, 'audio/mpeg'))
         self.assertEqual((await self.session(1))['clip']['clip_id'], 'r2_member_2_step_1')
         self.assertEqual(body['assessment'], {'stages': [
-            {'step': 1, 'max': 30, 'points': None, 'status': 'waiting'},
-            {'step': 2, 'max': 40, 'points': None, 'status': 'waiting'},
-            {'step': 3, 'max': 30, 'points': None, 'status': 'waiting'}], 'total': None, 'max': 100, 'feedback': None})
-        self.assertEqual((body['busy'], body['card'], body['retryable']), (False, None, False))
+            {'step': step, 'max': 20, 'points': None, 'status': 'waiting'} for step in range(1, 6)],
+            'total': None, 'max': 100, 'feedback': None})
+        self.assertEqual((body['busy'], body['card'], body['quiz'], body['retryable']), (False, None, None, False))
         stages = {item['member_id']: item['stage'] for item in (await self.view())['game']['private_progress']}
         self.assertEqual([stages[member] for member in self.ids], ['coaching', 'coaching', 'not_started'])
 
@@ -237,7 +255,7 @@ class PrivateSessionTests(individual.IndividualDecisionTests):
         self.assertEqual((ack['source'], ack['status']), ('vertex', 'ready'))
         self.assertNotIn('?', ack['text'])
         self.assertEqual(body['messages'][4]['text'], COACH_UPDATE)
-        self.assertEqual(body['expecting']['question'], full_question(2, 2))
+        self.assertEqual(body['expecting']['question'], full_question(2))
         self.assertEqual(body['clip']['clip_id'], 'r2_member_1_step_2')
         for step in (2, 3):
             _, body = await self.answer(0, 2, step)
@@ -246,47 +264,72 @@ class PrivateSessionTests(individual.IndividualDecisionTests):
         self.assertEqual(body['assessment']['total'], None)
         confirmed = body
         self.assertEqual((confirmed['round'], confirmed['stage'], confirmed['agent']['role']), (3, 'assessment', 'examiner'))
-        self.assertEqual([(item['kind'], item['text']) for item in confirmed['messages'][-3:]],
-                         [('update', CARD_RECORDED), ('transition', TRANSITION), ('question', QUESTIONS[3][0])])
-        self.assertEqual(confirmed['messages'][-1]['text'], QUESTIONS[3][0])
-        self.assertEqual(confirmed['clip']['clip_id'], 'r3_member_1_step_1')
-        # The old card review command no longer applies.
+        self.assertEqual([(item['kind'], item['text']) for item in confirmed['messages'][-3:-1]],
+                         [('update', CARD_RECORDED), ('transition', TRANSITION)])
+        # Round 3 has no free text: the examiner asks the first generated question and shows four choices.
+        question = confirmed['messages'][-1]
+        self.assertEqual((question['kind'], question['round'], question['step'], question['status'], question['source']),
+                         ('question', 3, 1, 'ready', 'vertex'))
+        self.assertEqual(question['text'], 'EXAM_Q1: The provider is delayed. Who should authorize access first?')
+        self.assertTrue(question['speech_id'])
+        self.assertEqual((confirmed['expecting'], confirmed['clip']), (None, None))
+        quiz = confirmed['quiz']
+        self.assertEqual((quiz['status'], quiz['current'], quiz['total'], quiz['max'], quiz['review']),
+                         ('ready', 1, 0, 100, None))
+        self.assertEqual(len(quiz['questions']), 1)
+        self.assertEqual([item['choice_id'] for item in quiz['questions'][0]['choices']], ['a', 'b', 'c', 'd'])
+        self.assertTrue(all(set(item) == {'choice_id', 'text'} for item in quiz['questions'][0]['choices']))
+        self.assertNotIn('rationale', json.dumps(confirmed))
+        self.assertNotIn('EXAM best reason', json.dumps(confirmed))
+        # The quiz prompt is grounded in this member's role, decision, coaching answers and recorded card.
+        quiz_prompts = [prompt for prompt in self.vertex.prompts if 'multiple choice assessment' in prompt]
+        self.assertEqual(len(quiz_prompts), 1)
+        for expected in (DECISIONS[0], 'COACH_ONE_0', 'Draft action from my plan.', '"own_role": "CEO"', EXAM_UPDATE):
+            self.assertIn(expected, quiz_prompts[0])
+        self.assertEqual(self.vertex.temperatures[-1], 0.4)
+        # The old card review command no longer applies, and the free text answer route is closed.
         await self.post(0, 'card', expected=409, fields={field: 'Edited.' for field in CARD_FIELDS})
-        expected_totals = (21, 49, 70)
-        for step in (1, 2, 3):
-            answer = ANSWERS[(3, step)].format(who=0)
-            pending = await self.post(0, 'answer', text=answer, used_clip=False)
-            self.assertEqual(pending['assessment']['stages'][step - 1]['status'], 'scoring')
-            body = await self.settle()
-            stage = body['assessment']['stages'][step - 1]
-            self.assertEqual((stage['status'], stage['points']), ('scored', (21, 28, 21)[step - 1]))
-            self.assertEqual(body['assessment']['total'], expected_totals[step - 1])
-            results = [item for item in body['messages'] if item['kind'] == 'result']
-            self.assertEqual(len(results), step)
-            self.assertEqual((results[-1]['source'], results[-1]['status']), ('vertex', 'ready'))
-            self.assertIn(f"Stage {step}: {stage['points']} of {stage['max']} points.", results[-1]['text'])
-            if step == 1:
-                self.assertEqual([item['text'] for item in body['messages'][-2:]], [EXAM_UPDATE, QUESTIONS[3][1]])
-                self.assertEqual(body['expecting']['question'], full_question(3, 2))
-            if step < 3:
-                self.assertIsNone(body['assessment']['feedback'])
-                self.assertEqual(body['stage'], 'assessment')
-        self.assertEqual((body['stage'], body['expecting'], body['clip']), ('complete', None, None))
-        self.assertIn('70 of 100', body['messages'][-1]['text'])
-        feedback = body['assessment']['feedback']
-        self.assertEqual([item['step'] for item in feedback], [1, 2, 3])
-        self.assertEqual([len(item['criteria']) for item in feedback], [3, 4, 3])
-        first = feedback[0]['criteria'][0]
-        self.assertEqual((first['id'], first['label'], first['max'], first['points']),
-                         ('facts_uncertainty', 'Accurate use of facts and uncertainty', 10, 7))
-        self.assertIn(first['quote'], ANSWERS[(3, 1)].format(who=0))
-        self.assertTrue(first['reason'])
-        self.assertTrue(all(value == 0 for value in self.vertex.temperatures))
-        grade_prompts = [prompt for prompt in self.vertex.prompts if '"criteria"' in prompt]
-        self.assertEqual(len(grade_prompts), 3)
-        # The examiner grades the Round 3 answer, not coaching history.
-        self.assertNotIn('COACH_ONE_0', grade_prompts[0])
-        self.assertIn(EXAM_UPDATE, grade_prompts[1])
+        await self.post(0, 'answer', expected=409, text='Free text in Round 3')
+        future = await self.clients[0].post(self.path + '/private-session/choice',
+                                            json={'command_id': str(uuid4()), 'step': 2, 'choice_id': 'a'})
+        self.assertEqual((future.status_code, future.json()['detail']['code']), (409, 'not_current_question'))
+        invalid = await self.clients[0].post(self.path + '/private-session/choice',
+                                             json={'command_id': str(uuid4()), 'step': 1, 'choice_id': 'e'})
+        self.assertEqual((invalid.status_code, invalid.json()['detail']['code']), (422, 'invalid_choice'))
+        malformed = await self.clients[0].post(self.path + '/private-session/choice',
+                                               json={'command_id': str(uuid4()), 'step': 6, 'choice_id': 'a'})
+        self.assertEqual(malformed.status_code, 422)
+        command_id = str(uuid4())
+        body = await self.choose(0, 1, 12, command_id=command_id)
+        first = body['quiz']['questions'][0]
+        self.assertEqual((first['chosen'], first['points'], first['max']), (self.choice_with(0, 1, 12), 12, 20))
+        self.assertEqual((body['quiz']['total'], body['quiz']['current'], len(body['quiz']['questions'])), (12, 2, 2))
+        self.assertEqual(body['assessment']['stages'][0], {'step': 1, 'max': 20, 'points': 12, 'status': 'scored'})
+        self.assertEqual([(item['author'], item['kind'], item['step']) for item in body['messages'][-3:]],
+                         [('member', 'answer', 1), ('agent', 'result', 1), ('agent', 'question', 2)])
+        self.assertEqual(body['messages'][-2]['text'], 'Question 1: 12 of 20 points.')
+        self.assertNotIn('rationale', json.dumps(body))
+        again = await self.choose(0, 1, 12, command_id=command_id)
+        self.assertEqual(again['messages'], body['messages'])
+        await self.choose(0, 1, 20, expected=409, command_id=command_id)
+        repeat = await self.clients[0].post(self.path + '/private-session/choice',
+                                            json={'command_id': str(uuid4()), 'step': 1, 'choice_id': 'a'})
+        self.assertEqual(repeat.json()['detail']['code'], 'already_answered')
+        totals = (12, 32, 32, 37, 57)
+        for step, points in zip(range(2, 6), (20, 0, 5, 20)):
+            body = await self.choose(0, step, points)
+            self.assertEqual(body['quiz']['total'], totals[step - 1])
+            if step < 5:
+                self.assertEqual((body['stage'], body['quiz']['review']), ('assessment', None))
+        self.assertEqual((body['stage'], body['expecting'], body['quiz']['current']), ('complete', None, None))
+        self.assertIn('complete with 57 of 100 points', body['messages'][-1]['text'])
+        self.assertEqual((body['assessment']['total'], body['assessment']['feedback']), (57, None))
+        review = body['quiz']['review']
+        self.assertEqual([item['step'] for item in review], [1, 2, 3, 4, 5])
+        self.assertEqual((review[0]['points'], review[0]['chosen']), (12, self.choice_with(0, 1, 12)))
+        self.assertTrue(all(set(choice) == {'choice_id', 'text', 'points', 'rationale'}
+                            for item in review for choice in item['choices']))
+        self.assertEqual(sorted(choice['points'] for choice in review[0]['choices']), [0, 5, 12, 20])
         stages = {item['member_id']: item['stage'] for item in (await self.view())['game']['private_progress']}
         self.assertEqual(stages[self.ids[0]], 'complete')
         self.assertEqual((await self.view())['phase'], 'private_session')
@@ -294,33 +337,40 @@ class PrivateSessionTests(individual.IndividualDecisionTests):
         await self.post(0, 'retry', expected=409)
         self.assertEqual(self.speech.prepared, [])
 
-    async def test_invalid_scoring_keeps_answer_fails_and_retries(self):
+    async def test_quiz_choices_are_shuffled(self):
         await self.to_private()
-        await self.coach(0)
-        answer = ANSWERS[(3, 1)].format(who=0)
-        for mode in ('fabricate', 'range', 'missing', 'fail'):
+        body = await self.coach(0)
+        self.assertEqual(body['quiz']['status'], 'ready')
+        best = [self.choice_with(0, step, 20) for step in range(1, 6)]
+        # Gemini lists the best choice first; with five shuffles all landing on "a" being 1 in 1024, this is stable.
+        self.assertNotEqual(best, ['a'] * 5)
+
+    async def test_invalid_quiz_retries_once_then_fails_and_retries(self):
+        await self.to_private()
+        self.vertex.mode = 'points'
+        for step in (1, 2, 3):
+            _, body = await self.answer(0, 2, step)
+        self.assertEqual((body['stage'], body['quiz']['status'], body['retryable']), ('assessment', 'failed', True))
+        self.assertEqual((body['quiz']['current'], body['quiz']['questions']), (None, []))
+        quiz_prompts = [prompt for prompt in self.vertex.prompts if 'multiple choice assessment' in prompt]
+        self.assertEqual(len(quiz_prompts), 2)
+        self.assertIn('previous assessment was rejected', quiz_prompts[1])
+        choice = await self.clients[0].post(self.path + '/private-session/choice',
+                                            json={'command_id': str(uuid4()), 'step': 1, 'choice_id': 'a'})
+        self.assertEqual(choice.json()['detail']['code'], 'quiz_not_ready')
+        for mode in ('short', 'fail'):
             self.vertex.mode = mode
-            if mode == 'fabricate':
-                await self.post(0, 'answer', text=answer)
-            else:
-                retried = await self.post(0, 'retry')
-                self.assertTrue(retried['busy'])
+            retried = await self.post(0, 'retry')
+            self.assertTrue(retried['busy'])
+            self.assertEqual(retried['quiz']['status'], 'generating')
             body = await self.settle()
-            self.assertTrue(body['retryable'], mode)
-            self.assertEqual(body['assessment']['stages'][0], {'step': 1, 'max': 30, 'points': None, 'status': 'failed'})
-            self.assertIsNone(body['assessment']['total'])
-            self.assertIsNone(body['expecting'])
-            self.assertEqual([item['text'] for item in body['messages'] if item['kind'] == 'answer'][-1], answer)
-            self.assertEqual(body['messages'][-1]['status'], 'failed')
+            self.assertEqual((body['quiz']['status'], body['retryable']), ('failed', True), mode)
             self.assertNotIn('private provider', json.dumps(body))
-        await self.post(0, 'answer', expected=409, text='Cannot answer while failed')
         self.vertex.mode = None
         await self.post(0, 'retry')
         body = await self.settle()
-        self.assertFalse(body['retryable'])
-        self.assertEqual(body['assessment']['stages'][0]['points'], 21)
-        self.assertEqual(body['expecting']['step'], 2)
-        self.assertIsNone(body['assessment']['feedback'])
+        self.assertEqual((body['quiz']['status'], body['quiz']['current'], body['retryable']), ('ready', 1, False))
+        self.assertEqual(body['messages'][-1]['kind'], 'question')
 
     async def test_private_isolation_between_members(self):
         await self.to_private()
@@ -365,7 +415,7 @@ class PrivateSessionTests(individual.IndividualDecisionTests):
     async def test_bots_complete_without_speech_and_phase_ends(self):
         await self.to_private()
         bodies = await asyncio.gather(*(self.complete(who) for who in range(3)))
-        self.assertTrue(all(body['assessment']['total'] == 70 for body in bodies))
+        self.assertTrue(all(body['assessment']['total'] == 100 and body['quiz']['total'] == 100 for body in bodies))
         self.assertEqual(self.speech.prepared, [])
         ended = await self.view(1)
         self.assertEqual(ended['phase'], 'ended')
@@ -374,9 +424,9 @@ class PrivateSessionTests(individual.IndividualDecisionTests):
         self.assertEqual([item['stage'] for item in ended['game']['private_progress']], ['complete'] * 3)
         self.assertNotIn('total', json.dumps(ended['game']['private_progress']))
         after = await self.session(2)
-        self.assertEqual((after['stage'], after['assessment']['total']), ('complete', 70))
-        self.assertIn('EXAM_THREE_2', json.dumps(after))
-        self.assertNotIn('EXAM_THREE_0', json.dumps(after))
+        self.assertEqual((after['stage'], after['assessment']['total']), ('complete', 100))
+        self.assertIn('COACH_ONE_2', json.dumps(after))
+        self.assertNotIn('COACH_ONE_0', json.dumps(after))
 
     async def test_deadline_ends_phase_and_closed_sessions_stay_readable(self):
         await self.to_private()
@@ -413,16 +463,24 @@ class PrivateSessionTests(individual.IndividualDecisionTests):
         self.assertEqual({item['source'] for item in acks}, {'offline'})
         # Without Gemini the coach cannot record the card: it stays retryable, nothing is invented.
         self.assertEqual((body['stage'], body['card']['status'], body['retryable']), ('card', 'drafting', True))
+        # The card is recorded, then Vertex goes away before the quiz: no offline or hosted quiz is fabricated.
+        self.vertex.configured = True
+        self.vertex.gate.clear()
+        await self.post(0, 'retry')
+        for _ in range(100):
+            if self.vertex.prompts and 'draft card' in self.vertex.prompts[-1]:
+                break
+            await asyncio.sleep(0.01)
+        self.vertex.configured = False
+        self.vertex.gate.set()
+        body = await self.settle()
+        self.assertEqual((body['stage'], body['card']['status']), ('assessment', 'confirmed'))
+        self.assertEqual((body['quiz']['status'], body['retryable']), ('failed', True))
+        self.assertFalse(any('multiple choice assessment' in prompt for prompt in self.vertex.prompts))
         self.vertex.configured = True
         await self.post(0, 'retry')
         body = await self.settle()
-        self.assertEqual((body['stage'], body['card']['status']), ('assessment', 'confirmed'))
-        # Scoring has no offline fabrication: it fails and stays retryable.
-        self.vertex.configured = False
-        await self.post(0, 'answer', text=ANSWERS[(3, 1)].format(who=0))
-        body = await self.settle()
-        self.assertTrue(body['retryable'])
-        self.assertEqual(body['assessment']['stages'][0]['status'], 'failed')
+        self.assertEqual((body['quiz']['status'], body['quiz']['current']), ('ready', 1))
 
 
 # The inherited Round 1 tests already run in test_individual_decisions.
@@ -457,17 +515,31 @@ class OtherScenarioPrivateTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.status_code, 409)
 
 
+
+class QuizValidationTests(unittest.TestCase):
+    def test_accepts_valid_and_rejects_every_rule_break(self):
+        self.assertEqual(len(validate_quiz(quiz_reply())), 5)
+        breaks = {
+            'four questions': lambda q: q['questions'].pop(),
+            'three choices': lambda q: q['questions'][0]['choices'].pop(),
+            'equal middle points': lambda q: q['questions'][1]['choices'][2].update(points=12),
+            'no zero': lambda q: q['questions'][1]['choices'][3].update(points=1),
+            'two twenties': lambda q: q['questions'][1]['choices'][1].update(points=20),
+            'float points': lambda q: q['questions'][2]['choices'][1].update(points=12.0),
+            'boolean points': lambda q: q['questions'][2]['choices'][3].update(points=False),
+            'short question': lambda q: q['questions'][3].update(question='Why?'),
+            'long question': lambda q: q['questions'][3].update(question='x' * 401),
+            'blank rationale': lambda q: q['questions'][4]['choices'][0].update(rationale='  '),
+            'short choice': lambda q: q['questions'][4]['choices'][0].update(text='A'),
+            'duplicate choice': lambda q: q['questions'][4]['choices'][1].update(text='EXAM BEST choice 5'),
+            'not a list': lambda q: q.update(questions='none'),
+        }
+        for label, mutate in breaks.items():
+            quiz = quiz_reply()
+            mutate(quiz)
+            with self.assertRaises(QuizError, msg=label):
+                validate_quiz(quiz)
+
+
 if __name__ == '__main__':
     unittest.main()
-
-
-class QuoteMatchTests(unittest.TestCase):
-    def test_tolerates_case_spacing_curly_quotes_and_ellipses_but_not_invention(self):
-        from backend.app.private_sessions import quote_in_answer
-        answer = "I would appoint the operations manager's deputy now.  Then the board's chair approves access, and IT tests one backup."
-        self.assertTrue(quote_in_answer("I would appoint the operations manager’s deputy now.", answer))
-        self.assertTrue(quote_in_answer('"then the board\'s chair approves access"', answer))
-        self.assertTrue(quote_in_answer("I would appoint … IT tests one backup", answer))
-        self.assertFalse(quote_in_answer("IT tests one backup … I would appoint", answer))
-        self.assertFalse(quote_in_answer("The vendor restores everything tonight", answer))
-        self.assertFalse(quote_in_answer("...", answer))

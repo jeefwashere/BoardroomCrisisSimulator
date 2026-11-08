@@ -23,6 +23,8 @@ export type PrivateSessionHandle = {
     sending: boolean
     answer: (text: string, usedClip: boolean) => Promise<boolean>
     confirmCard: (fields: ResponseCardFields) => Promise<boolean>
+    /** Round 3: the final pick for question `step` ("a" to "d"). */
+    choose: (step: number, choiceId: string) => Promise<boolean>
     retry: () => Promise<boolean>
 }
 
@@ -93,7 +95,8 @@ export function usePrivateSession(roomId: string, active: boolean, refreshKey = 
 
     const answer = useCallback((text: string, usedClip: boolean) => send(() => facilitationApi.privateAnswer(roomId, { command_id: crypto.randomUUID(), text, used_clip: usedClip })), [roomId, send])
     const confirmCard = useCallback((fields: ResponseCardFields) => send(() => facilitationApi.privateCard(roomId, { command_id: crypto.randomUUID(), fields })), [roomId, send])
+    const choose = useCallback((step: number, choiceId: string) => send(() => facilitationApi.privateChoice(roomId, { command_id: crypto.randomUUID(), step, choice_id: choiceId })), [roomId, send])
     const retry = useCallback(() => send(() => facilitationApi.privateRetry(roomId, { command_id: crypto.randomUUID() })), [roomId, send])
 
-    return { session: active ? session : null, unavailable, notStarted, notEligible, error, sending, answer, confirmCard, retry }
+    return { session: active ? session : null, unavailable, notStarted, notEligible, error, sending, answer, confirmCard, choose, retry }
 }

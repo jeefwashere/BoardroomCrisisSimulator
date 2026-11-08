@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
-from pydantic import AfterValidator, BaseModel, BeforeValidator, ConfigDict, Field, StrictBool, StringConstraints, field_validator
+from pydantic import AfterValidator, BaseModel, BeforeValidator, ConfigDict, Field, StrictBool, StrictInt, StringConstraints, field_validator
 
 from .rules import PRESENCE_WINDOW_SECONDS, ROOM_CAPACITY
 
@@ -532,3 +532,11 @@ class PrivateCardBody(BaseModel):
 class PrivateRetryBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     command_id: UUID
+
+
+class PrivateChoiceBody(BaseModel):
+    """A Round 3 multiple choice pick. The service checks choice_id (a to d) so it can answer 422 invalid_choice."""
+    model_config = ConfigDict(extra="forbid")
+    command_id: UUID
+    step: Annotated[StrictInt, Field(ge=1, le=5)]
+    choice_id: str = Field(min_length=1, max_length=8)

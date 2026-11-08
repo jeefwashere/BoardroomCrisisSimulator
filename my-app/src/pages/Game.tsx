@@ -269,8 +269,9 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     // In a private session the button stays (disabled) between questions so the bar does not jump.
     const activeAuto = privatePhase ? privateAuto : auto
     const privateAnswering = privatePhase && (privateSession.session?.stage === 'coaching' || privateSession.session?.stage === 'assessment')
+    const privateQuiz = privatePhase && privateSession.session?.stage === 'assessment' && Boolean(privateSession.session.quiz)
     const autoControl = activeAuto.status === 'unavailable'
-        ? privateAnswering ? { label: 'AI reply', live: false, disabled: true, title: 'Available when your coach asks you a question.', onClick: () => undefined }
+        ? privateAnswering ? { label: 'AI reply', live: false, disabled: true, title: privateQuiz ? 'Round 3 is multiple choice: pick your answer on the question card.' : 'Available when your coach asks you a question.', onClick: () => undefined }
             : spokeLast ? { label: 'AI reply', live: false, disabled: true, title: 'You just had the floor. Someone else speaks next, then you can take it again.', onClick: () => undefined } : undefined
         : {
             label: activeAuto.status === 'playing' ? 'Stop reply' : activeAuto.status === 'writing' ? 'Writing…' : activeAuto.status === 'saving' ? 'Saving…' : activeAuto.status === 'done' ? 'Reply sent' : 'AI reply',

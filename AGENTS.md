@@ -56,3 +56,11 @@ The user requested parallel subagent work and reusable ElevenLabs recordings for
 ## Updated spending authorization
 
 During X09 the user explicitly raised total caps to 30,000 ElevenLabs credits and US$20 Vertex. This supersedes the older 10,000 credit and US$2 limits above. Retain all existing reservations and caches. Apply a ceiling increase only through an explicit operator authorization, never by deleting a ledger or changing data directories. Ordinary restarts cannot enlarge a stored cap. Provider billing plans and credit purchases are outside this local cap update.
+
+## CEO meeting and PDF preparation experiment
+
+The user selected the existing CEO role and written discussion records with explicit microphone transcription. The isolated `/roundtable` mode uses `playtest/roundtable.py` for authority and `playtest/roundtable_api.py` for room scoped advisory jobs. It has a ready gated lobby, optional 60 second opening and closing facilitator windows, three minute discussion and an untimed decision phase. Preserve explicit human proposals, ballots and CEO result commitment. This separate prototype freezes its roster at Start; production late admission requirements remain unchanged.
+
+`google/embeddinggemma-2` supplies actual local text embeddings for the PDF preparation memory. Gemini Flash LOW still supplies text selection; there is no local conversation API fallback. Read `playtest/PDF_MEMORY.md` and `playtest/ROUNDTABLE_GUIDE.md`. Only public participant packs may seed demo PDFs. Never index the hidden controller reference, review answers, environment files or credentials. Pass the room's selected document IDs for every search and download. Model weights, uploaded PDFs and index caches stay ignored on disk. Never send all uploaded documents to a room.
+
+Minutes select exact transcript quotes and suggest problems for human review. They cannot establish facts, cast votes, assign roles or mutate decisions. One automatic minutes job on entry to decision is labelled in the UI; retain the shared paid reservation ledgers. Recording and transcription are explicit and provisional until a separate contribution command. No continuous microphone capture is authorized for this mode. Test role gates, isolation, stale replies and idempotency before publication.

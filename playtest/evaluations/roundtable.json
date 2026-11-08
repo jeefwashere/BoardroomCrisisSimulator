@@ -1,0 +1,695 @@
+{
+  "room": "92U4SJ",
+  "health_before": {
+    "ok": true,
+    "storage": "single process memory",
+    "models": {
+      "online": true,
+      "verified": false,
+      "provider": "Google Vertex AI",
+      "model": "gemini-3.8-flash",
+      "thinking_level": "LOW",
+      "name": "Gemini 3.8 Flash \u00b7 LOW",
+      "note": "Configured; live response not yet verified",
+      "budget": {
+        "cap_usd": 20.0,
+        "reserved_usd": 1.25,
+        "remaining_usd": 18.75,
+        "attempts": 25,
+        "note": "Local test reservations, including failures; excludes other account spending."
+      }
+    },
+    "test_name_rejoin": true,
+    "speech": {
+      "cap": 30000,
+      "reserved": 5382,
+      "remaining": 24618,
+      "unit": "credits",
+      "note": "Conservative reservations, not an exact provider invoice. Failed calls stay reserved."
+    },
+    "speech_configured": true
+  },
+  "cases": [
+    {
+      "kind": "preparation",
+      "pack": "T01",
+      "question": "In the service outage report, what must IT verify before promising recovery?",
+      "job": {
+        "id": "69c82ef4739e45bfafb6a6b244897054",
+        "kind": "preparation",
+        "member": "9edadefec27846638256bdcc48383b9a",
+        "status": "done",
+        "error": null,
+        "question": "In the service outage report, what must IT verify before promising recovery?",
+        "submitted_at": 1794097696.164781,
+        "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+        "sources": [
+          {
+            "id": "T01:p1:c3",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+            "score": 0.739694
+          }
+        ],
+        "completed_at": 1794097731.722311,
+        "timing": {
+          "total_ms": 35557.5,
+          "local_queue_ms": 0.1,
+          "retrieval_and_prompt_ms": 33917.7,
+          "provider_roundtrip_ms": 1639.6
+        }
+      },
+      "reply": {
+        "id": "69c82ef4739e45bfafb6a6b244897054",
+        "kind": "preparation",
+        "citations": [
+          {
+            "id": "T01:p1:c3",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+            "score": 0.739694
+          }
+        ],
+        "source_ids": [],
+        "evidence_ids": [
+          "T01:p1:c3"
+        ],
+        "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+        "at": 1794097731.7222989
+      },
+      "criterion_pass": true
+    },
+    {
+      "kind": "preparation",
+      "pack": "T02",
+      "question": "In the fundraising report, can the treasurer vote on reviewing his printing company transactions?",
+      "job": {
+        "id": "bc030d4c057e42a689491bae8bfc82e3",
+        "kind": "preparation",
+        "member": "9edadefec27846638256bdcc48383b9a",
+        "status": "done",
+        "error": null,
+        "question": "In the fundraising report, can the treasurer vote on reviewing his printing company transactions?",
+        "submitted_at": 1794097731.76553,
+        "text": "T02-GOV:GOV-1\nThe common three-person rules apply.\n\nT02-GOV:GOV-2\nJeff must not vote on or approve decisions concerning Bright Print or the review of its transactions. Arjun and\nRicardo can provide the two eligible votes.\n\nT02-GOV:GOV-3\nRelevant contracts, invoices and approval records must be preserved. A reviewer without the supplier conflict\nmay be appointed.\nApproved campaign wording\n\nT02-ORG\nFictional organization for software testing. The organization raises money for community meal programs. For\nthis fixture, Jeff is treasurer and also owns Bright Print, a commercial supplier. This declared relationship is\nfictional.\nExercise governance rules",
+        "sources": [
+          {
+            "id": "T02:p1:c3",
+            "document_id": "T02",
+            "title": "A fundraising allegation reaches the media",
+            "page": 1,
+            "text": "T02-GOV:GOV-1\nThe common three-person rules apply.\n\nT02-GOV:GOV-2\nJeff must not vote on or approve decisions concerning Bright Print or the review of its transactions. Arjun and\nRicardo can provide the two eligible votes.\n\nT02-GOV:GOV-3\nRelevant contracts, invoices and approval records must be preserved. A reviewer without the supplier conflict\nmay be appointed.\nApproved campaign wording",
+            "score": 0.733805
+          },
+          {
+            "id": "T02:p1:c2",
+            "document_id": "T02",
+            "title": "A fundraising allegation reaches the media",
+            "page": 1,
+            "text": "T02-ORG\nFictional organization for software testing. The organization raises money for community meal programs. For\nthis fixture, Jeff is treasurer and also owns Bright Print, a commercial supplier. This declared relationship is\nfictional.\nExercise governance rules",
+            "score": 0.717055
+          }
+        ],
+        "completed_at": 1794097733.465054,
+        "timing": {
+          "total_ms": 1699.5,
+          "local_queue_ms": 0.0,
+          "retrieval_and_prompt_ms": 66.8,
+          "provider_roundtrip_ms": 1632.7
+        }
+      },
+      "reply": {
+        "id": "bc030d4c057e42a689491bae8bfc82e3",
+        "kind": "preparation",
+        "citations": [
+          {
+            "id": "T02:p1:c3",
+            "document_id": "T02",
+            "title": "A fundraising allegation reaches the media",
+            "page": 1,
+            "text": "T02-GOV:GOV-1\nThe common three-person rules apply.\n\nT02-GOV:GOV-2\nJeff must not vote on or approve decisions concerning Bright Print or the review of its transactions. Arjun and\nRicardo can provide the two eligible votes.\n\nT02-GOV:GOV-3\nRelevant contracts, invoices and approval records must be preserved. A reviewer without the supplier conflict\nmay be appointed.\nApproved campaign wording",
+            "score": 0.733805
+          },
+          {
+            "id": "T02:p1:c2",
+            "document_id": "T02",
+            "title": "A fundraising allegation reaches the media",
+            "page": 1,
+            "text": "T02-ORG\nFictional organization for software testing. The organization raises money for community meal programs. For\nthis fixture, Jeff is treasurer and also owns Bright Print, a commercial supplier. This declared relationship is\nfictional.\nExercise governance rules",
+            "score": 0.717055
+          }
+        ],
+        "source_ids": [],
+        "evidence_ids": [
+          "T02:p1:c3",
+          "T02:p1:c2"
+        ],
+        "text": "T02-GOV:GOV-1\nThe common three-person rules apply.\n\nT02-GOV:GOV-2\nJeff must not vote on or approve decisions concerning Bright Print or the review of its transactions. Arjun and\nRicardo can provide the two eligible votes.\n\nT02-GOV:GOV-3\nRelevant contracts, invoices and approval records must be preserved. A reviewer without the supplier conflict\nmay be appointed.\nApproved campaign wording\n\nT02-ORG\nFictional organization for software testing. The organization raises money for community meal programs. For\nthis fixture, Jeff is treasurer and also owns Bright Print, a commercial supplier. This declared relationship is\nfictional.\nExercise governance rules",
+        "at": 1794097733.4650471
+      },
+      "criterion_pass": true
+    },
+    {
+      "kind": "preparation",
+      "pack": "T03",
+      "question": "In the succession report, does appointing an acting director provision payroll access?",
+      "job": {
+        "id": "f48a24c133194418b1e3a85326daa8ae",
+        "kind": "preparation",
+        "member": "9edadefec27846638256bdcc48383b9a",
+        "status": "done",
+        "error": null,
+        "question": "In the succession report, does appointing an acting director provision payroll access?",
+        "submitted_at": 1794097733.595516,
+        "text": "T03-ACCESS:ACCESS-1\nPayroll release needs two distinct authorized staff approvals: Sam and either the ED or an approved acting\ndirector.\n\nT03-ACCESS:ACCESS-2\nAppointment alone does not provision payment-system access. Finance must submit the recorded appointment\nto the provider.\n\nT03-ACCESS:ACCESS-3\nUsing another person's credentials is not an allowed substitute. No emergency provider contact is listed in this\ndocument.\nTemporary leadership notice",
+        "sources": [
+          {
+            "id": "T03:p1:c4",
+            "document_id": "T03",
+            "title": "Two leaders unavailable before payroll",
+            "page": 1,
+            "text": "T03-ACCESS:ACCESS-1\nPayroll release needs two distinct authorized staff approvals: Sam and either the ED or an approved acting\ndirector.\n\nT03-ACCESS:ACCESS-2\nAppointment alone does not provision payment-system access. Finance must submit the recorded appointment\nto the provider.\n\nT03-ACCESS:ACCESS-3\nUsing another person's credentials is not an allowed substitute. No emergency provider contact is listed in this\ndocument.\nTemporary leadership notice",
+            "score": 0.74762
+          }
+        ],
+        "completed_at": 1794097735.145728,
+        "timing": {
+          "total_ms": 1550.2,
+          "local_queue_ms": 0.0,
+          "retrieval_and_prompt_ms": 71.5,
+          "provider_roundtrip_ms": 1478.6
+        }
+      },
+      "reply": {
+        "id": "f48a24c133194418b1e3a85326daa8ae",
+        "kind": "preparation",
+        "citations": [
+          {
+            "id": "T03:p1:c4",
+            "document_id": "T03",
+            "title": "Two leaders unavailable before payroll",
+            "page": 1,
+            "text": "T03-ACCESS:ACCESS-1\nPayroll release needs two distinct authorized staff approvals: Sam and either the ED or an approved acting\ndirector.\n\nT03-ACCESS:ACCESS-2\nAppointment alone does not provision payment-system access. Finance must submit the recorded appointment\nto the provider.\n\nT03-ACCESS:ACCESS-3\nUsing another person's credentials is not an allowed substitute. No emergency provider contact is listed in this\ndocument.\nTemporary leadership notice",
+            "score": 0.74762
+          }
+        ],
+        "source_ids": [],
+        "evidence_ids": [
+          "T03:p1:c4"
+        ],
+        "text": "T03-ACCESS:ACCESS-1\nPayroll release needs two distinct authorized staff approvals: Sam and either the ED or an approved acting\ndirector.\n\nT03-ACCESS:ACCESS-2\nAppointment alone does not provision payment-system access. Finance must submit the recorded appointment\nto the provider.\n\nT03-ACCESS:ACCESS-3\nUsing another person's credentials is not an allowed substitute. No emergency provider contact is listed in this\ndocument.\nTemporary leadership notice",
+        "at": 1794097735.1457222
+      },
+      "criterion_pass": true
+    },
+    {
+      "kind": "opening_facilitator",
+      "job": {
+        "id": "5b36d60e848d4b5ebd65877116f4bb39",
+        "kind": "facilitator",
+        "member": "9edadefec27846638256bdcc48383b9a",
+        "status": "done",
+        "error": null,
+        "question": "What should we clarify before deciding?",
+        "submitted_at": 1794097735.198807,
+        "text": "Which facts are confirmed, and which assumptions still need checking?\n\nWhat risks and service continuity tradeoffs should the group discuss?",
+        "sources": [],
+        "completed_at": 1794097736.5256672,
+        "timing": {
+          "total_ms": 1326.9,
+          "local_queue_ms": 0.0,
+          "retrieval_and_prompt_ms": 0.0,
+          "provider_roundtrip_ms": 1326.8
+        }
+      },
+      "reply": {
+        "id": "5b36d60e848d4b5ebd65877116f4bb39",
+        "kind": "facilitator",
+        "citations": [],
+        "source_ids": [],
+        "evidence_ids": [
+          "question_0",
+          "question_2"
+        ],
+        "text": "Which facts are confirmed, and which assumptions still need checking?\n\nWhat risks and service continuity tradeoffs should the group discuss?",
+        "at": 1794097736.525662
+      }
+    },
+    {
+      "kind": "closing_facilitator",
+      "job": {
+        "id": "0443dbf95c0b450882236b9ebb7c6375",
+        "kind": "facilitator",
+        "member": "534dbc37ed9d4850a8d987e621531546",
+        "status": "done",
+        "error": null,
+        "question": "What remains unresolved before voting?",
+        "submitted_at": 1794097737.559037,
+        "text": "Which unresolved problem needs an explicit decision and recorded vote?",
+        "sources": [],
+        "completed_at": 1794097741.3294961,
+        "timing": {
+          "total_ms": 3770.5,
+          "local_queue_ms": 0.0,
+          "retrieval_and_prompt_ms": 0.0,
+          "provider_roundtrip_ms": 3770.4
+        }
+      },
+      "reply": {
+        "id": "0443dbf95c0b450882236b9ebb7c6375",
+        "kind": "facilitator",
+        "citations": [],
+        "source_ids": [],
+        "evidence_ids": [
+          "question_3"
+        ],
+        "text": "Which unresolved problem needs an explicit decision and recorded vote?",
+        "at": 1794097741.329489
+      }
+    },
+    {
+      "kind": "automatic_minutes",
+      "job": {
+        "id": "272269cc09334530b4205ab1312d295b",
+        "kind": "minutes",
+        "member": "9edadefec27846638256bdcc48383b9a",
+        "status": "done",
+        "error": null,
+        "question": "",
+        "submitted_at": 1794097741.509088,
+        "text": "Alex will ask IT to verify backup usability before 3 PM.\n\nWe need a decision on isolating the affected finance device while preserving logs.\n\nSeparate confirmed facts from unknowns before publishing an update.",
+        "sources": [],
+        "completed_at": 1794097743.4529989,
+        "timing": {
+          "total_ms": 1943.9,
+          "local_queue_ms": 0.0,
+          "retrieval_and_prompt_ms": 0.0,
+          "provider_roundtrip_ms": 1943.8
+        }
+      },
+      "reply": {
+        "id": "272269cc09334530b4205ab1312d295b",
+        "kind": "minutes",
+        "citations": [],
+        "source_ids": [
+          "92U4SJ_e17",
+          "92U4SJ_e18",
+          "92U4SJ_e19"
+        ],
+        "text": "Alex will ask IT to verify backup usability before 3 PM.\n\nWe need a decision on isolating the affected finance device while preserving logs.\n\nSeparate confirmed facts from unknowns before publishing an update.",
+        "at": 1794097743.452984
+      }
+    }
+  ],
+  "method": "Three HTTP clients, scripted contributions, live Gemma retrieval and Vertex selections. No browser controls.",
+  "memory": {
+    "ready": true,
+    "model": "google/embeddinggemma-2",
+    "documents": [
+      {
+        "id": "T01",
+        "title": "Service outage and unavailable director",
+        "filename": "demo-t01-service-outage.pdf",
+        "pages": 2,
+        "kind": "demo",
+        "source": "playtest/fixtures/participant-packs.json",
+        "demo": true
+      },
+      {
+        "id": "T02",
+        "title": "A fundraising allegation reaches the media",
+        "filename": "demo-t02-fundraising.pdf",
+        "pages": 2,
+        "kind": "demo",
+        "source": "playtest/fixtures/participant-packs.json",
+        "demo": true
+      },
+      {
+        "id": "T03",
+        "title": "Two leaders unavailable before payroll",
+        "filename": "demo-t03-succession-payroll.pdf",
+        "pages": 2,
+        "kind": "demo",
+        "source": "playtest/fixtures/participant-packs.json",
+        "demo": true
+      }
+    ],
+    "demo_document_ids": [
+      "T01",
+      "T02",
+      "T03"
+    ],
+    "note": "Page cited EmbeddingGemma memory is ready."
+  },
+  "speech": {
+    "result": {
+      "text": "Jeff will call it before 3 PM. Is the backup verified?",
+      "source": "speech",
+      "committed": false,
+      "note": "Review text, then submit a committed contribution using the signed-in participant token."
+    },
+    "elapsed_ms": 637.0,
+    "provisional_only": true,
+    "fixture": "discussion_owner",
+    "human_microphone": false
+  },
+  "record": {
+    "phase": "ended",
+    "documents": [
+      {
+        "id": "T01",
+        "title": "Service outage and unavailable director",
+        "filename": "demo-t01-service-outage.pdf",
+        "pages": 2
+      },
+      {
+        "id": "T02",
+        "title": "A fundraising allegation reaches the media",
+        "filename": "demo-t02-fundraising.pdf",
+        "pages": 2
+      },
+      {
+        "id": "T03",
+        "title": "Two leaders unavailable before payroll",
+        "filename": "demo-t03-succession-payroll.pdf",
+        "pages": 2
+      }
+    ],
+    "transcript": [
+      {
+        "id": "92U4SJ_e17",
+        "type": "contribution",
+        "at": 1794097736.777899,
+        "member": "9edadefec27846638256bdcc48383b9a",
+        "name": "Alex test host",
+        "text": "Alex will ask IT to verify backup usability before 3 PM.",
+        "source": "typed"
+      },
+      {
+        "id": "92U4SJ_e18",
+        "type": "contribution",
+        "at": 1794097736.780682,
+        "member": "56b96a77cdd34ce2874d1451a9c8206e",
+        "name": "Morgan test CEO",
+        "text": "We need a decision on isolating the affected finance device while preserving logs.",
+        "source": "typed"
+      },
+      {
+        "id": "92U4SJ_e19",
+        "type": "contribution",
+        "at": 1794097736.784199,
+        "member": "534dbc37ed9d4850a8d987e621531546",
+        "name": "Sam test member",
+        "text": "Separate confirmed facts from unknowns before publishing an update.",
+        "source": "typed"
+      }
+    ],
+    "summary": {
+      "items": [
+        {
+          "source_ids": [
+            "92U4SJ_e17"
+          ],
+          "text": "Alex will ask IT to verify backup usability before 3 PM.",
+          "speaker": "Alex test host"
+        },
+        {
+          "source_ids": [
+            "92U4SJ_e18"
+          ],
+          "text": "We need a decision on isolating the affected finance device while preserving logs.",
+          "speaker": "Morgan test CEO"
+        },
+        {
+          "source_ids": [
+            "92U4SJ_e19"
+          ],
+          "text": "Separate confirmed facts from unknowns before publishing an update.",
+          "speaker": "Sam test member"
+        }
+      ],
+      "covered_ids": [
+        "92U4SJ_e17",
+        "92U4SJ_e18",
+        "92U4SJ_e19"
+      ],
+      "transcript_count": 3,
+      "generated_at": 1794097743.452984,
+      "partial": false,
+      "stale": false
+    },
+    "decision_prompts": [
+      {
+        "id": "prompt_92U4SJ_e18",
+        "text": "Do we need a decision about: We need a decision on isolating the affected finance device while preserving logs.",
+        "source_ids": [
+          "92U4SJ_e18"
+        ]
+      }
+    ],
+    "decisions": [
+      {
+        "id": "2d7bab18b6ff4281a51b0cf22d02fd0d",
+        "problem": "Contain affected finance device",
+        "proposal": "Ask IT to isolate the affected finance device and preserve logs.",
+        "source_ids": [
+          "92U4SJ_e18"
+        ],
+        "member": "9edadefec27846638256bdcc48383b9a",
+        "at": 1794097743.629055,
+        "status": "approved",
+        "votes": {
+          "9edadefec27846638256bdcc48383b9a": "approve",
+          "56b96a77cdd34ce2874d1451a9c8206e": "approve",
+          "534dbc37ed9d4850a8d987e621531546": "reject"
+        },
+        "committed_by": "56b96a77cdd34ce2874d1451a9c8206e",
+        "committed_at": 1794097743.644968,
+        "tally": {
+          "approve": 2,
+          "reject": 1,
+          "abstain": 0
+        },
+        "reason": "majority",
+        "tie_break": null,
+        "my_vote": "approve",
+        "ballot_count": 3
+      }
+    ],
+    "history": [
+      {
+        "id": "2d7bab18b6ff4281a51b0cf22d02fd0d",
+        "problem": "Contain affected finance device",
+        "proposal": "Ask IT to isolate the affected finance device and preserve logs.",
+        "source_ids": [
+          "92U4SJ_e18"
+        ],
+        "member": "9edadefec27846638256bdcc48383b9a",
+        "at": 1794097743.629055,
+        "status": "approved",
+        "votes": {
+          "9edadefec27846638256bdcc48383b9a": "approve",
+          "56b96a77cdd34ce2874d1451a9c8206e": "approve",
+          "534dbc37ed9d4850a8d987e621531546": "reject"
+        },
+        "committed_by": "56b96a77cdd34ce2874d1451a9c8206e",
+        "committed_at": 1794097743.644968,
+        "tally": {
+          "approve": 2,
+          "reject": 1,
+          "abstain": 0
+        },
+        "reason": "majority",
+        "tie_break": null
+      }
+    ],
+    "jobs": [
+      {
+        "id": "69c82ef4739e45bfafb6a6b244897054",
+        "kind": "preparation",
+        "member": "9edadefec27846638256bdcc48383b9a",
+        "status": "done",
+        "error": null,
+        "question": "In the service outage report, what must IT verify before promising recovery?",
+        "submitted_at": 1794097696.164781,
+        "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+        "sources": [
+          {
+            "id": "T01:p1:c3",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+            "score": 0.739694
+          }
+        ],
+        "completed_at": 1794097731.722311,
+        "timing": {
+          "total_ms": 35557.5,
+          "local_queue_ms": 0.1,
+          "retrieval_and_prompt_ms": 33917.7,
+          "provider_roundtrip_ms": 1639.6
+        }
+      },
+      {
+        "id": "bc030d4c057e42a689491bae8bfc82e3",
+        "kind": "preparation",
+        "member": "9edadefec27846638256bdcc48383b9a",
+        "status": "done",
+        "error": null,
+        "question": "In the fundraising report, can the treasurer vote on reviewing his printing company transactions?",
+        "submitted_at": 1794097731.76553,
+        "text": "T02-GOV:GOV-1\nThe common three-person rules apply.\n\nT02-GOV:GOV-2\nJeff must not vote on or approve decisions concerning Bright Print or the review of its transactions. Arjun and\nRicardo can provide the two eligible votes.\n\nT02-GOV:GOV-3\nRelevant contracts, invoices and approval records must be preserved. A reviewer without the supplier conflict\nmay be appointed.\nApproved campaign wording\n\nT02-ORG\nFictional organization for software testing. The organization raises money for community meal programs. For\nthis fixture, Jeff is treasurer and also owns Bright Print, a commercial supplier. This declared relationship is\nfictional.\nExercise governance rules",
+        "sources": [
+          {
+            "id": "T02:p1:c3",
+            "document_id": "T02",
+            "title": "A fundraising allegation reaches the media",
+            "page": 1,
+            "text": "T02-GOV:GOV-1\nThe common three-person rules apply.\n\nT02-GOV:GOV-2\nJeff must not vote on or approve decisions concerning Bright Print or the review of its transactions. Arjun and\nRicardo can provide the two eligible votes.\n\nT02-GOV:GOV-3\nRelevant contracts, invoices and approval records must be preserved. A reviewer without the supplier conflict\nmay be appointed.\nApproved campaign wording",
+            "score": 0.733805
+          },
+          {
+            "id": "T02:p1:c2",
+            "document_id": "T02",
+            "title": "A fundraising allegation reaches the media",
+            "page": 1,
+            "text": "T02-ORG\nFictional organization for software testing. The organization raises money for community meal programs. For\nthis fixture, Jeff is treasurer and also owns Bright Print, a commercial supplier. This declared relationship is\nfictional.\nExercise governance rules",
+            "score": 0.717055
+          }
+        ],
+        "completed_at": 1794097733.465054,
+        "timing": {
+          "total_ms": 1699.5,
+          "local_queue_ms": 0.0,
+          "retrieval_and_prompt_ms": 66.8,
+          "provider_roundtrip_ms": 1632.7
+        }
+      },
+      {
+        "id": "f48a24c133194418b1e3a85326daa8ae",
+        "kind": "preparation",
+        "member": "9edadefec27846638256bdcc48383b9a",
+        "status": "done",
+        "error": null,
+        "question": "In the succession report, does appointing an acting director provision payroll access?",
+        "submitted_at": 1794097733.595516,
+        "text": "T03-ACCESS:ACCESS-1\nPayroll release needs two distinct authorized staff approvals: Sam and either the ED or an approved acting\ndirector.\n\nT03-ACCESS:ACCESS-2\nAppointment alone does not provision payment-system access. Finance must submit the recorded appointment\nto the provider.\n\nT03-ACCESS:ACCESS-3\nUsing another person's credentials is not an allowed substitute. No emergency provider contact is listed in this\ndocument.\nTemporary leadership notice",
+        "sources": [
+          {
+            "id": "T03:p1:c4",
+            "document_id": "T03",
+            "title": "Two leaders unavailable before payroll",
+            "page": 1,
+            "text": "T03-ACCESS:ACCESS-1\nPayroll release needs two distinct authorized staff approvals: Sam and either the ED or an approved acting\ndirector.\n\nT03-ACCESS:ACCESS-2\nAppointment alone does not provision payment-system access. Finance must submit the recorded appointment\nto the provider.\n\nT03-ACCESS:ACCESS-3\nUsing another person's credentials is not an allowed substitute. No emergency provider contact is listed in this\ndocument.\nTemporary leadership notice",
+            "score": 0.74762
+          }
+        ],
+        "completed_at": 1794097735.145728,
+        "timing": {
+          "total_ms": 1550.2,
+          "local_queue_ms": 0.0,
+          "retrieval_and_prompt_ms": 71.5,
+          "provider_roundtrip_ms": 1478.6
+        }
+      },
+      {
+        "id": "5b36d60e848d4b5ebd65877116f4bb39",
+        "kind": "facilitator",
+        "member": "9edadefec27846638256bdcc48383b9a",
+        "status": "done",
+        "error": null,
+        "question": "What should we clarify before deciding?",
+        "submitted_at": 1794097735.198807,
+        "text": "Which facts are confirmed, and which assumptions still need checking?\n\nWhat risks and service continuity tradeoffs should the group discuss?",
+        "sources": [],
+        "completed_at": 1794097736.5256672,
+        "timing": {
+          "total_ms": 1326.9,
+          "local_queue_ms": 0.0,
+          "retrieval_and_prompt_ms": 0.0,
+          "provider_roundtrip_ms": 1326.8
+        }
+      },
+      {
+        "id": "0443dbf95c0b450882236b9ebb7c6375",
+        "kind": "facilitator",
+        "member": "534dbc37ed9d4850a8d987e621531546",
+        "status": "done",
+        "error": null,
+        "question": "What remains unresolved before voting?",
+        "submitted_at": 1794097737.559037,
+        "text": "Which unresolved problem needs an explicit decision and recorded vote?",
+        "sources": [],
+        "completed_at": 1794097741.3294961,
+        "timing": {
+          "total_ms": 3770.5,
+          "local_queue_ms": 0.0,
+          "retrieval_and_prompt_ms": 0.0,
+          "provider_roundtrip_ms": 3770.4
+        }
+      },
+      {
+        "id": "272269cc09334530b4205ab1312d295b",
+        "kind": "minutes",
+        "member": "9edadefec27846638256bdcc48383b9a",
+        "status": "done",
+        "error": null,
+        "question": "",
+        "submitted_at": 1794097741.509088,
+        "text": "Alex will ask IT to verify backup usability before 3 PM.\n\nWe need a decision on isolating the affected finance device while preserving logs.\n\nSeparate confirmed facts from unknowns before publishing an update.",
+        "sources": [],
+        "completed_at": 1794097743.4529989,
+        "timing": {
+          "total_ms": 1943.9,
+          "local_queue_ms": 0.0,
+          "retrieval_and_prompt_ms": 0.0,
+          "provider_roundtrip_ms": 1943.8
+        }
+      }
+    ]
+  },
+  "health_after": {
+    "ok": true,
+    "storage": "single process memory",
+    "models": {
+      "online": true,
+      "verified": true,
+      "provider": "Google Vertex AI",
+      "model": "gemini-3.8-flash",
+      "thinking_level": "LOW",
+      "name": "Gemini 3.8 Flash \u00b7 LOW",
+      "note": "Live response verified",
+      "budget": {
+        "cap_usd": 20.0,
+        "reserved_usd": 1.55,
+        "remaining_usd": 18.45,
+        "attempts": 31,
+        "note": "Local test reservations, including failures; excludes other account spending."
+      }
+    },
+    "test_name_rejoin": true,
+    "speech": {
+      "cap": 30000,
+      "reserved": 5782,
+      "remaining": 24218,
+      "unit": "credits",
+      "note": "Conservative reservations, not an exact provider invoice. Failed calls stay reserved."
+    },
+    "speech_configured": true
+  },
+  "checks": {
+    "ceo_is_not_host": true,
+    "non_ceo_start_rejected": true,
+    "all_ready_and_pdfs_gated": true,
+    "optional_windows_skipped": true,
+    "quote_provenance": true,
+    "human_votes_required": true,
+    "one_approved_decision": true,
+    "live_calls": 6
+  }
+}

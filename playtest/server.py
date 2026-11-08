@@ -15,25 +15,33 @@ from .engine import Engine, RuleError, require
 from .agents import Agents
 from .speech import Speech
 from .recordings import RecordingLibrary
+from .roundtable import Roundtable
+from .roundtable_api import RoundtableService
+from .pdf_memory import PDFMemory
 
 STATIC = Path(__file__).parent / 'static'
 
 
-def create_app(engine=None, provider=None, speech=None, port=8788, recordings=None):
+def create_app(engine=None, provider=None, speech=None, port=8788, recordings=None, roundtable=None, memory=None):
     engine = engine or Engine()
     agents = Agents(engine, provider)
     speech = speech or Speech(os.environ.get('ELEVENLABS_API_KEY'), '.local/ai-playtest', 0)
     recordings = recordings or RecordingLibrary()
+    roundtable_service = RoundtableService(roundtable or Roundtable(), agents.provider, memory or PDFMemory(), speech)
     media_receipts, media_lock = {}, threading.Lock()
 
     @asynccontextmanager
     async def lifespan(app):
         agents.start()
+        roundtable_service.start()
         yield
+        roundtable_service.close()
         agents.close()
 
     app = FastAPI(title='Rehearsal AI Playtest', lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
     app.state.engine, app.state.agents, app.state.speech = engine, agents, speech
+    app.state.roundtable, app.state.roundtable_service = roundtable_service.engine, roundtable_service
+    app.include_router(roundtable_service.router)
 
     @app.middleware('http')
     async def boundaries(request, call_next):
@@ -47,7 +55,8 @@ def create_app(engine=None, provider=None, speech=None, port=8788, recordings=No
                 size = int(request.headers.get('content-length', '-1'))
             except ValueError:
                 size = -1
-            limit = 4_000_000 if request.url.path == '/api/transcribe' else 16_000
+            limit = (5*1024*1024 if request.url.path == '/api/roundtable/upload' else
+                     4_000_000 if request.url.path in ('/api/transcribe', '/api/roundtable/transcribe') else 16_000)
             if not 0 <= size <= limit:
                 return JSONResponse({'error': 'Request body is missing a valid length or is too large'}, status_code=413)
         response = await call_next(request)
@@ -99,6 +108,22 @@ def create_app(engine=None, provider=None, speech=None, port=8788, recordings=No
         with media_lock:
             media_receipts[key].update(status='done', result=deepcopy(result))
         return result
+
+    @app.get('/roundtable')
+    def roundtable_page():
+        return FileResponse(STATIC / 'roundtable.html')
+
+    @app.get('/roundtable.js')
+    def roundtable_script():
+        return FileResponse(STATIC / 'roundtable.js')
+
+    @app.get('/roundtable.css')
+    def roundtable_style():
+        return FileResponse(STATIC / 'roundtable.css')
+
+    @app.get('/roundtable-guide')
+    def roundtable_guide():
+        return FileResponse(STATIC / 'roundtable-guide.html')
 
     @app.get('/')
     def index():
@@ -194,6 +219,9 @@ def create_app(engine=None, provider=None, speech=None, port=8788, recordings=No
 
     @app.get('/api/health')
     def health():
+        # Both meeting modes share this provider. Read its local ledger/status so
+        # a roundtable call is visible without waiting for the legacy poller.
+        agents.health()
         return {'ok': True, 'storage': 'single process memory', 'models': agents.status,
                 'test_name_rejoin': engine.allow_name_rejoin,
                 'speech': speech.budget.status(), 'speech_configured': bool(speech.adapter)}

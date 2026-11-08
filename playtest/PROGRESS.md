@@ -1,8 +1,16 @@
 # Rehearsal implementation progress
 
-Status snapshot: November 7, 2026, updated through task X09. The single window local model experiment is implemented and evaluated. The active test application now routes all text agents and extraction to Gemini 3.8 Flash with LOW reasoning through Google Vertex AI, with no local model fallback. The same fourteen case comparison has completed. The custom proposal round and Vertex speech integration check also passed.
+Status snapshot: November 7, 2026, updated for task X10. The single window local model experiment is implemented and evaluated. The active test application now routes all text agents and extraction to Gemini 3.8 Flash with LOW reasoning through Google Vertex AI, with no local model fallback. The same fourteen case comparison has completed. The custom proposal round and Vertex speech integration check also passed.
 
 The work is isolated on branch `experiment/ai-voice-playtest` in `/Users/arjunbehl/Developer/CommuniHacks/BoardroomCrisisSimulator-ai-playtest`. It has not been merged into the production application. Existing teammate modules and the shared GPU service are preserved.
+
+## New CEO meeting workflow
+
+The separate `/roundtable` mode adds three preloaded demo PDFs, room scoped Gemma embedding retrieval and cited preparation answers. Everyone marks ready; the CEO starts and can skip either one minute facilitator window. Three minute discussion produces a written transcript. The minutes agent selects exact contribution quotes and proposes decision questions. People submit proposals and votes; the CEO explicitly records the result. Microphone transcription remains an explicit Scribe request followed by review and a separate text submission.
+
+[The guide](ROUNDTABLE_GUIDE.md) explains the one window three seat test. [The roundtable report](ROUNDTABLE_REPORT.md) records current verification and limitations. The new mode keeps its own room state, with the same provider objects and persistent spending ledgers as the existing pages. The model download and local PDF vectors are not committed. No Velocity service or production frontend is changed.
+
+The X10 verification passed 88 playtest tests, 31 existing tests and eight Node UI checks. Six real Vertex jobs and one explicit Scribe fixture transcription completed. The app preparation questions found the expected evidence in all three public reports. Current reservations are US$1.55 of US$20 and 5,782 of 30,000 credits. The standalone readable guide is `/Users/arjunbehl/Downloads/Rehearsal_Roundtable_Guide.html`.
 
 ## What is already implemented
 
@@ -120,6 +128,6 @@ Generation took 67.71 seconds with two concurrent requests. The library contains
 
 Verification passed 51 playtest tests, 31 existing tests, the prototype demo and JavaScript checks. All 36 files were fetched through authenticated playback leases without additional provider reservations. A real HTTP round completed in 90.19 seconds with three recorded clips, three provisional transcripts, separate contribution commits, three votes and one outcome. The tracker and concurrent three role review all completed. The transcripts matched after case, punctuation and numeral normalization; IT appeared as it, so exact text still needs review.
 
-The user subsequently increased total caps to **30,000 speech credits** and **US$20 Vertex**. Current conservative reservations are **5,382 speech credits**, leaving **24,618**, and **US$1.25 Vertex**, leaving **US$18.75**. The explicit cap migration retains every existing reservation; restart alone cannot expand a stored cap. The preceding section preserves the earlier provider comparison checkpoint. No GPU services were changed.
+The user subsequently increased total caps to **30,000 speech credits** and **US$20 Vertex**. At the X09 checkpoint, conservative reservations were **5,382 speech credits**, leaving **24,618**, and **US$1.25 Vertex**, leaving **US$18.75**. The explicit cap migration retains every existing reservation; restart alone cannot expand a stored cap. The preceding section preserves the earlier provider comparison checkpoint. No GPU services were changed.
 
 Read [the audio guide](AUDIO_TEST_GUIDE.md) and [measured audio report](AUDIO_REPORT.md). The formatted guide is at <http://127.0.0.1:8788/audio-guide> and `/Users/arjunbehl/Downloads/Rehearsal_Audio_Test_Guide.html`. New browser, microphone and audible playback quality remain manual checks; this task did not use computer controls. Publication is recorded in TODO.md, and the feature branch is not merged.

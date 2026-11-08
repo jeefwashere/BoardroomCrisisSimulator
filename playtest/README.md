@@ -4,6 +4,16 @@ This isolated experiment adds a minimal FastAPI browser application on branch `e
 
 Use [the manual test guide](TEST_GUIDE.md) for copyable T01, T02 and T03 questions, expected evidence, the agent roster, the five minute procedure and a results sheet.
 
+## CEO meeting and PDF memory
+
+Open <http://127.0.0.1:8788/roundtable> for the new meeting flow. Use **Create 3 test seats**, inspect the three preloaded PDF packs, mark everyone ready and have the CEO start. Optional opening and closing facilitator windows last 60 seconds each and can be skipped. Discussion defaults to three minutes; the CEO can finish early. Written contributions appear beside exact quote minutes and decision prompts. Participants explicitly propose and vote; the CEO records each result.
+
+The preparation agent uses actual `google/embeddinggemma-2` text embeddings locally and Gemini Flash LOW for bounded passage selection. Uploaded PDFs are available only to their room. Source passages include PDF title, page and chunk identifiers. The model never reads the hidden controller reference. [PDF memory setup](PDF_MEMORY.md) covers the isolated dependencies and explicit checkpoint download and index commands. The cached model and uploaded documents remain in the ignored `.local/ai-playtest/pdf-memory` directory.
+
+Read [the meeting test guide](ROUNDTABLE_GUIDE.md), also available as [formatted HTML](http://127.0.0.1:8788/roundtable-guide). Recording a microphone clip is local until the explicit Transcribe action sends it to ElevenLabs Scribe v2. Review the returned text, then separately commit it. No continuous audio capture or automatic speech playback is enabled on this page.
+
+The decision phase requests one automatic minutes job if the transcript needs coverage. Other agent calls are explicit. All pages share the same persistent US$20 Vertex and 30,000 speech credit caps. Run `python -m playtest.roundtable_benchmark --live-models` for the six call HTTP evaluation; `--allow-paid-transcription` adds one 400 credit fixture transcription. Read [the measured roundtable report](ROUNDTABLE_REPORT.md) before interpreting results. Membership is a local test token; this is not production account login or an Internet deployment.
+
 ## Prerecorded conversation lab
 
 Open <http://127.0.0.1:8788/audio-lab> for 36 reusable ElevenLabs recordings in three standard voices. The MP3 files are included in `playtest/recordings/`, with fixed captions in `playtest/fixtures/recordings.json`. Replay and loading known script text make no provider calls. The recorded 90 second demo uses three explicit test seats, plays each clip during its actual speaking turn, commits its known text only after playback completes in that same turn, then submits prepared votes. An interrupted or expired clip is not silently committed.

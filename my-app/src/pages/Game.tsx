@@ -47,6 +47,7 @@ import { DEMO_STORAGE_KEY, readStoredDemo } from '../features/demo/demoModel'
 import { seatFromSearch } from '../services/tabSession'
 import './Game.css'
 import './GameTheme.css'
+import { preloadBoardroomAssets } from '../features/boardroom3d/assets'
 
 const CONTEXT_PHASES = ['reading', 'speaking', 'discussion']
 
@@ -90,6 +91,8 @@ function drivesSoloBots(): boolean {
 
 function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: { room: RoomSnapshot; scenarios: Scenario[]; error: string; rename: (name: string) => Promise<void>; execute: (path: string, fields?: Record<string, unknown>) => Promise<void>; onViewSummary: () => void; chat: RoomChatHandle }) {
     const [notice, setNotice] = useState('')
+    // Fetch the 3D boardroom models while players are still in the lobby or setup.
+    useEffect(() => preloadBoardroomAssets(), [])
     const [pending, setPending] = useState(false)
     const [text, setText] = useState('')
     const [dismissedOpening, setDismissedOpening] = useState('')

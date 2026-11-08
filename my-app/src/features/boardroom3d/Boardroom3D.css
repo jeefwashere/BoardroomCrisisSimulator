@@ -7,7 +7,7 @@
 .board3d-canvas { position: absolute; inset: 0; }
 .board3d--hidden { display: none; }
 .board3d-canvas canvas { display: block; width: 100%; height: 100%; touch-action: none; }
-.board3d-vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 50%, transparent 58%, rgba(12, 14, 18, 0.32) 100%); }
+.board3d-vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 50%, transparent 66%, rgba(12, 14, 18, 0.16) 100%); }
 .board3d-loading { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 3; margin: 0; padding: 7px 14px; border-radius: 999px; background: rgba(20, 22, 26, 0.78); color: #e7e9ee; font-size: 13px; }
 .board3d-loading--failed { color: #ffb4a3; }
 

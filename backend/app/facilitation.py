@@ -307,12 +307,22 @@ class Facilitation:
         self.tasks.add(task)
         task.add_done_callback(self.tasks.discard)
 
-    async def _opening(self, entry: dict, context: dict) -> None:
+    async def _prewarm(self, room_id: UUID, speech_id: str, text: str, voice: str) -> None:
+        """Starts a line's speech as soon as its text is ready, so a window asking for it gets cached audio. The
+        windows would request the same line anyway; the narration cache makes this one synthesis, not two."""
+        try:
+            await self.speech.prepare(room_id, UUID(speech_id), spoken(text), voice)
+        except Exception:
+            pass  # The window's own request reports any failure.
+
+    async def _opening(self, entry: dict, context: dict, room_id: UUID | None = None) -> None:
         instructions = ("You are the AI facilitator opening a fictional board crisis exercise. Introduce the incident, "
                         "what the public documents say, and what the board must discuss.")
         try:
             entry["text"], entry["source"] = await self.generate(self.prompt(instructions, context), self.offline_opening(context))
             entry["speech_id"], entry["status"] = str(uuid4()), "ready"
+            if room_id is not None:
+                self.spawn(self._prewarm(room_id, entry["speech_id"], entry["text"], "facilitator"))
         except Exception:
             entry["status"], entry["error"] = "failed", "Opening briefing unavailable"
 
@@ -325,7 +335,7 @@ class Facilitation:
         except Exception:
             item["status"], item["error"] = "failed", "Adviser reply unavailable"
 
-    async def _expert(self, item: dict, context: dict) -> None:
+    async def _expert(self, item: dict, context: dict, room_id: UUID | None = None) -> None:
         kind = item["kind"]
         try:
             fallback = self.offline_expert(kind, context)
@@ -337,12 +347,14 @@ class Facilitation:
                 text, source = fallback, "offline"
             item["text"], item["source"] = text, source
             item["speech_id"], item["status"] = str(uuid4()), "ready"
+            if room_id is not None:
+                self.spawn(self._prewarm(room_id, item["speech_id"], text, kind))
         except Exception:
             item["status"], item["error"] = "failed", "Expert take unavailable"
 
-    async def _panel(self, panel: dict, context: dict) -> None:
+    async def _panel(self, panel: dict, context: dict, room_id: UUID | None = None) -> None:
         # The three experts are generated in parallel; each falls back to offline text on its own.
-        await asyncio.gather(*(self._expert(item, context) for item in panel["experts"]))
+        await asyncio.gather(*(self._expert(item, context, room_id) for item in panel["experts"]))
 
     @staticmethod
     def panel_view(panel: dict) -> dict:
@@ -366,7 +378,7 @@ class Facilitation:
                         {"kind": kind, "label": EXPERT_KINDS[kind]["label"], "status": "pending", "text": "",
                          "source": None, "speech_id": None, "error": None} for kind in EXPERT_PROMPTS]}
                     rounds[key] = panel
-                    self.spawn(self._panel(panel, self.expert_context(snapshot, contributions)))
+                    self.spawn(self._panel(panel, self.expert_context(snapshot, contributions), room_id))
             if rounds:
                 expert_panel = self.panel_view(next(reversed(rounds.values())))
             opening = self.openings.get(room_id)
@@ -375,7 +387,7 @@ class Facilitation:
                 opening = {"status": "pending", "title": "Opening briefing", "text": "", "source": None,
                            "speech_id": None, "error": None}
                 self.openings[room_id] = opening
-                self.spawn(self._opening(opening, self.context(snapshot)))
+                self.spawn(self._opening(opening, self.context(snapshot), room_id))
             opening = dict(opening)
         return {"opening": opening, "expert_panel": expert_panel, "advisers": [dict(item) for item in ADVISERS],
                 "consultations": [dict(item) for item in self.consultations.get(room_id, [])],

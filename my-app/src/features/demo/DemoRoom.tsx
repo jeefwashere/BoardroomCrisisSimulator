@@ -13,6 +13,7 @@ import { roomApi } from '../rooms/useRoom'
 import { browserSessionStorage, saveSessionName } from '../identity/sessionName'
 import { usePrivateBots } from './usePrivateBots'
 import './DemoRoom.css'
+import { preloadBoardroomAssets } from '../boardroom3d/assets'
 
 type SeatClient = { seat: string; name: string; api: RoomApi }
 type Snapshots = (RoomSnapshot | null)[]
@@ -48,6 +49,8 @@ function initialDemo(): { demo: StoredDemo | null; clients: SeatClient[] | null 
 
 export default function DemoRoom() {
     const [{ demo, clients }, setLoaded] = useState(initialDemo)
+    // Fetch the 3D boardroom models while players are still in the lobby or setup.
+    useEffect(() => preloadBoardroomAssets(), [])
     const [busy, setBusy] = useState<'start' | 'lobby' | null>(null)
     const [ballotSource, setBallotSource] = useState<BallotSource>('authored')
     const [startAt, setStartAt] = useState<StartAt>('beginning')

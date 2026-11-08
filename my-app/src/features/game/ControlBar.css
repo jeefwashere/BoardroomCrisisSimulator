@@ -108,8 +108,8 @@
 .chat-drawer-header h2 { margin: 0; font-size: 15px; font-weight: 650; }
 .chat-drawer-close { width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: #c4c6ce; font-size: 22px; line-height: 1; cursor: pointer; }
 .chat-drawer-close:hover { background: #ffffff12; color: #fff; }
-.chat-drawer-body { display: flex; flex: 1; flex-direction: column; min-height: 0; }
-.chat-drawer .room-chat-history { flex: 1; max-height: none; padding: 4px 16px; }
+.chat-drawer-body { display: flex; flex: 1; flex-direction: column; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.chat-drawer .room-chat-history { flex: 1 1 140px; min-height: 132px; max-height: none; padding: 4px 16px; }
 .chat-drawer .room-chat-record { border-bottom-color: #ffffff10; }
 .chat-drawer .room-chat-record.is-self .room-chat-text { color: #dfe2ff; }
 .chat-drawer .room-chat-meta time, .chat-drawer .room-chat-context, .chat-drawer .room-chat-empty, .chat-drawer .room-chat-note, .chat-drawer .room-chat-compose-actions span { color: #9a9fab; }

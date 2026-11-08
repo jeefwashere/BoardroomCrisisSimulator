@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { RoomSnapshot, Scenario } from '../../services/rooms'
 import { appendTranscript } from '../game/dictationModel'
 import { DECISION_LIMIT, DECISION_PROMPT, canSubmitDecision } from '../game/individualDecisionModel'
-import { chatTextProblem } from './chatState'
+import { chatTextProblem, visibleRoomChatEntries } from './chatState'
 import type { RoomChatHandle } from './useRoomChat'
 
 /** During the Round 1 individual decision the composer can save the member's private decision instead of chatting. */
@@ -47,18 +47,18 @@ export default function RoomChatPanel({ room, scenarios, chat, compact = false, 
     const scenario = room.game ? scenarios.find((item) => item.scenario_id === room.game?.scenario.scenario_id && item.version === room.game.scenario.version) : scenarios[0]
     const ended = room.phase === 'ended'
     // Round 1 decisions are private records shown in the decision panel and the report, not chat messages.
-    const records = state.records.filter((entry) => entry.phase !== 'individual_decision')
+    const records = visibleRoomChatEntries(state.records, state.recordings)
     return <>
         {!compact && <p className="room-chat-note">Shared with everyone in this room. Committed messages remain in the session record.</p>}
-        <div className="room-chat-history" role="log" aria-label="Committed room records" aria-live="polite" aria-relevant="additions">
+        <div className="room-chat-history" role="log" aria-label="Room chat history" aria-live="polite" aria-relevant="additions">
             {!state.loaded && !state.historyError && <p role="status">Loading conversation…</p>}
             {state.loaded && records.length === 0 && <p className="room-chat-empty">No messages yet. Start the conversation.</p>}
             {records.map((entry) => {
                 const member = room.members.find((item) => item.member_id === entry.member_id)
                 const role = scenario?.roles.find((item) => item.role_id === entry.role_id)?.name ?? entry.role_id
-                return <article className={`room-chat-record${entry.member_id === room.self_member_id ? ' is-self' : ''}`} key={entry.contribution_id} data-contribution-id={entry.contribution_id}>
+                return <article className={`room-chat-record${entry.member_id === room.self_member_id ? ' is-self' : ''}`} key={entry.id} data-contribution-id={entry.kind === 'speech' ? undefined : entry.id} data-recording-id={entry.kind === 'speech' ? entry.id : undefined}>
                     <div className="room-chat-meta"><strong>{member?.display_name ?? 'Room member'}{entry.member_id === room.self_member_id ? ' (you)' : ''}</strong><time dateTime={entry.at}>{new Date(entry.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</time></div>
-                    <p className="room-chat-context">{role ? `${role} · ` : ''}{entry.phase}{entry.round_number !== null ? ` · Round ${entry.round_number}` : ''}{entry.kind === 'answer' ? ' · Answer' : ''}{entry.source === 'speech' ? ' · Reviewed transcript' : ''}</p>
+                    <p className="room-chat-context">{role ? `${role} · ` : ''}{entry.kind === 'speech' ? entry.source : entry.phase}{entry.round_number !== null ? ` · Round ${entry.round_number}` : ''}{entry.kind === 'answer' ? ' · Answer' : ''}{entry.source === 'speech' ? ' · Reviewed transcript' : ''}</p>
                     <p className="room-chat-text">{entry.text}</p>
                 </article>
             })}

@@ -60,6 +60,17 @@ test('GET preserves the complete ordered server record including unselected answ
     assert.deepEqual(await apiWith(async () => json([])).contributions('room-1'), [])
 })
 
+test('recording history uses its authenticated read only room endpoint', async () => {
+    const audio = { recording_id: 'rec-1', member_id: 'member-2', round_id: 'round-1', round_number: 1, phase_id: 'phase-1', status: 'review_required', transcript: 'Spoken words', reviewed_text: null, error: null, mime_type: 'audio/webm', audio_available: true, started_at: '2026-11-08T00:45:00Z', duration_seconds: 7, ended_at: '2026-11-08T00:45:07Z' }
+    const api = apiWith(async (url, init) => {
+        assert.equal(String(url), 'http://local.test:8000/api/rooms/room-1/recordings')
+        assert.equal(init?.method, 'GET')
+        assert.equal(new Headers(init?.headers).get('X-Boardroom-Session'), 'private-tab-token')
+        return json([audio])
+    })
+    assert.deepEqual(await api.recordings('room-1'), [audio])
+})
+
 test('server attribution is returned unchanged rather than inferred from the caller or current roster', async () => {
     const committed: Contribution = { ...entry, member_id: 'authenticated-member', role_id: 'security',
         phase_id: 'original-phase', phase: 'result', round_id: 'original-round', round_number: 2, node_id: 'recovery' }

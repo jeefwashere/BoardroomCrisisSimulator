@@ -1,6 +1,6 @@
 # Complete gameplay integration
 
-The feature branch implements prepared and custom gameplay, participant turn recordings, real ElevenLabs transcription and narration, and evidence linked final qualitative AI assessment. The user removed the custom proposal character cap and authorized USD 100 in speech tests. The current harness window is November 8 at 00:37:02 UTC through 01:07:02 UTC. Publication, merge and shared activation remain separate states.
+The feature branch implements prepared and custom gameplay, participant turn recordings, real ElevenLabs transcription and narration, and evidence linked final qualitative AI assessment. The user removed the custom proposal character cap and authorized USD 100 in speech tests. The current harness window is November 8 at 00:37:02 UTC through 01:07:02 UTC. PR 22 merged as `c46447833778ef942a1f685a908f18ce0a5a4a5a` on November 8 at 00:59:10 UTC after the user requested merge. Shared activation remains with the existing integration task.
 
 ## Custom actions and authority
 

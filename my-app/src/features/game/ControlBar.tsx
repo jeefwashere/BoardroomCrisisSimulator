@@ -122,7 +122,7 @@ export default function ControlBar({ caption, round, phaseId, deadline, serverTi
             {report && <ControlButton icon="doc" label="Report" title={report.open ? 'Close the incident report' : 'Open the incident report'} pressed={report.open} onClick={report.onToggle} />}
             {autoResponse && <ControlButton icon={autoResponse.live ? 'stop' : 'play'} label={autoResponse.label} title={autoResponse.title ?? 'Let the AI write and speak your reply'} tone={autoResponse.live ? 'live' : 'accent'} pressed={autoResponse.live} disabled={autoResponse.disabled} onClick={autoResponse.onClick} />}
             {finishTurn && <ControlButton icon="check" label="Finish my turn" title="Give up the floor so the next person can speak" tone="accent" disabled={pending} onClick={finishTurn} />}
-            {endMeeting && <ControlButton icon="skip" label="End meeting" title="Close the meeting and move on to the next step (CEO only)" disabled={pending} onClick={endMeeting} />}
+            {endMeeting && <ControlButton icon="skip" label="Next stage" title="Move to the next stage (CEO only)" disabled={pending} onClick={endMeeting} />}
             {skip && <ControlButton icon="skip" label={skip.label} title={`${skip.label} (host)`} disabled={pending} onClick={skip.onClick} />}
             {skipSpeaker && <ControlButton icon="skip-speaker" label="Skip speaker" title="Move the floor to the next participant (host)" disabled={pending} onClick={skipSpeaker} />}
         </div>

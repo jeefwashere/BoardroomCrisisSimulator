@@ -51,9 +51,12 @@ export default function TurnMedia({ room, recorder }: { room: RoomSnapshot; reco
             <button type="button" onClick={() => void review(recording)}>Save reviewed transcript</button>
         </div>
     </article>
+    const processing = extras.recordings.filter((item) => item.member_id === room.self_member_id && ['awaiting_audio', 'validating_audio', 'transcribing'].includes(item.status))
     const failed = state.status === 'error' || state.retryUpload
-    if (!ended && !failed && !pending.length && !notice) return null
+    if (!ended && !failed && !pending.length && !processing.length && !notice && !['recording', 'stopping', 'saving'].includes(state.status)) return null
     return <section className="game-media" aria-label="Recordings">
+        {!ended && ['recording', 'stopping', 'saving'].includes(state.status) && <p role="status">{state.message}</p>}
+        {!ended && processing.length > 0 && <p role="status">Your recording is being transcribed. Your summary will appear automatically when it is ready.</p>}
         {!ended && failed && <div className="game-notice game-notice--warn" role="status">
             <span>{state.message}</span>
             {state.retryUpload && <button type="button" onClick={() => void capture.retryUpload()}>Retry saving</button>}

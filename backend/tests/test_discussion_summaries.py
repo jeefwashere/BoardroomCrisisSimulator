@@ -85,7 +85,38 @@ class DiscussionSummaryTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len((await self.view())["game"]["individual_decisions"] or {}), 0)
         self.assertEqual(len(self.rooms.require_room(UUID(ready["room_id"])).contributions), 1)
 
-    async def test_only_own_current_discussion_and_reviewed_recordings_are_evidence(self):
+    async def test_finished_speech_automatically_drafts_without_committing_transcript(self):
+        view = await self.speaking()
+        room = self.rooms.require_room(UUID(view["room_id"]))
+        item = Recording(uuid4(), room.room_id, UUID(self.ids[0]), UUID(view["game"]["round_id"]),
+                         1, UUID(view["game"]["phase_id"]), 1000, 1030, datetime.now(timezone.utc),
+                         status="review_required", transcript="OWN spoken proposal to verify backups.")
+        self.summary.recordings.entries[item.recording_id] = item
+        for hidden in (replace(item, recording_id=uuid4(), member_id=UUID(self.ids[2]), transcript="OTHER_OWNER_SECRET"),
+                       replace(item, recording_id=uuid4(), round_id=uuid4(), transcript="OLD_ROUND_SECRET"),
+                       replace(item, recording_id=uuid4(), room_id=uuid4(), transcript="OTHER_ROOM_SECRET")):
+            self.summary.recordings.entries[hidden.recording_id] = hidden
+        await self.sync()
+        await self.drain()
+        ready = await self.sync()
+        self.assertEqual(ready["status"], "ready")
+        self.assertEqual(ready["provisional_recording_count"], 1)
+        self.assertIn(item.transcript, self.generator.prompts[0])
+        for hidden in ("OTHER_OWNER_SECRET", "OLD_ROUND_SECRET", "OTHER_ROOM_SECRET"):
+            self.assertNotIn(hidden, self.generator.prompts[0])
+        self.assertIsNone(item.reviewed_text)
+        self.assertEqual(item.status, "review_required")
+        self.assertEqual(room.contributions, ())
+        other = await self.sync(1)
+        self.assertEqual(other["status"], "empty")
+        self.assertEqual(other["provisional_recording_count"], 0)
+        await self.summary.recordings.review(self.clients[0].headers["X-Boardroom-Session"], room.room_id, item.recording_id, item.transcript)
+        reviewed = await self.sync()
+        self.assertEqual(reviewed["provisional_recording_count"], 0)
+        self.assertEqual(len(self.generator.prompts), 1)
+        self.assertEqual(room.contributions, ())
+
+    async def test_only_own_current_discussion_and_provisional_or_reviewed_recordings_are_evidence(self):
         view = await self.speaking()
         await self.contribute(0, "OWN_PUBLIC")
         await self.contribute(1, "OTHER_MEMBER_SECRET")
@@ -96,14 +127,16 @@ class DiscussionSummaryTests(unittest.IsolatedAsyncioTestCase):
                                replace(own, contribution_id=uuid4(), round_id=uuid4(), text="OLD_ROUND_SECRET"))
         item = Recording(uuid4(), room.room_id, UUID(self.ids[0]), UUID(view["game"]["round_id"]),
                          1, UUID(view["game"]["phase_id"]), 1000, 1030, datetime.now(timezone.utc),
-                         status="review_required", transcript="PROVISIONAL_SECRET")
+                         status="review_required", transcript="PROVISIONAL_OWN_SPEECH")
         self.summary.recordings.entries[item.recording_id] = item
         await self.sync()
         await self.drain()
         first = await self.sync()
-        self.assertEqual(first["evidence_count"], 1)
+        self.assertEqual(first["evidence_count"], 2)
+        self.assertEqual(first["provisional_recording_count"], 1)
+        self.assertIn("PROVISIONAL_OWN_SPEECH", self.generator.prompts[0])
         self.assertIn("OWN_PUBLIC", self.generator.prompts[0])
-        for hidden in ("OTHER_MEMBER_SECRET", "PRIVATE_SECRET", "DECISION_SECRET", "OLD_ROUND_SECRET", "PROVISIONAL_SECRET"):
+        for hidden in ("OTHER_MEMBER_SECRET", "PRIVATE_SECRET", "DECISION_SECRET", "OLD_ROUND_SECRET"):
             self.assertNotIn(hidden, self.generator.prompts[0])
         session = self.clients[0].headers["X-Boardroom-Session"]
         await self.summary.recordings.review(session, room.room_id, item.recording_id, "REVIEWED_OWN_SPEECH")
@@ -111,6 +144,7 @@ class DiscussionSummaryTests(unittest.IsolatedAsyncioTestCase):
         await self.drain()
         after = await self.sync()
         self.assertEqual(after["evidence_count"], 2)
+        self.assertEqual(after["provisional_recording_count"], 0)
         self.assertNotEqual(after["evidence_revision"], first["evidence_revision"])
         self.assertIn("REVIEWED_OWN_SPEECH", self.generator.prompts[1])
         other = await self.sync(1)

@@ -13,12 +13,13 @@ export type DiscussionDraftState = {
     error: string | null
     submittedText: string | null
     storageAvailable: boolean
+    provisionalRecordings: number
 }
 export function draftKey(room: RoomSnapshot): string {
     return JSON.stringify(['discussion-draft', room.room_id, room.game?.started_at, room.game?.round_id, room.self_member_id])
 }
 export function initialDraft(raw: string | null, recorded: string | null = null): DiscussionDraftState {
-    const initial: DiscussionDraftState = { text: recorded ?? '', mode: recorded ? 'manual' : 'automatic', revision: 0, evidenceRevision: '', generatedText: null, suggestion: null, status: 'empty', source: null, error: null, submittedText: recorded, storageAvailable: true }
+    const initial: DiscussionDraftState = { text: recorded ?? '', mode: recorded ? 'manual' : 'automatic', revision: 0, evidenceRevision: '', generatedText: null, suggestion: null, status: 'empty', source: null, error: null, submittedText: recorded, storageAvailable: true, provisionalRecordings: 0 }
     if (!raw) return initial
     try {
         const saved = JSON.parse(raw)
@@ -51,7 +52,7 @@ export class DiscussionDraft {
     submitted = (text: string) => this.update({ submittedText: text, mode: 'manual' })
     failed = (message: string) => this.update({ status: 'failed', error: message })
     receive = (result: DiscussionSummary) => {
-        const patch: Partial<DiscussionDraftState> = { status: result.status, error: result.error, source: result.source }
+        const patch: Partial<DiscussionDraftState> = { status: result.status, error: result.error, source: result.source, provisionalRecordings: result.provisional_recording_count ?? 0 }
         if (result.evidence_revision !== this.state.evidenceRevision) patch.suggestion = null
         if (result.status === 'ready' && result.text && (result.evidence_revision !== this.state.evidenceRevision || result.text !== this.state.generatedText)) {
             if (this.state.mode === 'automatic' && this.state.submittedText === null) patch.text = result.text

@@ -30,6 +30,17 @@ test('typing while generation is pending preserves human text and offers explici
     assert.equal(state.getSnapshot().text, artifact().text)
     assert.equal(state.getSnapshot().suggestion?.text, 'New source summary')
 })
+test('unreviewed speech can feed the private draft without replacing later edits', () => {
+    const state = draft()
+    state.receive({ ...artifact(), status: 'pending', text: null, provisional_recording_count: 1 })
+    state.receive({ ...artifact(), provisional_recording_count: 1 })
+    assert.equal(state.getSnapshot().text, 'I will verify backups.')
+    assert.equal(state.getSnapshot().provisionalRecordings, 1)
+    state.edit('My corrected answer')
+    state.receive(artifact('two', 'A fresher summary.'))
+    assert.equal(state.getSnapshot().text, 'My corrected answer')
+    assert.equal(state.getSnapshot().suggestion?.text, 'A fresher summary.')
+})
 test('clearing or reverting edits never restores automatic overwrite', () => {
     const state = draft()
     state.receive(artifact())

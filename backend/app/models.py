@@ -507,6 +507,7 @@ class DiscussionSummaryView(View):
     text: str | None
     source: str | None
     evidence_count: int
+    provisional_recording_count: int = 0
     error: str | None
 
 

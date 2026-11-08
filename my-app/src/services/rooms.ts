@@ -40,7 +40,7 @@ export type DiscussionSummary = {
     room_id: string; round_id: string; member_id: string
     status: 'empty' | 'pending' | 'ready' | 'failed'
     evidence_revision: string; text: string | null; source: string | null
-    evidence_count: number; error: string | null
+    evidence_count: number; provisional_recording_count?: number; error: string | null
 }
 
 export type StartRoomInput = {
@@ -355,6 +355,7 @@ export function createRoomApi(options: { baseUrl?: string; fetch?: typeof global
             (value): value is DiscussionSummary => record(value) && value.room_id === roomId && value.round_id === input.round_id
                 && typeof value.member_id === 'string' && ['empty', 'pending', 'ready', 'failed'].includes(String(value.status))
                 && typeof value.evidence_revision === 'string' && Number.isInteger(value.evidence_count) && Number(value.evidence_count) >= 0
+                && (value.provisional_recording_count === undefined || (Number.isInteger(value.provisional_recording_count) && Number(value.provisional_recording_count) >= 0))
                 && (value.text === null || (typeof value.text === 'string' && value.text.length <= 1200))
                 && (value.source === null || typeof value.source === 'string') && (value.error === null || typeof value.error === 'string')
                 && (value.status !== 'ready' || (typeof value.text === 'string' && Boolean(value.text.trim()))), signal, input),

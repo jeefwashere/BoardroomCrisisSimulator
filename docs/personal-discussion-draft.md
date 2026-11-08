@@ -2,7 +2,9 @@
 
 ## Confirmed behavior
 
-Each participating member receives a private answer draft during an individual decision scenario. It summarizes that member's own saved discussion text and reviewed microphone transcript. It does not add recommendations or infer agreement from another participant. Generation never submits an answer or finishes a turn.
+Each participating member receives a private answer draft during an individual decision scenario. It summarizes that member's own saved discussion text and microphone transcript. It does not add recommendations or infer agreement from another participant. Generation never submits an answer or finishes a turn.
+
+Speech recognition may populate this private advisory draft before transcript review. The transcript remains provisional, and the draft cannot become a final answer without the member's explicit decision command. The UI labels unreviewed recognition and offers correction.
 
 The same editable text continues from speaking through expert discussion and the decision phase. Untouched text follows newer summaries automatically. After the first manual edit or dictation, newer summaries appear as suggestions. Only the member can choose to replace their text with a suggestion. The existing explicit decision command remains the final submission boundary. The last required submission may close decisions immediately, and the existing timeout and host controls remain authoritative.
 
@@ -22,7 +24,7 @@ POST /api/rooms/{room_id}/discussion-summary
 {command_id, round_id, retry: false}
 
 Response: room_id, round_id, member_id, status, evidence_revision,
-          text, source, evidence_count, error
+          text, source, evidence_count, provisional_recording_count, error
 ```
 
 The backend owns source selection, authenticated membership, evidence fingerprints and generated artifacts. It reads original contribution and reviewed recording records directly. The browser owns editable text in one round scoped controller. Tab scoped storage includes room, started game, round and member identity. Reload recovery applies to the same tab and device; it is not cross device draft synchronization. Existing rooms remain process memory and do not survive a backend restart.
@@ -35,7 +37,7 @@ Two independent inherited model agents designed structurally different candidate
 
 The client owned editable buffer is the base. It fits the existing local decision editor and keeps a small backend API without introducing save revisions and suggestion acceptance endpoints. From the server owned candidate, retain exact evidence fingerprints, one pending job, explicit failure retry, direct recording reads and stale publication checks. Reject server owned keystroke persistence for this scope because cross device editing has not been requested. Reject reusing the existing auto response hook because that hook commits contributions and may finish a turn automatically.
 
-Both candidates preserve the same review authority: recording audio alone is not a reviewed contribution. Summaries update after sent text or a completed and reviewed speaking turn, rather than after every partial syllable. The existing browser recorder and backend file transcription match the distinct recording and recognition operations described by [MDN](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder) and [ElevenLabs](https://elevenlabs.io/docs/api-reference/speech-to-text/convert).
+Both candidates preserve the same review authority: recording audio alone is not a reviewed contribution. The initial implementation required a completed and reviewed turn, which blocked automatic drafts. The correction below allows provisional recognition only in the private advisory draft, while recorded evidence review remains explicit. The existing browser recorder and backend file transcription match the distinct recording and recognition operations described by [MDN](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder) and [ElevenLabs](https://elevenlabs.io/docs/api-reference/speech-to-text/convert).
 
 ## Validation record
 
@@ -61,4 +63,13 @@ Final toolbar correction: review of the disposable Vite log caught a ResizeObser
 
 The user subsequently requested a rebuild for testing. At13:57UTC on November8 the clean local test UI checkout was fast forwarded to the published feature and rebuilt successfully. The owned frontend and backend were restarted, resetting rooms. Local page, both local and LAN API health, current draft and Game modules return200; OpenAPI includes the summary route. Vertex and speech recognition configuration passed preflight. Recognition now uses the existing authorized US$100 ceiling and the unchanged shared ledger, with the existing conservative US$0.0066666667 per minute reservation. Speech output remains off. No additional paid acceptance request was made during activation.
 
-Open http://127.0.0.1:5173/#/demo and start a fresh demo. Sent discussion text fills the personal summary in Chat. Microphone input requires recording and explicit transcript review before summarization. During decisions the same draft appears in Your decision and remains editable until explicit confirmation. Existing browser state may need Reset demo after this backend restart. Shared deployment and public HTTPS access remain outside this local activation.
+Open http://127.0.0.1:5173/#/demo and start a fresh demo. Sent discussion text fills the personal summary in Chat. Microphone input requires clicking Mic to record; after recording stops, completed recognition automatically supplies a private editable summary. Transcript review remains available separately. During decisions the same draft appears in Your decision and remains editable until explicit confirmation. Existing browser state may need Reset demo after this backend restart. Shared deployment and public HTTPS access remain outside this local activation.
+
+
+## Speech completion correction
+
+The user reported speaking without a summary and clarified that the existing Your decision field should contain the result when opened manually. The failing HTTP regression reproduced review_required speech returning an empty summary. The root cause combined reviewed only source selection with TurnMedia being unreachable before the end in the centered T01 layout. The previous HTTP speech acceptance had explicitly reviewed the transcript, so it missed this real user path.
+
+The private summary now consumes only the authenticated owner current round completed recognition, with provisional_recording_count for an unreviewed recording. It never changes the recording review status, inserts a human contribution or submits a decision. Reviewing unchanged text updates the label without another model call; correcting it changes source evidence and creates a fresh summary suggestion when the user has edited. TurnMedia is mounted in the existing active T01 drawer, so progress, upload errors and optional correction are available. There is no added recording triggered drawer opening or new editor.
+
+A user requested fast model subagent made the bounded frontend change and regression.256 frontend tests, build and lint pass.19 backend summary and recording tests pass, including the new failure first regression, owner and room isolation, unchanged review deduplication and unchanged human authority. A real browser encoded synthetic spoken input through MediaRecorder and sent it through ElevenLabs and Vertex. Without prior transcript review, the summary appeared in Your decision, the drawer stayed closed after recording until manually opened, another member field stayed empty, and correcting the transcript produced a suggestion while preserving manual edits. Window and console errors were empty. Physical microphone hardware was not tested. See [speech browser evidence](evidence/personal-draft-voice-completion-20261108.json).

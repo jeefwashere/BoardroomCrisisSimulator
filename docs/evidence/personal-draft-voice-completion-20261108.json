@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "synthetic_media_stream": true,
+  "physical_microphone_tested": false,
+  "real_elevenlabs_stt": true,
+  "real_vertex_summary": true,
+  "without_prior_transcript_review": true,
+  "manually_opened": true,
+  "recording_did_not_open_chat": true,
+  "summary_in_your_decision": "I noted that the appointment system is unavailable and that our director cannot coordinate this incident, while the plan names no alternate. I proposed that we appoint an interim coordinator now so someone can organize the response, and I asked who should take that role.",
+  "other_member_empty": true,
+  "manual_edit_kept": true,
+  "optional_transcript_correction_reachable": true,
+  "errors": [],
+  "ready_before_review": {
+    "status": "ready",
+    "provisional": 1,
+    "count": 1,
+    "source": "vertex",
+    "text": "I noted that the appointment system is unavailable and that our director cannot coordinate this incident, while the plan names no alternate. I proposed that we appoint an interim coordinator now so someone can organize the response, and I asked who should take that role."
+  },
+  "updated_suggestion_after_correction": true,
+  "task_pages_closed": true,
+  "lease_released": true
+}

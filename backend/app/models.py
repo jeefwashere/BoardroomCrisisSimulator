@@ -294,6 +294,7 @@ class GameView(View):
     speaker_clip: SpeakerClipView | None = None
     # Open floor rooms: nobody holds the floor and any member may take it.
     floor_open: bool = False
+    last_speaker_id: UUID | None = None
 
 
 class RoomFields(View):

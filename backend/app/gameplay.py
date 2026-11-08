@@ -168,9 +168,16 @@ def speaker_of(phase) -> UUID | None:
 
 def open_floor(game: sim.Game, instant: float, reason: str, actor_id: UUID | None = None) -> sim.Game:
     """Open floor rooms: the speaker gives up the floor (or dropped out) and anyone may take it next."""
-    if not game.phase.floor_open:
+    holder = speaker_of(game.phase)
+    if holder is not None:
         game = finish_record(game, instant, reason, actor_id)
-    return replace(game, phase=replace(game.phase, phase_id=uuid4(), floor_open=True, clip=None, started_at=instant))
+    return replace(game, phase=replace(game.phase, phase_id=uuid4(), floor_open=True, clip=None, started_at=instant,
+                                       last_speaker=holder or game.phase.last_speaker))
+
+
+def may_take_floor(phase, member_id: UUID) -> bool:
+    """Open floor rooms: the floor is free and the member did not just give it up (no back to back turns)."""
+    return phase.floor_open and member_id in phase.order and member_id != phase.last_speaker
 
 
 def take_floor(game: sim.Game, instant: float, member_id: UUID) -> sim.Game:

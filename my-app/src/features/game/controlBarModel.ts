@@ -27,9 +27,9 @@ export function phaseTitle(phase: string): string {
 }
 
 /** Status pill text: the phase, who holds the floor while speaking (or that it is open), or the caller's own private round. */
-export function phaseCaption(phase: string, speaker: { name: string; self: boolean } | null, privateRound?: 2 | 3 | null, floorOpen = false): string {
+export function phaseCaption(phase: string, speaker: { name: string; self: boolean } | null, privateRound?: 2 | 3 | null, floorOpen = false, spokeLast = false): string {
     if (phase === 'speaking' && speaker) return speaker.self ? 'Your turn' : `${speaker.name} speaking`
-    if (phase === 'speaking' && floorOpen) return 'Floor open'
+    if (phase === 'speaking' && floorOpen) return spokeLast ? 'Floor open: others first' : 'Floor open'
     if (phase === 'private_session') return privateRound === 3 ? 'Assessment' : 'Private coaching'
     return phaseTitle(phase)
 }
@@ -64,6 +64,8 @@ export type MicInput = {
     ownTurn: boolean
     /** Open floor rooms: the floor is free and the caller may take it by starting to speak. */
     canClaim?: boolean
+    /** Open floor rooms: the caller gave up the floor last and must let someone else speak first. */
+    spokeLast?: boolean
     recording: Pick<CaptureState, 'status' | 'phaseId' | 'message' | 'retryUpload'>
     dictation: { supported: boolean; listening: boolean; blocked: boolean; ready: boolean }
 }
@@ -78,7 +80,7 @@ const DICTATION_TITLES: Readonly<Record<string, { stop: string; unready: string;
  * What the Mic button does right now. During individual decisions and private sessions it dictates into the open text box;
  * otherwise it records the caller's own speaking turn. A null action renders the button disabled with `title` as the reason.
  */
-export function micControl({ phase, phaseId, ownTurn, canClaim = false, recording, dictation }: MicInput): MicControl {
+export function micControl({ phase, phaseId, ownTurn, canClaim = false, spokeLast = false, recording, dictation }: MicInput): MicControl {
     const titles = DICTATION_TITLES[phase]
     if (titles) {
         if (dictation.listening) return { action: 'stop-dictation', label: 'Stop', title: titles.stop, live: true, muted: false }
@@ -93,6 +95,7 @@ export function micControl({ phase, phaseId, ownTurn, canClaim = false, recordin
     if (recording.status === 'saved' && recording.phaseId === phaseId) return { action: null, label: 'Saved', title: 'Your recording for this turn is saved.', live: false, muted: true }
     if (ownTurn) return { action: 'start', label: 'Mic', title: 'Start recording your turn', live: false, muted: true }
     if (canClaim) return { action: 'claim', label: 'Speak', title: 'The floor is open: take it and start recording', live: false, muted: true }
+    if (spokeLast && phase === 'speaking') return { action: null, label: 'Speak', title: 'You just had the floor. Someone else speaks next, then you can take it again.', live: false, muted: true }
     return { action: null, label: 'Mic', title: phase === 'speaking' ? 'You can record during your own speaking turn.' : 'The microphone opens during your own speaking turn.', live: false, muted: true }
 }
 

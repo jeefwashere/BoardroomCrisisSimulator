@@ -21,6 +21,7 @@ test('phase pill names the phase or who holds the floor', () => {
     assert.equal(phaseCaption('speaking', { name: 'Alex', self: true }), 'Your turn')
     assert.equal(phaseCaption('speaking', null), 'Speaking')
     assert.equal(phaseCaption('speaking', null, null, true), 'Floor open')
+    assert.equal(phaseCaption('speaking', null, null, true, true), 'Floor open: others first')
     assert.equal(phaseCaption('voting', { name: 'Morgan', self: false }), 'Voting')
 })
 
@@ -64,6 +65,9 @@ test('mic records only during your own speaking turn, red while recording', () =
     assert.equal(micControl(input({ phase: 'voting' })).action, null)
     assert.deepEqual(micControl(input({ canClaim: true })), { action: 'claim', label: 'Speak', title: 'The floor is open: take it and start recording', live: false, muted: true })
     assert.equal(micControl(input({ ownTurn: true, canClaim: true })).action, 'start')
+    const waiting = micControl(input({ phase: 'speaking', spokeLast: true }))
+    assert.equal(waiting.action, null)
+    assert.match(waiting.title, /Someone else speaks next/)
     const live = micControl(input({ ownTurn: true, recording: { status: 'recording', message: 'on', retryUpload: false, phaseId: 'p1' } }))
     assert.equal(live.action, 'stop')
     assert.equal(live.live, true)

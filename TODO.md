@@ -298,6 +298,10 @@ The user now owns frontend implementation and backend integration, retaining Jef
 
   Owner: Arjun's Claude agent. Status: `done`. Evidence: completion record 44. Scope from the user: the tunnel's sign in box kept coming back every few seconds. Cause: an old tab kept polling a room wiped by a backend restart and got the backend's own 401 `session_required`; Chrome drops cached basic auth credentials when a request that carried them gets a 401, so ngrok then asked again. Progress: `my-app/vite.tunnel.config.ts` relays backend 401 responses as 403 (the body and its `session_required` code are unchanged, and the app reads codes, not statuses). Checks: the ngrok inspector showed the 401s came from uvicorn for room `822dae91`; after the change the same request through the tunnel server returned 403 with the same body. Next action: none for this task.
 
+* [x] X35 Open floor: no back to back turns.
+
+  Owner: Arjun's Claude agent. Status: `done`. Evidence: completion record 45. Scope from the user: Sam could take the floor again right after finishing ("it can't be accessed consecutively, so somebody else gets the turn"). The tunnel log showed Sam finish at 06:15:43 and claim again at 06:15:47. Progress: `SpeakingPhase.last_speaker` records who gave up the floor (also after a disconnection); `take_floor` is not offered to them and is refused with 409 `spoke_last` until someone else has held the floor; projected as `last_speaker_id`; in the app that member's Speak and AI reply stay disabled with the reason, and their status pill reads **Floor open: others first**. Checks: backend `py_compile` passed; a live API script confirmed the last speaker was refused (`spoke_last`) while others could claim, and could claim again once another member had spoken; frontend checks below. Next action: none for this task.
+
 ## Integration and verification
 
 * [x] I01 Publish the frontend API and snapshot contract with examples.

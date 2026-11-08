@@ -191,6 +191,8 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     if (!game) return null
     const self = room.members.find((member) => member.member_id === room.self_member_id)
     const actions = game.allowed_actions ?? []
+    // Open floor: whoever gave up the floor last waits until someone else has spoken.
+    const spokeLast = room.phase === 'speaking' && Boolean(game.floor_open) && game.last_speaker_id === room.self_member_id
     const rounds = `rounds/${game.round_id}/`
     // Individual decision scenarios (Cedar T01) replace the board vote with one written decision per member.
     const individual = isIndividualMode(game)
@@ -251,7 +253,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     talking, stageAgent) : null
 
     const mic = micControl({
-        phase: room.phase, phaseId: game.phase_id, ownTurn: recorder.ownTurn, canClaim: actions.includes('take_floor'), recording: recorder.state,
+        phase: room.phase, phaseId: game.phase_id, ownTurn: recorder.ownTurn, canClaim: actions.includes('take_floor'), spokeLast, recording: recorder.state,
         dictation: { supported: dictation.supported, listening: dictation.listening, blocked: dictation.note === DICTATION_UNAVAILABLE, ready: dictationReady },
     })
     function pressMic() {
@@ -268,7 +270,8 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const activeAuto = privatePhase ? privateAuto : auto
     const privateAnswering = privatePhase && (privateSession.session?.stage === 'coaching' || privateSession.session?.stage === 'assessment')
     const autoControl = activeAuto.status === 'unavailable'
-        ? privateAnswering ? { label: 'AI reply', live: false, disabled: true, title: 'Available when your coach asks you a question.', onClick: () => undefined } : undefined
+        ? privateAnswering ? { label: 'AI reply', live: false, disabled: true, title: 'Available when your coach asks you a question.', onClick: () => undefined }
+            : spokeLast ? { label: 'AI reply', live: false, disabled: true, title: 'You just had the floor. Someone else speaks next, then you can take it again.', onClick: () => undefined } : undefined
         : {
             label: activeAuto.status === 'playing' ? 'Stop reply' : activeAuto.status === 'writing' ? 'Writing…' : activeAuto.status === 'saving' ? 'Saving…' : activeAuto.status === 'done' ? 'Reply sent' : 'AI reply',
             live: activeAuto.status === 'playing', disabled: pending || (privatePhase && privateSession.sending) || activeAuto.status === 'writing' || activeAuto.status === 'saving' || activeAuto.status === 'done',
@@ -327,7 +330,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
             </section>}
         </main>
         <ControlBar
-            caption={phaseCaption(room.phase, speaker ? { name: speaker.display_name, self: speaker.member_id === room.self_member_id } : null, ownRound, Boolean(game.floor_open))}
+            caption={phaseCaption(room.phase, speaker ? { name: speaker.display_name, self: speaker.member_id === room.self_member_id } : null, ownRound, Boolean(game.floor_open), spokeLast)}
             round={`Round ${ownRound ?? game.round_number}`} phaseId={game.phase_id} deadline={game.phase_deadline} serverTime={game.server_time}
             showCountdown={!fullStage} pending={pending}
             mic={{ ...mic, onClick: pressMic }}

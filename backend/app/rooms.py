@@ -177,6 +177,8 @@ class GameSnapshot:
     speaker_clip: dict | None = None
     # Open floor rooms: nobody holds the floor and any member may take it.
     floor_open: bool = False
+    # Open floor rooms: who spoke last; they wait until someone else has had the floor.
+    last_speaker_id: UUID | None = None
 
     @property
     def facts(self) -> dict:
@@ -365,7 +367,7 @@ class Room:
                     if caller.member_id == gameplay.speaker_of(state.phase):
                         actions.append("finish_speaking")
                     if open_meeting:
-                        if state.phase.floor_open and caller.member_id in electorate:
+                        if gameplay.may_take_floor(state.phase, caller.member_id) and caller.member_id in electorate:
                             actions.append("take_floor")
                         if is_ceo:
                             actions.append("end_meeting")
@@ -415,6 +417,7 @@ class Room:
                 state.phase.index if isinstance(state.phase, sim.SpeakingPhase) and not state.phase.floor_open else None,
                 manual_turns=state.manual_turns,
                 floor_open=isinstance(state.phase, sim.SpeakingPhase) and state.phase.floor_open,
+                last_speaker_id=state.phase.last_speaker if open_meeting else None,
                 speaker_clip={"clip_id": state.phase.clip[0], "started_at": gameplay.at(state, state.phase.clip[1]),
                               "text": state.phase.clip[2]}
                 if isinstance(state.phase, sim.SpeakingPhase) and state.phase.clip is not None else None,
@@ -514,6 +517,8 @@ class Rooms:
                     raise RoomError(409, "not_open_floor", "Turns in this room follow the speaking order")
                 if caller.member_id not in group.electorate:
                     raise RoomError(403, "not_eligible", "Only board members in this round can take the floor")
+                if caller.member_id == phase.last_speaker:
+                    raise RoomError(409, "spoke_last", "You just had the floor. Someone else speaks next.")
                 state = gameplay.take_floor(state, now, caller.member_id)
             elif action == "end_meeting":
                 if not open_meeting:

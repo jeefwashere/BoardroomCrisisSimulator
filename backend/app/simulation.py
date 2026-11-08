@@ -63,6 +63,8 @@ class SpeakingPhase:
     clip: tuple[str, float, str | None] | None = None
     # Open floor (untimed rooms): nobody holds the floor and any member may take it; `index` is then meaningless.
     floor_open: bool = False
+    # Open floor rooms: who held the floor last; they cannot take it again until someone else has spoken.
+    last_speaker: UUID | None = None
 
 
 @dataclass(frozen=True)

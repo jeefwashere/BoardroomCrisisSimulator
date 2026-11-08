@@ -111,6 +111,8 @@ export type RoomGame = {
     speaker_clip?: { clip_id: string; started_at: string; text?: string | null } | null
     /** Open floor rooms: nobody holds the floor, and any member may take it (`take_floor` in allowed_actions). */
     floor_open?: boolean
+    /** Open floor rooms: who held the floor last; they cannot take it again until someone else has spoken. */
+    last_speaker_id?: string | null
     self_vote?: string | null
     vote_counts?: Record<string, number> | null
     tied_option_ids?: string[]

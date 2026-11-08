@@ -179,3 +179,11 @@
 .game-media article { border-bottom: 1px solid #d9ccb8; padding-bottom: 12px; }
 .game-feedback { white-space: pre-wrap; overflow-wrap: anywhere; }
 .game-briefing .game-end { background: #783e32; border-color: #783e32; }
+.microphone-control { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 14px; border: 1px solid #bba38a; border-radius: 12px; background: #f5eddf; }
+.microphone-status { flex: 1 1 220px; margin: 0; }
+.microphone-status span { margin-right: 6px; }
+.microphone-recording .microphone-status span { color: #aa2929; }
+.microphone-help { flex-basis: 100%; margin: 0; font-size: .85rem; line-height: 1.4; }
+.microphone-control button { min-height: 44px; }
+.microphone-control .microphone-stop { background: #9a3030; color: white; }
+.microphone-control button svg { display: inline-block; vertical-align: middle; margin-right: 5px; }

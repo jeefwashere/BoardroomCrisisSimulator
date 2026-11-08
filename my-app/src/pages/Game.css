@@ -4,7 +4,7 @@
   height: 100dvh;
   padding-inline: clamp(12px, 2.5vw, 36px);
   /* The fixed control bar never covers content. */
-  padding-bottom: calc(var(--control-bar-height, 84px) + 12px);
+  padding-bottom: calc(var(--control-bar-occupied-height, var(--control-bar-height, 84px)) + 12px);
   box-sizing: border-box;
   overflow: hidden;
   background: #1e1f22;
@@ -506,7 +506,7 @@ details.game-notice { display: block; border-color: #b58c28; background: #fbf1d6
 }
 
 /* The decision prompt is pinned at the top of the chat drawer. */
-.chat-drawer-pinned { flex: 0 1 auto; overflow-y: auto; max-height: 68%; padding: 12px; border-bottom: 1px solid #ffffff12; }
+.chat-drawer-pinned { flex: 0 1 auto; min-height: 0; overflow-y: auto; max-height: 60%; padding: 12px; border-bottom: 1px solid #ffffff12; }
 .chat-decision { padding: 12px 14px; border-radius: 12px; }
 .chat-decision-from { margin: 0 0 6px; color: #796655; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .chat-decision .vote-panel { padding: 0; border: 0; background: transparent; box-shadow: none; }
@@ -671,7 +671,7 @@ details.game-notice { display: block; border-color: #b58c28; background: #fbf1d6
   display: flex;
   flex-direction: column;
   width: min(var(--transcript-width), calc(100vw - 24px));
-  height: calc((100dvh - var(--control-bar-height, 84px)) * 0.5);
+  height: calc((100dvh - var(--control-bar-occupied-height, var(--control-bar-height, 84px))) * 0.5);
   min-height: 220px;
   border: 1px solid #ffffff14;
   border-radius: 14px;
@@ -687,7 +687,7 @@ details.game-notice { display: block; border-color: #b58c28; background: #fbf1d6
 }
 .transcript-panel.is-open { transform: none; visibility: visible; transition: transform 260ms ease, height 200ms ease; }
 /* A stage's answer box (private sessions) needs room: the card then runs down to the control bar. */
-.transcript-panel:has(.transcript-dock:not(:empty)) { height: calc(100dvh - var(--control-bar-height, 84px) - var(--transcript-top) - 12px); }
+.transcript-panel:has(.transcript-dock:not(:empty)) { height: calc(100dvh - var(--control-bar-occupied-height, var(--control-bar-height, 84px)) - var(--transcript-top) - 12px); }
 /* Minimized: just the header bar (plus the answer box, if a stage docked one). */
 .transcript-panel.is-minimized, .transcript-panel.is-minimized:has(.transcript-dock:not(:empty)) { height: auto; min-height: 0; }
 .transcript-header { display: flex; align-items: center; gap: 2px; padding: 6px 6px 6px 4px; border-bottom: 1px solid #ffffff12; }

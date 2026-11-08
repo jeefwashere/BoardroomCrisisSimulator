@@ -12,6 +12,8 @@ import ExpertPanelStage from '../features/game/ExpertPanelStage'
 import { showsExpertStage } from '../features/game/expertPanelModel'
 import VotingPanel from '../features/game/VotingPanel'
 import IndividualDecisionPanel from '../features/game/IndividualDecisionPanel'
+import DiscussionDraftPanel from '../features/game/DiscussionDraftPanel'
+import { useDiscussionDraft } from '../features/game/useDiscussionDraft'
 import type { AttachDictation } from '../features/game/IndividualDecisionPanel'
 import IndividualDecisionReport from '../features/game/IndividualDecisionReport'
 import { decisionBadges, endingTitle, isIndividualMode } from '../features/game/individualDecisionModel'
@@ -98,6 +100,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const speechRef = useRef<HTMLAudioElement>(null)
     const [ownDecision, setOwnDecision] = useState<string | null>(null)
     const recorder = useTurnRecorder(room)
+    const answerDraft = useDiscussionDraft(room)
     // Open floor: after Mic takes the floor, start recording as soon as the room shows the caller holding it.
     const claimMic = useRef(false)
     useEffect(() => {
@@ -315,7 +318,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
             {sidePanel && <section className="game-briefing" aria-labelledby="briefing-title">
                 <h2 id="briefing-title">{game.scenario.title}</h2>
                 {(error || notice) && <p className="game-alert" role="alert">{error || notice}</p>}
-                {individual && <IndividualDecisionPanel key={game.phase_id} room={room} pending={pending} act={act} notice={notice} dictation={dictation} attachDictation={attachDictation} />}
+                {individual && <IndividualDecisionPanel key={game.round_id} room={room} pending={pending} act={act} notice={notice} dictation={dictation} attachDictation={attachDictation} answerDraft={answerDraft} />}
                 {nodeArticle && (CONTEXT_PHASES.includes(room.phase) ? nodeArticle : room.phase !== 'ended' && <details className="game-situation-toggle"><summary>Situation: {node?.title}</summary>{nodeArticle}</details>)}
                 {actions.includes('reassign_ceo') && <div className="game-actions"><label>Replacement CEO<select value={ceo} onChange={(event) => setCeo(event.target.value)}><option value="">Choose a participant</option>{room.members.filter((member) => member.connected && member.eligible_current_round && member.role_id !== 'ceo').map((member) => <option key={member.member_id} value={member.member_id}>{member.display_name}</option>)}</select></label><button disabled={pending || !ceo} onClick={() => void act(rounds + 'ceo-reassignment', { member_id: ceo })}>Assign CEO</button></div>}
                 {!individual && <VotingPanel key={game.round_id} room={room} pending={pending} act={act} notice={notice} />}
@@ -350,7 +353,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
         <ReportDialog report={report} open={reportOpen && reportAvailable} onClose={closeReport} />
         <TranscriptPanel entries={transcriptEntries} open={transcriptOpen} onClose={hideCaptions} dockRef={setDock} minimized={transcriptMinimized} onToggleMinimized={toggleTranscriptMinimized} />
         <ChatDrawer room={room} scenarios={scenarios} chat={chat} open={chatOpen} onClose={closeChat}
-            pinned={individual && room.phase === 'individual_decision' ? <div className="game-briefing chat-decision"><p className="chat-decision-from">Facilitator · Round 1</p><IndividualDecisionPanel key={game.phase_id} room={room} pending={pending} act={act} notice={notice} dictation={dictation} attachDictation={attachDictation} /></div> : undefined} />
+            pinned={individual && room.phase === 'individual_decision' ? <div className="game-briefing chat-decision"><p className="chat-decision-from">Facilitator · Round 1</p><IndividualDecisionPanel key={game.round_id} room={room} pending={pending} act={act} notice={notice} dictation={dictation} attachDictation={attachDictation} answerDraft={answerDraft} /></div> : individual && answerDraft.active ? <DiscussionDraftPanel draft={answerDraft} /> : individual ? <DiscussionDraftPanel draft={answerDraft} closed /> : undefined} />
     </div></MotionConfig></AgentPresenceContext.Provider>
 }
 export default Game

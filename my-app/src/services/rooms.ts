@@ -36,6 +36,13 @@ export type Contribution = {
     at: string
 }
 
+export type DiscussionSummary = {
+    room_id: string; round_id: string; member_id: string
+    status: 'empty' | 'pending' | 'ready' | 'failed'
+    evidence_revision: string; text: string | null; source: string | null
+    evidence_count: number; error: string | null
+}
+
 export type StartRoomInput = {
     command_id: string
     room_code: string
@@ -158,6 +165,7 @@ export type RoomSnapshot = RoomFields & (
 )
 
 export type RoomApi = {
+    discussionSummary(roomId: string, input: { command_id: string; round_id: string; retry?: boolean }, signal?: AbortSignal): Promise<DiscussionSummary>
     command(roomId: string, path: string, input: object, signal?: AbortSignal): Promise<RoomSnapshot>
     extras(roomId: string, signal?: AbortSignal): Promise<Extras>
     mediaPost(roomId: string, path: string, input: object, signal?: AbortSignal): Promise<Recording>
@@ -337,6 +345,13 @@ export function createRoomApi(options: { baseUrl?: string; fetch?: typeof global
         return response.blob()
     }
     return {
+        discussionSummary: (roomId, input, signal) => request(`/api/rooms/${encodeURIComponent(roomId)}/discussion-summary`,
+            (value): value is DiscussionSummary => record(value) && value.room_id === roomId && value.round_id === input.round_id
+                && typeof value.member_id === 'string' && ['empty', 'pending', 'ready', 'failed'].includes(String(value.status))
+                && typeof value.evidence_revision === 'string' && Number.isInteger(value.evidence_count) && Number(value.evidence_count) >= 0
+                && (value.text === null || (typeof value.text === 'string' && value.text.length <= 1200))
+                && (value.source === null || typeof value.source === 'string') && (value.error === null || typeof value.error === 'string')
+                && (value.status !== 'ready' || (typeof value.text === 'string' && Boolean(value.text.trim()))), signal, input),
         command: async (roomId, path, input, signal) => {
             if (path === 'contributions') {
                 await request(`/api/rooms/${encodeURIComponent(roomId)}/${path}`, (value): value is { contribution_id: string } => record(value) && typeof value.contribution_id === 'string', signal, input)

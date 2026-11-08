@@ -1,0 +1,91 @@
+import test from 'node:test'
+import assert from 'node:assert/strict'
+import { DiscussionDraft, draftKey, initialDraft, serializeDraft } from '../src/features/game/discussionDraftModel.ts'
+import { createRoomApi } from '../src/services/rooms.ts'
+import type { DiscussionSummary, RoomSnapshot } from '../src/services/rooms.ts'
+
+const artifact = (revision = 'one', text = 'I will verify backups.'): DiscussionSummary => ({ room_id: 'room', round_id: 'round', member_id: 'alex', status: 'ready', evidence_revision: revision, text, source: 'vertex', evidence_count: 1, error: null })
+const draft = () => new DiscussionDraft(initialDraft(null), () => true)
+
+test('summary fills an untouched draft and later evidence updates it', () => {
+    const state = draft()
+    state.receive({ ...artifact(), status: 'pending', text: null })
+    state.receive(artifact())
+    assert.equal(state.getSnapshot().text, 'I will verify backups.')
+    state.receive(artifact('two', 'I will verify backups before recovery.'))
+    assert.equal(state.getSnapshot().text, 'I will verify backups before recovery.')
+    assert.equal(state.getSnapshot().mode, 'automatic')
+})
+test('typing while generation is pending preserves human text and offers explicit replacement', () => {
+    const state = draft()
+    state.receive({ ...artifact(), status: 'pending', text: null })
+    state.edit('My own edited answer')
+    state.receive(artifact())
+    assert.equal(state.getSnapshot().text, 'My own edited answer')
+    assert.equal(state.getSnapshot().suggestion?.text, artifact().text)
+    state.accept()
+    assert.equal(state.getSnapshot().text, artifact().text)
+    assert.equal(state.getSnapshot().mode, 'manual')
+    state.receive(artifact('two', 'New source summary'))
+    assert.equal(state.getSnapshot().text, artifact().text)
+    assert.equal(state.getSnapshot().suggestion?.text, 'New source summary')
+})
+test('clearing or reverting edits never restores automatic overwrite', () => {
+    const state = draft()
+    state.receive(artifact())
+    state.edit('')
+    state.receive(artifact('two', 'New summary'))
+    assert.equal(state.getSnapshot().text, '')
+    assert.equal(state.getSnapshot().mode, 'manual')
+})
+test('explicit AI retry can replace an offline fallback for unchanged evidence', () => {
+    const state = draft()
+    state.receive({ ...artifact('one', 'Exact saved words'), source: 'offline' })
+    state.receive(artifact('one', 'I will verify backups first.'))
+    assert.equal(state.getSnapshot().text, 'I will verify backups first.')
+    state.edit('Keep this edit')
+    state.receive(artifact('one', 'A refreshed AI summary.'))
+    assert.equal(state.getSnapshot().text, 'Keep this edit')
+    assert.equal(state.getSnapshot().suggestion?.text, 'A refreshed AI summary.')
+})
+test('reload restores human text and can show the current summary as a suggestion', () => {
+    const state = draft()
+    state.edit('Manual answer')
+    const restored = new DiscussionDraft(initialDraft(serializeDraft(state.getSnapshot())), () => true)
+    restored.receive(artifact())
+    assert.equal(restored.getSnapshot().text, 'Manual answer')
+    assert.equal(restored.getSnapshot().suggestion?.text, artifact().text)
+    assert.equal(initialDraft('not json').text, '')
+    assert.equal(initialDraft(JSON.stringify({ version: 1, text: 'x'.repeat(1201), mode: 'manual' })).text, '')
+})
+test('submission and provider failure preserve exact text and unsent changes', () => {
+    const state = draft()
+    state.edit('Confirmed answer')
+    state.submitted('Confirmed answer')
+    state.edit('Unsent revision')
+    state.failed('Network failed')
+    state.receive(artifact())
+    assert.equal(state.getSnapshot().text, 'Unsent revision')
+    assert.equal(state.getSnapshot().submittedText, 'Confirmed answer')
+})
+test('storage denial does not prevent editing and membership keys isolate tabs, games and rounds', () => {
+    const state = new DiscussionDraft(initialDraft(null), () => false)
+    state.edit('Still editable')
+    assert.equal(state.getSnapshot().storageAvailable, false)
+    const room = { room_id: 'room', self_member_id: 'alex', game: { started_at: 'start', round_id: 'round' } } as RoomSnapshot
+    assert.notEqual(draftKey(room), draftKey({ ...room, self_member_id: 'morgan' }))
+    assert.notEqual(draftKey(room), draftKey({ ...room, game: { ...room.game!, round_id: 'other' } }))
+    assert.notEqual(draftKey(room), draftKey({ ...room, game: { ...room.game!, started_at: 'restart' } }))
+})
+test('summary transport uses authenticated POST and rejects oversized or mismatched responses', async () => {
+    let response = artifact()
+    let request: RequestInit | undefined
+    const api = createRoomApi({ session: { token: async () => 'private-test' }, fetch: async (_url, init) => { request = init; return Response.json(response) } })
+    await api.discussionSummary('room', { command_id: 'id', round_id: 'round' })
+    assert.equal(request?.method, 'POST')
+    assert.equal((request?.headers as Record<string, string>)['X-Boardroom-Session'], 'private-test')
+    response = artifact('two', 'x'.repeat(1201))
+    await assert.rejects(api.discussionSummary('room', { command_id: 'id2', round_id: 'round' }))
+    response = { ...artifact(), round_id: 'wrong' }
+    await assert.rejects(api.discussionSummary('room', { command_id: 'id3', round_id: 'round' }))
+})

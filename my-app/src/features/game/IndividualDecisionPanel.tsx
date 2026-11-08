@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import type { RoomSnapshot } from '../../services/rooms'
 import { DECISION_LIMIT, DECISION_PROMPT, boardRows, canSubmitDecision, submittedCount } from './individualDecisionModel'
 import type { BoardRow } from './individualDecisionModel'
-import { appendTranscript } from './dictationModel'
+import { DraftStatus } from './DiscussionDraftPanel'
+import type { DiscussionDraftHandle } from './useDiscussionDraft'
 import type { useDictation } from './useDictation'
 
 type Act = (path: string, fields?: Record<string, unknown>) => Promise<boolean>
@@ -21,11 +22,13 @@ export function BoardStatusList({ rows, missingLabel }: { rows: readonly BoardRo
 }
 
 /** Round 1 individual decision: replaces the board vote when `game.decision_mode === 'individual'`. */
-export default function IndividualDecisionPanel({ room, pending, act, notice, dictation, attachDictation }: { room: RoomSnapshot; pending: boolean; act: Act; notice?: string; dictation: Dictation; attachDictation: AttachDictation }) {
+export default function IndividualDecisionPanel({ room, pending, act, notice, dictation, attachDictation, answerDraft }: { room: RoomSnapshot; pending: boolean; act: Act; notice?: string; dictation: Dictation; attachDictation: AttachDictation; answerDraft: DiscussionDraftHandle }) {
     const game = room.game
     const recorded = game?.individual_decisions?.self ?? null
     const [editing, setEditing] = useState(false)
-    const [draft, setDraft] = useState(() => recorded?.text ?? '')
+    const draft = answerDraft.state.text
+    const setDraft = answerDraft.edit
+    const append = answerDraft.append
     const [failed, setFailed] = useState(false)
     const active = room.phase === 'individual_decision'
     const canSubmit = (game?.allowed_actions ?? []).includes('submit_decision')
@@ -33,9 +36,9 @@ export default function IndividualDecisionPanel({ room, pending, act, notice, di
     // Voice or text: the control bar's Dictate button appends final words to whatever is already typed; they stay editable.
     useEffect(() => {
         if (!showForm) return
-        attachDictation((words) => setDraft((current) => appendTranscript(current, words)))
+        attachDictation(append)
         return () => attachDictation(null)
-    }, [showForm, attachDictation])
+    }, [showForm, attachDictation, append])
     if (!game || !active) return null
 
     const rows = boardRows(game.individual_decisions, room.self_member_id)
@@ -45,9 +48,11 @@ export default function IndividualDecisionPanel({ room, pending, act, notice, di
     async function submit() {
         if (!canSubmitDecision(draft, recorded?.text)) return
         dictation.stop()
+        // Confirmation transfers this text to human ownership even if saving later fails.
+        answerDraft.edit(draft)
         setFailed(false)
         const ok = await act(`rounds/${game!.round_id}/decision`, { text: draft.trim() })
-        if (ok) setEditing(false)
+        if (ok) { answerDraft.submitted(draft.trim()); setEditing(false) }
         else setFailed(true)
     }
 
@@ -66,8 +71,9 @@ export default function IndividualDecisionPanel({ room, pending, act, notice, di
                 <span className="decision-label">Your decision{roleName ? ` as ${roleName}` : ''}</span>
                 <textarea rows={6} maxLength={DECISION_LIMIT} required autoFocus={editing} aria-describedby="decision-help" placeholder={DECISION_PROMPT}
                     value={draft} onChange={(event) => setDraft(event.target.value)} />
-                <span className="decision-helper" id="decision-help">Only you see your text. Use Dictate below to speak it.</span>
+                <span className="decision-helper" id="decision-help">Only you see your text. Review the summary, edit it, then confirm. Decisions close when everyone confirms.</span>
             </label>
+            <DraftStatus draft={answerDraft} />
             {(dictation.listening || dictation.note) && <div className="decision-voice">
                 {dictation.listening && <span className="decision-listening" role="status"><span className="vote-waiting-dot" aria-hidden="true" />Listening…</span>}
                 {dictation.listening && dictation.interim && <span className="decision-interim" aria-live="polite">{dictation.interim}</span>}
@@ -76,7 +82,7 @@ export default function IndividualDecisionPanel({ room, pending, act, notice, di
             {failed && <p className="vote-custom-error" role="alert">{notice || 'Your decision could not be saved. Please try again.'}</p>}
             <div className="vote-confirm-actions">
                 {recorded && <button type="button" className="vote-secondary" disabled={pending} onClick={() => { dictation.stop(); setEditing(false); setFailed(false); setDraft(recorded.text) }}>Cancel</button>}
-                <button type="submit" className="vote-primary" disabled={pending || !canSubmitDecision(draft, recorded?.text)}>{recorded ? 'Save changes' : 'Submit my decision'}</button>
+                <button type="submit" className="vote-primary" disabled={pending || !canSubmitDecision(draft, recorded?.text)}>{recorded ? 'Save changes' : 'Confirm my decision'}</button>
             </div>
         </form>}
 

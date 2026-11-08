@@ -488,6 +488,25 @@ class ReplyBody(BaseModel):
     question: str | None = Field(default=None, min_length=1, max_length=1200)
 
 
+class DiscussionSummaryBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    command_id: UUID
+    round_id: UUID
+    retry: StrictBool = False
+
+
+class DiscussionSummaryView(View):
+    room_id: UUID
+    round_id: UUID
+    member_id: UUID
+    status: Literal["empty", "pending", "ready", "failed"]
+    evidence_revision: str
+    text: str | None
+    source: str | None
+    evidence_count: int
+    error: str | None
+
+
 class ConsultBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     command_id: UUID

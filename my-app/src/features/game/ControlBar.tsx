@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import Countdown from './Countdown'
 import { badgeText, formatClock } from './controlBarModel'
@@ -67,13 +67,35 @@ export type ControlBarProps = {
 /** Zoom style call toolbar fixed to the bottom of the game screen. Host controls only render when the server allows them. */
 export default function ControlBar({ caption, round, phaseId, deadline, serverTime, showCountdown, pending, mic, chat, captions, stage, mute, report, autoResponse, finishTurn, endMeeting, skip, skipSpeaker, end }: ControlBarProps) {
     const [armedEnd, setArmedEnd] = useState(false)
+    const barRef = useRef<HTMLElement>(null)
+    useLayoutEffect(() => {
+        const bar = barRef.current
+        if (!bar) return
+        const screen = bar.closest<HTMLElement>('.game-call-screen') ?? bar.ownerDocument.documentElement
+        const property = '--control-bar-occupied-height'
+        const previous = screen.style.getPropertyValue(property)
+        const measure = () => {
+            const height = Math.ceil(bar.getBoundingClientRect().height)
+            if (height > 0) screen.style.setProperty(property, `${height}px`)
+        }
+        measure()
+        const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure)
+        observer?.observe(bar)
+        window.addEventListener('resize', measure)
+        return () => {
+            observer?.disconnect()
+            window.removeEventListener('resize', measure)
+            if (previous) screen.style.setProperty(property, previous)
+            else screen.style.removeProperty(property)
+        }
+    }, [])
     useEffect(() => {
         if (!armedEnd) return
         const timer = setTimeout(() => setArmedEnd(false), 4000)
         return () => clearTimeout(timer)
     }, [armedEnd])
     const micIcon: IconName = mic.live ? 'stop' : mic.muted ? 'mic-off' : 'mic'
-    return <nav className="control-bar" aria-label="Call controls">
+    return <nav ref={barRef} className="control-bar" aria-label="Call controls">
         <div className="control-bar-status">
             <span className="control-phase" role="status">
                 <span className="control-phase-dot" aria-hidden="true" />

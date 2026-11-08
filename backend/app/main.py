@@ -18,7 +18,8 @@ from .models import (LeaveRoom, LeaveView, ProposalCommand, RecordingView, Audio
                      ContributionBody, ContributionView, CreateRoom, DeliveryBody, ErrorResponse,
                      EvaluationEvidenceView, JoinRoom, MediaView, RoomView, ScenarioView, StartRoom,
                      TabSessionBody, TabSessionView, ValidationErrorResponse, ConsultBody, ReplyBody,
-                     PrivateAnswerBody, PrivateCardBody, PrivateChoiceBody, PrivateRetryBody)
+                     PrivateAnswerBody, PrivateCardBody, PrivateChoiceBody, PrivateRetryBody,
+                     DiscussionSummaryBody, DiscussionSummaryView)
 from .narration import NarrationService
 from .rooms import RoomError, Rooms, StartSpec
 from .scenarios import ScenarioCatalog
@@ -29,6 +30,7 @@ from .facilitation import Facilitation, IncidentDocuments, RecordedClips
 from .ai_options import AiOptions
 from .private_sessions import PrivateSessions
 from .vertex_text import VertexText
+from .discussion_summaries import DiscussionSummaries
 
 COOKIE_NAME = "boardroom_session"
 SESSION_HEADER = "X-Boardroom-Session"
@@ -60,6 +62,7 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     # Rounds 2 and 3: one private crisis coach and examiner per member (Cedar Bridge private_rounds profiles).
     private = PrivateSessions(rooms, facilitation, vertex, clips)
     facilitation.private = private
+    discussion_summaries = DiscussionSummaries(rooms, recordings, facilitation)
     secure = secure_cookie if secure_cookie is not None else os.getenv("BOARDROOM_SECURE_COOKIE", "false").lower() == "true"
     origins = allowed_origins if allowed_origins is not None else [
         origin.strip() for origin in os.getenv(
@@ -89,6 +92,7 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
             await resolver.close()
             await ai_options.close()
             await feedback.close()
+            await discussion_summaries.close()
             await facilitation.close()
             await private.close()
             await recordings.close()
@@ -102,6 +106,7 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     app.state.speech = speech
     app.state.facilitation = facilitation
     app.state.private_sessions = private
+    app.state.discussion_summaries = discussion_summaries
     app.add_middleware(
         CORSMiddleware, allow_origins=origins, allow_credentials=True,
         allow_methods=["GET", "POST"], allow_headers=["Content-Type", SESSION_HEADER],
@@ -344,6 +349,10 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     @app.get("/api/rooms/{room_id}/facilitation", responses=errors)
     async def facilitation_view(room_id: UUID, member_session: authenticated):
         return await facilitation.view(member_session, room_id)
+
+    @app.post("/api/rooms/{room_id}/discussion-summary", response_model=DiscussionSummaryView, responses=errors)
+    async def discussion_summary(room_id: UUID, body: DiscussionSummaryBody, member_session: authenticated):
+        return await discussion_summaries.sync(member_session, room_id, body.command_id, body.round_id, body.retry)
 
     @app.post("/api/rooms/{room_id}/facilitation/reply", responses=errors)
     async def facilitation_reply(room_id: UUID, body: ReplyBody, member_session: authenticated):

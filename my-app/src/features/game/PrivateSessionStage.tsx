@@ -244,11 +244,46 @@ export default function PrivateSessionStage({ room, handle, auto, selfName, self
         return () => attachDictation(null)
     }, [showComposer, answerKey, attachDictation])
 
+    // Your dictation is captioned live in the transcript as you speak (words appear as the browser hears them, or when
+    // the server transcribes them), and the same line becomes your answer when you submit it.
+    const dictationLine = answerKey ? `private-dictation:${answerKey}` : null
+    const dictatedText = [draftText.trim(), dictation.interim.trim()].filter(Boolean).join(' ')
+    const dictatingNow = dictation.listening || dictation.transcribing
+    useEffect(() => {
+        if (!dictationLine || (!dictatingNow && !draftText.trim())) return
+        const entry = {
+            id: dictationLine, speaker: `${selfName} (you)`, tone: 'self' as const,
+            role: dictation.transcribing ? 'Transcribing…' : dictation.listening ? 'Dictating' : 'Your answer · not sent yet',
+            text: dictatedText || (dictation.transcribing ? 'Transcribing what you said…' : 'Listening…'),
+        }
+        if (dictatingNow) transcript.speak(entry, null)
+        else { transcript.upsert(entry); transcript.done(dictationLine) }
+    }, [dictationLine, dictatingNow, dictation.listening, dictation.transcribing, dictatedText, draftText, selfName, transcript])
+
+    function discard() {
+        dictation.stop()
+        if (dictationLine && draftText.trim()) {
+            transcript.upsert({ id: dictationLine, speaker: `${selfName} (you)`, tone: 'self', role: 'Discarded', text: draftText.trim() })
+            transcript.done(dictationLine)
+        }
+        setDraft('')
+    }
+
     async function submit() {
         if (!canSubmitAnswer(draftText) || sending || session?.busy) return
         dictation.stop()
+        const text = draftText.trim()
+        // The submitted answer becomes this transcript line; marked before sending so the server's copy is never listed twice.
+        if (dictationLine) captioned.current.add(text)
         // A failed submission keeps the draft; the footer shows the reason.
-        if (await handle.answer(draftText.trim(), false)) setDraftState({ key: answerKey, text: '' })
+        if (await handle.answer(text, false)) {
+            if (dictationLine) {
+                transcript.upsert({ id: dictationLine, speaker: `${selfName} (you)`, tone: 'self', role: 'Your answer', text })
+                transcript.done(dictationLine)
+                setCaptionedCount((count) => count + 1)
+            }
+            setDraftState({ key: answerKey, text: '' })
+        }
     }
 
     function showAll() {
@@ -290,7 +325,7 @@ export default function PrivateSessionStage({ room, handle, auto, selfName, self
     const problem = error || notice
 
     const dockContent = session && !complete && !stageQuiz && <div className="private-dock">
-        {showComposer && session.expecting && <QuestionCard question={questionText(session)} draft={draftText} clear={() => { dictation.stop(); setDraft('') }} disabled={sending || session.busy}
+        {showComposer && session.expecting && <QuestionCard question={questionText(session)} draft={draftText} clear={discard} disabled={sending || session.busy}
             onSubmit={() => void submit()} dictation={dictation} />}
         {auto.playing && <p className="private-note" role="status">Playing your saved answer. It is submitted when the clip ends.</p>}
         {!showComposer && !auto.playing && session.expecting && !caughtUp && <p className="private-note">You can answer when {agentName} finishes speaking.</p>}

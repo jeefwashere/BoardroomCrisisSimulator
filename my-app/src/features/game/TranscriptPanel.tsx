@@ -63,7 +63,12 @@ export default function TranscriptPanel({ entries, open, onClose, dockRef, minim
         observer.observe(list)
         return () => observer.disconnect()
     }, [])
-    useEffect(() => { if (open && !minimized && stuck.current && scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight }, [open, minimized])
+    // Opening (or restoring) the panel always shows the newest lines, so live captions such as your own dictation are in view.
+    useEffect(() => {
+        if (!open || minimized || !scrollRef.current) return
+        stuck.current = true
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    }, [open, minimized])
     const live = entries.find((entry) => entry.live)
     return <aside className={`transcript-panel${open ? ' is-open' : ''}${minimized ? ' is-minimized' : ''}`} aria-label="Live transcript" aria-hidden={!open} inert={!open}>
         <header className="transcript-header">

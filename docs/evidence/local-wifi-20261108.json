@@ -1,0 +1,33 @@
+{
+  "checks": {
+    "lan_health_ok": true,
+    "lan_scenarios_ok": true,
+    "valid_lan_origin_post_allowed": true,
+    "unrelated_origin_rejected": true,
+    "authenticated_host_create_ok": true,
+    "authenticated_guest_join_ok": true,
+    "authenticated_host_snapshot_ok": true,
+    "fixture_stayed_lobby": true,
+    "hmr_client_served": true,
+    "proxied_docs_served": true,
+    "proxied_openapi_served": true,
+    "client_same_origin_api_configured": true,
+    "lan_hmr_websocket_connected": true,
+    "backend_reloader_pid_preserved": true,
+    "backend_worker_pid_preserved": true
+  },
+  "no_room_start_or_provider_call": true,
+  "other_device_tested": false,
+  "https_microphone_configured": false,
+  "verified_at": "2026-11-08T01:52:00.135195+00:00",
+  "lan_url": "http://192.168.2.120:5173/",
+  "gameplay_transport": "HTTP polling",
+  "development_hmr_is_not_gameplay_websocket": true,
+  "business_source_changed": false,
+  "backend_pids_preserved": [
+    88927,
+    88932
+  ],
+  "frontend_pid": 93765,
+  "tls_trust_firewall_router_tunnel_changed": false
+}

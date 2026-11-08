@@ -1,0 +1,89 @@
+{
+  "source_base": "8b2a7a5890b1fe7fb846e518a32c13e45aeea5bf",
+  "checks": [
+    "Other player cannot start capture during host turn",
+    "Permission denial leaves explicit error and permits deliberate retry",
+    "Cancelled pending permission releases late stream and never records",
+    "Actual MediaRecorder manual Stop releases every track immediately, saves one original and playback succeeds",
+    "390 pixel mobile view has no horizontal overflow",
+    "Same exact room and owned pages continued to next own turn: Start enabled, microphone request count unchanged, no automatic recording"
+  ],
+  "boundary": "Synthetic oscillator stream through actual MediaRecorder, controlled server clock via local file, providers disabled. Physical microphone not tested.",
+  "frontend_tests": 103,
+  "new_lifecycle_tests": 14,
+  "existing_python_tests": 31,
+  "narration_player_tests": 7,
+  "build": "passed",
+  "lint": "passed",
+  "authored_offline_demo": "passed",
+  "original_count": 1,
+  "original": {
+    "status": "transcription_disabled",
+    "mime_type": "audio/webm",
+    "audio_available": true,
+    "duration_seconds": 2.157,
+    "sha256": "8bf774bdcb2c583ce090bd245e64d568b837a27e366ebacd6808584b861d5bc6"
+  },
+  "playback": {
+    "readyState": 4,
+    "src": true,
+    "duration": null
+  },
+  "next_turn_microphone_requests": 3,
+  "harness_corrections": [
+    "Stale copy expected Discussion message before Room chat rename",
+    "Single150s clockjump expired presence",
+    "Nonatomic filewrite caused clock read race",
+    "Advance200s left voting8s short; continued same targets with10s advance, no new pages"
+  ],
+  "cleanup": {
+    "owned_targets_closed": 12,
+    "target_absence_verified": true,
+    "exact_managed_lease_released": true,
+    "managed_browser_stopped": true,
+    "disposable_api18005_vite4181_stopped": true
+  },
+  "screenshots_sha256": {
+    "manual-microphone-desktop-controls.png": "b0598df737f3f4304e8d0b59004cc833e827a9373af6c53a021b141af4f2a3c2",
+    "manual-microphone-mobile.png": "4361c2452cae311e99879aebafb5981edac1bd13b7d05a112c512d18d72eeced"
+  },
+  "paid_provider_calls": 0,
+  "physical_microphone_tested": false,
+  "local_frontend_activation": {
+    "source_commit": "111f57471cea3d7ad116571762730ffb057260ec",
+    "backend_reloader_unchanged": 88927,
+    "backend_worker_unchanged": 88932,
+    "build": {
+      "command": "npm run build --prefix my-app",
+      "exit_code": 0,
+      "transformed_modules": 487,
+      "javascript": "my-app/dist/assets/index-CM8Z9BZC.js",
+      "css": "my-app/dist/assets/index-BOdoTs3M.css"
+    },
+    "http": {
+      "/": 200,
+      "/@vite/client": 200,
+      "/src/features/game/TurnMedia.tsx": 200,
+      "/src/features/game/manualRecorder.ts": 200,
+      "/src/pages/Game.tsx": 200,
+      "backend/docs": 200,
+      "backend/api/health": 200
+    },
+    "module_proof": {
+      "microphone_icon": true,
+      "start_recording": true,
+      "stop_and_save": true,
+      "saved_for_turn": true,
+      "manual_recorder_wiring": true,
+      "manual_recorder_helper": true,
+      "game_media_wiring": true
+    },
+    "backend_health": {
+      "status": "ok",
+      "storage": "memory"
+    },
+    "no_browser_media_or_provider_test_performed": true,
+    "verified_at": "2026-11-08T01:30:45.602Z",
+    "rooms_and_voice_configuration_preserved": true
+  }
+}

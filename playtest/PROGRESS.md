@@ -1,5 +1,8 @@
 # Rehearsal implementation progress
 
+Latest X20: Round 1 now uses [one guided answer box](SINGLE_ANSWER_UPDATE.md), including saved audio drafts and reviewed microphone transcription.
+
+
 ## Current X19 four round beta
 
 Working Rounds 2 through 4 now extend the preserved opening and group Round 1. The private coach, response card, same agent examiner, evidence based 100 point assessment, reunion corrections and winner gates are implemented. Beta questions align with 27 new human recordings; switching beta off before Start enables adaptive Gemini follow ups. The current exercise has 36 human clips in total. Read [the workflow](FOUR_ROUND_WORKFLOW.md), [controls](ROUNDTABLE_GUIDE.md) and [verification](FOUR_ROUND_REPORT.md).

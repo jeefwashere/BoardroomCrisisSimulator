@@ -1,5 +1,8 @@
 # Rehearsal four round playtest
 
+Latest X20: Round 1 now uses [one guided answer box](SINGLE_ANSWER_UPDATE.md), including saved audio drafts and reviewed microphone transcription.
+
+
 Working branch: **`experiment/ai-voice-playtest`**. Open [the local meeting](http://127.0.0.1:8788/roundtable), load three test participants and start as CEO. The included PDF is **Service outage and unavailable director**, about fictional Cedar Bridge Community Services.
 
 Read [the test guide](ROUNDTABLE_GUIDE.md), [Gemini and ElevenLabs workflow](FOUR_ROUND_WORKFLOW.md), [confirmed design](FOUR_ROUND_DESIGN.md) and [verification report](FOUR_ROUND_REPORT.md). The [formatted guide](http://127.0.0.1:8788/roundtable-guide) is also saved as `/Users/arjunbehl/Downloads/Rehearsal_Roundtable_Guide.html`.

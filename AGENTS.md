@@ -118,3 +118,8 @@ Each member has one private agent identity across coaching and assessment. Scope
 Beta mode defaults on and can change only through the CEO in the lobby. Canonical questions match the stage assigned human recordings. Gemini acknowledgements, cards and scoring remain live at temperature zero, with no promise of identical outputs. Adaptive questions use temperature 0.3. Do not replace agent output with prerecorded speech, auto submit a human answer, or infer performance from playback.
 
 The current exercise has 36 human clips including 27 added for individual decisions and Rounds 2 through 4. Preserve existing assets and usage ledgers. Playback, review and submission remain separate. Private structured output is validated before ElevenLabs PCM streaming; do not claim it streams Gemini tokens before validation. The local prototype has no durable room store or synchronized browser conference audio. Keep these limits distinct from passing HTTP checks.
+
+
+## Single guided decision answer
+
+X20 replaces the four visible Round 1 fields with one guided answer box. Preserve explicit confirmation, member draft isolation and reviewed recorded or microphone input. The existing API stores the complete response verbatim in action and labels other fields as not separately extracted; do not infer separate reasons or evidence. Keep existing live rooms intact when updating static UI files. Read [the update](playtest/SINGLE_ANSWER_UPDATE.md).

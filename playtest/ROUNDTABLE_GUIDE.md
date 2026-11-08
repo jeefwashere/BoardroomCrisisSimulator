@@ -17,7 +17,7 @@ Play the current speaker's saved discussion clip, wait for completion, then choo
 
 After the clips, the CEO can finish discussion early. The five minute discussion also ends automatically. The IT/security, operations/community services and governance/finance experts respond live in sequence. Wait for all three; use **CEO: Hear next expert** if a request fails. Then select **CEO: Begin individual decisions**.
 
-Select each member. In **Saved answer for this turn**, play that person's decision clip. After it finishes, choose **Review this answer as a draft**. Review the four fields, check the confirmation box and submit the individual decision. You can write your own action, reasoning, evidence and unknowns instead. Repeat for all three members.
+Select each member. In **Saved answer for this turn**, play that person's decision clip. After it finishes, choose **Review this answer as a draft**. Review the single answer box, check the confirmation box and submit the individual decision. The prompt asks what you would do next and why. In a few sentences, include your action, supporting information and what you still need to check. Saved clips and reviewed microphone transcripts fill this same editable box. Repeat for all three members.
 
 Select the CEO and choose **CEO: Start private sessions**. There is no group winning ballot, CEO override or scoring in this first round.
 

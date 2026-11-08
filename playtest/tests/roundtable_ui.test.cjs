@@ -204,10 +204,10 @@ test('Round 1 hides ballots, preserves preparation and waits for all experts and
 });
 test('Round 1 decision drafts stay with their selected member and require confirmation',async()=>{
  const {run,node,ctx}=harness();ctx.commands=[];run(`states=['a','b','c'].map(me=>({...states[0],me,flow:'board_round1',phase:'decision',expert_order:['it','operations','governance'],expert_briefings:{},decision_submissions:[],individual_decision:null}));command=async(action,data,owner)=>commands.push({action,data,token:owner.token});render();`);
- for(const id of ['individualAction','individualReasoning','individualEvidence','individualUnknowns'])node(id).value='A own answer';
+ node('individualAnswer').value='A own answer';
  await assert.rejects(run('submitIndividual()'),/confirm/);
- run(`active=1;render();`);assert.equal(node('individualAction').value,'');node('individualAction').value='B draft';
- run(`active=0;render();`);assert.equal(node('individualAction').value,'A own answer');
+ run(`active=1;render();`);assert.equal(node('individualAnswer').value,'');node('individualAnswer').value='B draft';
+ run(`active=0;render();`);assert.equal(node('individualAnswer').value,'A own answer');
  run(`$('confirmIndividual').checked=true;`);await run('submitIndividual()');assert.equal(ctx.commands[0].action,'submit_individual_decision');assert.equal(ctx.commands[0].token,'secret');assert.equal(ctx.commands[0].data.action,'A own answer');assert.equal(ctx.commands[0].data.revision,0);
  run(`active=1;`);await assert.rejects(run('submitIndividual()'),/member or phase changed/);
 });
@@ -254,4 +254,16 @@ test('late private transcription cannot overwrite a later assessment question',a
  run(`states[0].private_session.revision=9;states[0].private_session.turn=2;render();$('privateAnswer').value='Keep the new answer';`);
  release({ok:true,json:async()=>({text:'Old transcribed answer'})});await pending;
  assert.equal(node('privateAnswer').value,'Keep the new answer');
+});
+
+test('Round 1 saved response fills one editable box and survives confirmed reload',async()=>{
+ const {run,node,ctx}=harness(true);ctx.sent=[];
+ ctx.sample={action:'Appoint a coordinator.',reasoning:'The director is unavailable.',evidence:'The continuity plan permits an interim coordinator.',unknowns:'Backup usability still needs verification.'};
+ run(`loadExerciseClips=async()=>{};states[0]={...states[0],flow:'four_rounds',phase:'decision',beta_mode:true,expert_order:[],expert_briefings:{},decision_submissions:[],individual_decision:null};api=async()=>({text:'Saved speech',response_fields:sample,lease_id:'lease'});render();fixturePlayback={owner:context(),key:exerciseKey(state()),id:'lease',finished:true};command=async(action,data)=>{sent.push({action,data});states[0].individual_decision={...data,revision:1};render();};`);
+ await run(`$('useFixture').onclick()`);
+ assert.equal(ctx.sent.length,0);assert(!node('confirmIndividual').checked);
+ const answer=Object.values(ctx.sample).join('\n\n');assert.equal(node('individualAnswer').value,answer);
+ run(`$('confirmIndividual').checked=true;`);await run('submitIndividual()');
+ assert.equal(ctx.sent[0].data.action,answer);assert.equal(node('individualAnswer').value,answer);
+ assert(!node('individualAnswer').value.includes('Not separately extracted'));
 });

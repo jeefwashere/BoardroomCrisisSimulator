@@ -77,7 +77,7 @@ bind('useFixture',async()=>{
  const task=fixturePlayback;if(!task?.finished||task.key!==exerciseKey(state()))throw new Error('Finish the sample for this turn first.');
  const result=await api('/api/roundtable/exercise/recordings/complete',{id:task.id},task.owner);if(!same(task.owner)||task.key!==exerciseKey(state()))return;
  fixtureDraft={owner:task.owner,key:task.key,id:result.lease_id};if(task.url)URL.revokeObjectURL(task.url);fixturePlayback=null;$('fixtureAudio').removeAttribute('src');
- if(state().phase==='decision'){for(const [field,id] of Object.entries(individualIds))$(id).value=result.response_fields?.[field]||'';$('confirmIndividual').checked=false;}
+ if(state().phase==='decision'){$('individualAnswer').value=result.response_fields?decisionAnswer(result.response_fields):result.text;$('confirmIndividual').checked=false;}
  else if(state().phase==='private'){$('privateAnswer').value=result.text;$('confirmPrivateAnswer').checked=false;}
  else $('reunionAnswer').value=result.text;
  $('fixtureStatus').textContent='Draft loaded. Review or edit it, then confirm and submit. No answer has been submitted automatically.';

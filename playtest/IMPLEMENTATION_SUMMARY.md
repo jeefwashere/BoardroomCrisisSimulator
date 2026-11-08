@@ -1,5 +1,8 @@
 # Current implementation and branch handoff
 
+Latest X20: Round 1 now uses [one guided answer box](SINGLE_ANSWER_UPDATE.md), including saved audio drafts and reviewed microphone transcription.
+
+
 X19 implements all four rounds in the isolated playtest. Branch: **`experiment/ai-voice-playtest`**. This is a feature branch, not a merge into `main` or a public deployment.
 
 The opening preparation agent remains. Round 1 ends with three expert perspectives and individual decisions. Each member then has one private agent for coaching and examination. Round 3 alone awards up to 100 points. Everyone returns for branch comparisons, evidence reviews and a server computed winner.

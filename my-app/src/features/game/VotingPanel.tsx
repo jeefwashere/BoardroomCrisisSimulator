@@ -4,14 +4,61 @@ import type { RoomSnapshot } from '../../services/rooms'
 import Countdown from './Countdown'
 import DecisionGuideButton from './DecisionGuideButton'
 import { voteCountSummary } from './votePresentation'
-import { aiOptionsNotice, ballotProgress, mergeLabels, optionDescription, tallyRows } from './votingModel'
+import {
+    aiOptionsNotice, ballotProgress, customOptionBadge, mergeLabels, optionDescription, ownCustomOption, proposalDraft,
+    resolutionNotice, tallyRows,
+} from './votingModel'
 import type { ChoiceOption } from './votingModel'
 
 const RESULT_PHASES = ['resolving', 'resolution_failed', 'decision', 'result']
 
 type Act = (path: string, fields?: Record<string, unknown>) => Promise<boolean>
 
-export default function VotingPanel({ room, pending, act }: { room: RoomSnapshot; pending: boolean; act: Act }) {
+const PROPOSAL_LIMIT = 500
+
+/** "Propose your own option" card at the end of the ballot, or edit/withdraw controls for the caller's own option. */
+function CustomOptionCard({ own, initialText, pending, notice, submit }: { own: ChoiceOption | null; initialText: string; pending: boolean; notice?: string; submit: (text: string) => Promise<boolean> }) {
+    const [open, setOpen] = useState(false)
+    const [text, setText] = useState('')
+    const [failed, setFailed] = useState(false)
+    async function send(value: string) {
+        setFailed(false)
+        const ok = await submit(value)
+        if (ok) { setOpen(false); setText('') } else setFailed(true)
+    }
+    const error = failed ? <p className="vote-custom-error" role="alert">{notice || 'The ballot could not be updated. Please try again.'}</p> : null
+    if (!open) {
+        if (own) return <div className="vote-custom vote-custom--own">
+            <div className="vote-custom-row">
+                <span className="vote-custom-title">Your custom option</span>
+                <span className="vote-confirm-actions">
+                    <button type="button" className="vote-secondary" disabled={pending} onClick={() => { setText(initialText); setFailed(false); setOpen(true) }}>Edit</button>
+                    <button type="button" className="vote-secondary" disabled={pending} onClick={() => { if (window.confirm('Withdraw your custom option from the ballot?')) void send('') }}>Withdraw</button>
+                </span>
+            </div>
+            <p className="vote-custom-hint">Editing or withdrawing is blocked once your option has votes.</p>
+            {error}
+        </div>
+        return <button type="button" className="vote-custom vote-custom--add" disabled={pending} onClick={() => { setFailed(false); setOpen(true) }}>
+            <span className="vote-custom-plus" aria-hidden="true">+</span>
+            <span className="vote-choice-body">
+                <span className="vote-choice-label">Propose your own option</span>
+                <span className="vote-choice-description">Add a response the board can vote for. An AI maps it to an outcome if it wins.</span>
+            </span>
+        </button>
+    }
+    return <form className="vote-custom vote-custom--form" onSubmit={(event) => { event.preventDefault(); if (text.trim()) void send(text.trim()) }}>
+        <label className="vote-custom-title" htmlFor="vote-custom-text">{own ? 'Edit your custom option' : 'Propose your own option'}</label>
+        <textarea id="vote-custom-text" rows={3} maxLength={PROPOSAL_LIMIT} required autoFocus value={text} placeholder="Describe the action the board should take" onChange={(event) => setText(event.target.value)} />
+        {error}
+        <span className="vote-confirm-actions">
+            <button type="button" className="vote-secondary" disabled={pending} onClick={() => { setOpen(false); setFailed(false) }}>Cancel</button>
+            <button type="submit" className="vote-primary" disabled={pending || !text.trim()}>{own ? 'Save changes' : 'Add to the ballot'}</button>
+        </span>
+    </form>
+}
+
+export default function VotingPanel({ room, pending, act, notice }: { room: RoomSnapshot; pending: boolean; act: Act; notice?: string }) {
     const game = room.game
     const [labels, setLabels] = useState<Record<string, string>>({})
     const [draft, setDraft] = useState<{ phaseId: string; optionId: string } | null>(null)
@@ -48,6 +95,11 @@ export default function VotingPanel({ room, pending, act }: { room: RoomSnapshot
     const rows = tallyRows(game.vote_counts, known)
     const winner = isResult && game.last_result?.round_number === game.round_number ? game.last_result : null
     const rounds = `rounds/${game.round_id}/`
+    const own = ownCustomOption(options, room.self_member_id)
+    const proposalCard = isVoting && actions.includes('proposal')
+        ? <CustomOptionCard key={own?.option_id ?? 'new'} own={own} initialText={proposalDraft(own, game.proposals)} pending={pending} notice={notice} submit={(text) => act(rounds + 'proposal', { text })} />
+        : null
+    const resolution = resolutionNotice(game.resolution, phase)
 
     async function confirm() {
         if (!draftId) return
@@ -80,7 +132,9 @@ export default function VotingPanel({ room, pending, act }: { room: RoomSnapshot
         {showChoices && <>
             <div className="vote-choices" role="group" aria-label={isTie ? 'Tied options' : 'Available responses'}>
                 {choices.map((option) => {
-                    const description = optionDescription(option, memberName)
+                    const badge = customOptionBadge(option, memberName, room.self_member_id)
+                    // The custom badge already names the proposer, so only an explicit description is repeated.
+                    const description = badge ? option.description ?? null : optionDescription(option, memberName)
                     const selected = draftId === option.option_id
                     return <motion.button
                         key={option.option_id}
@@ -94,7 +148,7 @@ export default function VotingPanel({ room, pending, act }: { room: RoomSnapshot
                     >
                         <span className="vote-choice-mark" aria-hidden="true" />
                         <span className="vote-choice-body">
-                            <span className="vote-choice-label">{option.kind === 'ai' && <span className="vote-ai-badge">AI suggested</span>}{option.label}</span>
+                            <span className="vote-choice-label">{option.kind === 'ai' && <span className="vote-ai-badge">AI suggested</span>}{badge && <span className="vote-custom-badge">{badge}</span>}{option.label}</span>
                             {description && <span className="vote-choice-description">{description}</span>}
                             {option.kind === 'ai' && option.rationale && <span className="vote-choice-rationale">Why: {option.rationale}</span>}
                             {selfVote === option.option_id && !isTie && <span className="vote-choice-tag">Your current vote</span>}
@@ -102,6 +156,7 @@ export default function VotingPanel({ room, pending, act }: { room: RoomSnapshot
                     </motion.button>
                 })}
                 {choices.length === 0 && <p className="vote-note">No options are available for this decision.</p>}
+                {proposalCard}
             </div>
             <div className="vote-confirm">
                 <p aria-live="polite">{draftId ? <>Selected: <strong>{known[draftId]}</strong></> : 'Select an option to continue.'}</p>
@@ -113,6 +168,8 @@ export default function VotingPanel({ room, pending, act }: { room: RoomSnapshot
                 </div>
             </div>
         </>}
+
+        {!showChoices && proposalCard}
 
         {isVoting && <p className="vote-note">{eligible} {eligible === 1 ? 'member votes' : 'members vote'} this round. Ballots stay private until voting closes; you can change yours until the deadline.</p>}
 
@@ -139,6 +196,8 @@ export default function VotingPanel({ room, pending, act }: { room: RoomSnapshot
             <strong>{winner.selected_option_label ?? 'No decision was reached'}</strong>
             <small>{winner.selection_method.replaceAll('_', ' ')}</small>
         </motion.div>}
-        {isResult && !winner && phase === 'resolving' && <p className="vote-waiting" role="status"><span className="vote-waiting-dot" aria-hidden="true" />The custom action is being evaluated.</p>}
+        {resolution?.tone === 'pending' && <p className="vote-waiting" role="status"><span className="vote-waiting-dot" aria-hidden="true" />{resolution.text}</p>}
+        {resolution?.tone === 'failed' && <p className="vote-custom-error" role="alert">{resolution.text}</p>}
+        {isResult && !winner && phase === 'resolving' && !resolution && <p className="vote-waiting" role="status"><span className="vote-waiting-dot" aria-hidden="true" />The custom action is being evaluated.</p>}
     </section>
 }

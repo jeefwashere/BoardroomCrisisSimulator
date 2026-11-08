@@ -9,6 +9,8 @@ from uuid import UUID, uuid4
 from . import simulation as sim
 from .rules import PRESENCE_WINDOW_SECONDS
 
+EXPERT_PANEL_SECONDS = 90
+
 
 def at(game: sim.Game, instant: float):
     return game.started_at + timedelta(seconds=instant - game.started_mono)
@@ -19,6 +21,10 @@ def deadline(game: sim.Game) -> float | None:
     if isinstance(phase, (sim.BriefingPhase, sim.ResultPhase)):
         return phase.not_before
     return getattr(phase, "deadline", None)
+
+
+def discussion_mode(game: sim.Game) -> str:
+    return "experts" if game.timing.unused_speaking == "expert_panel" else "open"
 
 
 def ready_ai_options(game: sim.Game) -> tuple[sim.BallotOption, ...]:
@@ -104,6 +110,12 @@ def select_speaker(game: sim.Game, instant: float, last_seen: dict[UUID, float],
                                  at(game, instant), at(game, instant))
         game = replace(game, turns=game.turns + (skipped,))
         index += 1
+    if game.timing.unused_speaking == "expert_panel":
+        # The AI expert panel speaks for exactly 90 seconds, never beyond the session ceiling.
+        ends = instant + EXPERT_PANEL_SECONDS
+        if game.session_deadline is not None:
+            ends = min(ends, game.session_deadline)
+        return replace(game, phase=sim.DiscussionPhase(uuid4(), ends))
     if game.timing.unused_speaking == "skip_to_vote":
         # Voting opens as soon as the last turn ends; reconcile freezes the ballot immediately.
         return replace(game, phase=sim.DiscussionPhase(uuid4(), instant))

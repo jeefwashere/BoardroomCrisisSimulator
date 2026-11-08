@@ -1,4 +1,4 @@
-# Facilitation API: AI opening, advisers and recorded audio
+# Facilitation API: AI opening, advisers, expert panel and recorded audio
 
 This contract brings the `experiment/ai-voice-playtest` meeting features into the main FastAPI backend (`backend/app`) and the main website (`my-app`). The authoritative game (phases, speakers, ballots, CEO tie, results) stays in `backend/app/rooms.py`; nothing here can vote, pass a turn, or change a result.
 
@@ -50,6 +50,7 @@ The ledger file is created lazily on the first call, so starting the server or r
     "speech_id": "uuid or null",
     "error": null
   },
+  "expert_panel": null,
   "advisers": [{"kind": "facilitator", "label": "Facilitator", "description": "..."}],
   "consultations": [
     {
@@ -74,7 +75,7 @@ The ledger file is created lazily on the first call, so starting the server or r
 }
 ```
 
-`opening` is `null` in the lobby. On the first GET after Start the backend generates (once per room) the opening briefing from the scenario title, public documents, the attached incident report and current node. Concurrent callers share the same job. `documents` lists the incident reports attached to the room (see Documents).
+`opening` is `null` in the lobby. On the first GET after Start the backend generates (once per room) the opening briefing from the scenario title, public documents, the attached incident report and current node. Concurrent callers share the same job. `expert_panel` is described in Expert panel below. `documents` lists the incident reports attached to the room (see Documents).
 
 ### `POST /api/rooms/{room_id}/facilitation/consult`
 
@@ -82,7 +83,48 @@ Body `{"command_id": "uuid", "kind": "facilitator|it|journalist", "question": "1
 
 ### `POST /api/rooms/{room_id}/facilitation/speech/{speech_id}/prepare` and `GET .../speech/{speech_id}/audio`
 
-Optional speech for the opening or a consultation reply, through the existing budgeted `NarrationService` (voice is disabled by default and requires the configured budget). `prepare` returns `{"status": "ready|disabled|failed|pending", "error": null}`; `audio` returns `audio/mpeg`. Text always remains readable.
+Optional speech for the opening, a consultation reply or an expert panel take, through the existing budgeted `NarrationService` (voice is disabled by default and requires the configured budget). `prepare` returns `{"status": "ready|disabled|failed|pending", "error": null}`; `audio` returns `audio/mpeg`. Text always remains readable.
+
+## Expert panel
+
+An optional stage between the speaking turns and voting. After the last speaker's turn, the three AI experts (facilitator, IT adviser, journalist) each give a short live take on the round's discussion, then voting opens.
+
+### Timing
+
+A scenario timing profile enables it with `"unused_speaking_seconds": "expert_panel"` (the other values `"open_discussion"` and `"skip_to_vote"` are unchanged). When the last turn ends, the room enters the existing `discussion` phase with `phase_deadline` exactly 90 seconds later (never beyond `session_deadline`). When the deadline passes, the ballot freezes and voting opens as usual. The host can end the stage early with the existing `skip_phase` command (`POST /api/rooms/{room_id}/rounds/{round_id}/skip-phase`), which opens voting at once. Both Cedar Bridge T01 profiles (`standard_18`, `fast_15`) use `"expert_panel"`; the other scenarios keep `"open_discussion"`. Proposals and answers stay allowed during the stage, exactly as in any `discussion` phase.
+
+The room snapshot has a new field `game.discussion_mode`: `"experts"` when the room's timing profile uses the expert panel, otherwise `"open"`. It is fixed for the whole game, so the UI can read it during speaking as well; render the expert stage when `phase == "discussion"` and `discussion_mode == "experts"`.
+
+### Shape
+
+`GET /api/rooms/{room_id}/facilitation` returns `expert_panel`:
+
+```json
+{
+  "expert_panel": {
+    "round_id": "uuid",
+    "status": "pending | ready",
+    "experts": [
+      {"kind": "facilitator", "label": "Facilitator", "status": "pending | ready | failed", "text": "spoken take",
+       "source": "vertex | hosted | offline | null", "speech_id": "uuid or null", "error": null},
+      {"kind": "it", "label": "IT adviser", "status": "...", "text": "...", "source": "...", "speech_id": "...", "error": null},
+      {"kind": "journalist", "label": "Journalist", "status": "...", "text": "...", "source": "...", "speech_id": "...", "error": null}
+    ]
+  }
+}
+```
+
+`expert_panel` is `null` until a panel exists. The experts always appear in the fixed order facilitator, it, journalist. The panel `status` is `"ready"` once all three experts are terminal (`ready` or `failed`). `text` is an empty string while pending. A `failed` expert has `error: "Expert take unavailable"`; in practice each expert falls back to offline text instead of failing.
+
+### Generation
+
+The first GET while the room is in `discussion` with `discussion_mode == "experts"` starts one shared job for that round; concurrent callers share it and no second job is ever started for the same round. The three experts are generated in parallel through the same Vertex, hosted, offline chain as the other facilitation text, and each falls back to its own offline take on its own. Poll the GET until `status` is `"ready"`.
+
+Each take is about 60 to 90 words of speakable prose (markdown and list markers are stripped), in that expert's persona, grounded only in the current node title, situation and study questions, the public documents, the attached incident report, and this round's contributions so far (answers and chat, attributed by display name and role name; committed saved clip captions are answer contributions, so they are included). The hidden controller reference is never read. Experts are advisory only: they cannot vote, pick a winner, or claim facts beyond the sources. The facilitator summarizes trade offs and gaps, the IT adviser names what must be verified, and the journalist says what can be said publicly.
+
+Each ready expert has a `speech_id` that works with the existing `POST .../facilitation/speech/{speech_id}/prepare` and `GET .../facilitation/speech/{speech_id}/audio` routes.
+
+The latest panel stays in the response after its stage ends (during voting, result and after the game ends) so the UI can show it later. Compare `expert_panel.round_id` with `game.round_id` to tell whether it belongs to the current round.
 
 ### `GET /api/recordings` and `GET /api/recordings/{clip_id}/audio`
 
@@ -149,4 +191,4 @@ Prepared options keep `kind: "prepared"` and custom proposals keep `kind: "custo
 
 ### Resolution
 
-When an AI option wins (vote or CEO tie decision), it resolves immediately to its prevalidated authored outcome with no resolving phase. The decision record has `resolution_kind: "ai"`, `selection_method` (`"vote"` or `"ceo"`), `vote_counts`, the option label as `selected_option_label`, and `ai_job_id` set to the job that drafted the ballot. Human custom proposals keep the existing 15 second custom resolution path.
+When an AI option wins (vote or CEO tie decision), it resolves immediately to its prevalidated authored outcome with no resolving phase. The decision record has `resolution_kind: "ai"`, `selection_method` (`"vote"` or `"ceo"`), `vote_counts`, the option label as `selected_option_label`, and `ai_job_id` set to the job that drafted the ballot. Human custom proposals keep the existing 15 second custom resolution path, now tried first with Vertex when configured (strict `{"outcome": alias}` validation against the node's `allowed_custom_outcome_ids`), then the hosted resolver. Members can also add a custom option while voting is open; see the custom actions section of [gameplay API](gameplay-api.md).

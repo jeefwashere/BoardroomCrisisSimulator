@@ -7,9 +7,11 @@ from pathlib import Path
 from unittest import mock
 from uuid import uuid4
 
-from backend.app.facilitation import Facilitation, IncidentDocuments, RecordedClips
+from backend.app.facilitation import Facilitation, IncidentDocuments, RecordedClips, speakable
 from backend.app.main import create_app
 from backend.app.narration import NarrationService
+from backend.app.rooms import Rooms
+from backend.app.scenarios import ScenarioCatalog
 from backend.tests import test_gameplay as fixture
 
 
@@ -180,6 +182,164 @@ class FacilitationTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn('T01-BCP', text)
         self.assertNotIn('T02', text)
         self.assertNotIn('common three-person rules apply', text)
+
+
+CEDAR_ROLES = ('ceo', 'technology', 'communications')
+ANSWERS = ('Appoint the deputy as interim coordinator today and authorize paper appointments.',
+           'IT has not tested the backup restore, so nobody should promise a reopening time.',
+           'Tell clients what is confirmed now and commit to the next update at noon.')
+
+
+class ExpertPanelTests(unittest.IsolatedAsyncioTestCase):
+    client, view, action = fixture.GameplayTests.client, fixture.GameplayTests.view, fixture.GameplayTests.action
+
+    async def asyncSetUp(self):
+        self.clock = fixture.Clock()
+        self.clock.now = 1000.0
+        self.rooms = Rooms(ScenarioCatalog(), self.clock)
+        self.clients, self.ids = [], []
+        self.use(Provider())
+
+    def use(self, provider):
+        self.provider = provider
+        self.facilitation = Facilitation(self.rooms, provider, NarrationService())
+        self.app = create_app(rooms=self.rooms, facilitation_service=self.facilitation)
+
+    def expert_prompts(self):
+        return [prompt for prompt in self.provider.prompts if 'expert panel' in prompt]
+
+    async def cedar(self, code='CEDAR1'):
+        for number in range(3):
+            client = await self.client()
+            self.clients.append(client)
+            response = await client.post('/api/rooms' if number == 0 else '/api/rooms/join',
+                                         json=fixture.command(room_code=code, display_name=f'Player {number}'))
+            self.assertIn(response.status_code, (200, 201), response.text)
+            self.ids.append(response.json()['self_member_id'])
+        self.path = '/api/rooms/' + response.json()['room_id']
+        self.facilitation_path = self.path + '/facilitation'
+        response = await self.clients[0].post(self.path + '/start', json=fixture.command(
+            room_code=code, scenario_id='cedar_bridge_t01', scenario_version=1, timing_profile='standard_18',
+            ballot_source='authored', players=[{'member_id': member, 'role_id': role}
+                                               for member, role in zip(self.ids, CEDAR_ROLES)]))
+        self.assertEqual(response.status_code, 200, response.text)
+        return response.json()
+
+    async def to_panel(self, early_get=False, code='CEDAR1'):
+        view = await self.action(0, await self.cedar(code), 'briefing/finish')
+        self.assertEqual(view['phase'], 'speaking')
+        self.assertEqual(view['game']['discussion_mode'], 'experts')
+        if early_get:
+            body = (await self.clients[0].get(self.facilitation_path)).json()
+            self.assertIsNone(body['expert_panel'])
+        for answer in ANSWERS:
+            index = self.ids.index(view['game']['active_speaker_id'])
+            saved = await self.clients[index].post(self.path + '/contributions', json=fixture.command(
+                phase_id=view['game']['phase_id'], kind='answer', source='typed', text=answer))
+            self.assertEqual(saved.status_code, 201, saved.text)
+            view = await self.action(index, view, 'speaker/finish')
+        return view
+
+    async def settle(self, index=0):
+        for _ in range(100):
+            body = (await self.clients[index].get(self.facilitation_path)).json()
+            if body['expert_panel'] is not None and body['expert_panel']['status'] == 'ready':
+                return body
+            await asyncio.sleep(0.01)
+        self.fail('Expert panel did not finish')
+
+    async def test_expert_stage_follows_last_turn_for_exactly_ninety_seconds(self):
+        view = await self.to_panel()
+        self.assertEqual(view['phase'], 'discussion')
+        game = view['game']
+        self.assertEqual(game['discussion_mode'], 'experts')
+        remaining = (fixture.datetime.fromisoformat(game['phase_deadline'])
+                     - fixture.datetime.fromisoformat(game['server_time'])).total_seconds()
+        self.assertEqual(remaining, 90)
+        self.assertIn('skip_phase', (await self.view())['game']['allowed_actions'])
+        self.clock.now += 89
+        self.assertEqual((await self.view())['phase'], 'discussion')
+        self.clock.now += 1
+        self.assertEqual((await self.view())['phase'], 'voting')
+
+    async def test_three_grounded_experts_generated_once_for_concurrent_readers(self):
+        await self.to_panel(early_get=True)
+        self.provider.gate.clear()
+        first = await asyncio.gather(*(client.get(self.facilitation_path) for client in self.clients))
+        panels = [response.json()['expert_panel'] for response in first]
+        self.assertTrue(all(panel['status'] == 'pending' for panel in panels))
+        self.assertEqual(len({panel['round_id'] for panel in panels}), 1)
+        self.assertEqual(panels[0]['round_id'], (await self.view())['game']['round_id'])
+        self.provider.gate.set()
+        body = await self.settle(2)
+        await self.clients[1].get(self.facilitation_path)
+        prompts = self.expert_prompts()
+        self.assertEqual(len(prompts), 3)
+        panel = body['expert_panel']
+        self.assertEqual([item['kind'] for item in panel['experts']], ['facilitator', 'it', 'journalist'])
+        self.assertEqual([item['label'] for item in panel['experts']], ['Facilitator', 'IT adviser', 'Journalist'])
+        for item in panel['experts']:
+            self.assertEqual(set(item), {'kind', 'label', 'status', 'text', 'source', 'speech_id', 'error'})
+            self.assertEqual((item['status'], item['source'], item['text'], item['error']),
+                             ('ready', 'hosted', 'Hosted advisory reply.', None))
+        self.assertEqual(len({item['speech_id'] for item in panel['experts']}), 3)
+        for prompt in prompts:
+            self.assertLessEqual(len(prompt), 4000)
+            self.assertIn(ANSWERS[1], prompt)
+            self.assertIn('Player 1', prompt)
+            self.assertIn('IT recovery lead', prompt)
+            self.assertIn('What must IT verify', prompt)
+            self.assertIn('"label": "Attached incident report"', prompt)
+            self.assertNotIn('controller', prompt.lower())
+        speech_id = panel['experts'][1]['speech_id']
+        prepared = await self.clients[0].post(self.facilitation_path + f'/speech/{speech_id}/prepare')
+        self.assertEqual(prepared.json(), {'status': 'disabled', 'error': None})
+        self.assertEqual((await self.view())['phase'], 'discussion')
+
+    async def test_offline_fallback_per_expert(self):
+        for code, provider in (('EXOFF1', Provider(configured=False)), ('EXOFF2', Provider(fail=True))):
+            with self.subTest(configured=provider.configured):
+                self.clients, self.ids = [], []
+                self.use(provider)
+                await self.to_panel(code=code)
+                await self.clients[0].get(self.facilitation_path)
+                experts = (await self.settle())['expert_panel']['experts']
+                self.assertEqual({item['source'] for item in experts}, {'offline'})
+                self.assertIn('Offline facilitator take', experts[0]['text'])
+                self.assertIn('Offline IT adviser take', experts[1]['text'])
+                self.assertIn('Offline journalist take', experts[2]['text'])
+                for item in experts:
+                    self.assertIn('Player 0 (CEO) said:', item['text'])
+                    self.assertNotIn('private provider', item['text'])
+                    self.assertTrue(40 <= len(item['text'].split()) <= 130, item['text'])
+
+    async def test_host_skip_from_expert_stage_opens_voting_and_panel_remains(self):
+        view = await self.to_panel()
+        await self.clients[0].get(self.facilitation_path)
+        before = (await self.settle())['expert_panel']
+        await self.action(1, view, 'skip-phase', expected=403)
+        voting = await self.action(0, view, 'skip-phase')
+        self.assertEqual(voting['phase'], 'voting')
+        after = (await self.clients[2].get(self.facilitation_path)).json()['expert_panel']
+        self.assertEqual(after, before)
+        self.assertEqual(len(self.expert_prompts()), 3)
+
+    async def test_other_scenarios_keep_open_discussion_and_no_panel(self):
+        await fixture.GameplayTests.ready(self)
+        self.facilitation_path = self.path + '/facilitation'
+        view = await self.action(0, await self.view(), 'briefing/finish')
+        while view['phase'] == 'speaking':
+            self.assertEqual(view['game']['discussion_mode'], 'open')
+            view = await self.action(self.ids.index(view['game']['active_speaker_id']), view, 'speaker/finish')
+        self.assertEqual(view['phase'], 'discussion')
+        self.assertEqual(view['game']['discussion_mode'], 'open')
+        self.assertIsNone((await self.clients[0].get(self.facilitation_path)).json()['expert_panel'])
+
+    def test_speakable_strips_markdown_and_bounds_length(self):
+        self.assertEqual(speakable('## Take\n- **Verify** the backup.\n2. Check `logs`.'),
+                         'Take Verify the backup. Check logs.')
+        long = ' '.join(['Word'] * 80 + ['end.'] + ['more'] * 80)
+        self.assertTrue(speakable(long).endswith('end.'))
 
 
 class DocumentCatalogTests(unittest.IsolatedAsyncioTestCase):

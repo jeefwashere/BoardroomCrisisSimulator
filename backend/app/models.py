@@ -241,6 +241,8 @@ class GameView(View):
     options_source: Literal["ai", "prepared_fallback", "authored"] | None = None
     ai_options_status: Literal["pending", "ready", "failed", "disabled"] = "disabled"
     ballot_source: Literal["ai", "authored"] = "ai"
+    # "experts" when the timing profile runs the AI expert panel between speaking and voting.
+    discussion_mode: Literal["open", "experts"] = "open"
 
 
 class RoomFields(View):

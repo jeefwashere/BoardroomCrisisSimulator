@@ -116,6 +116,7 @@ export type RoomGame = {
     proposals?: { option_id: string; member_id: string; text: string }[]
     resolution?: { status: string; error: string | null; attempts: number } | null
     feedback?: { status: string; text: string; error: string | null } | null
+    discussion_mode?: 'open' | 'experts'
 }
 export type Decision = { decision_id: string; round_number: number; question: string; selected_option_label: string | null; text: string; selection_method: string; vote_counts: Record<string, number> }
 export type Recording = { recording_id: string; member_id: string; round_number: number; phase_id: string; status: string; transcript: string; reviewed_text: string | null; error: string | null; mime_type: string | null; audio_available: boolean }

@@ -152,6 +152,7 @@ class GameSnapshot:
     options_source: str | None = None
     ai_options_status: str = "disabled"
     ballot_source: str = "ai"
+    discussion_mode: str = "open"
 
     @property
     def facts(self) -> dict:
@@ -305,7 +306,7 @@ class Room:
                         actions.append("skip_speaker")
                 if isinstance(state.phase, sim.VotingPhase) and caller.member_id in electorate:
                     actions.append("vote")
-                if isinstance(state.phase, (sim.SpeakingPhase, sim.DiscussionPhase)) and caller.member_id in electorate:
+                if isinstance(state.phase, (sim.SpeakingPhase, sim.DiscussionPhase, sim.VotingPhase)) and caller.member_id in electorate:
                     actions.append("proposal")
                 if isinstance(state.phase, sim.ResolutionFailedPhase) and state.resolution.attempt < 2 and caller.member_id == self.host_member_id:
                     actions.append("retry_resolution")
@@ -332,6 +333,7 @@ class Room:
                 state.phase.leaders if isinstance(state.phase, sim.TiePhase) else (), tuple(actions),
                 state.turns, state.ceo_changes, state.ended_at, state.proposals, state.resolution,
                 gameplay.options_source(state), gameplay.ai_options_status(state), state.ballot_source,
+                gameplay.discussion_mode(state),
             )
         members = []
         for seat in self.members.values():
@@ -452,13 +454,17 @@ class Rooms:
                 ballots[caller.member_id] = value
                 state = replace(state, ballots=tuple(ballots.items()))
             elif action == "proposal":
-                if not isinstance(phase, (sim.SpeakingPhase, sim.DiscussionPhase)):
-                    raise RoomError(409, "proposals_frozen", "Custom actions are editable only during speaking and discussion")
+                if not isinstance(phase, (sim.SpeakingPhase, sim.DiscussionPhase, sim.VotingPhase)):
+                    raise RoomError(409, "proposals_frozen", "Custom actions are editable only during speaking, discussion and voting")
                 if caller.member_id not in group.electorate:
                     raise RoomError(403, "not_eligible", "Participation begins next round")
                 if not isinstance(value, str) or not valid_unicode(value):
                     raise RoomError(422, "invalid_proposal", "Submit custom action text")
                 previous = next((item for item in state.proposals if item.member_id == caller.member_id), None)
+                voting = isinstance(phase, sim.VotingPhase)
+                if voting and previous is not None and any(choice == previous.option_id for _, choice in state.ballots):
+                    # Ballots already cast stay valid, so a voted custom option can no longer change or be withdrawn.
+                    raise RoomError(409, "proposal_has_votes", "This custom option already has votes and can no longer be edited or withdrawn")
                 proposals = tuple(item for item in state.proposals if item.member_id != caller.member_id)
                 if value.strip():
                     contribution = Contribution(uuid4(), len(room.contributions) + 1, caller.member_id,
@@ -469,6 +475,16 @@ class Rooms:
                     option_id = previous.option_id if previous else "custom_" + uuid4().hex
                     proposals += (sim.Proposal(option_id, caller.member_id, value, contribution.contribution_id),)
                 state = replace(state, proposals=proposals)
+                if voting:
+                    # During voting the ballot is already frozen: add, edit in place or withdraw this member's option.
+                    custom = (sim.BallotOption(option_id, value, "custom", caller.member_id),) if value.strip() else ()
+                    frozen = state.frozen_options
+                    if previous is not None and any(item.option_id == previous.option_id for item in frozen):
+                        position = next(index for index, item in enumerate(frozen) if item.option_id == previous.option_id)
+                        frozen = frozen[:position] + custom + frozen[position + 1:]
+                    else:
+                        frozen += custom
+                    state = replace(state, frozen_options=frozen)
             elif action == "retry_resolution":
                 if caller.member_id != room.host_member_id:
                     raise RoomError(403, "host_required", "Only the host can retry AI resolution")

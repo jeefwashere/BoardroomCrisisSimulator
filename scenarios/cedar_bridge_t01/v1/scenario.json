@@ -32,7 +32,7 @@
       "gameplay_ceiling_after_briefing_seconds": 1020,
       "speaker_max_seconds": 30,
       "speaker_allocation": "min(speaker_max_seconds, floor(discussion_seconds_per_round / eligible_player_count))",
-      "unused_speaking_seconds": "skip_to_vote",
+      "unused_speaking_seconds": "expert_panel",
       "result_window_includes_ai": false
     },
     "fast_15": {
@@ -51,7 +51,7 @@
       "gameplay_ceiling_after_briefing_seconds": 1020,
       "speaker_max_seconds": 30,
       "speaker_allocation": "min(speaker_max_seconds, floor(discussion_seconds_per_round / eligible_player_count))",
-      "unused_speaking_seconds": "skip_to_vote",
+      "unused_speaking_seconds": "expert_panel",
       "result_window_includes_ai": false
     }
   },

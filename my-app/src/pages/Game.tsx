@@ -8,6 +8,8 @@ import CallGrid from '../features/game/CallGrid'
 import type { TileBadge } from '../features/game/CallGrid'
 import Countdown from '../features/game/Countdown'
 import OpeningBriefing from '../features/game/OpeningBriefing'
+import ExpertPanelStage from '../features/game/ExpertPanelStage'
+import { showsExpertStage } from '../features/game/expertPanelModel'
 import VotingPanel from '../features/game/VotingPanel'
 import TurnMedia from '../features/game/TurnMedia'
 import SavedClipTurn from '../features/game/SavedClipTurn'
@@ -55,9 +57,12 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary }: { room
     const speaker = room.members.find((member) => member.member_id === game.active_speaker_id)
     // The AI opening owns the stage before the call splits into the participant grid.
     const opening = room.phase === 'briefing' && dismissedOpening !== game.phase_id
+    // After the turns, the AI experts take the full stage one after another before voting opens.
+    const experts = !opening && showsExpertStage(room.phase, game.discussion_mode)
+    const fullStage = opening || experts
     // Advisers, recorded audio and documents stay out of the way until the round's decision is made.
-    const showFacilitation = !opening && ['resolving', 'resolution_failed', 'decision', 'result', 'ended'].includes(room.phase)
-    const layout = opening ? ' game-live-main--opening' : showFacilitation ? '' : ' game-live-main--focus'
+    const showFacilitation = !fullStage && ['resolving', 'resolution_failed', 'decision', 'result', 'ended'].includes(room.phase)
+    const layout = fullStage ? ' game-live-main--opening' : showFacilitation ? '' : ' game-live-main--focus'
     // Only the caller's own ballot is known, so ballot badges are limited to the self tile.
     const badges: Record<string, TileBadge> = {}
     if (speaker && room.phase === 'speaking') badges[speaker.member_id] = { label: 'Speaking', tone: 'speaking' }
@@ -72,9 +77,10 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary }: { room
         <main className={`game-call-main game-live-main${layout}`}>
             <AnimatePresence mode="wait" initial={false}>
                 {opening ? <OpeningBriefing key="opening" room={room} onDismiss={() => setDismissedOpening(game.phase_id)} finishBriefing={actions.includes('finish_briefing') ? () => act(rounds + 'briefing/finish') : undefined} />
+                    : experts ? <ExpertPanelStage key={`experts-${game.round_id}`} room={room} notice={error || notice} finishPanel={actions.includes('skip_phase') ? () => act(rounds + 'skip-phase') : undefined} />
                     : <motion.div key="call" className="game-stage-call" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4, ease: 'easeOut' }}><CallGrid members={roomMembers(room, {}, scenario)} badges={badges} /></motion.div>}
             </AnimatePresence>
-            {!opening && <section className="game-briefing" aria-labelledby="briefing-title">
+            {!fullStage && <section className="game-briefing" aria-labelledby="briefing-title">
                 <h2 id="briefing-title">{game.scenario.title}</h2>
                 <p className="game-phase" role="status">{room.phase.replaceAll('_', ' ')} · Round {game.round_number} <Countdown key={game.phase_id + (game.server_time ?? '')} deadline={game.phase_deadline} serverTime={game.server_time} /></p>
                 {self && <p>Your role: {scenario?.roles.find((role) => role.role_id === self.role_id)?.name ?? self.role_id}. {self.eligible_current_round ? 'You participate in this round.' : `You join from round ${self.eligible_from_round}.`}</p>}
@@ -88,10 +94,10 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary }: { room
                     {actions.includes('reassign_ceo') && <><label>Replacement CEO<select value={ceo} onChange={(event) => setCeo(event.target.value)}><option value="">Choose a participant</option>{room.members.filter((member) => member.connected && member.eligible_current_round && member.role_id !== 'ceo').map((member) => <option key={member.member_id} value={member.member_id}>{member.display_name}</option>)}</select></label><button disabled={pending || !ceo} onClick={() => void act(rounds + 'ceo-reassignment', { member_id: ceo })}>Assign CEO</button></>}
                 </div>
                 <SavedClipTurn room={room} pending={pending} act={act} finishPath={rounds + 'speaker/finish'} />
-                <VotingPanel key={game.round_id} room={room} pending={pending} act={act} />
+                <VotingPanel key={game.round_id} room={room} pending={pending} act={act} notice={notice} />
                 {['speaking', 'discussion'].includes(room.phase) && self?.eligible_current_round && <form onSubmit={(event) => { event.preventDefault(); void act('contributions', { kind: 'answer', source: 'typed', text }).then((ok) => { if (ok) setText('') }) }}><label>Your answer<textarea required maxLength={4000} value={text} onChange={(event) => setText(event.target.value)} /></label><button disabled={pending || !text.trim()}>Save answer</button></form>}
-                {actions.includes('proposal') && <form onSubmit={(event) => { event.preventDefault(); void act(rounds + 'proposal', { text: proposal }) }}><label>Custom action<textarea required value={proposal} onChange={(event) => setProposal(event.target.value)} /></label><button disabled={pending || !proposal.trim()}>Save custom action</button>{game.proposals?.some((item) => item.member_id === room.self_member_id) && <button type="button" disabled={pending} onClick={() => void act(rounds + 'proposal', { text: '' })}>Withdraw action</button>}</form>}
-                {game.resolution && <p role="status">Custom action evaluation: {game.resolution.status}. {game.resolution.error}</p>}
+                {actions.includes('proposal') && room.phase !== 'voting' && <form onSubmit={(event) => { event.preventDefault(); void act(rounds + 'proposal', { text: proposal }) }}><label>Custom action<textarea required value={proposal} onChange={(event) => setProposal(event.target.value)} /></label><button disabled={pending || !proposal.trim()}>Save custom action</button>{game.proposals?.some((item) => item.member_id === room.self_member_id) && <button type="button" disabled={pending} onClick={() => void act(rounds + 'proposal', { text: '' })}>Withdraw action</button>}</form>}
+                {game.resolution && !['resolving', 'resolution_failed', 'decision', 'result'].includes(room.phase) && <p role="status">Custom action evaluation: {game.resolution.status}. {game.resolution.error}</p>}
                 {actions.includes('retry_resolution') && <button disabled={pending} onClick={() => void act(rounds + 'resolution/retry')}>Retry custom evaluation</button>}
                 {game.last_result && <article className="game-result"><h3>{room.phase === 'ended' ? 'Final consequence' : 'What happened'}</h3><p>{game.last_result.text}</p>{game.narration && <button type="button" onClick={() => void narrate()}>Play consequence</button>}{speech.url && speech.phaseId === game.phase_id && <audio ref={speechRef} controls src={speech.url} onPlaying={() => { if (game.narration) void roomApi.narrationEvent(room.room_id, game.narration.narration_id, 'started') }} onEnded={() => { if (game.narration) void roomApi.narrationEvent(room.room_id, game.narration.narration_id, 'completed') }} />}</article>}
                 {room.phase === 'ended' && <section><h3>Final report</h3><p>Ending: {game.ending_label?.replaceAll('_', ' ')}</p>{game.history?.map((record) => <article key={record.decision_id}><h4>Round {record.round_number}: {record.selected_option_label ?? 'No decision'}</h4><p>{record.text}</p></article>)}</section>}

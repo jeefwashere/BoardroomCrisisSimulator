@@ -36,7 +36,21 @@ export type AttachedDocument = { document_id: string; title: string; pdf_url: st
 /** Public catalog entry (`GET /api/documents`). */
 export type IncidentDocument = AttachedDocument & { filename: string; pack: string; default: boolean; summary: string }
 
-export type Facilitation = { opening: Opening | null; advisers: Adviser[]; consultations: Consultation[]; documents?: AttachedDocument[] }
+/** One expert's spoken take in the pre vote expert panel (fixed order facilitator, it, journalist). */
+export type ExpertTake = {
+    kind: AdviserKind
+    label: string
+    status: JobStatus
+    text: string
+    source: 'vertex' | 'hosted' | 'offline' | null
+    speech_id: string | null
+    error: string | null
+}
+
+/** Expert panel shown between the speaking turns and voting when `game.discussion_mode === 'experts'`. */
+export type ExpertPanel = { round_id: string; status: 'pending' | 'ready'; experts: ExpertTake[] }
+
+export type Facilitation = { opening: Opening | null; advisers: Adviser[]; consultations: Consultation[]; documents?: AttachedDocument[]; expert_panel?: ExpertPanel | null }
 
 export type RecordingGroup = 'decision_guide' | 'participant' | 'facilitator' | 'adviser' | 'journalist' | 'discussion' | 'control' | 'reference'
 

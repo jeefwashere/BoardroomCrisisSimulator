@@ -421,3 +421,63 @@
 .vote-guide-tag { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; opacity: 0.7; }
 
 .game-skip-phase { border: 1px dashed currentColor; background: transparent; }
+
+/* Expert panel stage: three AI experts speak in turn between the turns and voting. */
+.expert-heading { margin: 0; font-weight: 600; }
+.expert-cards { display: flex; align-items: stretch; gap: 14px; margin: 6px 0 0; padding: 0; list-style: none; }
+.expert-card { --expert-accent: #5865bd; display: flex; flex: 1 1 0; flex-direction: column; gap: 12px; min-width: 0; padding: 16px; border: 1px solid #ffffff14; border-radius: 14px; background: #ffffff08; opacity: .78; transition: flex-grow 450ms ease, opacity 300ms ease, border-color 300ms ease, background-color 300ms ease; }
+.expert-card.is-active { flex-grow: 2.3; border-color: color-mix(in srgb, var(--expert-accent) 70%, #ffffff 30%); background: color-mix(in srgb, var(--expert-accent) 16%, transparent); opacity: 1; }
+.expert-card--done, .expert-card--unavailable { opacity: .9; }
+.expert-card-head { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.expert-avatar { display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%; background: var(--expert-accent); color: #fff; font-size: 14px; font-weight: 700; letter-spacing: .02em; }
+.expert-identity { display: grid; flex: 1 1 auto; gap: 2px; min-width: 0; }
+.expert-name { font-size: 15px; font-weight: 650; letter-spacing: -.02em; }
+.expert-persona { color: #b0b4bf; font-size: 12px; line-height: 1.4; }
+.expert-card:not(.is-active) .expert-persona { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+.expert-status { flex-shrink: 0; align-self: flex-start; padding: 3px 8px; border-radius: 999px; background: #ffffff12; color: #c4c6ce; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+.expert-status--speaking { background: var(--expert-accent); color: #fff; }
+.expert-status--done { background: #3b5e47; color: #e4f3e7; }
+.expert-status--unavailable { background: #e0a46a24; color: #f1d9c3; }
+.expert-orb { width: 76px; height: 76px; }
+.expert-orb .opening-core { width: 56px; height: 56px; background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--expert-accent) 35%, #ffffff 65%) 0%, var(--expert-accent) 55%, color-mix(in srgb, var(--expert-accent) 60%, #000000 40%) 100%); box-shadow: 0 10px 34px color-mix(in srgb, var(--expert-accent) 45%, transparent), inset 0 -6px 14px #1e1f2255; }
+.expert-orb .opening-ring { inset: 8px; border-color: color-mix(in srgb, var(--expert-accent) 55%, #ffffff 45%); }
+.expert-card.is-speaking .opening-ring { animation: opening-ring 2.2s ease-out infinite; }
+.expert-card.is-speaking .opening-ring--late { animation-delay: 1.1s; }
+.expert-card.is-speaking .opening-wave { animation: opening-wave 900ms ease-in-out infinite; }
+.expert-card.is-speaking .opening-wave:nth-child(2) { animation-delay: 150ms; }
+.expert-card.is-speaking .opening-wave:nth-child(3) { animation-delay: 300ms; }
+.expert-card.is-speaking .opening-wave:nth-child(4) { animation-delay: 450ms; }
+.expert-text { margin: 0; }
+.expert-card.is-active .expert-text p { font-size: clamp(15px, 1.1vw, 17px); }
+.expert-text--done { max-height: 220px; overflow-y: auto; color: #d6d8de; font-size: 13px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; scrollbar-width: thin; scrollbar-color: #ffffff35 transparent; }
+.expert-waiting { margin: 0; color: #c4c6ce; font-size: 14px; }
+.expert-shimmer > span { height: 12px; }
+@media (max-width: 760px) {
+  .expert-cards { flex-direction: column; }
+  .expert-card, .expert-card.is-active { flex: 0 0 auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .expert-card { transition: none; }
+  .expert-card.is-speaking .opening-ring, .expert-card.is-speaking .opening-wave { animation: none; }
+  .expert-card.is-speaking .opening-ring { opacity: .45; }
+  .expert-card.is-speaking .opening-wave { height: 18px; }
+}
+
+/* Custom ballot option during voting. */
+.vote-custom { display: grid; gap: 8px; padding: 14px 16px; border: 1px dashed #bba38a; border-radius: 10px; background: #fffdf8; color: #422820; }
+.game-briefing .vote-custom--add { display: flex; align-items: flex-start; gap: 12px; width: 100%; margin: 0; padding: 14px 16px; border: 1px dashed #bba38a; border-radius: 10px; background: #fffdf8; color: #422820; text-align: left; transition: border-color 150ms ease, background-color 150ms ease; }
+.game-briefing .vote-custom--add:hover:not(:disabled) { border-color: #354c3c; background: #f6f1e4; }
+.game-briefing .vote-custom--add:focus-visible { outline: 2px solid #b58c28; outline-offset: 2px; }
+.vote-custom-plus { display: grid; place-items: center; flex-shrink: 0; width: 20px; height: 20px; margin-top: 1px; border-radius: 50%; background: #354c3c; color: #fff9ee; font-size: 15px; font-weight: 700; line-height: 1; }
+.vote-custom--own { border-style: solid; background: #f6f1e4; }
+.vote-custom-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.vote-custom-title { font-size: 14px; font-weight: 650; }
+.game-briefing .vote-custom label.vote-custom-title { margin: 0; }
+.game-briefing .vote-panel .vote-custom-hint { color: #796655; font-size: 12px; }
+.game-briefing .vote-custom textarea { min-height: 72px; }
+.game-briefing .vote-custom .vote-confirm-actions { justify-content: flex-end; }
+.game-briefing .vote-custom .vote-secondary { margin: 0; background: transparent; color: #354c3c; }
+.game-briefing .vote-custom .vote-primary { margin: 0; font-weight: 700; }
+.game-briefing .vote-panel .vote-custom-error { padding: 8px 10px; border-left: 3px solid #aa2929; border-radius: 6px; background: #aa29290f; color: #7a1f1f; font-size: 13px; }
+.vote-custom-badge { display: inline-block; margin-right: 0.5rem; padding: 0.05rem 0.45rem; border-radius: 999px; background: #ae5238; color: #fff; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; vertical-align: middle; }
+@media (prefers-reduced-motion: reduce) { .game-briefing .vote-custom--add { transition: none; } }

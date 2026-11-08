@@ -26,6 +26,9 @@ class Role:
     name: str
 
 
+UNUSED_SPEAKING_MODES = ("open_discussion", "skip_to_vote", "expert_panel")
+
+
 @dataclass(frozen=True)
 class Timing:
     profile_id: str
@@ -37,7 +40,8 @@ class Timing:
     tie_seconds: int
     session_seconds: int
     speaker_max_seconds: int
-    # "open_discussion" keeps unused speaking time as discussion; "skip_to_vote" opens voting after the last turn.
+    # "open_discussion" keeps unused speaking time as discussion; "skip_to_vote" opens voting after the last turn;
+    # "expert_panel" holds a 90 second AI expert panel stage after the last turn, then opens voting.
     unused_speaking: str = "open_discussion"
 
 
@@ -304,7 +308,8 @@ def _validate_timings(data, rounds):
             value["reading_seconds_per_round"], value["discussion_seconds_per_round"],
             value["voting_seconds_per_round"], value["tie_seconds_per_round_max"],
             value["gameplay_ceiling_from_briefing_start_seconds"], value["speaker_max_seconds"],
-            "skip_to_vote" if value.get("unused_speaking_seconds") == "skip_to_vote" else "open_discussion",
+            value["unused_speaking_seconds"] if value["unused_speaking_seconds"] in UNUSED_SPEAKING_MODES
+            else "open_discussion",
         ))
     vote = _object(data.get("vote_policy"), "vote_policy")
     if type(vote.get("duration_seconds")) is not int or vote["duration_seconds"] != 60:

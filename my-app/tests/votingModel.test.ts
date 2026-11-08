@@ -1,6 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { aiOptionsNotice, ballotProgress, mergeLabels, optionDescription, tallyRows } from '../src/features/game/votingModel.ts'
+import {
+    aiOptionsNotice, ballotProgress, customOptionBadge, mergeLabels, optionDescription, ownCustomOption, proposalDraft, resolutionNotice, tallyRows,
+} from '../src/features/game/votingModel.ts'
 
 test('ballot progress stays unknown while the server hides the tally', () => {
     assert.equal(ballotProgress(null, 4), null)
@@ -31,4 +33,31 @@ test('aiOptionsNotice reports agent drafting and fallback states', () => {
     assert.match(aiOptionsNotice({ ballot_source: 'ai', options_source: 'ai' }, 'voting') ?? '', /AI agents/)
     assert.match(aiOptionsNotice({ ballot_source: 'ai', options_source: 'prepared_fallback' }, 'voting') ?? '', /prepared/)
     assert.equal(aiOptionsNotice(null, 'voting'), null)
+})
+
+test('custom ballot options are found, badged and prefilled for the proposer', () => {
+    const names = (id: string) => (id === 'm2' ? 'Ada' : undefined)
+    const options = [
+        { option_id: 'a', label: 'Preserve evidence', kind: 'prepared' },
+        { option_id: 'c1', label: 'Call the regulator', kind: 'custom', member_id: 'm2' },
+        { option_id: 'c2', label: 'Pay nothing', kind: 'custom', member_id: 'm1', description: 'Refuse the ransom outright.' },
+    ]
+    assert.equal(ownCustomOption(options, 'm1')?.option_id, 'c2')
+    assert.equal(ownCustomOption(options, 'm3'), null)
+    assert.equal(customOptionBadge(options[0], names, 'm1'), null)
+    assert.equal(customOptionBadge(options[1], names, 'm1'), 'Custom · proposed by Ada')
+    assert.equal(customOptionBadge(options[2], names, 'm1'), 'Your custom option')
+    assert.equal(customOptionBadge({ option_id: 'x', label: 'X', kind: 'custom', member_id: 'gone' }, names, 'm1'), 'Custom')
+    assert.equal(proposalDraft(options[2], [{ option_id: 'c2', text: 'Pay nothing, rebuild from backups' }]), 'Pay nothing, rebuild from backups')
+    assert.equal(proposalDraft(options[2], []), 'Refuse the ransom outright.')
+    assert.equal(proposalDraft(options[1], undefined), 'Call the regulator')
+    assert.equal(proposalDraft(null, []), '')
+})
+
+test('resolution notices cover mapping, failure and quiet phases', () => {
+    assert.equal(resolutionNotice(null, 'resolving'), null)
+    assert.equal(resolutionNotice({ status: 'pending', error: null }, 'voting'), null)
+    assert.deepEqual(resolutionNotice({ status: 'pending', error: null }, 'resolving'), { text: 'AI is mapping the winning custom option to an outcome…', tone: 'pending' })
+    assert.equal(resolutionNotice({ status: 'failed', error: 'timeout' }, 'resolution_failed')?.text, 'The AI could not map the winning custom option to an outcome: timeout')
+    assert.equal(resolutionNotice({ status: 'ready', error: null }, 'result'), null)
 })

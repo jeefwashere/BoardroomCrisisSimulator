@@ -8,7 +8,8 @@ import unittest
 from uuid import UUID, uuid4
 
 from backend.app.main import create_app
-from backend.app.custom_resolution import CustomResolver, fragments
+from backend.app.custom_resolution import CustomResolver, fragments, strict_outcome
+from backend.app import simulation as sim
 from backend.tests import test_gameplay as fixture
 
 
@@ -88,11 +89,24 @@ class CustomTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(changed['game']['proposals'][0]['option_id'], option)
         withdrawn = await self.action(0, speaking, 'proposal', text='')
         self.assertEqual(withdrawn['game']['proposals'], [])
-        await self.action(0, speaking, 'proposal', text='Final proposal')
+        final = await self.action(0, speaking, 'proposal', text='Final proposal')
+        option = final['game']['proposals'][0]['option_id']
         voting = await self.reach('voting')
-        await self.action(0, voting, 'proposal', expected=409, text='Too late')
+        edited = await self.action(0, voting, 'proposal', text='Edited while unvoted')
+        self.assertEqual([item['label'] for item in edited['game']['current_node']['options'] if item['kind'] == 'custom'],
+                         ['Edited while unvoted'])
+        await self.action(1, voting, 'vote', option_id=option)
+        for text in ('Too late', ''):
+            blocked = await self.clients[0].post(self.path + '/rounds/' + voting['game']['round_id'] + '/proposal',
+                                                 json=fixture.command(phase_id=voting['game']['phase_id'], text=text))
+            self.assertEqual(blocked.status_code, 409, blocked.text)
+            self.assertEqual(blocked.json()['detail']['code'], 'proposal_has_votes')
+        options = (await self.view(1))['game']['current_node']['options']
+        self.assertEqual([item['label'] for item in options if item['kind'] == 'custom'], ['Edited while unvoted'])
+        self.assertEqual((await self.view(1))['game']['self_vote'], option)
         contributions = (await self.clients[0].get(self.path + '/contributions')).json()
-        self.assertEqual([item['text'] for item in contributions], ['First proposal','Changed proposal','Final proposal'])
+        self.assertEqual([item['text'] for item in contributions],
+                         ['First proposal', 'Changed proposal', 'Final proposal', 'Edited while unvoted'])
 
     async def test_invalid_provider_is_explicit_and_only_one_host_retry_is_allowed(self):
         self.provider.fail = True
@@ -161,6 +175,115 @@ class CustomTests(unittest.IsolatedAsyncioTestCase):
             headers={'Content-Type':'application/json'})
         self.assertEqual(response.status_code, 422, response.text)
         self.assertEqual((await self.view())['phase'], 'speaking')
+
+
+class Vertex:
+    configured = True
+
+    def __init__(self, reply=None):
+        self.prompts, self.reply = [], reply if reply is not None else {'outcome': 'O2'}
+
+    async def json(self, prompt, timeout=30, max_output_tokens=2048):
+        self.prompts.append(prompt)
+        if isinstance(self.reply, Exception):
+            raise self.reply
+        return self.reply
+
+
+class VotingCustomTests(unittest.IsolatedAsyncioTestCase):
+    client, ready, view, reach, advance, action = CustomTests.client, CustomTests.ready, CustomTests.view, \
+        CustomTests.reach, CustomTests.advance, CustomTests.action
+    finish = CustomTests.finish
+    TEXT = 'Bring in the regional backup team and brief staff every hour.'
+
+    async def asyncSetUp(self):
+        await fixture.GameplayTests.asyncSetUp(self)
+        self.use(Vertex())
+
+    def use(self, vertex):
+        self.provider, self.vertex = Provider(), vertex
+        self.app = create_app(rooms=self.rooms, inference_provider=self.provider, vertex_provider=vertex)
+        self.resolver = self.app.state.resolver
+
+    async def voting_with_custom(self):
+        await self.ready()
+        voting = await self.reach('voting')
+        self.assertIn('proposal', voting['game']['allowed_actions'])
+        prepared = voting['game']['current_node']['options'][0]['option_id']
+        await self.action(1, voting, 'vote', option_id=prepared)
+        proposed = await self.action(2, voting, 'proposal', text=self.TEXT)
+        self.assertEqual(proposed['phase'], 'voting')
+        (custom,) = [item for item in proposed['game']['current_node']['options'] if item['kind'] == 'custom']
+        self.assertEqual((custom['label'], custom['member_id']), (self.TEXT, self.ids[2]))
+        return voting, prepared, custom['option_id']
+
+    async def test_custom_option_added_while_voting_wins_and_resolves_through_vertex(self):
+        voting, prepared, custom = await self.voting_with_custom()
+        other = await self.view(0)
+        self.assertIn(custom, [item['option_id'] for item in other['game']['current_node']['options']])
+        self.assertEqual(other['game']['phase_id'], voting['game']['phase_id'])
+        self.assertEqual((await self.view(1))['game']['self_vote'], prepared)
+        await self.action(0, voting, 'vote', option_id=custom)
+        await self.action(2, voting, 'vote', option_id=custom)
+        allowed = sim.current_node(self.rooms.rooms[self.room_id].phase.state).allowed_custom_outcome_ids
+        resolving = await self.advance(60)
+        self.assertEqual(resolving['phase'], 'resolving')
+        result = await self.finish()
+        self.assertEqual(result['phase'], 'result')
+        record = result['game']['last_result']
+        self.assertEqual((record['selected_option_id'], record['resolution_kind'], record['proposer_id']),
+                         (custom, 'custom', self.ids[2]))
+        self.assertEqual(record['outcome_id'], allowed[1])
+        self.assertEqual(record['vote_counts'][custom], 2)
+        self.assertEqual(record['vote_counts'][prepared], 1)
+        self.assertEqual(self.provider.prompts, [])
+        (prompt,) = self.vertex.prompts
+        self.assertIn(self.TEXT, prompt)
+        self.assertEqual(self.resolver.traces[UUID(record['ai_job_id'])]['source'], 'vertex')
+
+    async def test_invalid_vertex_output_falls_back_to_hosted_resolver(self):
+        for reply in ({'outcome': 'invented'}, {'outcome': 'O1', 'why': 'extra'}, RuntimeError('private detail')):
+            with self.subTest(reply=reply):
+                self.clients, self.ids = [], []
+                self.rooms = fixture.Rooms(fixture.ScenarioCatalog(), self.clock)
+                self.use(Vertex(reply))
+                voting, _, custom = await self.voting_with_custom()
+                for index in (0, 2):
+                    await self.action(index, voting, 'vote', option_id=custom)
+                await self.advance(60)
+                result = await self.finish()
+                self.assertEqual(result['game']['last_result']['outcome_id'], 'targeted_containment')
+                self.assertEqual(len(self.vertex.prompts), 1)
+                self.assertTrue(self.provider.prompts)
+                self.assertEqual(self.resolver.traces[UUID(result['game']['last_result']['ai_job_id'])]['source'], 'hosted')
+
+    async def test_one_option_per_member_and_non_electorate_rejected_while_voting(self):
+        voting, _, custom = await self.voting_with_custom()
+        edited = await self.action(2, voting, 'proposal', text='Revised: regional team plus hourly staff briefings.')
+        customs = [item for item in edited['game']['current_node']['options'] if item['kind'] == 'custom']
+        self.assertEqual([(item['option_id'], item['label']) for item in customs],
+                         [(custom, 'Revised: regional team plus hourly staff briefings.')])
+        withdrawn = await self.action(2, voting, 'proposal', text='')
+        self.assertFalse([item for item in withdrawn['game']['current_node']['options'] if item['kind'] == 'custom'])
+        self.assertEqual(withdrawn['game']['proposals'], [])
+        late = await self.client()
+        joined = await late.post('/api/rooms/join', json=fixture.command(
+            room_code='PLAY01', display_name='Late', role_id='finance'))
+        self.assertEqual(joined.status_code, 200, joined.text)
+        self.assertNotIn('proposal', joined.json()['game']['allowed_actions'])
+        rejected = await late.post(self.path + '/rounds/' + voting['game']['round_id'] + '/proposal',
+                                   json=fixture.command(phase_id=voting['game']['phase_id'], text='Let me add one'))
+        self.assertEqual(rejected.status_code, 403, rejected.text)
+        self.assertEqual(rejected.json()['detail']['code'], 'not_eligible')
+        self.assertFalse([item for item in (await self.view())['game']['current_node']['options'] if item['kind'] == 'custom'])
+
+    def test_strict_outcome_validation(self):
+        allowed = {'O1': 'targeted_containment', 'O2': 'broad_shutdown'}
+        self.assertEqual(strict_outcome({'outcome': 'O2'}, allowed), 'O2')
+        self.assertEqual(strict_outcome({'outcome': 'targeted_containment'}, allowed), 'O1')
+        for bad in ({'outcome': 'O3'}, {'outcome': 'O1', 'x': 1}, {'result': 'O1'}, {'outcome': 1}, ['O1'], 'O1'):
+            with self.assertRaises(ValueError):
+                strict_outcome(bad, allowed)
 
 
 if __name__ == '__main__': unittest.main()

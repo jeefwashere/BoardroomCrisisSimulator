@@ -46,11 +46,11 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     speech = narration_service if narration_service is not None else NarrationService.from_env()
     recordings = recordings_service if recordings_service is not None else Recordings.from_env(rooms)
     feedback = Feedback(rooms, recordings, inference_provider)
-    resolver = CustomResolver(rooms, inference_provider)
     documents = incident_documents if incident_documents is not None else (
         facilitation_service.documents if facilitation_service is not None else IncidentDocuments())
-    # Vertex Gemini (user approved Nov 7 2026) for advisory agents and agent drafted ballot options.
+    # Vertex Gemini (user approved Nov 7 2026) for advisory agents, agent drafted ballot options and custom resolution.
     vertex = vertex_provider if vertex_provider is not None else VertexText.from_env()
+    resolver = CustomResolver(rooms, inference_provider, vertex)
     facilitation = facilitation_service if facilitation_service is not None else Facilitation(
         rooms, inference_provider, speech, documents, vertex=vertex)
     ai_options = AiOptions(rooms, vertex, documents)

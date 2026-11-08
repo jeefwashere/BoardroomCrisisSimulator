@@ -68,3 +68,32 @@ export function aiOptionsNotice(game: { ballot_source?: string; options_source?:
     }
     return null
 }
+
+/** The caller's own custom ballot option this round, if they proposed one. */
+export function ownCustomOption(options: readonly ChoiceOption[], selfId: string): ChoiceOption | null {
+    return options.find((option) => option.kind === 'custom' && option.member_id === selfId) ?? null
+}
+
+/** Badge for custom ballot options, or null for prepared and AI options. */
+export function customOptionBadge(option: ChoiceOption, memberName: (memberId: string) => string | undefined, selfId: string): string | null {
+    if (option.kind !== 'custom') return null
+    if (option.member_id && option.member_id === selfId) return 'Your custom option'
+    const author = option.member_id ? memberName(option.member_id) : undefined
+    return author ? `Custom · proposed by ${author}` : 'Custom'
+}
+
+/** Text to prefill when editing an existing proposal. */
+export function proposalDraft(option: ChoiceOption | null, proposals: readonly { option_id: string; text: string }[] | null | undefined): string {
+    if (!option) return ''
+    return proposals?.find((proposal) => proposal.option_id === option.option_id)?.text ?? option.description ?? option.label
+}
+
+/** Status line for the AI mapping of a winning custom option onto an outcome, or null when nothing should be shown. */
+export function resolutionNotice(resolution: { status: string; error: string | null } | null | undefined, phase: string): { text: string; tone: 'pending' | 'failed' } | null {
+    if (!resolution || !['resolving', 'resolution_failed', 'decision', 'result'].includes(phase)) return null
+    if (resolution.status === 'pending') return { text: 'AI is mapping the winning custom option to an outcome…', tone: 'pending' }
+    if (resolution.status === 'failed' || resolution.status === 'unresolved' || phase === 'resolution_failed') {
+        return { text: `The AI could not map the winning custom option to an outcome${resolution.error ? `: ${resolution.error}` : '.'}`, tone: 'failed' }
+    }
+    return null
+}

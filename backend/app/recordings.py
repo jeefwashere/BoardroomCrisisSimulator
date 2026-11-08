@@ -113,7 +113,8 @@ class Recordings:
                 self.commands[(session, command_id)] = existing.recording_id
                 return existing.view()
             item = Recording(uuid4(), room_id, member.member_id, round_id, state.round_number, phase_id,
-                             now, min(phase.deadline, state.session_deadline or phase.deadline), gameplay.at(state, now))
+                             now, min(phase.deadline if math.isfinite(phase.deadline) else now + 60,
+                                      state.session_deadline or math.inf), gameplay.at(state, now))
             self.entries[item.recording_id] = item
             self.commands[(session, command_id)] = item.recording_id
             room.touch(session, now)

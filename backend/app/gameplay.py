@@ -4,6 +4,7 @@ from collections import Counter
 from dataclasses import replace
 from datetime import timedelta
 import hashlib
+import math
 from uuid import UUID, uuid4
 
 from . import simulation as sim
@@ -28,7 +29,9 @@ def deadline(game: sim.Game) -> float | None:
     phase = game.phase
     if isinstance(phase, (sim.BriefingPhase, sim.ResultPhase)):
         return phase.not_before
-    return getattr(phase, "deadline", None)
+    value = getattr(phase, "deadline", None)
+    # Untimed speaking turns carry an infinite deadline, which has no clock time.
+    return None if value is not None and math.isinf(value) else value
 
 
 def discussion_mode(game: sim.Game) -> str:
@@ -163,9 +166,9 @@ def select_speaker(game: sim.Game, instant: float, last_seen: dict[UUID, float],
     while index < len(order):
         member = order[index]
         if 0 <= instant - last_seen[member] < PRESENCE_WINDOW_SECONDS:
+            ends = math.inf if game.manual_turns else min(instant + slot, discussion_deadline)
             return replace(game, phase=sim.SpeakingPhase(
-                uuid4(), min(instant + slot, discussion_deadline), discussion_deadline,
-                order, index, slot, instant))
+                uuid4(), ends, discussion_deadline, order, index, slot, instant))
         skipped = sim.TurnRecord(member, game.round_id, uuid4(), "disconnected",
                                  at(game, instant), at(game, instant))
         game = replace(game, turns=game.turns + (skipped,))
@@ -179,6 +182,8 @@ def select_speaker(game: sim.Game, instant: float, last_seen: dict[UUID, float],
     if game.timing.unused_speaking == "skip_to_vote":
         # Voting opens as soon as the last turn ends; reconcile freezes the ballot immediately.
         return replace(game, phase=sim.DiscussionPhase(uuid4(), instant))
+    if math.isinf(discussion_deadline):
+        discussion_deadline = instant + game.timing.discussion_seconds
     return replace(game, phase=sim.DiscussionPhase(uuid4(), discussion_deadline))
 
 
@@ -198,10 +203,11 @@ def begin_speaking(game: sim.Game, instant: float, electorate: tuple[UUID, ...],
         # as all the turns together.
         order = electorate * rounds
         slot = game.timing.speaker_max_seconds
-        return select_speaker(game, instant, last_seen, order, 0, slot, instant + slot * len(order))
+        ends = math.inf if game.manual_turns else instant + slot * len(order)
+        return select_speaker(game, instant, last_seen, order, 0, slot, ends)
     slot = min(game.timing.speaker_max_seconds, game.timing.discussion_seconds // len(electorate))
-    return select_speaker(game, instant, last_seen, electorate, 0, slot,
-                          instant + game.timing.discussion_seconds)
+    ends = math.inf if game.manual_turns else instant + game.timing.discussion_seconds
+    return select_speaker(game, instant, last_seen, electorate, 0, slot, ends)
 
 
 def resolve(game: sim.Game, instant: float, option_id: str | None,
@@ -261,7 +267,7 @@ def reconcile(game: sim.Game, now: float, roster: tuple[tuple[UUID, int, float],
         reason = "elapsed"
         if isinstance(phase, sim.SpeakingPhase):
             disconnected_at = last_seen[phase.order[phase.index]] + PRESENCE_WINDOW_SECONDS
-            if disconnected_at < due:
+            if disconnected_at < (math.inf if due is None else due):
                 due, reason = max(phase.started_at, disconnected_at), "disconnected"
         if due is None or now < due:
             return game

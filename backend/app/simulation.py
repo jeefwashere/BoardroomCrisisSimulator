@@ -59,6 +59,8 @@ class SpeakingPhase:
     slot_seconds: int
     started_at: float
     kind: Literal["speaking"] = "speaking"
+    # The saved clip the speaker started for everyone to hear: (clip_id, start instant), or None.
+    clip: tuple[str, float] | None = None
 
 
 @dataclass(frozen=True)
@@ -259,6 +261,8 @@ class Game:
     # Private session progress per electorate member, in electorate order, from the private_session phase on.
     # Stages: "not_started", "coaching", "card", "assessment", "complete". Contents live in PrivateSessions.
     private_stages: tuple[tuple[UUID, str], ...] = ()
+    # Untimed speaking turns (three window demo): a turn lasts until the speaker finishes or the host skips.
+    manual_turns: bool = False
 
 
 @dataclass(frozen=True)

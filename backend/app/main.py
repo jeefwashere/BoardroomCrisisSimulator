@@ -14,7 +14,7 @@ from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyCookie, APIKeyHeader
 from fastapi.exceptions import RequestValidationError
 
-from .models import (LeaveRoom, LeaveView, ProposalCommand, RecordingView, AudioBody, BeginRecording, ReviewBody, CeoCommand, DecisionCommand, PhaseCommand, SkipCommand, VoteCommand,
+from .models import (LeaveRoom, LeaveView, ProposalCommand, RecordingView, AudioBody, BeginRecording, ReviewBody, CeoCommand, DecisionCommand, PhaseCommand, ClipCommand, SkipCommand, VoteCommand,
                      ContributionBody, ContributionView, CreateRoom, DeliveryBody, ErrorResponse,
                      EvaluationEvidenceView, JoinRoom, MediaView, RoomView, ScenarioView, StartRoom,
                      TabSessionBody, TabSessionView, ValidationErrorResponse, ConsultBody,
@@ -177,7 +177,8 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     @app.post("/api/rooms/{room_id}/start", response_model=RoomView, responses=errors)
     async def start_room(room_id: UUID, body: StartRoom, member_session: authenticated):
         spec = StartSpec(body.room_code, body.scenario_id, body.scenario_version, body.timing_profile,
-                         tuple((player.member_id, player.role_id) for player in body.players), body.ballot_source)
+                         tuple((player.member_id, player.role_id) for player in body.players), body.ballot_source,
+                         body.manual_turns)
         return await rooms.start(member_session, room_id, body.command_id, spec)
 
     @app.get("/api/rooms/{room_id}", response_model=RoomView, responses=errors)
@@ -191,6 +192,10 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     @app.post("/api/rooms/{room_id}/rounds/{round_id}/speaker/finish", response_model=RoomView, responses=errors)
     async def finish_speaking(room_id: UUID, round_id: UUID, body: PhaseCommand, member_session: authenticated):
         return await rooms.play(member_session, room_id, body.command_id, body.phase_id, round_id, "finish")
+
+    @app.post("/api/rooms/{room_id}/rounds/{round_id}/speaker/clip", response_model=RoomView, responses=errors)
+    async def speaker_clip(room_id: UUID, round_id: UUID, body: ClipCommand, member_session: authenticated):
+        return await rooms.play(member_session, room_id, body.command_id, body.phase_id, round_id, "speaker_clip", body.clip_id)
 
     @app.post("/api/rooms/{room_id}/rounds/{round_id}/briefing/finish", response_model=RoomView, responses=errors)
     async def finish_briefing(room_id: UUID, round_id: UUID, body: PhaseCommand, member_session: authenticated):

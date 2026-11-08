@@ -45,6 +45,8 @@ export type StartRoomInput = {
     players: { member_id: string; role_id: string }[]
     /** Optional: authored fixed choices or AI generated voting options. */
     ballot_source?: 'ai' | 'authored'
+    /** Untimed speaking turns (three window demo): each turn lasts until the speaker finishes or the host skips. */
+    manual_turns?: boolean
 }
 
 type ScenarioReference = {
@@ -103,6 +105,10 @@ export type RoomGame = {
     speaker_order?: string[]
     /** Index into `speaker_order` of the active speaking turn (Cedar loops the order, so members repeat). */
     speaker_index?: number | null
+    /** True when speaking turns are untimed (see `StartInput.manual_turns`). */
+    manual_turns?: boolean
+    /** The saved clip the active speaker started, so every window plays it from the same moment. */
+    speaker_clip?: { clip_id: string; started_at: string } | null
     self_vote?: string | null
     vote_counts?: Record<string, number> | null
     tied_option_ids?: string[]

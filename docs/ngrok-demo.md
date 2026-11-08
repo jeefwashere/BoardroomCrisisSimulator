@@ -50,7 +50,14 @@ The free ngrok plan shows a one time "You are about to visit" page; press Visit 
 3. **Morgan and Sam:** open the link and press **Join as Morgan** (or Sam). They wait in the lobby. They can also join from the home page with the room code, using the name Morgan or Sam.
 4. When both show **Joined**, Alex presses **Start the game**. Roles are assigned as in the other demos: Alex is CEO, Morgan takes IT recovery and Sam takes communications. T01 Cedar Bridge starts and every window moves to its game screen.
 
-Every window plays the agents' voice. If all three windows are on one computer, mute two of the tabs. The host's control bar keeps the host controls (Skip phase, End).
+### Turns in this mode
+
+* Speaking turns are untimed and the session has no overall time limit. A turn lasts until the speaker presses **Finish my turn**, or the host presses Skip speaker.
+* When the speaker presses **Auto response**, their saved clip plays in every window from the same moment, and its caption appears in everyone's live transcript. The turn does not pass when the clip ends.
+* A player who stops answering the room for 30 seconds (window closed, laptop asleep) still loses their turn, so the game cannot get stuck.
+* Live microphone audio is recorded for the speaker but is not streamed to the other windows; use Auto response for spoken turns that everyone should hear.
+
+Every window plays the agents' voice. Each window has a **Mute** button in its control bar, so you can hear one window at a time. The host's control bar keeps the host controls (Skip phase, End).
 
 ## Limits
 

@@ -57,6 +57,13 @@ export function clipForMember(assignments: readonly ClipAssignment[], memberId: 
 export type TurnView = { phase: string; phaseId: string; activeSpeakerId: string | null | undefined; selfId: string }
 
 /** Identity of a speaking turn: the phase instance and its speaker. Null outside a speaking turn. */
+/** How far into a shared clip a listening window should start, from the snapshot's server clock. */
+export function sharedClipOffsetSeconds(startedAt: string, serverTime: string | undefined): number {
+    const started = Date.parse(startedAt)
+    const now = serverTime ? Date.parse(serverTime) : NaN
+    return Number.isFinite(started) && Number.isFinite(now) ? Math.max(0, (now - started) / 1000) : 0
+}
+
 export function turnKey(view: TurnView): string | null {
     if (view.phase !== 'speaking' || !view.activeSpeakerId) return null
     return `${view.phaseId}:${view.activeSpeakerId}`

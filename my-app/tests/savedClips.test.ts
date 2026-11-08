@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { PARTICIPANT_CLIP_IDS, assignSavedClips, cardStatus, clipForMember, commitEligibility, isOwnTurn, turnKey } from '../src/features/game/savedClips.ts'
+import { PARTICIPANT_CLIP_IDS, assignSavedClips, cardStatus, clipForMember, commitEligibility, isOwnTurn, sharedClipOffsetSeconds, turnKey } from '../src/features/game/savedClips.ts'
 import type { TurnView } from '../src/features/game/savedClips.ts'
 import type { RecordedClip } from '../src/services/facilitation.ts'
 
@@ -71,4 +71,10 @@ test('a looped speaking order gives each turn its own dialogue clip, otherwise t
     assert.equal(clipForTurn({ eligible_member_ids: eligible, speaker_order: order, speaker_index: 3 }, catalog, 'a')?.clip_id, 't01_leadership_turn')
     assert.equal(clipForTurn({ eligible_member_ids: eligible, speaker_order: order, speaker_index: 0 }, full, 'z'), null)
     assert.equal(clipForTurn(null, full, 'a'), null)
+})
+
+test('a listening window joins a shared clip at the right moment', () => {
+    assert.equal(sharedClipOffsetSeconds('2026-11-08T09:00:00.000Z', '2026-11-08T09:00:02.500Z'), 2.5)
+    assert.equal(sharedClipOffsetSeconds('2026-11-08T09:00:03.000Z', '2026-11-08T09:00:02.000Z'), 0)
+    assert.equal(sharedClipOffsetSeconds('2026-11-08T09:00:00.000Z', undefined), 0)
 })

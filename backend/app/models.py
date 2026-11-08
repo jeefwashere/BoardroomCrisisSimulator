@@ -69,10 +69,17 @@ class StartRoom(BaseModel):
     timing_profile: str = Field(min_length=1, max_length=64)
     players: list[PlayerRole] = Field(min_length=1, max_length=ROOM_CAPACITY)
     ballot_source: Literal["ai", "authored"] = "ai"
+    # Untimed speaking turns and no session ceiling: each turn waits for the speaker to finish.
+    manual_turns: bool = False
 
 
 class View(BaseModel):
     model_config = ConfigDict(from_attributes=True)
+
+
+class SpeakerClipView(View):
+    clip_id: str
+    started_at: datetime
 
 
 class LeaveView(View):
@@ -281,6 +288,9 @@ class GameView(View):
     private_progress: list[PrivateProgressView] | None = None
     # Index of the active turn in speaker_order; members repeat when the discussion has several speaking rounds.
     speaker_index: int | None = None
+    manual_turns: bool = False
+    # The saved clip the active speaker started, so every window can play it in step.
+    speaker_clip: SpeakerClipView | None = None
 
 
 class RoomFields(View):
@@ -412,6 +422,10 @@ class DecisionCommand(PhaseCommand):
         if not value.strip():
             raise ValueError("Write a nonempty decision")
         return value
+
+
+class ClipCommand(PhaseCommand):
+    clip_id: str | None = Field(default=None, min_length=1, max_length=120, pattern=r"^[A-Za-z0-9_.:-]+$")
 
 
 class SkipCommand(PhaseCommand):

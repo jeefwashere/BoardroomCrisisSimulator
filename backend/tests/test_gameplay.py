@@ -43,7 +43,7 @@ class GameplayTests(unittest.IsolatedAsyncioTestCase):
         client.headers[SESSION_HEADER] = token
         return client
 
-    async def ready(self, count=3, code="PLAY01"):
+    async def ready(self, count=3, code="PLAY01", manual_turns=False):
         for number in range(count):
             client = await self.client()
             self.clients.append(client)
@@ -60,7 +60,7 @@ class GameplayTests(unittest.IsolatedAsyncioTestCase):
             room_code=code, scenario_id='maplecart_cybersecurity', scenario_version=3,
             timing_profile='standard_18', players=[
                 {'member_id': member, 'role_id': 'ceo' if index == 1 else 'security'}
-                for index, member in enumerate(self.ids)])
+                for index, member in enumerate(self.ids)], manual_turns=manual_turns)
         response = await self.clients[0].post(self.path + '/start', json=self.start_body)
         self.assertEqual(response.status_code, 200, response.text)
         return response.json()
@@ -104,6 +104,37 @@ class GameplayTests(unittest.IsolatedAsyncioTestCase):
         speaking = await self.action(0, briefing, 'briefing/finish')
         self.assertEqual(speaking['phase'], 'speaking')
         await self.action(0, briefing, 'briefing/finish', expected=409)
+
+    async def test_manual_turns_wait_for_the_speaker_and_share_the_clip(self):
+        briefing = await self.ready(manual_turns=True)
+        self.assertTrue(briefing['game']['manual_turns'])
+        self.assertIsNone(briefing['game']['session_deadline'])
+        speaking = (await self.action(0, briefing, 'briefing/finish'))
+        self.assertEqual(speaking['phase'], 'speaking')
+        self.assertIsNone(speaking['game']['phase_deadline'])
+        speaker = self.ids.index(speaking['game']['active_speaker_id'])
+        listener = (speaker + 1) % 3
+        # Long past the 30 second slot, the turn still belongs to the same speaker.
+        later = await self.advance(300)
+        self.assertEqual((later['phase'], later['game']['phase_id']), ('speaking', speaking['game']['phase_id']))
+        # Only the speaker can share a clip; every window then sees it with its start time.
+        await self.action(listener, later, 'speaker/clip', expected=403, clip_id='t01_dialogue_01')
+        shared = await self.action(speaker, later, 'speaker/clip', clip_id='t01_dialogue_01')
+        self.assertEqual(shared['game']['phase_id'], later['game']['phase_id'])
+        seen = (await self.view(listener))['game']['speaker_clip']
+        self.assertEqual(seen['clip_id'], 't01_dialogue_01')
+        cleared = await self.action(speaker, shared, 'speaker/clip', clip_id=None)
+        self.assertIsNone(cleared['game']['speaker_clip'])
+        finished = await self.action(speaker, cleared, 'speaker/finish')
+        self.assertNotEqual(finished['game']['phase_id'], later['game']['phase_id'])
+        self.assertIsNone(finished['game']['speaker_clip'])
+
+    async def test_timed_turns_still_advance_by_themselves(self):
+        speaking = await self.action(0, await self.ready(), 'briefing/finish')
+        self.assertIsNotNone(speaking['game']['phase_deadline'])
+        self.assertFalse(speaking['game']['manual_turns'])
+        later = await self.advance(60)
+        self.assertNotEqual(later['game']['phase_id'], speaking['game']['phase_id'])
 
     async def test_host_skips_each_timed_phase(self):
         view = await self.ready()

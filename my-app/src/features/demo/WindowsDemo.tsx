@@ -63,7 +63,7 @@ export default function WindowsDemo({ demo, view, onReset }: { demo: StoredDemo;
             if (!scenario || !timing) throw new Error('No scenario with a timing profile is available.')
             const latest = await roomApi.snapshot(room.room_id)
             const order = [seats.alex!, seats.morgan!, seats.sam!]
-            const body = { ...startInput(latest, scenario, timing, demoRoles(latest, order, scenario), crypto.randomUUID()), ballot_source: demo.ballot ?? 'authored' }
+            const body = { ...startInput(latest, scenario, timing, demoRoles(latest, order, scenario), crypto.randomUUID()), ballot_source: demo.ballot ?? 'authored', manual_turns: true }
             await roomApi.start(room.room_id, body)
             window.location.hash = `/room/${room.room_id}`
         } catch (failure) {

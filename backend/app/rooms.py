@@ -67,6 +67,7 @@ class StartSpec:
     timing_profile: str
     players: tuple[tuple[UUID, str], ...]
     ballot_source: str = "ai"
+    manual_turns: bool = False
 
 
 @dataclass(frozen=True)
@@ -167,6 +168,8 @@ class GameSnapshot:
     private_progress: tuple[dict, ...] | None = None
     # Index of the active turn in speaker_order (members repeat when the profile has several speaking rounds).
     speaker_index: int | None = None
+    manual_turns: bool = False
+    speaker_clip: dict | None = None
 
     @property
     def facts(self) -> dict:
@@ -394,6 +397,9 @@ class Room:
                 if isinstance(state.phase, sim.EndedPhase) else None,
                 state.timing.private_rounds, self.private_progress(state, assignments),
                 state.phase.index if isinstance(state.phase, sim.SpeakingPhase) else None,
+                manual_turns=state.manual_turns,
+                speaker_clip={"clip_id": state.phase.clip[0], "started_at": gameplay.at(state, state.phase.clip[1])}
+                if isinstance(state.phase, sim.SpeakingPhase) and state.phase.clip is not None else None,
             )
         members = []
         for seat in self.members.values():
@@ -491,6 +497,13 @@ class Rooms:
                     state = replace(state, phase=replace(phase, deadline=now))
                 else:
                     raise RoomError(409, "not_skippable", "This phase cannot be skipped")
+            elif action == "speaker_clip":
+                # The speaker started (or stopped) a saved clip; the other windows play it from the same moment.
+                if not isinstance(phase, sim.SpeakingPhase):
+                    raise RoomError(409, "not_speaking", "There is no active speaker")
+                if caller.member_id != phase.order[phase.index]:
+                    raise RoomError(403, "speaker_required", "Only the active speaker can share a clip")
+                state = replace(state, phase=replace(phase, clip=(value, now) if value else None))
             elif action in {"finish", "skip"}:
                 if not isinstance(phase, sim.SpeakingPhase):
                     raise RoomError(409, "not_speaking", "There is no active speaker")
@@ -788,6 +801,9 @@ class Rooms:
             if spec.ballot_source not in {"ai", "authored"}:
                 raise RoomError(422, "invalid_ballot_source", "Choose ai or authored ballot options")
             phase = replace(phase, state=replace(phase.state, ballot_source=spec.ballot_source))
+            if spec.manual_turns:
+                # No automatic timing: turns wait for the speaker and the session has no overall ceiling.
+                phase = replace(phase, state=replace(phase.state, manual_turns=True, session_deadline=None))
             candidate = replace(room, phase=phase, version=room.version + 1,
                                 members={**room.members, session: replace(caller, last_seen=now)})
             view = candidate.snapshot(session, now)

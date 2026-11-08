@@ -32,6 +32,7 @@ import RoomNameEditor from '../features/rooms/RoomNameEditor'
 import TranscriptPanel from '../features/game/TranscriptPanel'
 import ReportDialog from '../features/game/ReportDialog'
 import { useWindowMute } from '../features/game/windowMute'
+import { useSharedClip } from '../features/game/useSharedClip'
 import { useMeetingDocuments } from '../features/facilitation/useMeetingDocuments'
 import { useSpokenLine, useTranscript } from '../features/game/useTranscript'
 import { CAPTIONS_STORAGE_KEY, captionsPreference, speechDurationMs, turnEntry } from '../features/game/transcriptModel'
@@ -169,6 +170,14 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
         durationMs: speechDurationMs(botClip.duration_seconds, botClip.text),
     } : null
     useSpokenLine(transcript, botLine)
+    // Untimed turns: another player's saved clip plays here too, captioned in step like your own.
+    const shared = useSharedClip(room, auto.catalog)
+    const sharedMember = shared ? members.find((member) => member.id === shared.speakerId) : undefined
+    const sharedLine = shared && sharedMember ? {
+        entry: turnEntry(shared.turn, { name: sharedMember.name, role: sharedMember.roleLabel ?? playerRoleLabel(sharedMember.role) }, shared.clip.text, false),
+        durationMs: shared.remainingMs,
+    } : null
+    useSpokenLine(transcript, sharedLine)
     // The decision prompt arrives in the chat: open the drawer once when the decision phase starts.
     if (game && room.phase === 'individual_decision' && promptedPhase !== game.phase_id) { setPromptedPhase(game.phase_id); setChatOpen(true) }
     // Private sessions are one to one with the coach: close the room chat once when they begin.

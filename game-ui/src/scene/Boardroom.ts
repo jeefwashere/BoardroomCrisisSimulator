@@ -14,7 +14,6 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import { ao } from 'three/examples/jsm/tsl/display/GTAONode.js'
 import { bloom } from 'three/examples/jsm/tsl/display/BloomNode.js'
 import { SeatTags } from './SeatTags'
-import { ROLE_COLORS } from '../game/types'
 
 export const CHARACTER_IDS = [
   '01-coo', '02-cfo', '03-cto', '04-general-counsel', '05-head-of-hr',
@@ -298,8 +297,6 @@ export class Boardroom {
   backend = ''
   private disposed = false
   private tags: SeatTags
-  private speakerRing: THREE.Mesh
-  private highlightRing: THREE.Mesh
   private size = { width: 1, height: 1 }
   get aoEnabled() {
     return this.outputs !== null && this.post.outputNode === this.outputs.full
@@ -348,9 +345,6 @@ export class Boardroom {
 
     this.tags = new SeatTags(CHARACTER_IDS.length)
     container.appendChild(this.tags.element)
-    this.speakerRing = makeRing(0.95)
-    this.highlightRing = makeRing(0.7)
-    this.scene.add(this.speakerRing, this.highlightRing)
 
     this.camera.position.set(6.4, 3.0, 0.0)
     this.controls = new OrbitControls(this.camera, this.renderer.domElement)
@@ -914,10 +908,13 @@ export class Boardroom {
       avatar.lookAt(state?.seats[index]?.mood === 'typing' ? null : target, dt)
     }
 
-    // Ease the orbit target toward the active speaker, unless the player is steering the camera.
+    // Presenter camera: glide to a close shot of whoever is speaking and back to the overview
+    // when nobody is, unless the player is steering the camera themselves.
     if (performance.now() > this.userControlUntil) {
-      const goal = speakerHead ? new THREE.Vector3(-0.4, 0.95, 0).lerp(speakerHead, 0.35) : new THREE.Vector3(-0.4, 0.95, 0)
-      this.focus.lerp(goal, 1 - Math.exp(-dt * 2))
+      const shot = this.presenterShot(speaker, speakerHead)
+      const k = 1 - Math.exp(-dt * 2.2)
+      this.camera.position.lerp(shot.position, k)
+      this.focus.lerp(shot.target, k)
       this.controls.target.copy(this.focus)
     } else {
       // Keep panning inside the room so the view cannot drift away from the table.
@@ -927,14 +924,6 @@ export class Boardroom {
     }
     this.controls.update()
     if (this.frame % 6 === 0) this.drawScreen()
-
-    // Floor rings under the speaker and the player hovered in the HUD.
-    const pulse = 1 + Math.sin(performance.now() / 260) * 0.05
-    this.placeRing(this.speakerRing, speakerIndex, pulse)
-    if (speakerIndex >= 0) (this.speakerRing.material as THREE.MeshBasicMaterial).color.set(ROLE_COLORS[state!.seats[speakerIndex].roleId] ?? ROLE_COLORS.none)
-    const highlightIndex = state?.highlightId ? state.seats.findIndex((s) => s.memberId === state.highlightId) : -1
-    this.placeRing(this.highlightRing, highlightIndex === speakerIndex ? -1 : highlightIndex, 1)
-    if (highlightIndex >= 0) (this.highlightRing.material as THREE.MeshBasicMaterial).color.set(ROLE_COLORS[state!.seats[highlightIndex].roleId] ?? ROLE_COLORS.none)
 
     this.post.render()
     this.camera.updateMatrixWorld()
@@ -950,11 +939,21 @@ export class Boardroom {
     this.controls.target.copy(this.focus)
   }
 
-  private placeRing(ring: THREE.Mesh, index: number, scale: number) {
-    ring.visible = index >= 0
-    if (index < 0) return
-    ring.position.copy(this.chairPosition(this.avatars[index])).setY(0.012)
-    ring.scale.setScalar(scale)
+  /**
+   * Camera pose for the current moment. With a speaker: across the table in front of them,
+   * slightly to one side and above eye level, framing head and upper body (the speaker looks
+   * into this camera). Without one: the overview from the end of the room.
+   */
+  private presenterShot(speaker: Avatar | null, head: THREE.Vector3 | null) {
+    if (!speaker || !head) return { position: new THREE.Vector3(6.4, 3.0, 0), target: new THREE.Vector3(-0.4, 0.95, 0) }
+    const toward = new THREE.Vector3(0, 0, 1).applyAxisAngle(UP, speaker.seat.yaw)
+    const side = new THREE.Vector3(1, 0, 0).applyAxisAngle(UP, speaker.seat.yaw)
+    return {
+      // Opposite seats are 1 m apart and directly across, so a 0.5 m side offset puts the camera
+      // in the gap between two of them; the raised height clears the speaker's laptop lid.
+      position: head.clone().addScaledVector(toward, 2.0).addScaledVector(side, 0.5).add(new THREE.Vector3(0, 0.32, 0)),
+      target: head.clone().add(new THREE.Vector3(0, -0.22, 0)),
+    }
   }
 }
 
@@ -970,32 +969,6 @@ function tuneMaterial(material: THREE.MeshStandardMaterial, options: { roughness
   if (options.roughness !== undefined) material.roughness = options.roughness
   material.envMapIntensity = options.envMapIntensity ?? 1
   material.needsUpdate = true
-}
-
-/** A soft glowing ring on the floor, drawn from a white radial gradient and tinted per role. */
-function makeRing(strength: number) {
-  const canvas = document.createElement('canvas')
-  canvas.width = canvas.height = 256
-  const ctx = canvas.getContext('2d')!
-  const rgb = '255, 255, 255'
-  const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128)
-  gradient.addColorStop(0, `rgba(${rgb}, 0)`)
-  gradient.addColorStop(0.55, `rgba(${rgb}, ${0.12 * strength})`)
-  gradient.addColorStop(0.8, `rgba(${rgb}, ${0.85 * strength})`)
-  gradient.addColorStop(0.88, `rgba(${rgb}, ${0.35 * strength})`)
-  gradient.addColorStop(1, `rgba(${rgb}, 0)`)
-  ctx.fillStyle = gradient
-  ctx.fillRect(0, 0, 256, 256)
-  const texture = new THREE.CanvasTexture(canvas)
-  texture.colorSpace = THREE.SRGBColorSpace
-  const ring = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.25, 1.25),
-    new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false, toneMapped: false }),
-  )
-  ring.rotation.x = -Math.PI / 2
-  ring.renderOrder = 1
-  ring.visible = false
-  return ring
 }
 
 function wrap(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, width: number, lineHeight: number, maxLines: number) {

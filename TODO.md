@@ -140,6 +140,10 @@ The user assigned Jeff the pages before game start and Ricardo the backend. Keep
 
   Owner: Arjun's Claude agent. Status: `done`. Evidence: completion record 14. Scope from the user: add the Tripo models exported from the G03 concept images. Progress: 11 Tripo GLBs in the untracked `assets/props/advanced-2026-11-07/tripo-new/`; `game-ui/tools/process_props.py` processed 10 of them into `public/models/props/` (7.0 MB, 6k to 26k triangles each), replacing the older TRELLIS props; the pendant is skipped because the baked room has one, and no speakerphone was supplied (the holo hub takes its place). The room now places the table, chairs, laptops, per seat voting consoles, holo hub, framed display with the live screen on its glass, credenza with water service, clock and olive trees. Checks: `npx tsc -b` passed; Playwright on Chromium showed every prop placed, no console errors other than a missing favicon, and 60 frames per second on WebGPU. Known limits: no speakerphone model; the hologram above the holo hub is not built yet. Next action: none for this task.
 
+* [ ] G06 Presenter camera on the speaker, and no chair highlight rings.
+
+  Owner: Arjun's Claude agent. Status: `in_progress`. Scope from the user: remove the highlight under the chairs, and when someone speaks move the camera to present them speaking. Progress: the speaker and hover floor rings are removed from `game-ui/src/scene/Boardroom.ts`; `presenterShot()` places the camera across the table from the speaker (2 m out, 0.5 m to the side, above eye level) and eases back to the overview when nobody speaks; manual orbit still pauses it for 10 seconds. Checks: `npx tsc -b` passed; Playwright on Chromium showed close shots for the player and for a bot speaker and the overview during open discussion. Next action: commit, push and record completion.
+
 ## Integration and verification
 
 * [ ] I01 Publish the frontend API and snapshot contract with examples.

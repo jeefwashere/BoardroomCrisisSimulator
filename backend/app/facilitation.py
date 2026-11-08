@@ -80,7 +80,8 @@ EXPERT_RULES = ("Use only the supplied scenario, situation, study questions, rou
 EXPERT_CONTRIBUTIONS_BUDGET = 1400
 # The opening is spoken whole: at most 500 characters reach ElevenLabs (`spoken`), so it asks for about 75 words
 # (roughly 30 seconds of speech) instead of the 120 word adviser limit, whose last third was never heard.
-OPENING_RULES = RULES.replace("at most 120 words", "55 to 70 words, at most 450 characters")
+# Short on purpose: the briefing lasts as long as this is spoken (about 3 words a second), and the brief PDF has the detail.
+OPENING_RULES = RULES.replace("at most 120 words", "30 to 40 words, at most 260 characters, two or three short sentences")
 # Opening Vertex requests: a duplicate starts at each mark (seconds) still without an answer, each attempt may take
 # HEDGE_ATTEMPT_TIMEOUT, and the hosted model or offline text takes over after HEDGE_DEADLINE.
 HEDGE_STARTS = (0.0, 4.5, 9.0)

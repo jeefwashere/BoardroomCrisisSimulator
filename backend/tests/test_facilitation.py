@@ -84,7 +84,7 @@ class FacilitationTests(unittest.IsolatedAsyncioTestCase):
                 break
             await asyncio.sleep(0.01)
         self.assertEqual(len(self.provider.prompts), 1)
-        self.assertIn('55 to 70 words', self.provider.prompts[0])
+        self.assertIn('30 to 40 words', self.provider.prompts[0])
         body = (await self.clients[1].get(self.facilitation_path)).json()
         self.assertEqual(body['opening']['status'], 'ready')
         self.assertEqual(len(self.provider.prompts), 1)

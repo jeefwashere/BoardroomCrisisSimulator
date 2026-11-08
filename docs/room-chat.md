@@ -63,3 +63,11 @@ Validation:259 frontend tests, lint and build pass.20 recording and summary back
 
 
 The shared speech display work42cecbb was pushed and complete remote equality verified. The local frontend was rebuilt and owned services restarted at14:25UTC on November8. Current page, local and LAN API health, chat modules and the member scoped recording GET route pass readback. Restart resets rooms; refresh the demo and start a fresh room. Existing speech settings and shared ledgers are preserved.
+
+## Live transcript speech display
+
+Participant recordings also appear in Live transcript after transcription completes. The caption shows the member name, role and recognition review status. The owner sees their name marked as you; other members see the same shared speech text. Reviewing a recording replaces its existing caption, including when only the status changes. Stable recording IDs prevent repeated polling from adding duplicate lines. Empty and failed recognition do not create captions.
+
+This display reuses the existing authenticated recording list and its polling. It does not copy private answer drafts, individual decisions or private coaching into shared speech captions. Your decision and Room chat remain available.
+
+Validation:260 frontend tests, lint, build,31 prototype tests and the offline demo pass. A real browser MediaRecorder with generated audio and a deterministic fixture transcriber verified shared provisional captions, owner corrections and one updated line across three memberships. No paid recognition call or physical microphone check was made for this display change. See [browser evidence](evidence/live-transcript-speech-browser-20261108.json).

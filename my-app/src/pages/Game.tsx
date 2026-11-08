@@ -38,7 +38,7 @@ import { useWindowMute } from '../features/game/windowMute'
 import { useSharedClip } from '../features/game/useSharedClip'
 import { useMeetingDocuments } from '../features/facilitation/useMeetingDocuments'
 import { useSpokenLine, useTranscript } from '../features/game/useTranscript'
-import { CAPTIONS_STORAGE_KEY, captionsPreference, speechDurationMs, turnEntry } from '../features/game/transcriptModel'
+import { CAPTIONS_STORAGE_KEY, captionsPreference, recordingTranscriptEntry, speechDurationMs, turnEntry } from '../features/game/transcriptModel'
 import { clipForTurn } from '../features/game/savedClips'
 import { playerAvatarColor, playerRoleLabel } from '../features/game/playerPresentation'
 import Boardroom3D from '../features/boardroom3d/Boardroom3D'
@@ -166,6 +166,14 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const selfMember = members.find((member) => member.id === room.self_member_id)
     const selfName = selfMember?.name ?? 'You'
     const selfRole = selfMember ? selfMember.roleLabel ?? playerRoleLabel(selfMember.role) : 'Board member'
+    useEffect(() => {
+        for (const recording of chat.state.recordings) {
+            const member = room.members.find((item) => item.member_id === recording.member_id)
+            const role = scenario?.roles.find((item) => item.role_id === member?.role_id)?.name ?? 'Board member'
+            const entry = recordingTranscriptEntry(recording, { name: member?.display_name ?? 'Room member', role }, recording.member_id === room.self_member_id)
+            if (entry) transcript.upsert(entry)
+        }
+    }, [chat.state.recordings, room.members, room.self_member_id, scenario, transcript])
     // Speaking turns: your Auto response clip is captioned in step with its audio; it is never shown on the call.
     const selfLine = auto.playback && auto.turn ? { entry: turnEntry(auto.turn, { name: selfName, role: selfRole }, auto.caption, true), durationMs: auto.playback.durationMs } : null
     useSpokenLine(transcript, selfLine)

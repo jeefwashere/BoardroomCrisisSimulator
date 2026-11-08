@@ -1,0 +1,1570 @@
+{
+  "room": "94FB2F",
+  "method": "HTTP memberships and authenticated WebSocket with real-time paced recorded fictional human PCM. No browser or human listening check.",
+  "turns": [
+    {
+      "round": 2,
+      "sample": "r2_member_1_step_1",
+      "expected_caption": "I would keep coordination separate from technical diagnosis. I would ask the board to appoint an interim coordinator, then request another approved provider. I would not grant access just because someone is available. First I need to check authority, scope, and the information they require.",
+      "events": [
+        {
+          "type": "ready",
+          "model": "gemini-3.8-live",
+          "max_seconds": 120,
+          "agent_id": "9d675e347c934641b581cee55c9a2c75",
+          "revision": 1
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": "I note your "
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 7200
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 13440
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": "focus on addressing"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " the leadership gap"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 24960
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 7680
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " and maintaining"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 19200
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 21120
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 7680
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " limited service"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 19200
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 23040
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 5760
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " via an interim coordinator"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 19200
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 13440
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " and paper"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 19200
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 11520
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " appointment process."
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 13440
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " The IT"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 1920
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " specialist is now"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 19200
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 13440
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " unavailable. Your"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 26880
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 3840
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " original response"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " relied on their advice."
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 19200
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 11520
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " What would"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " you do next?"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 28800
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 3840
+        },
+        {
+          "type": "interrupted"
+        },
+        {
+          "type": "turn_complete"
+        },
+        {
+          "type": "transcript",
+          "role": "human",
+          "text": "I would keep coordination separate from technical diagnosis. I would ask the board to appoint an interim coordinator, then request another approved provider. I would not grant access just because someone is available. First, I need to check authority, scope, and the information they require."
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": "You're focusing on "
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 2
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 6720
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 13440
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": "separating coordination"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 19200
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 11520
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " from technical"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 1920
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " diagnosis."
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " The Service Outage"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " document confirms"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 23040
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 7680
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " the board may appoint"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 28800
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 1920
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " an interim incident"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 23040
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 19200
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 5760
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " coordinator and must"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 19200
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 11520
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " authorize the paper"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " appointment process."
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 30720
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 23040
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 9600
+        },
+        {
+          "type": "closed",
+          "reason": "stopped",
+          "transcript": [
+            {
+              "role": "agent",
+              "text": "I note your focus on addressing the leadership gap and maintaining limited service via an interim coordinator and paper appointment process. The IT specialist is now unavailable. Your original response relied on their advice. What would you do next?"
+            },
+            {
+              "role": "human",
+              "text": "I would keep coordination separate from technical diagnosis. I would ask the board to appoint an interim coordinator, then request another approved provider. I would not grant access just because someone is available. First, I need to check authority, scope, and the information they require."
+            },
+            {
+              "role": "agent",
+              "text": "You're focusing on separating coordination from technical diagnosis. The Service Outage document confirms the board may appoint an interim incident coordinator and must authorize the paper appointment process."
+            }
+          ]
+        }
+      ],
+      "input_seconds": 17.18,
+      "output_bytes": 1321442,
+      "nonzero_samples": 657373,
+      "first_audio_ms": 1146.72,
+      "first_input_transcript_ms": 21907.73,
+      "total_ms": 29778.6,
+      "output_seconds": 27.53,
+      "answer_not_auto_submitted": true,
+      "busy_released": true,
+      "provisional_history_saved": true,
+      "human_transcript": "I would keep coordination separate from technical diagnosis. I would ask the board to appoint an interim coordinator, then request another approved provider. I would not grant access just because someone is available. First, I need to check authority, scope, and the information they require.",
+      "normalized_words_match_fixture": true
+    },
+    {
+      "round": 3,
+      "sample": "r3_member_1_step_1",
+      "expected_caption": "First I would establish an authorized interim coordinator because the director is unavailable and no alternate is named. In parallel, I would seek approval for limited paper appointments and qualified technical checks. The outage is confirmed; disclosure and backup restorability are not. Coordination does not remove those uncertainties.",
+      "events": [
+        {
+          "type": "ready",
+          "model": "gemini-3.8-live",
+          "max_seconds": 120,
+          "agent_id": "9d675e347c934641b581cee55c9a2c75",
+          "revision": 5
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": "Your preparation is "
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 2
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 7680
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 7680
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 11520
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 5760
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": "complete. The scored"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 28800
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 3840
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " challenge begins"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " now. I will"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 23040
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 9600
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " ask you to explain"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " your response"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 19200
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 13440
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " and adapt to new information."
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " Explain"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 26880
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 5760
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " your response"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 23040
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 9600
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " as if briefing"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 26880
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 5760
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " the rest of the board."
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " What should happen"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 28800
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " first, and why?"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 28800
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 7680
+        },
+        {
+          "type": "interrupted"
+        },
+        {
+          "type": "turn_complete"
+        },
+        {
+          "type": "transcript",
+          "role": "human",
+          "text": "First, I would establish an authorized interim coordinator because the director is unavailable and no alternate is named. In parallel, I would seek approval for limited paper appointments and qualified technical checks. The outage is confirmed. Disclosure and backup restorability are not. Coordination does not remove those uncertainties."
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": "Thank you. I have "
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 2
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 9600
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 7680
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 11520
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 5760
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": "noted your response."
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 30720
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " Please"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 23040
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 9600
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " review your transcript"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 28800
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 1920
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " and submit your answer"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 19200
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " in the UI."
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 19200
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 9600
+        },
+        {
+          "type": "turn_complete"
+        },
+        {
+          "type": "closed",
+          "reason": "stopped",
+          "transcript": [
+            {
+              "role": "agent",
+              "text": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. Explain your response as if briefing the rest of the board. What should happen first, and why?"
+            },
+            {
+              "role": "human",
+              "text": "First, I would establish an authorized interim coordinator because the director is unavailable and no alternate is named. In parallel, I would seek approval for limited paper appointments and qualified technical checks. The outage is confirmed. Disclosure and backup restorability are not. Coordination does not remove those uncertainties."
+            },
+            {
+              "role": "agent",
+              "text": "Thank you. I have noted your response. Please review your transcript and submit your answer in the UI."
+            }
+          ]
+        }
+      ],
+      "input_seconds": 20.25,
+      "output_bytes": 954244,
+      "nonzero_samples": 473061,
+      "first_audio_ms": 1147.17,
+      "first_input_transcript_ms": 25099.16,
+      "total_ms": 32929.94,
+      "output_seconds": 19.88,
+      "answer_not_auto_submitted": true,
+      "busy_released": true,
+      "provisional_history_saved": true,
+      "human_transcript": "First, I would establish an authorized interim coordinator because the director is unavailable and no alternate is named. In parallel, I would seek approval for limited paper appointments and qualified technical checks. The outage is confirmed. Disclosure and backup restorability are not. Coordination does not remove those uncertainties.",
+      "normalized_words_match_fixture": true
+    }
+  ],
+  "setup_streams": [
+    {
+      "path": "briefing",
+      "events": [
+        {
+          "type": "status",
+          "message": "Reading the shared PDF with Gemma\u2026",
+          "id": "b2f9234e093a43da89e3254924125947",
+          "elapsed_ms": 5.1
+        },
+        {
+          "type": "sources",
+          "citations": [
+            {
+              "id": "T01:p1:c4",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 1,
+              "text": "T01-POLICY:POLICY-1\nOn contact, the simulated insurer requests an incident contact, an event timeline and a staff-training record.\n\nT01-POLICY:POLICY-2\nA missing training record means evidence is outstanding. This excerpt does not determine whether coverage is\nvalid or denied.",
+              "score": 0.719445
+            },
+            {
+              "id": "T01:p2:c8",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 2,
+              "text": "needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.\nReference scope: this is a preparation pack, not a fully implemented timed scenario. Unknowns remain unknown. Use page\nnumbers and clause IDs when citing evidence.",
+              "score": 0.717526
+            },
+            {
+              "id": "T01:p2:c6",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 2,
+              "text": "T01-STATUS:STATUS-1\nAppointment software is unavailable. IT has reported suspicious account activity.\n\nT01-STATUS:STATUS-2\nNo data disclosure has been confirmed.\n\nT01-STATUS:STATUS-3\nBackup copies are listed in the inventory, but their restorability has not been checked during this incident.",
+              "score": 0.708628
+            },
+            {
+              "id": "T01:p1:c3",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 1,
+              "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+              "score": 0.702404
+            },
+            {
+              "id": "T01:p1:c1",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 1,
+              "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 1\nREHEARSAL / PARTICIPANT REFERENCE / T01\nService outage and unavailable director\nFictional exercise material. Public participant information only. These documents support preparation; they do\nnot establish live application voting rules or reveal future events.\nCedar Bridge Community Services",
+              "score": 0.661898
+            }
+          ],
+          "elapsed_ms": 642.1
+        },
+        {
+          "type": "text",
+          "text": "Our",
+          "elapsed_ms": 2024.8
+        },
+        {
+          "type": "text",
+          "text": " appointment software is currently down, and IT has detected suspicious account activity. Our executive director is unavailable, leaving",
+          "elapsed_ms": 2076.3
+        },
+        {
+          "type": "text",
+          "text": " the incident coordinator role vacant. While no data disclosure is confirmed, backup restorability remains unverified. How should we coordinate",
+          "elapsed_ms": 2301.7
+        },
+        {
+          "type": "text",
+          "text": " our immediate response while we verify our systems?",
+          "elapsed_ms": 2434.0
+        },
+        {
+          "type": "text_done",
+          "limited": false,
+          "elapsed_ms": 2737.1
+        },
+        {
+          "type": "done",
+          "status": "done",
+          "timing": {
+            "retrieval_ms": 642.1,
+            "first_text_ms": 2024.8,
+            "text_complete_ms": 2737.1,
+            "total_ms": 2737.9
+          },
+          "speech_error": false,
+          "elapsed_ms": 2738.1
+        }
+      ]
+    },
+    {
+      "path": "briefing",
+      "events": [
+        {
+          "type": "status",
+          "message": "Reading the shared PDF with Gemma\u2026",
+          "id": "dbd2e0cf87d74179bb68996aa1d98f57",
+          "elapsed_ms": 0.2
+        },
+        {
+          "type": "sources",
+          "citations": [
+            {
+              "id": "T01:p2:c8",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 2,
+              "text": "needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.\nReference scope: this is a preparation pack, not a fully implemented timed scenario. Unknowns remain unknown. Use page\nnumbers and clause IDs when citing evidence.",
+              "score": 0.669069
+            },
+            {
+              "id": "T01:p1:c4",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 1,
+              "text": "T01-POLICY:POLICY-1\nOn contact, the simulated insurer requests an incident contact, an event timeline and a staff-training record.\n\nT01-POLICY:POLICY-2\nA missing training record means evidence is outstanding. This excerpt does not determine whether coverage is\nvalid or denied.",
+              "score": 0.665498
+            },
+            {
+              "id": "T01:p2:c6",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 2,
+              "text": "T01-STATUS:STATUS-1\nAppointment software is unavailable. IT has reported suspicious account activity.\n\nT01-STATUS:STATUS-2\nNo data disclosure has been confirmed.\n\nT01-STATUS:STATUS-3\nBackup copies are listed in the inventory, but their restorability has not been checked during this incident.",
+              "score": 0.655882
+            },
+            {
+              "id": "T01:p1:c3",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 1,
+              "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+              "score": 0.642119
+            },
+            {
+              "id": "T01:p2:c5",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 2,
+              "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 2\nT01 / OPENING INFORMATION\nFacts and exercise rules\nOpening update",
+              "score": 0.618713
+            }
+          ],
+          "elapsed_ms": 105.5
+        },
+        {
+          "type": "text",
+          "text": "The appointment",
+          "elapsed_ms": 2126.2
+        },
+        {
+          "type": "text",
+          "text": " software is unavailable, and suspicious account activity has been reported. No data disclosure has been confirmed yet",
+          "elapsed_ms": 2152.7
+        },
+        {
+          "type": "text",
+          "text": ". Backups are listed in our inventory, but their restorability is not verified for this incident. We must verify backup usability, recovery",
+          "elapsed_ms": 2256.9
+        },
+        {
+          "type": "text",
+          "text": " dependencies, and a restoration estimate before committing to any service-restoration time.",
+          "elapsed_ms": 2345.5
+        },
+        {
+          "type": "text_done",
+          "limited": false,
+          "elapsed_ms": 2407.4
+        },
+        {
+          "type": "done",
+          "status": "done",
+          "timing": {
+            "retrieval_ms": 105.5,
+            "first_text_ms": 2126.2,
+            "text_complete_ms": 2407.4,
+            "total_ms": 2407.4
+          },
+          "speech_error": false,
+          "elapsed_ms": 2407.6
+        }
+      ]
+    },
+    {
+      "path": "briefing",
+      "events": [
+        {
+          "type": "status",
+          "message": "Reading the shared PDF with Gemma\u2026",
+          "id": "2b2d5c4fb9a142afbec87ae12b9bb42e",
+          "elapsed_ms": 0.2
+        },
+        {
+          "type": "sources",
+          "citations": [
+            {
+              "id": "T01:p1:c3",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 1,
+              "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+              "score": 0.714453
+            },
+            {
+              "id": "T01:p2:c8",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 2,
+              "text": "needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.\nReference scope: this is a preparation pack, not a fully implemented timed scenario. Unknowns remain unknown. Use page\nnumbers and clause IDs when citing evidence.",
+              "score": 0.708771
+            },
+            {
+              "id": "T01:p1:c2",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 1,
+              "text": "T01-ORG\nFictional organization for software testing. The organization coordinates community appointments. Anika Rao is\nexecutive director. Morgan Ellis is service manager. The board exercise uses the common three-person voting\nrules. IT support is an external supplier and cannot authorize board spending.\nContinuity plan, version 1",
+              "score": 0.700072
+            },
+            {
+              "id": "T01:p1:c4",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 1,
+              "text": "T01-POLICY:POLICY-1\nOn contact, the simulated insurer requests an incident contact, an event timeline and a staff-training record.\n\nT01-POLICY:POLICY-2\nA missing training record means evidence is outstanding. This excerpt does not determine whether coverage is\nvalid or denied.",
+              "score": 0.687948
+            },
+            {
+              "id": "T01:p1:c1",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 1,
+              "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 1\nREHEARSAL / PARTICIPANT REFERENCE / T01\nService outage and unavailable director\nFictional exercise material. Public participant information only. These documents support preparation; they do\nnot establish live application voting rules or reveal future events.\nCedar Bridge Community Services",
+              "score": 0.682293
+            }
+          ],
+          "elapsed_ms": 79.2
+        },
+        {
+          "type": "text",
+          "text": "Staff need",
+          "elapsed_ms": 1392.6
+        },
+        {
+          "type": "text",
+          "text": " clear direction to support our service users. For essential appointments, a feasible fallback exists",
+          "elapsed_ms": 1534.0
+        },
+        {
+          "type": "text",
+          "text": " because the service manager can run an approved paper appointment process if the board authorizes activation. Critical continuity dependencies remain unverified, including backup usability and",
+          "elapsed_ms": 1773.1
+        },
+        {
+          "type": "text",
+          "text": " restoration estimates. Specific impacts on service users and staff capacity are currently unknown.",
+          "elapsed_ms": 1900.4
+        },
+        {
+          "type": "text_done",
+          "limited": false,
+          "elapsed_ms": 2036.0
+        },
+        {
+          "type": "done",
+          "status": "done",
+          "timing": {
+            "retrieval_ms": 79.1,
+            "first_text_ms": 1392.6,
+            "text_complete_ms": 2036.0,
+            "total_ms": 2036.0
+          },
+          "speech_error": false,
+          "elapsed_ms": 2036.2
+        }
+      ]
+    },
+    {
+      "path": "briefing",
+      "events": [
+        {
+          "type": "status",
+          "message": "Reading the shared PDF with Gemma\u2026",
+          "id": "9302cc5ea2494c28bba8a697b470f067",
+          "elapsed_ms": 0.2
+        },
+        {
+          "type": "sources",
+          "citations": [
+            {
+              "id": "T01:p2:c8",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 2,
+              "text": "needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.\nReference scope: this is a preparation pack, not a fully implemented timed scenario. Unknowns remain unknown. Use page\nnumbers and clause IDs when citing evidence.",
+              "score": 0.646964
+            },
+            {
+              "id": "T01:p1:c3",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 1,
+              "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+              "score": 0.643915
+            },
+            {
+              "id": "T01:p1:c2",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 1,
+              "text": "T01-ORG\nFictional organization for software testing. The organization coordinates community appointments. Anika Rao is\nexecutive director. Morgan Ellis is service manager. The board exercise uses the common three-person voting\nrules. IT support is an external supplier and cannot authorize board spending.\nContinuity plan, version 1",
+              "score": 0.607967
+            },
+            {
+              "id": "T01:p1:c1",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 1,
+              "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 1\nREHEARSAL / PARTICIPANT REFERENCE / T01\nService outage and unavailable director\nFictional exercise material. Public participant information only. These documents support preparation; they do\nnot establish live application voting rules or reveal future events.\nCedar Bridge Community Services",
+              "score": 0.607006
+            },
+            {
+              "id": "T01:p2:c5",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 2,
+              "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 2\nT01 / OPENING INFORMATION\nFacts and exercise rules\nOpening update",
+              "score": 0.601297
+            }
+          ],
+          "elapsed_ms": 86.4
+        },
+        {
+          "type": "text",
+          "text": "We",
+          "elapsed_ms": 1463.4
+        },
+        {
+          "type": "text",
+          "text": " must check governance rules before committing funds. IT support is an external supplier and cannot authorize board",
+          "elapsed_ms": 1558.6
+        },
+        {
+          "type": "text",
+          "text": " spending. The board must formally authorize activation if the service manager is to operate the paper process. Furthermore, the board can appoint",
+          "elapsed_ms": 1762.5
+        },
+        {
+          "type": "text",
+          "text": " an interim incident coordinator. We need to verify existing financial delegations, contract terms, and available resource costs.",
+          "elapsed_ms": 1924.4
+        },
+        {
+          "type": "text_done",
+          "limited": false,
+          "elapsed_ms": 2247.1
+        },
+        {
+          "type": "done",
+          "status": "done",
+          "timing": {
+            "retrieval_ms": 86.4,
+            "first_text_ms": 1463.4,
+            "text_complete_ms": 2247.1,
+            "total_ms": 2247.1
+          },
+          "speech_error": false,
+          "elapsed_ms": 2247.3
+        }
+      ]
+    },
+    {
+      "path": "exercise/agent",
+      "events": [
+        {
+          "type": "text",
+          "text": "I note your focus on addressing the leadership gap and maintaining limited service via an interim coordinator and paper appointment process. The IT specialist is now unavailable. Your original response relied on their advice. What would you do next?"
+        },
+        {
+          "type": "done",
+          "status": "done",
+          "agent": {
+            "agent_id": "9d675e347c934641b581cee55c9a2c75",
+            "revision": 1,
+            "phase": "coaching",
+            "total_ms": 1511.2
+          }
+        }
+      ]
+    },
+    {
+      "path": "exercise/agent",
+      "events": [
+        {
+          "type": "text",
+          "text": "I note your focus on separating coordination from technical investigation while establishing authority and scope before granting any provider access. Scenario update: an alternate provider can investigate, but needs an authorized contact. What authority, access and dependencies must you establish?"
+        },
+        {
+          "type": "done",
+          "status": "done",
+          "agent": {
+            "agent_id": "9d675e347c934641b581cee55c9a2c75",
+            "revision": 2,
+            "phase": "coaching",
+            "total_ms": 1910.2
+          }
+        }
+      ]
+    },
+    {
+      "path": "exercise/agent",
+      "events": [
+        {
+          "type": "text",
+          "text": "I note your focus on verifying documented delegations, provider capabilities, and required approvals before granting credentials or incurring costs. Review your proposed response: who should act, what is the fallback, who needs an update, and when would you review progress?"
+        },
+        {
+          "type": "done",
+          "status": "done",
+          "agent": {
+            "agent_id": "9d675e347c934641b581cee55c9a2c75",
+            "revision": 3,
+            "phase": "coaching",
+            "total_ms": 4042.2
+          }
+        }
+      ]
+    },
+    {
+      "path": "exercise/agent",
+      "events": [
+        {
+          "type": "text",
+          "text": "Your preparation card is ready. Review every field, correct missing details, and confirm your response. Preparation earns no points. The scored challenge begins only after you confirm."
+        },
+        {
+          "type": "done",
+          "status": "done",
+          "agent": {
+            "agent_id": "9d675e347c934641b581cee55c9a2c75",
+            "revision": 4,
+            "phase": "card_review",
+            "total_ms": 3271.4
+          }
+        }
+      ]
+    },
+    {
+      "path": "exercise/agent",
+      "events": [
+        {
+          "type": "text",
+          "text": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. Explain your response as if briefing the rest of the board. What should happen first, and why?"
+        },
+        {
+          "type": "done",
+          "status": "done",
+          "agent": {
+            "agent_id": "9d675e347c934641b581cee55c9a2c75",
+            "revision": 5,
+            "phase": "assessment",
+            "total_ms": 66.1
+          }
+        }
+      ]
+    }
+  ],
+  "checks": {
+    "two_live_sessions": true,
+    "no_automatic_submission": true,
+    "audio_input_transcribed": true,
+    "audible_pcm_received": true,
+    "locks_released": true,
+    "normalized_transcripts_match_fixtures": true
+  }
+}

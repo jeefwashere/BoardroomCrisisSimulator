@@ -1,6 +1,6 @@
 # Test all four rounds in one window
 
-Open [the local meeting](http://127.0.0.1:8788/roundtable) and create a new room. The attached report is **Service outage and unavailable director**, about fictional Cedar Bridge Community Services. [The AI workflow](FOUR_ROUND_WORKFLOW.md) explains Gemini, ElevenLabs and document memory; [the report](FOUR_ROUND_REPORT.md) records verification and limitations.
+Open [the local meeting](http://127.0.0.1:8789/roundtable) and create a new room. The attached report is **Service outage and unavailable director**, about fictional Cedar Bridge Community Services. [The AI workflow](FOUR_ROUND_WORKFLOW.md) explains Gemini, ElevenLabs and document memory; [the report](FOUR_ROUND_REPORT.md) records verification and limitations.
 
 ## Start and choose the test mode
 
@@ -32,6 +32,12 @@ Select Alex. Their private coach introduces the unavailable IT specialist and as
 5. Review all seven fields of the generated response card. Correct omissions, check its confirmation box, and choose **Confirm card and begin assessment**.
 
 Preparation earns no points. A recording never confirms its own text or card. To abandon a sample, use **Use my own answer**; the editable text stays available.
+
+## Optional Live microphone conversation in private rounds
+
+Use the updated server on port 8789. After the current question is ready and other audio stops, click **Start live conversation** and allow microphone access. Gemini speaks in its own native voice and listens live. You can interrupt, or use **I finished speaking** to flush your turn. Beta mode fixes the question, voice and scenario and uses temperature zero; wording can still vary.
+
+Click **Stop live microphone**, then **Use my spoken words as an answer draft**. Correct recognition errors and remove conversational questions before confirming and submitting. Live never submits or scores an answer itself. Start again for the next question. The examiner clarifies questions without coaching or scoring feedback. Each connection is limited to two minutes; reconnect explicitly if needed. Ordinary speech buttons still use Gemini plus ElevenLabs. Read [the Live workflow](LIVE_AUDIO_WORKFLOW.md) for privacy, costs and verification.
 
 ## Round 3: the same agent becomes examiner
 

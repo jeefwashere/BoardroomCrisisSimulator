@@ -83,6 +83,15 @@ class VertexTests(unittest.TestCase):
         with self.assertRaises(VertexError):
             restarted.reserve()
 
+    def test_live_reservation_preserves_existing_usage_and_cap(self):
+        budget= DollarBudget(Path(self.temp.name)/'live-budget.sqlite',150)
+        budget.reserve();budget.reserve(cents=100)
+        self.assertEqual(budget.status()['reserved_usd'],1.05)
+        with self.assertRaises(VertexError):budget.reserve(cents=100)
+        self.assertEqual(budget.status()['attempts'],2)
+        budget.authorize_unlimited();budget.reserve(cents=100)
+        self.assertEqual(budget.status()['reserved_usd'],2.05)
+
     def test_error_is_sanitized_reserved_and_never_retried(self):
         error = urllib.error.HTTPError(ENDPOINT, 403, 'test-secret', {}, io.BytesIO(b'test-secret'))
         opener = Opener(error=error)

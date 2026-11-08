@@ -118,6 +118,7 @@ bind('confirmScoreReview',()=>command('confirm_score_review'));
 bind('submitReunion',async()=>{await command('reunion_contribute',{text:$('reunionAnswer').value.trim(),...(fixtureDraft?.key===exerciseKey(state())?{recording_lease:fixtureDraft.id}:{})});$('reunionAnswer').value='';fixtureDraft=null;});
 bind('announceWinner',()=>command('announce_winner'));
 async function automaticFourRounds(){
+ if(typeof liveTask!=="undefined"&&liveTask)return;
  const s=state();if(!four(s)||busy||exerciseVoice||briefing||fixturePlayback||recording||turnPlayback)return;
  const p=s.private_session;let key=null,reunion=false;
  if(s.phase==='private'&&p&&!p.busy&&!p.error&&(p.phase==='grading'||p.phase==='card_review'&&!p.card||['coaching','assessment'].includes(p.phase)&&!p.prompt))key=exerciseKey(s);

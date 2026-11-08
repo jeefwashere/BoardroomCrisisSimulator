@@ -1,18 +1,20 @@
 # Rehearsal four round playtest
 
+Latest X21: [optional Gemini Live private audio](LIVE_AUDIO_WORKFLOW.md) adds explicit microphone conversation in Rounds 2 and 3, native Gemini speech and reviewed transcript drafts. Use port 8789 for the updated local test server. Ordinary speech remains Gemini plus ElevenLabs.
+
 Latest X20: Round 1 now uses [one guided answer box](SINGLE_ANSWER_UPDATE.md), including saved audio drafts and reviewed microphone transcription.
 
 
-Working branch: **`experiment/ai-voice-playtest`**. Open [the local meeting](http://127.0.0.1:8788/roundtable), load three test participants and start as CEO. The included PDF is **Service outage and unavailable director**, about fictional Cedar Bridge Community Services.
+Working branch: **`experiment/ai-voice-playtest`**. Open [the local meeting](http://127.0.0.1:8789/roundtable), load three test participants and start as CEO. The included PDF is **Service outage and unavailable director**, about fictional Cedar Bridge Community Services.
 
-Read [the test guide](ROUNDTABLE_GUIDE.md), [Gemini and ElevenLabs workflow](FOUR_ROUND_WORKFLOW.md), [confirmed design](FOUR_ROUND_DESIGN.md) and [verification report](FOUR_ROUND_REPORT.md). The [formatted guide](http://127.0.0.1:8788/roundtable-guide) is also saved as `/Users/arjunbehl/Downloads/Rehearsal_Roundtable_Guide.html`.
+Read [the test guide](ROUNDTABLE_GUIDE.md), [Gemini and ElevenLabs workflow](FOUR_ROUND_WORKFLOW.md), [confirmed design](FOUR_ROUND_DESIGN.md) and [verification report](FOUR_ROUND_REPORT.md). The [formatted guide](http://127.0.0.1:8789/roundtable-guide) is also saved as `/Users/arjunbehl/Downloads/Rehearsal_Roundtable_Guide.html`.
 
 1. Round 1 retains the 30 second live preparation opening, up to five minutes of discussion, three expert perspectives and each member's individual decision. No points.
 2. Round 2 gives each member a private crisis coach, three questions and a reviewed response card. No points.
 3. Round 3 keeps the same agent as examiner, with three stages worth 30, 40 and 30 points. Only submitted assessment answers earn points.
 4. Round 4 reunites the board, compares separate branches, supports evidence corrections and announces the highest final score after all reviews. No new points.
 
-Beta test mode fixes questions to match the saved fictional human answers. The CEO can switch it off before Start for adaptive Gemini questions. The app offers 36 current exercise recordings across the four rounds. Playback, draft review and submission are separate actions. All live speech uses Gemini text plus ElevenLabs; AI replies are not saved participant recordings.
+Beta test mode fixes questions to match the saved fictional human answers. The CEO can switch it off before Start for adaptive Gemini questions. The app offers 36 current exercise recordings across the four rounds. Playback, draft review and submission are separate actions. Ordinary agent speech uses Gemini text plus ElevenLabs; AI replies are not saved participant recordings.
 
 ## Run locally
 
@@ -21,7 +23,7 @@ Use the existing virtual environment and backend environment file:
 ```sh
 .venv/bin/python -m playtest \
   --env-file ../BoardroomCrisisSimulator/.env.local \
-  --unlimited-budget \
+  --port 8789 --unlimited-budget \
   --allow-name-rejoin
 ```
 

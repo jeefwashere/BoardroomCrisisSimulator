@@ -1,5 +1,7 @@
 # How the four round AI workflow works
 
+Latest X21: [optional Gemini Live private audio](LIVE_AUDIO_WORKFLOW.md) adds explicit microphone conversation in Rounds 2 and 3, native Gemini speech and reviewed transcript drafts. Use port 8789 for the updated local test server. Ordinary speech remains Gemini plus ElevenLabs.
+
 Current branch: `experiment/ai-voice-playtest`. New rooms use `flow: four_rounds`. The beta is a working three member exercise using **Service outage and unavailable director**, the public T01 Cedar Bridge Community Services report. Start with [the controls guide](ROUNDTABLE_GUIDE.md). [The design](FOUR_ROUND_DESIGN.md) preserves the full requested experience.
 
 ## From the PDF to the agent's voice

@@ -18,11 +18,12 @@ from .recordings import RecordingLibrary
 from .roundtable import Roundtable
 from .roundtable_api import RoundtableService
 from .pdf_memory import PDFMemory
+from .live_audio import LiveAudio
 
 STATIC = Path(__file__).parent / 'static'
 
 
-def create_app(engine=None, provider=None, speech=None, port=8788, recordings=None, roundtable=None, memory=None):
+def create_app(engine=None, provider=None, speech=None, port=8788, recordings=None, roundtable=None, memory=None, live_provider=None):
     engine = engine or Engine()
     agents = Agents(engine, provider)
     speech = speech or Speech(os.environ.get('ELEVENLABS_API_KEY'), '.local/ai-playtest', 0)
@@ -41,6 +42,7 @@ def create_app(engine=None, provider=None, speech=None, port=8788, recordings=No
     app = FastAPI(title='Rehearsal AI Playtest', lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
     app.state.engine, app.state.agents, app.state.speech = engine, agents, speech
     app.state.roundtable, app.state.roundtable_service = roundtable_service.engine, roundtable_service
+    app.state.live_audio = LiveAudio(roundtable_service, port, live_provider)
     app.include_router(roundtable_service.router)
 
     @app.middleware('http')
@@ -63,7 +65,7 @@ def create_app(engine=None, provider=None, speech=None, port=8788, recordings=No
         response.headers['Cache-Control'] = 'no-store'
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['Referrer-Policy'] = 'no-referrer'
-        response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; media-src 'self' blob:; object-src 'none'; frame-ancestors 'none'; base-uri 'none'"
+        response.headers['Content-Security-Policy'] = f"default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' ws://localhost:{port} ws://127.0.0.1:{port}; media-src 'self' blob:; object-src 'none'; frame-ancestors 'none'; base-uri 'none'"
         return response
 
     @app.exception_handler(RuleError)
@@ -120,6 +122,14 @@ def create_app(engine=None, provider=None, speech=None, port=8788, recordings=No
     @app.get('/preparation.js')
     def preparation_script():
         return FileResponse(STATIC / 'preparation.js')
+
+    @app.get('/live-audio.js')
+    def live_audio_js():
+        return FileResponse(STATIC / 'live-audio.js')
+
+    @app.get('/live-capture-worklet.js')
+    def live_capture_js():
+        return FileResponse(STATIC / 'live-capture-worklet.js')
 
     @app.get('/four-round-ui.js')
     def four_round_ui_js():

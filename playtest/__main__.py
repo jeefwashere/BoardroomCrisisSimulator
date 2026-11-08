@@ -24,6 +24,7 @@ def main():
                         help='Local testing only: reclaim inactive seats with room code and display name')
     args = parser.parse_args()
     load_env(args.env_file)
+    os.environ["REHEARSAL_ENV_FILE"] = str(Path(args.env_file).resolve())
     data = Path(args.data_dir)
     data.mkdir(parents=True, exist_ok=True)
     data.chmod(0o700)
@@ -40,7 +41,7 @@ def main():
     # This performs no download, Vertex generation or speech call.
     app.state.roundtable_service.warm_memory = True
     uvicorn.run(app, host='127.0.0.1', port=args.port,
-                workers=1, access_log=False)
+                workers=1, access_log=False, ws_max_size=65536)
 
 
 if __name__ == '__main__':

@@ -123,3 +123,8 @@ The current exercise has 36 human clips including 27 added for individual decisi
 ## Single guided decision answer
 
 X20 replaces the four visible Round 1 fields with one guided answer box. Preserve explicit confirmation, member draft isolation and reviewed recorded or microphone input. The existing API stores the complete response verbatim in action and labels other fields as not separately extracted; do not infer separate reasons or evidence. Keep existing live rooms intact when updating static UI files. Read [the update](playtest/SINGLE_ANSWER_UPDATE.md).
+
+
+## Optional Gemini Live private audio
+
+X21 authorizes explicit continuous microphone capture only while a user started Live conversation is active in private Rounds 2 or 3. Read [the Live workflow](playtest/LIVE_AUDIO_WORKFLOW.md). This supersedes the older no continuous capture guidance for that optional mode only. Native Gemini Live speech is the explicit exception to the ordinary Gemini plus ElevenLabs path. Preserve provisional transcript review, explicit answer submission, canonical beta questions, member isolation and server authority. Keys stay backend only. Temperature zero and fixed voice improve repeatability but do not guarantee identical output. Never mark generated PCM as audibly verified without a listening check.

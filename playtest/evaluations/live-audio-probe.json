@@ -1,0 +1,12 @@
+{
+  "configured": true,
+  "model": "gemini-3.8-live",
+  "temperature": 0,
+  "setup": "accepted",
+  "audio_bytes": 30,
+  "text": "Ready for the rehearsal.",
+  "first_audio_ms": 1326.6,
+  "error_type": "TimeoutError",
+  "message": "Live provider refused or could not establish the connection",
+  "total_ms": 31818.1
+}

@@ -64,17 +64,19 @@ nonpromotional $1.50/$7.50 per million input/output tokens this covers our
             db.execute('UPDATE settings SET cap=?', (new_cap_cents,))
         self.cap = new_cap_cents
 
-    def reserve(self):
+    def reserve(self, cents=5):
+        if type(cents) is not int or not 1 <= cents <= 1000:
+            raise ValueError("Invalid reservation amount")
         # Pricing was checked on 2026-11-07. Require a fresh review next year.
         if date.today() >= date(2027, 1, 1):
             raise VertexError('Vertex pricing requires review before further paid calls')
         with closing(sqlite3.connect(self.path)) as db, db:
             db.execute('BEGIN IMMEDIATE')
             used = db.execute('SELECT COALESCE(SUM(cents),0) FROM calls').fetchone()[0]
-            if not self.unlimited and used + 5 > self.cap:
+            if not self.unlimited and used + cents > self.cap:
                 raise VertexError('Vertex test spending cap reached')
             ident = uuid.uuid4().hex
-            db.execute('INSERT INTO calls VALUES (?,?,NULL)', (ident, 5))
+            db.execute('INSERT INTO calls VALUES (?,?,NULL)', (ident, cents))
         return ident
 
     def record(self, ident, usage):

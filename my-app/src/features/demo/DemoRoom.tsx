@@ -102,7 +102,23 @@ export default function DemoRoom() {
             setSnapshots(current)
             const failures = results.flatMap((result) => result.status === 'rejected' ? [result.reason as unknown] : [])
             const gone = failures.find((failure) => failure instanceof RoomApiError && GONE.has(failure.code))
-            setPollError(gone ? `${message(gone).replace(/\.?$/, '.')} The server may have restarted. Reset the demo to load new test participants.` : failures.length ? message(failures[0]) : '')
+            if (gone) {
+                // The server no longer knows this game (usually a backend restart: rooms live in memory).
+                // Drop the stale seats so the frames stop polling, and return to the setup screen.
+                const storage = tabStorage()
+                if (storage) {
+                    DEMO_SEATS.forEach(({ seat }) => clearSeatSession(storage, seat))
+                    try { storage.removeItem(DEMO_STORAGE_KEY) } catch { /* Nothing persisted. */ }
+                }
+                lastTargetRef.current = ''
+                setLoaded({ demo: null, clients: null })
+                setSnapshots(EMPTY)
+                setProgress([])
+                setPollError('')
+                setError('The previous test game is gone because the server restarted. Start a new one below.')
+                return
+            }
+            setPollError(failures.length ? message(failures[0]) : '')
             const target = followTarget(current)
             const room = current.find(Boolean)
             const key = target === null || !room?.game ? '' : `${room.game.phase_id}:${room.phase}:${target}`
@@ -110,7 +126,7 @@ export default function DemoRoom() {
                 lastTargetRef.current = key
                 if (followRef.current) setSelected(target!)
             }
-            if (!gone) timer = setTimeout(() => void tick(), 1000)
+            timer = setTimeout(() => void tick(), 1000)
         }
         void tick()
         return () => { controller.abort(); clearTimeout(timer) }

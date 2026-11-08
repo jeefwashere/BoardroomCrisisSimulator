@@ -74,17 +74,26 @@ export default function ControlBar({ caption, round, phaseId, deadline, serverTi
         const screen = bar.closest<HTMLElement>('.game-call-screen') ?? bar.ownerDocument.documentElement
         const property = '--control-bar-occupied-height'
         const previous = screen.style.getPropertyValue(property)
+        let measuredHeight = 0
+        let frame: number | null = null
         const measure = () => {
+            frame = null
             const height = Math.ceil(bar.getBoundingClientRect().height)
-            if (height > 0) screen.style.setProperty(property, `${height}px`)
+            if (height > 0 && height !== measuredHeight) {
+                measuredHeight = height
+                screen.style.setProperty(property, `${height}px`)
+            }
         }
+        // Defer observer driven style changes beyond its delivery cycle and merge repeated notifications.
+        const scheduleMeasure = () => { if (frame === null) frame = requestAnimationFrame(measure) }
         measure()
-        const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure)
+        const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(scheduleMeasure)
         observer?.observe(bar)
-        window.addEventListener('resize', measure)
+        window.addEventListener('resize', scheduleMeasure)
         return () => {
             observer?.disconnect()
-            window.removeEventListener('resize', measure)
+            window.removeEventListener('resize', scheduleMeasure)
+            if (frame !== null) cancelAnimationFrame(frame)
             if (previous) screen.style.setProperty(property, previous)
             else screen.style.removeProperty(property)
         }

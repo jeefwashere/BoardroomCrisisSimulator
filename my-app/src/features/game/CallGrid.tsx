@@ -5,7 +5,9 @@ import LobbyIcon from '../lobby/LobbyIcon'
 import { calculateCallLayout } from './callLayout'
 import { playerAvatarColor, playerInitials, playerRoleLabel } from './playerPresentation'
 
-function CallGrid({ members }: { members: LobbyMember[] }) {
+export type TileBadge = { label: string; tone: 'decide' | 'voted' | 'speaking' }
+
+function CallGrid({ members, badges = {} }: { members: LobbyMember[]; badges?: Record<string, TileBadge> }) {
     const viewportRef = useRef<HTMLDivElement>(null)
     const [size, setSize] = useState({ width: 0, height: 0 })
 
@@ -33,13 +35,14 @@ function CallGrid({ members }: { members: LobbyMember[] }) {
                     <motion.article
                         key={member.id}
                         role="listitem"
-                        className="game-player-card"
+                        className={`game-player-card${badges[member.id] ? ` game-player-card--${badges[member.id].tone}` : ''}`}
                         style={{ width: layout.tileWidth, height: layout.tileHeight }}
                         initial={{ opacity: 0, scale: 0.97 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.2, delay: Math.min(index * 0.015, 0.15) }}
-                        aria-label={`${member.name}, ${(member.roleLabel ?? playerRoleLabel(member.role))}${member.isHost ? ', host' : ''}`}
+                        aria-label={`${member.name}, ${(member.roleLabel ?? playerRoleLabel(member.role))}${member.isHost ? ', host' : ''}${badges[member.id] ? `, ${badges[member.id].label}` : ''}`}
                     >
+                        {badges[member.id] && <span className={`game-tile-badge game-tile-badge--${badges[member.id].tone}`} aria-hidden="true">{badges[member.id].label}</span>}
                         {member.isHost && <span className="game-host-indicator" title="Host"><LobbyIcon name="crown" /><span className="game-visually-hidden">Host</span></span>}
                         <div className="game-player-presence" aria-hidden="true">
                             <span className="game-player-avatar" style={{ width: avatarSize, height: avatarSize, fontSize: Math.max(13, avatarSize * 0.36), backgroundColor: playerAvatarColor(member.id) }}>

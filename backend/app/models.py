@@ -401,3 +401,10 @@ class MediaView(View):
 class DeliveryBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     event: Literal["started", "completed", "failed"]
+
+
+class ConsultBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    command_id: UUID
+    kind: Literal["facilitator", "it", "journalist"]
+    question: str = Field(min_length=1, max_length=1000)

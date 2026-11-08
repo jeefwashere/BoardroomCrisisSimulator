@@ -17,13 +17,14 @@ from fastapi.exceptions import RequestValidationError
 from .models import (LeaveRoom, LeaveView, ProposalCommand, RecordingView, AudioBody, BeginRecording, ReviewBody, CeoCommand, PhaseCommand, SkipCommand, VoteCommand,
                      ContributionBody, ContributionView, CreateRoom, DeliveryBody, ErrorResponse,
                      EvaluationEvidenceView, JoinRoom, MediaView, RoomView, ScenarioView, StartRoom,
-                     TabSessionBody, TabSessionView, ValidationErrorResponse)
+                     TabSessionBody, TabSessionView, ValidationErrorResponse, ConsultBody)
 from .narration import NarrationService
 from .rooms import RoomError, Rooms, StartSpec
 from .scenarios import ScenarioCatalog
 from .recordings import Recordings
 from .feedback import Feedback
 from .custom_resolution import CustomResolver
+from .facilitation import Facilitation, RecordedClips
 
 COOKIE_NAME = "boardroom_session"
 SESSION_HEADER = "X-Boardroom-Session"
@@ -33,7 +34,8 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
                clock: Callable[[], float] | None = None, rooms: Rooms | None = None,
                narration_service: NarrationService | None = None,
                recordings_service: Recordings | None = None,
-               inference_provider=None) -> FastAPI:
+               inference_provider=None, facilitation_service: Facilitation | None = None,
+               recorded_clips: RecordedClips | None = None) -> FastAPI:
     if rooms is None:
         rooms = Rooms(ScenarioCatalog(), clock if clock is not None else time.monotonic)
     catalog = rooms.catalog
@@ -41,6 +43,8 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     recordings = recordings_service if recordings_service is not None else Recordings.from_env(rooms)
     feedback = Feedback(rooms, recordings, inference_provider)
     resolver = CustomResolver(rooms, inference_provider)
+    facilitation = facilitation_service if facilitation_service is not None else Facilitation(rooms, inference_provider, speech)
+    clips = recorded_clips if recorded_clips is not None else RecordedClips()
     secure = secure_cookie if secure_cookie is not None else os.getenv("BOARDROOM_SECURE_COOKIE", "false").lower() == "true"
     origins = allowed_origins if allowed_origins is not None else [
         origin.strip() for origin in os.getenv(
@@ -68,6 +72,7 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
                 await task
             await resolver.close()
             await feedback.close()
+            await facilitation.close()
             await recordings.close()
 
     app = FastAPI(title="Boardroom gameplay and evidence API", version="0.4.0", lifespan=lifespan)
@@ -75,6 +80,7 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     app.state.resolver = resolver
     app.state.recordings = recordings
     app.state.speech = speech
+    app.state.facilitation = facilitation
     app.add_middleware(
         CORSMiddleware, allow_origins=origins, allow_credentials=True,
         allow_methods=["GET", "POST"], allow_headers=["Content-Type", SESSION_HEADER],
@@ -284,6 +290,30 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
         except (ValueError, KeyError) as error:
             raise RoomError(409, "invalid_delivery", "Playback is not ready or its event order is invalid") from error
         return {"status": "recorded"}
+
+    @app.get("/api/rooms/{room_id}/facilitation", responses=errors)
+    async def facilitation_view(room_id: UUID, member_session: authenticated):
+        return await facilitation.view(member_session, room_id)
+
+    @app.post("/api/rooms/{room_id}/facilitation/consult", responses=errors)
+    async def facilitation_consult(room_id: UUID, body: ConsultBody, member_session: authenticated):
+        return await facilitation.consult(member_session, room_id, body.command_id, body.kind, body.question)
+
+    @app.post("/api/rooms/{room_id}/facilitation/speech/{speech_id}/prepare", responses=errors)
+    async def facilitation_speech(room_id: UUID, speech_id: UUID, member_session: authenticated):
+        return await facilitation.prepare(member_session, room_id, speech_id)
+
+    @app.get("/api/rooms/{room_id}/facilitation/speech/{speech_id}/audio", response_class=Response, responses=errors)
+    async def facilitation_audio(room_id: UUID, speech_id: UUID, member_session: authenticated):
+        return Response(content=await facilitation.audio(member_session, room_id, speech_id), media_type="audio/mpeg")
+
+    @app.get("/api/recordings", summary="Public catalog of prerecorded fictional clips")
+    async def recorded_catalog():
+        return clips.listing()
+
+    @app.get("/api/recordings/{clip_id}/audio", response_class=Response, responses=errors)
+    async def recorded_audio(clip_id: str):
+        return Response(content=clips.audio(clip_id), media_type="audio/mpeg", headers={"Content-Disposition": "inline"})
 
     return app
 

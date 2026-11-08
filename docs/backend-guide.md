@@ -120,3 +120,7 @@ Teammates call the hosted HTTPS API from their application server. They do not n
 The `rehearsal/` package is a tested experiment. Its chair confirmation, 15 minute fixture, and SQLite history do not replace the confirmed voting, CEO, and FastAPI room requirements. Two models are enabled; seven other checkpoints are downloaded only. Speech adapters exist, but paid audio and a live microphone client have not been verified. Keep production backend and multiplayer integration tasks open until their own acceptance criteria pass.
 
 The latest selected unit uses narrative consequences without fixed gameplay meters and preserves all answers, typed chats, and reviewed speech transcripts for later AI evaluation. See [the narrative engine guide](narrative-engine.md) for implemented execution, evidence, and narration boundaries.
+
+## Facilitation
+
+`backend/app/facilitation.py` adds an advisory opening briefing, facilitator, IT and journalist consultations, optional budgeted speech through the existing `NarrationService`, and a public catalog of the prerecorded fictional clips in `playtest/recordings/`. Text comes from the hosted model when configured; otherwise a clearly labelled offline reply grounded in public documents is returned. These features cannot vote, pass a turn or change a result. See [facilitation-api.md](facilitation-api.md) for routes and response shapes; tests live in `backend/tests/test_facilitation.py`.

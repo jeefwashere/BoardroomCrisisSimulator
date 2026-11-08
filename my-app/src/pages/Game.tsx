@@ -1,21 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
-import { MotionConfig } from 'motion/react'
+import { AnimatePresence, MotionConfig, motion } from 'motion/react'
 import type { RoomSnapshot, Scenario } from '../services/rooms'
 import { roomMembers } from '../features/rooms/roomState'
 import { roomApi, errorMessage } from '../features/rooms/useRoom'
 import LobbyIcon from '../features/lobby/LobbyIcon'
 import CallGrid from '../features/game/CallGrid'
+import type { TileBadge } from '../features/game/CallGrid'
+import Countdown from '../features/game/Countdown'
+import OpeningBriefing from '../features/game/OpeningBriefing'
+import VotingPanel from '../features/game/VotingPanel'
 import TurnMedia from '../features/game/TurnMedia'
 import RoomNameEditor from '../features/rooms/RoomNameEditor'
-import { voteCountSummary } from '../features/game/votePresentation'
+import { FacilitationPanel } from '../features/facilitation'
 import './Game.css'
-
-function Countdown({ deadline, serverTime }: { deadline?: string | null; serverTime?: string }) {
-    const [elapsed, setElapsed] = useState(0)
-    useEffect(() => { const started = performance.now(); const timer = setInterval(() => setElapsed(performance.now() - started), 200); return () => clearInterval(timer) }, [deadline, serverTime])
-    const remaining = deadline && serverTime ? Math.max(0, Math.ceil((Date.parse(deadline) - Date.parse(serverTime) - elapsed) / 1000)) : null
-    return remaining === null ? null : <span className="game-countdown" aria-label="Seconds remaining">{remaining}s remaining</span>
-}
 
 function Game({ room, scenarios, error, rename, execute, onViewSummary }: { room: RoomSnapshot; scenarios: Scenario[]; error: string; rename: (name: string) => Promise<void>; execute: (path: string, fields?: Record<string, unknown>) => Promise<void>; onViewSummary: () => void }) {
     const [notice, setNotice] = useState('')
@@ -49,13 +46,24 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary }: { room
         } catch (failure) { setNotice(errorMessage(failure)) }
     }
     const speaker = room.members.find((member) => member.member_id === game.active_speaker_id)
+    // The AI opening owns the stage before the call splits into the participant grid.
+    const opening = room.phase === 'briefing' || (room.phase === 'reading' && game.round_number === 1)
+    // Only the caller's own ballot is known, so ballot badges are limited to the self tile.
+    const badges: Record<string, TileBadge> = {}
+    if (speaker && room.phase === 'speaking') badges[speaker.member_id] = { label: 'Speaking', tone: 'speaking' }
+    if (room.phase === 'voting' && actions.includes('vote')) badges[room.self_member_id] = game.self_vote ? { label: 'Voted', tone: 'voted' } : { label: 'Decide now', tone: 'decide' }
+    if (room.phase === 'tie_break' && actions.includes('tie_decision')) badges[room.self_member_id] = { label: 'Decide now', tone: 'decide' }
     return <MotionConfig reducedMotion="user"><div className="game-call-screen game-live-screen">
         <header className="game-call-header">
             <div className="room-personal-controls"><button className="game-back-button" type="button" onClick={() => { window.location.hash = '/' }}><LobbyIcon name="back" /><span>Leave room</span></button><RoomNameEditor room={room} rename={rename} /></div>
             <div className="game-call-heading"><h1>Boardroom</h1><span>{room.phase.replaceAll('_', ' ')} · {room.room_code}</span></div>
             <span className="game-player-count">{room.members.length} / {room.capacity}</span>
         </header>
-        <main className="game-call-main game-live-main"><CallGrid members={roomMembers(room, {}, scenario)} />
+        <main className={`game-call-main game-live-main${opening ? ' game-live-main--opening' : ''}`}>
+            <AnimatePresence mode="wait" initial={false}>
+                {opening ? <OpeningBriefing key="opening" room={room} />
+                    : <motion.div key="call" className="game-stage-call" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4, ease: 'easeOut' }}><CallGrid members={roomMembers(room, {}, scenario)} badges={badges} /></motion.div>}
+            </AnimatePresence>
             <section className="game-briefing" aria-labelledby="briefing-title">
                 <h2 id="briefing-title">{game.scenario.title}</h2>
                 <p className="game-phase" role="status">{room.phase.replaceAll('_', ' ')} · Round {game.round_number} <Countdown key={game.phase_id + (game.server_time ?? '')} deadline={game.phase_deadline} serverTime={game.server_time} /></p>
@@ -68,8 +76,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary }: { room
                     {actions.includes('skip_speaker') && <button disabled={pending} onClick={() => { const reason = window.prompt('Reason for skipping this speaker'); if (reason?.trim()) void act(rounds + 'speaker/skip', { reason }) }}>Skip speaker</button>}
                     {actions.includes('reassign_ceo') && <><label>Replacement CEO<select value={ceo} onChange={(event) => setCeo(event.target.value)}><option value="">Choose a participant</option>{room.members.filter((member) => member.connected && member.eligible_current_round && member.role_id !== 'ceo').map((member) => <option key={member.member_id} value={member.member_id}>{member.display_name}</option>)}</select></label><button disabled={pending || !ceo} onClick={() => void act(rounds + 'ceo-reassignment', { member_id: ceo })}>Assign CEO</button></>}
                 </div>
-                {(actions.includes('vote') || actions.includes('tie_decision')) && <fieldset disabled={pending}><legend>{room.phase === 'tie_break' ? 'Choose among the tied leaders' : 'Choose your vote. You can change it until the deadline.'}</legend>{game.current_node?.options.filter((option) => room.phase !== 'tie_break' || game.tied_option_ids?.includes(option.option_id)).map((option) => <button key={option.option_id} aria-pressed={game.self_vote === option.option_id} onClick={() => void act(rounds + (room.phase === 'tie_break' ? 'tie-decision' : 'vote'), { option_id: option.option_id })}>{option.label}{game.self_vote === option.option_id ? ' (your vote)' : ''}</button>)}</fieldset>}
-                {game.vote_counts && Object.keys(game.vote_counts).length > 0 && <p>{voteCountSummary(game.vote_counts, game.current_node?.options)}</p>}
+                <VotingPanel key={game.round_id} room={room} pending={pending} act={act} />
                 {['speaking', 'discussion'].includes(room.phase) && self?.eligible_current_round && <form onSubmit={(event) => { event.preventDefault(); void act('contributions', { kind: 'answer', source: 'typed', text }).then((ok) => { if (ok) setText('') }) }}><label>Your answer<textarea required maxLength={4000} value={text} onChange={(event) => setText(event.target.value)} /></label><button disabled={pending || !text.trim()}>Save answer</button></form>}
                 {actions.includes('proposal') && <form onSubmit={(event) => { event.preventDefault(); void act(rounds + 'proposal', { text: proposal }) }}><label>Custom action<textarea required value={proposal} onChange={(event) => setProposal(event.target.value)} /></label><button disabled={pending || !proposal.trim()}>Save custom action</button>{game.proposals?.some((item) => item.member_id === room.self_member_id) && <button type="button" disabled={pending} onClick={() => void act(rounds + 'proposal', { text: '' })}>Withdraw action</button>}</form>}
                 {game.resolution && <p role="status">Custom action evaluation: {game.resolution.status}. {game.resolution.error}</p>}
@@ -80,6 +87,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary }: { room
                 <details open={room.phase === 'briefing'}><summary>Public scenario documents</summary>{game.public_documents.map((document) => <article key={document.id} className="game-public-document"><h3>{document.id.replaceAll('_', ' ')}</h3><div>{document.text}</div></article>)}</details>
                 {actions.includes('end') && <button className="game-end" disabled={pending} onClick={() => { if (window.confirm('End this meeting and preserve its records?')) void act('end') }}>End meeting</button>}
             </section>
+            <div className="game-facilitation-slot"><FacilitationPanel room={room} /></div>
         </main><footer className="game-call-footer"><p>Scenario {game.scenario.scenario_id}, version {game.scenario.version}. Room version {room.room_version}.</p><button className="game-summary-button" type="button" onClick={onViewSummary}>Summary demo preview <span aria-hidden="true">↗</span></button></footer>
     </div></MotionConfig>
 }

@@ -8,13 +8,14 @@ import time
 import uuid
 
 from .engine import RuleError, SCENARIO, bounded_text, require
+from .roundtable_scenario import DECISION
 
 
 class Roundtable:
     """An ephemeral meeting whose membership tokens never enter public snapshots."""
 
-    DURATIONS = {'preparation': 30, 'discussion': 300}
-    NEXT = {'preparation': 'discussion', 'discussion': 'decision'}
+    DURATIONS = {'preparation': 30, 'discussion': 300, 'consultation': 60}
+    NEXT = {'preparation': 'discussion', 'discussion': 'consultation', 'consultation': 'decision'}
     RECORDING_POLICY = ('Written contributions and summaries only. Microphone transcription '
                         'requires an explicit recording action and participant review before submission.')
 
@@ -64,6 +65,21 @@ class Roundtable:
             room['speaker'], room['turn_index'] = None, None
         room['deadline'] = at + self.DURATIONS[phase] if phase in self.DURATIONS else None
         self.event(room, 'phase', at=at, phase=phase, deadline=room['deadline'], reason=reason)
+        if phase == 'decision' and self._fixed_scenario(room):
+            self._open_fixed_decision(room, at)
+
+    @staticmethod
+    def _fixed_scenario(room):
+        return 'T01' if [document['id'] for document in room['documents']] == ['T01'] else None
+
+    def _open_fixed_decision(self, room, at):
+        if any(item['id'] == DECISION['id'] for item in room['decisions']):
+            return
+        decision = {**deepcopy(DECISION), 'mode': 'fixed_choice', 'proposal': '', 'option_id': None,
+                    'source_ids': [entry['id'] for entry in room['transcript']], 'document_ids': ['T01'],
+                    'member': None, 'at': at, 'status': 'pending', 'votes': {}}
+        room['decisions'].append(decision)
+        self.event(room, 'fixed_decision_opened', at=at, decision_id=decision['id'], document_ids=['T01'])
 
     def cancel_audio(self, room, reason='cancelled'):
         """Trusted service helper; callers may hold the reentrant engine lock."""
@@ -222,7 +238,7 @@ class Roundtable:
                 room['members'][target].update(role=role, ready=False)
             self.event(room, 'roles_assigned', member=mid, roles=deepcopy(roles))
             return
-        if action in {'start', 'finish_discussion', 'commit_decision', 'cancel_decision', 'end'}:
+        if action in {'start', 'finish_discussion', 'skip_consultation', 'commit_decision', 'cancel_decision', 'end'}:
             require(mid == self._ceo(room), 'Only the CEO can perform this action', 403)
         if action == 'start':
             blockers = self._start_blockers(room)
@@ -233,7 +249,11 @@ class Roundtable:
         elif action == 'finish_discussion':
             require(phase == 'discussion', 'Discussion is not active')
             self.event(room, 'discussion_finished', member=mid)
-            self._transition(room, 'decision', reason='ceo_finish')
+            self._transition(room, 'consultation', reason='ceo_finish')
+        elif action == 'skip_consultation':
+            require(phase == 'consultation', 'Consultation is not active')
+            self.event(room, 'consultation_skipped', member=mid)
+            self._transition(room, 'decision', reason='ceo_skip')
         elif action == 'next_turn':
             require(phase == 'discussion', 'Discussion is not active')
             require(mid in (room['speaker'], self._ceo(room)),
@@ -260,7 +280,8 @@ class Roundtable:
                                source=source, turn_number=room['turn_number'], **details)
             room['transcript'].append(deepcopy(entry))
         elif action == 'propose_decision':
-            require(phase == 'decision', 'Decisions follow the discussion round')
+            require(phase == 'decision', 'Decisions follow the consultation minute')
+            require(not self._fixed_scenario(room), 'Use the authored choices for this T01 meeting')
             problem = bounded_text(data.get('problem'), 1000)
             proposal = bounded_text(data.get('proposal'), 2000)
             sources = data.get('source_ids')
@@ -269,28 +290,42 @@ class Roundtable:
                     all(isinstance(source, str) and source in known for source in sources),
                     'Link the decision to contributions in this meeting', 422)
             require(len(room['decisions']) < 100, 'Decision limit reached', 429)
-            decision = {'id': uuid.uuid4().hex, 'problem': problem, 'proposal': proposal,
+            decision = {'id': uuid.uuid4().hex, 'mode': 'approval', 'problem': problem, 'proposal': proposal,
                         'source_ids': list(dict.fromkeys(sources)), 'member': mid, 'at': self.clock(),
                         'status': 'pending', 'votes': {}}
             room['decisions'].append(decision)
             self.event(room, 'decision_proposed', member=mid, decision_id=decision['id'],
                        problem=problem, proposal=proposal, source_ids=decision['source_ids'])
-        elif action in {'vote_decision', 'commit_decision', 'cancel_decision'}:
+        elif action in {'vote_decision', 'vote_option', 'commit_decision', 'cancel_decision'}:
             require(phase == 'decision', 'Decision voting is not active')
             decision = next((item for item in room['decisions'] if item['id'] == data.get('decision_id')), None)
             require(decision is not None, 'Decision not found in this room', 404)
             require(decision['status'] == 'pending', 'This decision is already final')
-            if action == 'vote_decision':
+            fixed = decision.get('mode') == 'fixed_choice'
+            if action == 'vote_option':
+                require(fixed, 'Use approve, reject or abstain for this proposal', 422)
+                require(mid in room['electorate'], 'Only eligible members can vote', 403)
+                option = data.get('option_id')
+                require(isinstance(option, str) and option in {item['id'] for item in DECISION['options']},
+                        'Choose an authored option', 422)
+                decision['votes'][mid] = option
+                self.event(room, 'ballot_received', member=mid, decision_id=decision['id'])
+            elif action == 'vote_decision':
+                require(not fixed, 'Choose an authored option for this decision', 422)
                 require(mid in room['electorate'], 'Only eligible members can vote', 403)
                 choice = data.get('choice')
                 require(isinstance(choice, str) and choice in {'approve', 'reject', 'abstain'}, 'Invalid vote', 422)
                 decision['votes'][mid] = choice
                 self.event(room, 'ballot_received', member=mid, decision_id=decision['id'])
             elif action == 'cancel_decision':
+                require(not fixed, 'The authored ballot must be resolved by participant votes')
                 reason = bounded_text(data.get('reason'), 1000)
                 self._finalize(room, decision, mid, 'cancelled', reason=reason)
             else:
                 require(set(decision['votes']) == set(room['electorate']), 'Every participant must vote before commitment')
+                if fixed:
+                    self._commit_fixed(room, decision, mid, data)
+                    return
                 tally = self._tally(decision)
                 tied = tally['approve'] == tally['reject'] and tally['approve'] > 0
                 tie_break = data.get('tie_break')
@@ -306,16 +341,37 @@ class Roundtable:
         elif action == 'end':
             require(phase == 'decision', 'End the meeting after its decision phase')
             require(all(item['status'] != 'pending' for item in room['decisions']),
-                    'Resolve or explicitly cancel every pending decision first')
+                    'Resolve every pending decision before ending the meeting')
             self.event(room, 'ended', member=mid)
             self._transition(room, 'ended')
         else:
             raise RuleError('Unknown roundtable command', 422)
 
+    def _commit_fixed(self, room, decision, mid, data):
+        options = {option['id']: option for option in DECISION['options']}
+        require(all(vote in options for vote in decision['votes'].values()), 'Invalid stored option ballot')
+        tally = self._tally(decision)
+        most = max(tally.values(), default=0)
+        require(most > 0, 'Participants must explicitly select an option')
+        leaders = [option for option, count in tally.items() if count == most]
+        selected = data.get('option_id')
+        if len(leaders) > 1:
+            require(isinstance(selected, str) and selected in leaders,
+                    'The CEO must choose one of the tied leading options', 422)
+            reason = 'ceo_tie_break'
+        else:
+            require(selected is None or selected == leaders[0],
+                    'The CEO cannot override the winning option', 422)
+            selected, reason = leaders[0], 'plurality'
+        require(data.get('tie_break') is None, 'Resolve a choice tie using option_id', 422)
+        decision.update(option_id=selected, proposal=options[selected]['proposal'])
+        self._finalize(room, decision, mid, 'approved', reason=reason)
+
     @staticmethod
     def _tally(decision):
-        return {choice: list(decision['votes'].values()).count(choice)
-                for choice in ('approve', 'reject', 'abstain')}
+        choices = ([option['id'] for option in DECISION['options']] if decision.get('mode') == 'fixed_choice'
+                   else ('approve', 'reject', 'abstain'))
+        return {choice: list(decision['votes'].values()).count(choice) for choice in choices}
 
     def _finalize(self, room, decision, mid, status, **details):
         decision.update(status=status, committed_by=mid, committed_at=self.clock(),
@@ -332,7 +388,7 @@ class Roundtable:
         public = {key: deepcopy(room[key]) for key in ('code', 'host', 'phase', 'version', 'deadline',
             'electorate', 'documents', 'documents_ready', 'transcript', 'summary', 'decision_prompts',
             'history', 'suggestions', 'speaker', 'turn_index', 'turn_number', 'active_stream')}
-        public.update(me=mid, ceo=self._ceo(room), server_time=self.clock(), roles=deepcopy(self.roles),
+        public.update(me=mid, ceo=self._ceo(room), fixed_scenario=self._fixed_scenario(room), server_time=self.clock(), roles=deepcopy(self.roles),
                       recording_policy=self.RECORDING_POLICY, speaking=list(room['electorate']) if room['phase'] == 'discussion' else [])
         lease = room.get('active_audio')
         public['active_audio'] = ({key: deepcopy(value) for key, value in lease.items()
@@ -347,6 +403,7 @@ class Roundtable:
             decision = deepcopy(item)
             decision['my_vote'] = item['votes'].get(mid)
             decision['ballot_count'] = len(item['votes'])
+            decision['voted_members'] = list(item['votes'])
             if item['status'] == 'pending':
                 decision.pop('votes')
                 if mid == self._ceo(room) and set(item['votes']) == set(room['electorate']):

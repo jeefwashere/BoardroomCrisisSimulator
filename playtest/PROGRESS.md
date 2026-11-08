@@ -1,10 +1,16 @@
 # Rehearsal implementation progress
 
-Status snapshot: November 7, 2026, updated for task X11. The single window local model experiment is implemented and evaluated. The active test application now routes all text agents and extraction to Gemini 3.8 Flash with LOW reasoning through Google Vertex AI, with no local model fallback. The same fourteen case comparison has completed. The custom proposal round and Vertex speech integration check also passed.
+Status snapshot: November 7, 2026, updated for task X12. The single window local model experiment is implemented and evaluated. The active test application now routes all text agents and extraction to Gemini 3.8 Flash with LOW reasoning through Google Vertex AI, with no local model fallback. The same fourteen case comparison has completed. The custom proposal round and Vertex speech integration check also passed.
 
 The work is isolated on branch `experiment/ai-voice-playtest` in `/Users/arjunbehl/Developer/CommuniHacks/BoardroomCrisisSimulator-ai-playtest`. It has not been merged into the production application. Existing teammate modules and the shared GPU service are preserved.
 
-## Current X11 meeting
+## Current X12 guided round
+
+The current main page uses one T01 PDF, a 30 second live introduction, manual participant turns with a five minute maximum, a visible one minute consultation window and a fixed choice ballot. The CEO may end discussion early and skip consultation. Three new participant recordings provide about 46 seconds of useful discussion about leadership, recovery checks and communication. They remain manually played and separately committed.
+
+Facilitator, IT and journalist consultations remain live. At voting, a clearly labelled 20 second prerecorded decision guide reads three authored choices. Each member explicitly chooses, and the CEO commits the winning result or resolves a tie. The live evaluation receives the actual result. This specific recorded guide is the user's requested exception to the earlier all live agent speech rule. Replay makes no provider calls. Unlimited usage accounting remains active. [Current verification](GUIDED_ROUND_REPORT.md) and [the guide](ROUNDTABLE_GUIDE.md) describe the flow.
+
+## Historical X11 meeting
 
 The main page loads one T01 PDF and offers three ready test participants. CEO Start gives a 30 second live introduction, then a five minute turn based discussion. Manual playback controls live beneath each participant, with a clear current turn indicator; participant autoplay is removed. Only three participant recordings are available. Every AI agent voice is generated live through Gemini and ElevenLabs.
 

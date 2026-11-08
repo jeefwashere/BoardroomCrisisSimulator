@@ -1,94 +1,107 @@
-# Test the meeting in one screen
+# Test the guided meeting in one screen
 
-Open [the local meeting](http://127.0.0.1:8788/roundtable) while the playtest server is running. One PDF, **Service outage and unavailable director**, is attached automatically. Participants, live agents, prerecorded voices, transcript, minutes and decisions stay on this page.
+Open [the local meeting](http://127.0.0.1:8788/roundtable) while the playtest server is running. One PDF, **Service outage and unavailable director**, is attached automatically. Participants, live advisers, saved recordings, written discussion and voting stay on this page.
 
-## Two click quick start
+The sequence is **30 seconds of preparation → five minutes of discussion → one minute with advisers → recorded voting guide and explicit ballots → CEO commitment → live evaluation**. The CEO can finish discussion and the adviser minute early. Voting waits for people; it has no automatic deadline or automatic ballots.
 
-1. Click **Load 3 test participants**. Alex, Morgan and Sam receive separate test memberships and are marked ready. Alex initially has the existing CEO role. This step makes no paid model or speech calls.
-2. Click **CEO: Start meeting**. The preparation agent automatically introduces the report with streaming text and ElevenLabs speech. The server opens a 30 second preparation window, then starts a five minute discussion. You do not need to press Preview introduction first.
+## Start with three test participants
 
-Start requires three connected members, everyone ready, and document memory ready. If Start is unavailable, read the readiness message. Model warmup can take time after a server restart. The clock belongs to the server: a slow introduction does not extend the preparation window, and any remaining introduction audio stops when discussion starts.
+1. Click **Load 3 test participants**. Alex, Morgan and Sam receive separate memberships and are marked ready. Alex initially has the existing CEO role. Loading the seats makes no model or speech request.
+2. Click **CEO: Start meeting**. Preparation retrieves passages from the PDF with Gemma embeddings. Gemini introduces the situation with streaming text and ElevenLabs speech.
+3. The server opens discussion after 30 seconds. Everyone must be connected and ready, and document memory must be ready before Start. Model warmup can take time after restarting the server.
 
-Uncheck **Speak with ElevenLabs** before starting for text only. **Stop agent** cancels ongoing generation and playback. If the browser blocks automatic audio, press **Resume audio**. Text remains visible. The optional **Preview introduction** button is a separate paid request available in the lobby; it is unnecessary for the quick start.
+Uncheck **Speak with ElevenLabs** before starting for text only. **Stop agent** cancels current live generation and playback. If the browser blocks sound, press **Resume audio**. Written text remains visible. **Preview introduction** is an optional separate live request before Start.
 
-## Hear the three test participants
+The server controls deadlines. A slow introduction does not extend preparation; remaining introduction audio stops when discussion starts.
 
-Each participant card shows **SPEAKING NOW** or **Waiting for turn** under the person's name. You control every participant manually. Only the current speaker can play and commit their assigned clip.
+## Play each participant manually
 
-1. Under the current speaker's name, click **Play this participant’s saved clip**. The page selects that membership and plays its fixed ElevenLabs MP3. It does not generate speech or run transcription.
-2. Wait for playback to finish. Click **Commit caption and pass** on that card to record the exact trusted caption and give the floor to the next member. Playback alone adds nothing to the transcript.
-3. Look for **SPEAKING NOW** under the next person's name, then choose when to play their clip. Nothing plays automatically. **Stop** cancels playback without committing an interrupted caption. A changed turn or expired playback also prevents commitment.
+The current participant card shows **SPEAKING NOW**. Others show **Waiting for turn**. Nothing plays automatically for the participants.
 
-Exactly three saved clips are available here, one for each test participant. They are fixed fictional participant contributions. Treat their claims as discussion input and check them against the PDF; a committed caption is not automatically a verified incident fact. There is no prerecorded AI agent selector. Preparation, facilitator, IT, journalist, decision guidance and evaluation use live Gemini responses, with live ElevenLabs speech when enabled, grounded in the report, discussion and committed decisions as applicable.
+1. On the current speaker's card, click **Play this participant’s saved clip**. The page selects that membership and plays its saved ElevenLabs recording.
+2. After playback finishes, click **Commit caption and pass**. This commits the exact catalog caption and gives the next person the floor. Playback alone adds nothing to the transcript.
+3. Repeat for the next speaker. **Stop** cancels playback without committing a caption. An expired lease or changed turn also prevents commitment.
 
-After you manually play and commit the clips, discussion continues until its five minute deadline or the CEO finishes early. You can also type or record an additional contribution during the current person's turn.
+The three new T01 recordings give useful points to discuss:
+
+| Participant topic | What the recording raises | Saved duration |
+| --- | --- | --- |
+| Leadership | Appointing an interim coordinator when the director is unavailable and no alternate is named. | 14.21 seconds |
+| Recovery | Checking backup usability, dependencies and a restoration estimate before promising recovery. | 17.18 seconds |
+| Communications | Considering approved paper appointments and separating facts, unknowns and the next update. | 14.63 seconds |
+
+They total about 46 seconds of saved speech. These are fictional participant contributions, not live model replies or proof that an action has happened. Check their claims against the PDF. Playback and trusted caption commitment make no new provider request.
+
+Discussion remains open for five minutes unless the CEO finishes it early. You can type additional contributions during each person's turn. Use **Next participant** to pass the floor; only the current speaker or CEO can do that.
 
 ## Type or use your microphone
 
-Open **Type or record your own contribution**. Select the current speaker, enter text and click **Commit contribution**. Use **Next participant** when that speaker is finished. The current speaker or CEO can pass the floor.
+Open **Type or record your own contribution**, select the current speaker, enter text and click **Commit contribution**.
 
-For actual speech input, click **Record microphone**, grant browser permission, speak for up to 29 seconds and click **Stop recording**. The audio stays local until you explicitly click **Transcribe microphone**. Review and edit the provisional Scribe v2 text, then click **Commit contribution** separately. Recording stops if the speaking turn or discussion phase changes.
+For microphone input, click **Record microphone**, grant permission, speak for up to 29 seconds and click **Stop recording**. Nothing uploads until you click **Transcribe microphone**. Review and edit the provisional Scribe v2 transcript, then separately click **Commit contribution**. A speaking turn or phase change stops recording.
 
-There is no continuous microphone capture, background meeting recording or emotion scoring. Committed text forms the written discussion record. Microphone transcription and live agent speech are separate operations.
+There is no continuous microphone capture, background meeting recording or emotion scoring. Committed text is the written discussion record.
 
-## Consult the live agents and finish discussion early
+## Use the visible adviser minute
 
-Select the CEO seat. During discussion or the decision phase, choose **Facilitator**, **IT character** or **Journalist** in **CEO consults**, type a question and click **Ask selected agent**. These are live Gemini replies based on the available report and discussion, streamed as text and live ElevenLabs speech when enabled. Stop current playback before starting another agent.
+When discussion ends, the phase changes to **One minute with live advisers**, with a 60 second countdown. The CEO can enter it early using **CEO: Finish discussion**. This ends the discussion round, not the meeting.
+
+Select the CEO seat. In **Live advisers**, choose **Facilitator**, **IT character** or **Journalist** under **CEO consults**, then click **Ask selected agent**. Replies use live Gemini generation and live ElevenLabs speech when enabled. Stop current playback before asking another agent. Adviser consultations are also available during discussion and decisions.
 
 Try these questions:
 
-1. Facilitator: “What assumption should we clarify before making a decision?”
-2. IT character: “What does the report establish about service recovery, and what remains unknown?”
-3. Journalist: “What could we communicate without claiming an unverified restoration time?”
+1. Facilitator: “Which assumptions should we clarify before choosing a response?”
+2. IT character: “What must be verified before we promise a restoration time?”
+3. Journalist: “What can we communicate while recovery remains uncertain?”
 
-The CEO can click **CEO: Finish discussion** at any time during discussion to enter decisions early. This does not close the whole meeting. The CEO can still consult the three agents before voting. There are no separate opening or closing facilitator minutes in this version.
+Open **Evidence from the report** to inspect retrieved sources. Citations help review a reply; they do not guarantee every generated sentence is correct. The adviser cannot cast a ballot or record a decision.
 
-Preparation questions are available before and during the short preparation window. Gemma retrieves report passages, and Gemini Flash LOW writes advisory prose from the scoped evidence. Open **Evidence from the report** to inspect the sources. Citations do not guarantee that every generated sentence is correct, and agent prose never changes a vote or records a decision.
+The minute has a hard cutoff. Three adviser replies may not fit when generation or playback is slow; choose the most useful adviser, or ask others during the main discussion.
 
-## Review, vote and evaluate
+Wait for the minute to finish, or click **CEO: Finish adviser minute** to proceed early. Any remaining adviser audio stops when its phase changes.
 
-On entry to decisions, the CEO's screen automatically requests decision guidance once. The backend also requests one AI minutes update when discussion exists, unless a current summary already covers it. These are separate paid operations. Failed automatic guidance is not repeatedly retried by the page.
+## Hear the guide and choose a response
 
-The side panel keeps written minutes next to the full transcript. Minutes select exact contribution quotes; they are not a synthesized factual recap. A partial coverage warning means only the latest contributions fitting the bounded request were considered. The full transcript remains available. Suggested problems are prompts for human review, not approved proposals.
+For the default T01 report, the server opens one fixed ballot under **Choose the board’s response**. The CEO's page plays the separately labelled **RECORDED DECISION GUIDE** once when voting opens. It lasts 19.74 seconds. **CEO: Replay recorded guide** replays it; **Stop guide** stops it. With **Speak with ElevenLabs** unchecked, its text remains available without playback.
 
-1. Choose a suggested problem or write your own. Enter an explicit proposal and select its discussion evidence.
-2. Click **Submit explicit proposal**. Repeat for additional problems if needed.
-3. Select each test seat and vote **approve**, **reject** or **abstain**. Every member has one ballot for each proposal.
-4. Return to the CEO. After all ballots arrive, click **CEO: Record result**. An approve/reject tie with positive votes requires an explicit CEO tie choice. All abstentions reject the proposal.
-5. A new approved or rejected decision automatically triggers an advisory evaluation of that actual committed result. It does not revise the result, invent a new vote or apply an unimplemented scenario consequence.
-6. Resolve or explicitly cancel every pending proposal, then click **CEO: End meeting**. Use **Export written record** to save discussion, evidence, decisions and job information without membership bearer tokens.
+This guide is a saved explanation of the choices. It does not generate live advice, add a contribution, vote, choose a winner or commit a result. Replaying it makes no provider request.
 
-## A concrete decision test
+The three authored responses are:
 
-During Alex's discussion turn, type and commit this contribution, then pass the floor:
+| Response | Proposed action |
+| --- | --- |
+| Controlled continuity | Appoint an interim coordinator, authorize approved paper appointments, ask IT to verify backup usability, dependencies and an estimate before promising restoration, and issue a factual update. |
+| Technical checks first | Appoint an interim coordinator, keep appointments paused until IT verifies recovery, and issue a factual update. |
+| Wait for the director | Keep appointments paused and defer the interim appointment and paper process while awaiting the director. |
 
-```text
-We need an owner to verify the current service status before anyone promises a restoration time. I propose that Morgan checks the report and reports confirmed facts and unknowns to the group before 3 PM.
-```
+Read the full wording on each choice card. These are proposed actions, not claims that recovery or a downstream consequence has occurred.
 
-Morgan can commit “I can own that check and report the remaining unknowns.” Sam can commit “Please keep any public statement separate from an unverified recovery estimate.” Pass the floor after each typed contribution, or let the CEO finish discussion early.
+1. Select Alex's seat and click **Vote for this response** on one option.
+2. Select Morgan and explicitly choose an option, then do the same for Sam. The page shows each member as voted or waiting. **Your current vote** identifies the selected seat's ballot.
+3. You may change your own vote before commitment. Pending choices remain private; every member must submit a ballot.
+4. Select the CEO. Once all ballots arrive, click **CEO: Record winning response**. The option with the most ballots wins. The CEO cannot replace a clear winner with another option.
+5. If leading options tie, the CEO sees **CEO tie:** buttons for those leaders and must explicitly choose one of them.
+6. A live Gemini evaluation, with ElevenLabs speech when enabled, interprets the committed result. It cannot revise votes or apply an unimplemented scenario outcome.
+7. Click **CEO: End meeting**, then **Export written record**. The export includes discussion and decisions without membership bearer tokens.
 
-In decisions, select Alex's contribution as evidence and enter:
+The fixed T01 ballot cannot be cancelled or replaced with a custom proposal, and the meeting cannot end while it is unresolved. It applies only when T01 is the sole attached document. Other document selections retain the earlier custom proposal and approve, reject or abstain workflow; they do not inherit T01 choices.
 
-```text
-Problem: Who owns verification of service status before a public update?
-Proposal: Morgan will check the available report and report confirmed service facts and remaining unknowns to the group before 3 PM. No restoration time will be presented as confirmed without evidence.
-```
+## A concrete voting test
 
-Vote approve as Alex, approve as Morgan and reject as Sam. Select the CEO and record the result. Expect **approved**, two approve votes and one reject vote, followed by an evaluation tied to that decision. This is a proposed test action, not a factual assertion that recovery has happened. Check that the evaluation preserves that distinction.
+Use the default report and manually play all three participant clips, committing each caption. As CEO, finish discussion early if desired. Ask the IT character a question during the adviser minute, then continue to voting.
 
-For a second proposal, try approve, reject and abstain. The CEO should need an explicit tie choice. Do not expect AI to cast any of these ballots.
+Choose **Controlled continuity** as Alex, **Controlled continuity** as Morgan and **Technical checks first** as Sam. As CEO, record the winner. Expect Controlled continuity with two ballots, Technical checks first with one, and a committed result marked approved. Check that evaluation describes this selected plan and preserves the uncertainty about restoration; approval does not mean recovery has happened.
 
-## Usage tracking and practical limits
+For a tie test, start a new meeting and choose a different option for each of the three members. Before commitment, the CEO must choose among the three tied leaders. Do not expect the recording or AI to submit any ballot.
 
-The application now has **no app spending cap** for Vertex or ElevenLabs, as explicitly requested. Existing usage ledger entries are preserved, and new requests remain tracked. The page shows **Usage tracking only · no app spending cap**. Provider usage can still incur charges; this change removes the application's credit gating rather than making generation free.
+## Written minutes, usage and limits
 
-CEO Start, decision guidance and evaluation request live generation at the actions described above. Optional consultations, previews, minutes refreshes and explicit microphone transcription also use live services. Saved participant clip playback and trusted caption commitment make no new provider requests. Loading the page, PDF or test participants does not itself request paid generation.
+The side panel keeps minutes next to the complete transcript. On entry to decisions, the backend requests one live minutes update when discussion exists unless a current summary already covers it. Minutes select exact contribution quotes. A partial coverage warning means only the latest contributions fitting the request were considered. Quotes are discussion evidence, not automatically verified incident facts.
 
-Short agent replies, bounded evidence, queue controls and the 29 second microphone capture limit remain format and resource safeguards. They are not spending caps. Usage estimates and measured timings are reported separately in the verification report.
+The application retains **no app spending cap** for Vertex or ElevenLabs, as requested. Existing usage entries remain in both ledgers, and new requests are tracked. The page shows **Usage tracking only · no app spending cap**. Live generation and transcription can still incur provider charges.
 
-Manual joining, CEO reassignment and PDF upload are secondary controls. The host may assign the CEO before starting, which resets readiness. Uploaded PDFs are scoped to their room. A new room does not inherit another room's private uploads.
+Start requests a live introduction. Optional previews, adviser questions, minutes updates, evaluation and explicit microphone transcription also use live services. The saved participant clips and recorded decision guide make no new provider calls. Loading the page, PDF or test seats does not itself request paid generation.
 
-This is a localhost experiment with test membership tokens, not a public deployment or production account login. The roster freezes at Start. Browser refresh can preserve membership while the backend lives; restarting the backend loses active rooms. Export important records first. Browser audio playback, human microphone permission and visual layout remain manual checks unless separately verified. Automated streaming checks establish arrival order and playable bytes, not listening quality.
+Manual joining, CEO reassignment and PDF upload remain secondary controls. Changing the CEO before Start resets readiness. Uploaded PDFs stay scoped to their room. The roster freezes at Start. This is a localhost experiment with test membership tokens, not a public deployment or production account login. Restarting the backend loses rooms; export important records first.
 
-See [the streaming verification report](STREAMING_PREPARATION.md) for measured timings, checks and limitations. No separate audio website is required; the old audio lab route is no longer served.
+The live harness is `python -m playtest.guided_round_benchmark --live`. Its measurements and limitations are recorded in [the guided round report](GUIDED_ROUND_REPORT.md); older streaming results remain in [the preparation report](STREAMING_PREPARATION.md). Browser visual quality, human microphone permission and listening quality remain unverified. HTTP and audio byte checks do not establish those results. The separate audio website remains removed.

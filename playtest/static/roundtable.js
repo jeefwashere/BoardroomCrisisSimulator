@@ -1,7 +1,7 @@
 'use strict';
 const $=id=>document.getElementById(id),uid=()=>crypto.randomUUID(),el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
 let bundle=null;try{bundle=JSON.parse(sessionStorage.getItem('rehearsal_roundtable')||'null');}catch{}
-let states=[],active=0,busy=false,polling=false,memory=null,recording=null,clip=null,clipOwner=null,source='typed',documentKey='',transcriptKey='',rosterKey='',briefing=null,turnPlayback=null,completedPlayback=null,recordings=[],automaticRunning=false;
+let states=[],active=0,busy=false,polling=false,memory=null,recording=null,clip=null,clipOwner=null,source='typed',documentKey='',transcriptKey='',rosterKey='',briefing=null,turnPlayback=null,completedPlayback=null,recordings=[],automaticRunning=false,decisionPlayback=null;
 const save=()=>sessionStorage.setItem('rehearsal_roundtable',JSON.stringify(bundle)),state=()=>states[active],say=t=>{$('notice').textContent=t;};
 const context=()=>({code:bundle?.code,token:bundle?.seats[active]?.token,seat:active});
 const same=c=>bundle?.code===c.code&&bundle?.seats[c.seat]?.token===c.token;
@@ -9,18 +9,19 @@ async function api(path,data,c=context(),extra={}){const headers={...extra.heade
 async function command(action,data={},c=context()){const result=await api('/api/roundtable/command/'+action,{command_id:uid(),...data},c);if(same(c)&&result?.me)states[c.seat]={...result,received:Date.now()};await refresh();}
 function bind(id,fn){$(id).onclick=async()=>{if(busy)return;busy=true;render();try{say('');await fn();}catch(e){say(e.message);}finally{busy=false;render();}};}
 function button(text,fn,disabled=false){const b=el('button',text,'secondary');b.disabled=disabled||busy;b.onclick=async()=>{if(busy)return;busy=true;render();try{await fn();}catch(e){say(e.message);}finally{busy=false;render();}};return b;}
-async function refresh(){if(polling||!bundle)return;polling=true;const b=bundle;try{const results=await Promise.all(b.seats.map((s,seat)=>api('/api/roundtable/state',undefined,{code:b.code,token:s.token,seat})));if(bundle!==b)return;states=results.map((s,i)=>states[i]?.server_time>s.server_time?states[i]:({...s,received:Date.now()}));if(briefing&&(!same(briefing.owner)||state()?.phase!==briefing.phase))await stopBriefing();if((turnPlayback&&!sameTurn(turnPlayback))||(completedPlayback&&!sameTurn(completedPlayback)))await stopTurnPlayback();if(recording&&(state()?.phase!=='discussion'||state()?.speaker!==state()?.me))await stopRecording();render();void automaticAgents();}catch(e){say(e.message);}finally{polling=false;}}
+async function refresh(){if(polling||!bundle)return;polling=true;const b=bundle;try{const results=await Promise.all(b.seats.map((s,seat)=>api('/api/roundtable/state',undefined,{code:b.code,token:s.token,seat})));if(bundle!==b)return;states=results.map((s,i)=>states[i]?.server_time>s.server_time?states[i]:({...s,received:Date.now()}));if(briefing&&(!same(briefing.owner)||state()?.phase!==briefing.phase))await stopBriefing();if((turnPlayback&&!sameTurn(turnPlayback))||(completedPlayback&&!sameTurn(completedPlayback)))await stopTurnPlayback();if(decisionPlayback&&(!same(decisionPlayback.owner)||state()?.phase!=='decision'))await stopDecisionGuide();if(recording&&(state()?.phase!=='discussion'||state()?.speaker!==state()?.me))await stopRecording();render();void automaticAgents();}catch(e){say(e.message);}finally{polling=false;}}
 async function loadMemory(){const c=context();const m=await api('/api/roundtable/memory',undefined,c);if(same(c)){memory=m;documentKey='';render();}}
 async function health(){try{const h=await api('/api/health',undefined,{});$('health').textContent=(h.models?.model||'Vertex Flash')+' · '+(h.models?.thinking_level||'LOW');$('budget').textContent=h.speech?.unlimited&&h.models?.budget?.unlimited?'Usage tracking only · no app spending cap':'Usage tracking enabled. Live agent replies use Gemini and ElevenLabs.';}catch{$('health').textContent='Local server unavailable';}}
 async function join(test){if(recording)throw new Error('Stop recording first.');const names=test?['Alex · test CEO','Morgan · test member','Sam · test member']:[$('name').value.trim()];if(!names[0])throw new Error('Enter a name.');const first=await api('/api/roundtable/join',{name:names[0],...(test||!$('code').value.trim()?{}:{code:$('code').value.trim().toUpperCase()})},{});bundle={code:first.code,seats:[{name:names[0],token:first.token}],test,autoEvents:[]};recordings=[];completedPlayback=null;active=0;states=[];memory=null;clip=null;clipOwner=null;source='typed';$('message').value='';save();for(const name of names.slice(1)){const r=await api('/api/roundtable/join',{name,code:bundle.code},{});bundle.seats.push({name,token:r.token});save();}documentKey=transcriptKey=rosterKey='';await refresh();await loadMemory();await loadRecordings();}
-const phaseNames={lobby:'Prepare together',preparation:'Your 30 second introduction',discussion:'Five minute discussion',decision:'Make your decisions',ended:'Meeting complete'};
-const phaseHints={lobby:'Load your test participants, then the CEO starts the introduction.',preparation:'The preparation agent sets the scene. Discussion opens after 30 seconds.',discussion:'Each participant speaks in turn. The CEO can consult an agent or finish early.',decision:'An agent suggests what to decide. Your votes and CEO confirmation record the result.',ended:'Review the evaluation and export your written record.'};
-function render(){const s=state(),phase=s?.phase,ceo=s&&s.me===s.ceo,host=s&&s.me===s.host,fac=['discussion','decision'].includes(phase)&&ceo,turn=phase==='discussion'&&s?.speaker===s?.me,locked=busy||!!recording||!!turnPlayback;
+const phaseNames={lobby:'Prepare together',preparation:'Your 30 second introduction',discussion:'Five minute discussion',consultation:'One minute with live advisers',decision:'Make your decisions',ended:'Meeting complete'};
+const phaseHints={lobby:'Load your test participants, then the CEO starts the introduction.',preparation:'The preparation agent sets the scene. Discussion opens after 30 seconds.',discussion:'Each participant speaks in turn. Finish early to consult the advisers.',consultation:'Ask the live facilitator, IT character or journalist. The CEO can continue to voting early.',decision:'Review the recorded guide, choose a response for each participant, then the CEO records the result.',ended:'Review the evaluation and export your written record.'};
+function render(){const s=state(),phase=s?.phase,ceo=s&&s.me===s.ceo,host=s&&s.me===s.host,fac=['discussion','consultation','decision'].includes(phase)&&ceo,turn=phase==='discussion'&&s?.speaker===s?.me,locked=busy||!!recording||!!turnPlayback||!!decisionPlayback;
+ $('stopDecisionGuide').disabled=!decisionPlayback;$('playDecisionGuide').disabled=locked||!!briefing||!ceo||phase!=='decision'||!s?.decisions?.some(d=>d.mode==='fixed_choice');$('consultationNotice').hidden=phase!=='consultation';
  $('stopBriefing').disabled=!briefing;$('intro').disabled=busy||!s?.documents_ready||phase!=='lobby';$('intro').hidden=phase!=='lobby';
  $('playTurn').disabled=locked||!!briefing||!turn||!recordings.length||!!completedPlayback;$('stopTurn').disabled=!turnPlayback&&!completedPlayback;$('commitRecorded').disabled=locked||!completedPlayback||!sameTurn(completedPlayback);$('nextTurn').disabled=locked||!!briefing||phase!=='discussion'||!(turn||ceo)||!!completedPlayback;
- const disabled={join:locked,testSeats:locked,ready:busy||phase!=='lobby',allReady:busy||phase!=='lobby'||!bundle?.test,start:busy||!ceo||!s?.can_start,finishDiscussion:locked||!ceo||phase!=='discussion',end:busy||!ceo||phase!=='decision'||s?.decisions?.some(d=>d.status==='pending'),export:!s,assignCeo:busy||!host||phase!=='lobby',upload:busy||phase!=='lobby'||!(ceo||host),prepare:locked||!!briefing||!s||!s.documents_ready||!['lobby','preparation'].includes(phase),facilitate:locked||!!briefing||!fac,commit:locked||!!briefing||!turn,record:locked||!!briefing||!turn,stopRecord:!recording,transcribe:locked||!turn||!clip||clipOwner?.token!==context().token,propose:busy||phase!=='decision',minutes:busy||!s?.transcript?.length};for(const[id,v]of Object.entries(disabled))$(id).disabled=!!v;
+ const disabled={join:locked,testSeats:locked,ready:busy||phase!=='lobby',allReady:busy||phase!=='lobby'||!bundle?.test,start:busy||!ceo||!s?.can_start,finishDiscussion:locked||!ceo||phase!=='discussion',skipConsultation:locked||!ceo||phase!=='consultation',end:busy||!ceo||phase!=='decision'||s?.decisions?.some(d=>d.status==='pending'),export:!s,assignCeo:busy||!host||phase!=='lobby',upload:busy||phase!=='lobby'||!(ceo||host),prepare:locked||!!briefing||!s||!s.documents_ready||!['lobby','preparation'].includes(phase),facilitate:locked||!!briefing||!fac,commit:locked||!!briefing||!turn,record:locked||!!briefing||!turn,stopRecord:!recording,transcribe:locked||!turn||!clip||clipOwner?.token!==context().token,propose:busy||phase!=='decision',minutes:busy||!s?.transcript?.length};for(const[id,v]of Object.entries(disabled))$(id).disabled=!!v;
  $('agentKind').disabled=locked||!!briefing||!fac;
- $('roleControls').hidden=!host||phase!=='lobby';if(!s)return;
+ $('roleControls').hidden=!host||phase!=='lobby';const fixed=s?.fixed_scenario==='T01'||s?.decisions?.some(d=>d.mode==='fixed_choice');$('customDecision').hidden=!!fixed;$('decisionGuide').hidden=!fixed;$('decisionHint').textContent=fixed?'Each participant chooses one of the three responses. Every ballot is required; the CEO records the winner or resolves a tie.':'Draft a proposal for each problem, then collect ballots and record the result.';if(!s)return;
  const speaker=s.members.find(m=>m.id===s.speaker);$('turnSpeaker').textContent=speaker?'Turn '+s.turn_number+' · '+speaker.name:'Waiting for discussion';$('contributionHint').textContent=speaker?'Current speaker: '+speaker.name+'. Only that participant can commit a contribution.':'Discussion contributions open after the introduction.';const recordingForSeat=recordings.find(r=>r.seat_index===((s.speaking||[]).indexOf(s.speaker)%3));$('recordedCaption').textContent=recordingForSeat?.text||'Each participant has a fixed saved clip. You choose when to play and commit it.';
  $('roomCode').textContent='ROOM '+s.code;$('phase').textContent=phaseNames[phase]||phase;$('phaseHint').textContent=phaseHints[phase]||'';const left=s.deadline?Math.max(0,Math.ceil(s.deadline-s.server_time-(Date.now()-s.received)/1000)):0;$('timer').textContent=s.deadline?String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0'):phase==='ended'?'Done':'Ready';$('memberCount').textContent=s.members.length;$('activeSeat').textContent=s.members.find(m=>m.id===s.me)?.name||'Participant';$('ready').textContent=s.members.find(m=>m.id===s.me)?.ready?'Mark not ready':'I am ready';$('allReady').hidden=!bundle.test;$('blockers').textContent=(s.start_blockers||[]).join(' · ');
  $('seats').replaceChildren(...bundle.seats.map((seat,i)=>{
@@ -46,8 +47,28 @@ function render(){const s=state(),phase=s?.phase,ceo=s&&s.me===s.ceo,host=s&&s.m
  $('jobs').textContent=(s.jobs||[]).slice(-5).map(j=>j.kind+': '+j.status+(j.error?' · '+j.error:'')).join(' · ');
  $('summary').replaceChildren(...(s.summary?.items||[]).map(item=>{const n=el('article',undefined,'line');n.append(el('p',item.text),el('small',(item.speaker||'')+' · sources: '+(item.source_ids||[]).join(', ')));return n;}));if(!s.summary?.items?.length)$('summary').append(el('p','No AI minutes yet. The full committed transcript is shown in Discussion.','muted'));if(s.summary?.partial)$('summary').prepend(el('p','Partial coverage: only the latest contributions that fit the bounded request were considered. The full transcript remains available.','muted'));if(s.summary?.stale)$('summary').prepend(el('p','New contributions arrived after this summary. Refresh to include them.','muted'));
  $('prompts').replaceChildren(...(s.decision_prompts||[]).map(p=>button(p.text,async()=>{$('problem').value=p.text;for(const c of $('sourceChoices').querySelectorAll('input'))c.checked=(p.source_ids||[]).includes(c.value);},phase!=='decision')));
- $('decisions').replaceChildren(...(s.decisions||[]).map(d=>{const n=el('article',undefined,'decision');n.append(el('b',d.problem),el('p',d.proposal),el('small',d.id+' · '+d.status+' · '+d.ballot_count+' ballots'+(d.my_vote?' · Your vote: '+d.my_vote:'')));if(d.status==='pending'){const a=el('div',undefined,'actions');for(const choice of ['approve','reject','abstain'])a.append(button(choice,()=>command('vote_decision',{decision_id:d.id,choice}),phase!=='decision'));if(ceo){a.append(button('CEO: Record result',()=>command('commit_decision',{decision_id:d.id}),d.ballot_count<s.members.length));if(d.tally&&d.tally.approve===d.tally.reject&&d.tally.approve>0)for(const tie_break of ['approve','reject'])a.append(button('CEO tie: '+tie_break,()=>command('commit_decision',{decision_id:d.id,tie_break})));a.append(button('CEO: Cancel proposal',()=>command('cancel_decision',{decision_id:d.id,reason:'CEO cancelled this test proposal explicitly.'})));}n.append(a);}return n;}));
+ $('decisions').replaceChildren(...(s.decisions||[]).map(d=>renderDecision(d,s)));
  $('committed').replaceChildren(...(s.decisions||[]).filter(d=>d.status!=='pending').map(d=>{const n=el('article',undefined,'line');n.append(el('b',d.status.toUpperCase()),el('p',d.problem),el('p',d.proposal));return n;}));
+}
+function renderDecision(d,s){
+ const n=el('article',undefined,'decision'),ceo=s.me===s.ceo,phase=s.phase,pending=d.status==='pending';
+ n.append(el('b',d.problem),el('small',d.status+' · '+d.ballot_count+' / '+s.members.length+' ballots'));
+ const voted=new Set(d.voted_members||[]),voters=el('div',undefined,'voter-status');
+ for(const m of s.members)voters.append(el('span',m.name+': '+(voted.has(m.id)?'voted':'waiting'),voted.has(m.id)?'voted':'waiting'));
+ n.append(voters);
+ if(d.mode==='fixed_choice'){
+  const options=el('div',undefined,'fixed-options');
+  for(const option of d.options||[]){const card=el('section',undefined,'fixed-option'+(d.my_vote===option.id?' selected':'')+(d.option_id===option.id?' winner':''));card.append(el('b',option.label),el('p',option.proposal));if(d.tally)card.append(el('small',(d.tally[option.id]||0)+' votes'));if(pending)card.append(button(d.my_vote===option.id?'Your current vote':'Vote for this response',()=>command('vote_option',{decision_id:d.id,option_id:option.id}),phase!=='decision'));options.append(card);}n.append(options);
+  if(pending&&ceo){const controls=el('div',undefined,'actions'),all=d.ballot_count===s.members.length,maximum=d.tally?Math.max(...Object.values(d.tally)):0,tied=(d.options||[]).filter(o=>maximum>0&&d.tally?.[o.id]===maximum);
+   if(all&&tied.length>1){controls.append(el('p','The leading choices are tied. The CEO must choose one of them.','muted'));for(const option of tied)controls.append(button('CEO tie: '+option.label,()=>command('commit_decision',{decision_id:d.id,option_id:option.id}),phase!=='decision'));}
+   else controls.append(button('CEO: Record winning response',()=>command('commit_decision',{decision_id:d.id}),!all||phase!=='decision'));
+   n.append(controls);
+  }
+  if(!pending)n.append(el('p','Recorded response: '+((d.options||[]).find(o=>o.id===d.option_id)?.label||d.option_id)));
+  return n;
+ }
+ n.append(el('p',d.proposal),el('small',d.my_vote?'Your vote: '+d.my_vote:''));
+ if(pending){const controls=el('div',undefined,'actions');for(const choice of ['approve','reject','abstain'])controls.append(button(choice,()=>command('vote_decision',{decision_id:d.id,choice}),phase!=='decision'));if(ceo){controls.append(button('CEO: Record result',()=>command('commit_decision',{decision_id:d.id}),d.ballot_count<s.members.length));if(d.tally&&d.tally.approve===d.tally.reject&&d.tally.approve>0)for(const tie_break of ['approve','reject'])controls.append(button('CEO tie: '+tie_break,()=>command('commit_decision',{decision_id:d.id,tie_break})));controls.append(button('CEO: Cancel proposal',()=>command('cancel_decision',{decision_id:d.id,reason:'CEO cancelled this test proposal explicitly.'})));}n.append(controls);}return n;
 }
 async function ask(kind){const c=context();await api('/api/roundtable/agent/'+kind,{command_id:uid(),...(kind==='minutes'?{}:{text:$('question').value})},c);await refresh();await health();}
 async function downloadDocument(d){const c=context();const blob=await api('/api/roundtable/documents/'+encodeURIComponent(d.id),undefined,c,{blob:true});if(same(c))download(blob,d.filename||d.id+'.pdf');}
@@ -55,7 +76,7 @@ function download(blob,name){const url=URL.createObjectURL(blob),a=el('a');a.hre
 bind('join',()=>join(false));bind('testSeats',loadTestPeople);bind('ready',()=>command('ready',{ready:!state().members.find(m=>m.id===state().me).ready}));bind('allReady',async()=>{for(let i=0;i<bundle.seats.length;i++)await command('ready',{ready:true},{code:bundle.code,token:bundle.seats[i].token,seat:i});});
 bind('assignCeo',()=>{const s=state(),roles=Object.fromEntries(s.members.map(m=>[m.id,m.id===$('ceoSelect').value?'ceo':m.role==='ceo'?'operations':m.role]));return command('assign_roles',{roles});});
 bind('start',async()=>{let player=null;if($('voiceOn').checked){player=new PCMStreamPlayer();await player.unlock();}try{await command('start');await startPreparation('intro','preparation',{automatic:true},context(),player);}catch(e){await player?.stop();throw e;}});
-for(const[id,action]of [['finishDiscussion','finish_discussion'],['end','end']])bind(id,()=>command(action));
+for(const[id,action]of [['finishDiscussion','finish_discussion'],['skipConsultation','skip_consultation'],['end','end']])bind(id,()=>command(action));
 bind('nextTurn',()=>command('next_turn',{turn_number:state().turn_number}));
 bind('intro',()=>startPreparation('intro'));bind('prepare',()=>startPreparation('question'));bind('facilitate',()=>startPreparation('question',$('agentKind').value));bind('minutes',()=>ask('minutes'));
 bind('commit',async()=>{await command('contribute',{text:$('message').value,source});$('message').value='';source='typed';clip=null;});
@@ -66,7 +87,7 @@ function wav(chunks,rate){const length=chunks.reduce((s,c)=>s+c.length,0),b=new 
 bind('record',async()=>{const owner=context();let stream;try{stream=await navigator.mediaDevices.getUserMedia({audio:true});const fresh=await api('/api/roundtable/state',undefined,owner);if(!same(owner)||(fresh.phase!=='discussion'||fresh.speaker!==fresh.me))throw new Error('Discussion ended before microphone permission arrived.');const ctx=new AudioContext(),input=ctx.createMediaStreamSource(stream),processor=ctx.createScriptProcessor(4096,1,1),mute=ctx.createGain(),chunks=[];mute.gain.value=0;processor.onaudioprocess=e=>{if(recording)chunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));};input.connect(processor);processor.connect(mute);mute.connect(ctx.destination);recording={owner,stream,ctx,input,processor,mute,chunks};recording.timer=setTimeout(()=>stopRecording().catch(e=>say(e.message)),29000);$('micStatus').textContent='Recording locally, up to 29 seconds. Stop before transcribing.';}catch(e){stream?.getTracks().forEach(t=>t.stop());throw e;}});
 async function stopRecording(){if(!recording)return;const r=recording;recording=null;clearTimeout(r.timer);r.stream.getTracks().forEach(t=>t.stop());r.processor.disconnect();r.input.disconnect();r.mute.disconnect();clip=wav(r.chunks,r.ctx.sampleRate);clipOwner=r.owner;await r.ctx.close();$('micStatus').textContent='Local clip ready. Explicitly transcribe, review the text, then commit. Nothing was uploaded automatically.';render();}
 bind('stopRecord',stopRecording);bind('transcribe',async()=>{const c=context(),r=await api('/api/roundtable/transcribe',clip,c,{headers:{'Content-Type':'audio/wav','X-Command-ID':uid()}});if(same(c)&&active===c.seat){$('message').value=r.text;source='speech';$('micStatus').textContent='Provisional Scribe transcript. Review and edit before Commit contribution.';}await health();});
-window.addEventListener('beforeunload',()=>{recording?.stream.getTracks().forEach(t=>t.stop());if(briefing){briefing.controller.abort();void briefing.player?.stop();}if(turnPlayback||completedPlayback)void stopTurnPlayback();});
+window.addEventListener('beforeunload',()=>{recording?.stream.getTracks().forEach(t=>t.stop());if(briefing){briefing.controller.abort();void briefing.player?.stop();}if(turnPlayback||completedPlayback)void stopTurnPlayback();if(decisionPlayback)void stopDecisionGuide();});
 async function loadTestPeople(){
  const current=state();
  if(bundle?.test&&bundle.seats.length===3&&current?.phase==='lobby'){
@@ -86,7 +107,7 @@ async function stopBriefing(){
 }
 $('stopBriefing').onclick=()=>stopBriefing().catch(e=>say(e.message));
 async function startPreparation(mode,kind='preparation',extra={},owner=context(),preparedPlayer=null){
- if(briefing||turnPlayback||completedPlayback)throw new Error('Stop the current audio before asking an agent.');
+ if(briefing||turnPlayback||completedPlayback||decisionPlayback)throw new Error('Stop the current audio before asking an agent.');
  const controller=new AbortController();let voice=$('voiceOn').checked;
  const task={owner,controller,phase:state().phase,player:voice?(preparedPlayer||new PCMStreamPlayer()):null,id:null};
  briefing=task;render();$('briefingText').textContent='';$('streamSources').replaceChildren();$('briefingStatus').textContent=kind==='preparation'?'Reading your PDF…':'Listening to the '+kind+' agent…';
@@ -119,7 +140,7 @@ async function loadRecordings(){const c=context(),result=await api('/api/roundta
 function sameTurn(task){const s=states[task.owner.seat];return same(task.owner)&&s?.phase==='discussion'&&s.speaker===task.speaker&&s.turn_number===task.turn;}
 async function stopTurnPlayback(){const task=turnPlayback||completedPlayback;if(!task)return;task.cancelled=true;task.resolve?.(false);$('recordedAudio').pause();$('recordedAudio').removeAttribute('src');if(task.url)URL.revokeObjectURL(task.url);if(turnPlayback===task)turnPlayback=null;if(completedPlayback===task)completedPlayback=null;if(task.id)await api('/api/roundtable/recordings/stop',{command_id:uid(),id:task.id},task.owner).catch(()=>{});$('recordedStatus').textContent='Playback stopped. No caption was committed.';render();}
 async function playRecordedTurn(){
- if(briefing||recording||turnPlayback||completedPlayback)throw new Error('Stop or commit the current audio first.');
+ if(briefing||recording||turnPlayback||completedPlayback||decisionPlayback)throw new Error('Stop or commit the current audio first.');
  const s=state(),owner=context();if(s?.phase!=='discussion'||s.speaker!==s.me)throw new Error('Select the current speaker before playing.');
  const recordingForSeat=recordings.find(r=>r.seat_index===((s.speaking||[]).indexOf(s.speaker)%3));if(!recordingForSeat?.available)throw new Error('The recording for this test seat is unavailable.');
  const task={owner,speaker:s.speaker,turn:s.turn_number,id:null,url:null,cancelled:false};turnPlayback=task;render();
@@ -141,14 +162,46 @@ async function playRecordedTurn(){
 async function commitRecordedTurn(){const task=completedPlayback;if(!task||!sameTurn(task))throw new Error('Finish a recording in the current speaking turn first.');await new Promise(resolve=>setTimeout(resolve,250));if(!sameTurn(task)||completedPlayback!==task)throw new Error('The speaking turn changed. Nothing was committed.');await api('/api/roundtable/recordings/complete',{command_id:uid(),id:task.id},task.owner);if(task.url)URL.revokeObjectURL(task.url);if(completedPlayback===task)completedPlayback=null;$('recordedAudio').removeAttribute('src');$('recordedStatus').textContent='Recorded caption committed. The next participant now has the floor.';while(polling)await new Promise(resolve=>setTimeout(resolve,30));await refresh();}
 bind('playTurn',playRecordedTurn);bind('commitRecorded',commitRecordedTurn);$('stopTurn').onclick=()=>stopTurnPlayback().catch(e=>say(e.message));
 
+async function stopDecisionGuide(){
+ const task=decisionPlayback;if(!task)return;task.cancelled=true;task.resolve?.(false);$('decisionGuideAudio').pause();$('decisionGuideAudio').removeAttribute('src');if(task.url){URL.revokeObjectURL(task.url);task.url=null;}
+ if(decisionPlayback===task)decisionPlayback=null;
+ if(task.requestedAudio)await api('/api/roundtable/decision-prompt/stop',{command_id:uid()},task.owner).catch(()=>{});
+ $('decisionGuideStatus').textContent='Guide stopped. No contribution or vote was submitted.';render();
+}
+async function playDecisionGuide(owner=context()){
+ if(briefing||recording||turnPlayback||completedPlayback||decisionPlayback)throw new Error('Stop the current audio before playing the decision guide.');
+ const snapshot=states[owner.seat],ballot=snapshot?.decisions?.find(d=>d.mode==='fixed_choice');if(snapshot?.phase!=='decision'||!ballot)throw new Error('The recorded guide is available during fixed choice voting.');
+ const task={owner,decisionId:ballot.id,cancelled:false,url:null,requestedAudio:false};decisionPlayback=task;render();
+ const current=()=>same(owner)&&!task.cancelled&&decisionPlayback===task&&states[owner.seat]?.phase==='decision';
+ try{
+  const guide=await api('/api/roundtable/decision-prompt',undefined,owner);if(!current())return false;
+  if(guide.decision_id!==ballot.id)throw new Error('This guide does not match the current ballot.');
+  $('decisionGuideText').textContent=guide.text;
+  if(!$('voiceOn').checked){$('decisionGuideStatus').textContent='Text only. Enable Speak with ElevenLabs and press CEO: Replay recorded guide to hear the saved recording.';return true;}
+  if(typeof guide.audio_url!=='string'||!guide.audio_url.startsWith('/api/roundtable/'))throw new Error('Unexpected decision guide audio location.');
+  task.requestedAudio=true;const blob=await api(guide.audio_url,undefined,owner,{blob:true});if(!current())return false;
+  const audio=$('decisionGuideAudio');task.url=URL.createObjectURL(blob);audio.src=task.url;
+  const finished=new Promise((resolve,reject)=>{task.resolve=resolve;audio.onended=()=>resolve(true);audio.onerror=()=>reject(new Error('The saved guide could not play. Press CEO: Replay recorded guide to retry.'));});
+  $('decisionGuideStatus').textContent='Playing the recorded decision guide. This is not a live adviser or a participant contribution.';
+  try{await audio.play();}catch{throw new Error('Browser blocked automatic audio. Press CEO: Replay recorded guide to retry.');}
+  const ended=await finished;if(ended&&current())$('decisionGuideStatus').textContent='Guide complete. Select a participant and explicitly cast their vote.';return !!ended&&current();
+ }finally{
+  if(task.requestedAudio)await api('/api/roundtable/decision-prompt/stop',{command_id:uid()},owner).catch(()=>{});
+  if(task.url)URL.revokeObjectURL(task.url);if(decisionPlayback===task){$('decisionGuideAudio').pause();$('decisionGuideAudio').removeAttribute('src');decisionPlayback=null;}render();
+ }
+}
+bind('playDecisionGuide',()=>playDecisionGuide());$('stopDecisionGuide').onclick=()=>stopDecisionGuide().catch(e=>say(e.message));
+
 async function automaticAgents(){
- if(automaticRunning||busy||briefing||recording||turnPlayback||completedPlayback||!bundle)return;
+ if(automaticRunning||busy||briefing||recording||turnPlayback||completedPlayback||decisionPlayback||!bundle)return;
  const seat=states.findIndex(s=>s.me===s.ceo);if(seat<0)return;const s=states[seat];if(!['decision','ended'].includes(s.phase))return;
  bundle.autoEvents ||= [];let event=null;
- if(s.phase==='decision'&&!bundle.autoEvents.includes('decision'))event={key:'decision',kind:'decision',extra:{}};
+ const fixed=(s.decisions||[]).find(d=>d.mode==='fixed_choice');
+ if(s.phase==='decision'&&fixed?.status==='pending'&&!bundle.autoEvents.includes('recorded_decision:'+fixed.id))event={key:'recorded_decision:'+fixed.id,kind:'recorded_decision',extra:{decision_id:fixed.id}};
+ else if(s.phase==='decision'&&!fixed&&s.fixed_scenario!=='T01'&&!bundle.autoEvents.includes('decision'))event={key:'decision',kind:'decision',extra:{}};
  else{const d=(s.decisions||[]).find(d=>['approved','rejected'].includes(d.status)&&!bundle.autoEvents.includes('evaluation:'+d.id));if(d)event={key:'evaluation:'+d.id,kind:'evaluation',extra:{decision_id:d.id}};}
  if(!event)return;bundle.autoEvents.push(event.key);save();automaticRunning=true;busy=true;render();
- try{await startPreparation('intro',event.kind,{...event.extra,automatic:true},{code:bundle.code,token:bundle.seats[seat].token,seat});}
+ try{const owner={code:bundle.code,token:bundle.seats[seat].token,seat};if(event.kind==='recorded_decision')await playDecisionGuide(owner);else await startPreparation('intro',event.kind,{...event.extra,automatic:true},owner);}
  catch(e){say('Automatic '+event.kind+' agent: '+e.message+' This automatic request will not repeat.');}
  finally{busy=false;automaticRunning=false;render();}
 }

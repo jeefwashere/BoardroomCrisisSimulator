@@ -43,7 +43,7 @@ class RoundtableRecordingTests(unittest.TestCase):
                                headers={'Authorization':'Bearer '+self.tokens[who]})
 
     def test_exact_caption_commit_and_turn_advance_are_idempotent(self):
-        result = self.post('play',clip_id='discussion_owner').json()
+        result = self.post('play',clip_id='t01_leadership_turn').json()
         self.assertEqual(self.fetch(result['id']).status_code,200)
         self.now += result['duration_seconds'] + .1
         cid=uuid.uuid4().hex
@@ -58,7 +58,7 @@ class RoundtableRecordingTests(unittest.TestCase):
         self.assertEqual(self.fetch(result['id']).status_code,404)
 
     def test_early_or_unfetched_completion_never_commits(self):
-        result=self.post('play',clip_id='discussion_owner').json()
+        result=self.post('play',clip_id='t01_leadership_turn').json()
         self.now+=result['duration_seconds']+1
         self.assertEqual(self.post('complete',id=result['id']).status_code,409)
         self.fetch(result['id'])
@@ -66,23 +66,23 @@ class RoundtableRecordingTests(unittest.TestCase):
         self.assertEqual(self.room['transcript'],[])
 
     def test_wrong_speaker_cross_room_and_forged_caption_rejected(self):
-        self.assertEqual(self.post('play',who=1,clip_id='discussion_owner').status_code,403)
-        result=self.post('play',clip_id='discussion_owner').json()
+        self.assertEqual(self.post('play',who=1,clip_id='t01_leadership_turn').status_code,403)
+        result=self.post('play',clip_id='t01_leadership_turn').json()
         self.assertEqual(self.fetch(result['id'],who=1).status_code,404)
         outsider=self.engine.join('Outsider')['token']
         response=self.client.get('/api/roundtable/recordings/audio/'+result['id'],headers={'Authorization':'Bearer '+outsider})
         self.assertEqual(response.status_code,404)
-        self.fetch(result['id']);self.now+=10
+        self.fetch(result['id']);self.now+=result['duration_seconds']+.1
         response=self.post('complete',id=result['id'],text='FORGED CAPTION')
         self.assertEqual(response.status_code,200)
         self.assertNotEqual(self.room['transcript'][0]['text'],'FORGED CAPTION')
 
     def test_cancel_and_phase_change_invalidate_completion(self):
-        result=self.post('play',clip_id='discussion_owner').json();self.fetch(result['id'])
+        result=self.post('play',clip_id='t01_leadership_turn').json();self.fetch(result['id'])
         self.assertEqual(self.post('stop',id=result['id']).status_code,200)
         self.now+=10
         self.assertEqual(self.post('complete',id=result['id']).status_code,404)
-        result=self.post('play',clip_id='discussion_owner').json();self.fetch(result['id'])
+        result=self.post('play',clip_id='t01_leadership_turn').json();self.fetch(result['id'])
         self.engine.command(self.tokens[0],'finish_discussion',{'command_id':uuid.uuid4().hex})
         self.now+=10
         self.assertEqual(self.post('complete',id=result['id']).status_code,404)
@@ -90,21 +90,21 @@ class RoundtableRecordingTests(unittest.TestCase):
 
     def test_active_stream_duplicate_play_and_receipt_conflicts(self):
         self.room['active_stream']='stream'
-        self.assertEqual(self.post('play',clip_id='discussion_owner').status_code,409)
+        self.assertEqual(self.post('play',clip_id='t01_leadership_turn').status_code,409)
         self.room['active_stream']=None
         cid=uuid.uuid4().hex
-        result=self.post('play',clip_id='discussion_owner',command_id=cid)
-        self.assertEqual(result.json(),self.post('play',clip_id='discussion_owner',command_id=cid).json())
-        self.assertEqual(self.post('play',clip_id='discussion_containment',command_id=cid).status_code,409)
-        self.assertEqual(self.post('play',clip_id='discussion_containment').status_code,409)
+        result=self.post('play',clip_id='t01_leadership_turn',command_id=cid)
+        self.assertEqual(result.json(),self.post('play',clip_id='t01_leadership_turn',command_id=cid).json())
+        self.assertEqual(self.post('play',clip_id='t01_recovery_turn',command_id=cid).status_code,409)
+        self.assertEqual(self.post('play',clip_id='t01_recovery_turn').status_code,409)
 
     def test_only_assigned_participant_clip_can_be_played(self):
-        for forbidden in ('facilitator_open', 'journalist_confirmed', 'discussion_containment'):
+        for forbidden in ('facilitator_open', 'journalist_confirmed', 't01_decision_prompt', 't01_recovery_turn'):
             self.assertEqual(self.post('play',clip_id=forbidden).status_code,403)
         self.assertIsNone(self.room['active_audio'])
         self.engine.command(self.tokens[0], 'next_turn', {'command_id':uuid.uuid4().hex})
-        self.assertEqual(self.post('play',who=1,clip_id='discussion_owner').status_code,403)
-        self.assertEqual(self.post('play',who=1,clip_id='discussion_containment').status_code,200)
+        self.assertEqual(self.post('play',who=1,clip_id='t01_leadership_turn').status_code,403)
+        self.assertEqual(self.post('play',who=1,clip_id='t01_recovery_turn').status_code,200)
 
     def test_catalog_authenticated_and_has_three_defaults_without_paths(self):
         self.assertEqual(self.client.get('/api/roundtable/recordings').status_code,401)

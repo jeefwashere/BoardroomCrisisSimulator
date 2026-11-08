@@ -5,6 +5,7 @@ import uuid
 
 from playtest.engine import RuleError
 from playtest.roundtable import Roundtable
+from playtest.roundtable_scenario import DECISION
 
 
 class RoundtableTests(unittest.TestCase):
@@ -22,7 +23,7 @@ class RoundtableTests(unittest.TestCase):
         return self.engine.command(self.tokens[who], action, {'command_id': uuid.uuid4().hex, **(data or {})})
 
     def ready(self):
-        for who in range(3):
+        for who in range(len(self.tokens)):
             self.command('ready', {'ready': True}, who)
 
     def start(self):
@@ -40,6 +41,7 @@ class RoundtableTests(unittest.TestCase):
         state = self.command('contribute', {'text': 'Verify the backup before restoring.', 'source': 'typed'}, 1)
         source = state['transcript'][0]['id']
         self.command('finish_discussion')
+        self.command('skip_consultation')
         state = self.command('propose_decision', {'problem': 'Backup status unknown',
                              'proposal': 'Ask IT to verify it', 'source_ids': [source]}, 1)
         return state['decisions'][0]['id']
@@ -47,6 +49,119 @@ class RoundtableTests(unittest.TestCase):
     def ballot(self, decision, choices):
         for who, choice in enumerate(choices):
             self.command('vote_decision', {'decision_id': decision, 'choice': choice}, who)
+
+    def fixed_decision(self):
+        self.engine.set_documents(self.code, ['T01'], True)
+        self.discussion()
+        self.command('contribute', {'text': 'We need an interim coordinator and backup checks.'})
+        self.command('finish_discussion')
+        self.assertEqual(self.engine.snapshot(self.tokens[0])['decisions'], [])
+        state = self.command('skip_consultation')
+        return state['decisions'][0]['id']
+
+    def option_ballots(self, decision, choices):
+        for who, option in enumerate(choices):
+            self.command('vote_option', {'decision_id': decision, 'option_id': option}, who)
+
+    def test_fixed_t01_ballot_opens_once_after_consultation(self):
+        self.engine.set_documents(self.code, ['T01'], True)
+        self.start()
+        self.assertEqual(self.engine.snapshot(self.tokens[0])['fixed_scenario'], 'T01')
+        self.assertEqual(self.engine.snapshot(self.tokens[0])['decisions'], [])
+        self.now = 1389.9
+        self.assertEqual(self.engine.snapshot(self.tokens[0])['phase'], 'consultation')
+        self.assertEqual(self.engine.snapshot(self.tokens[0])['decisions'], [])
+        self.now = 1390
+        state = self.engine.snapshot(self.tokens[0])
+        self.assertEqual(state['phase'], 'decision')
+        decision = state['decisions'][0]
+        self.assertEqual(decision['id'], 't01_response')
+        self.assertEqual(decision['mode'], 'fixed_choice')
+        self.assertEqual(decision['options'], DECISION['options'])
+        self.assertEqual(decision['document_ids'], ['T01'])
+        self.assertEqual(decision['status'], 'pending')
+        self.assertEqual(decision['ballot_count'], 0)
+        self.assertEqual(decision['voted_members'], [])
+        self.assertIsNone(decision['my_vote'])
+        self.assertEqual(state['history'], [])
+        for _ in range(3):
+            self.assertEqual(len(self.engine.snapshot(self.tokens[0])['decisions']), 1)
+        with self.assertRaises(RuleError):
+            self.command('commit_decision', {'decision_id': decision['id']})
+
+    def test_fixed_vote_requires_canonical_option_and_every_explicit_ballot(self):
+        decision = self.fixed_decision()
+        for option in ('approve', 'invented', None):
+            with self.assertRaises(RuleError):
+                self.command('vote_option', {'decision_id': decision, 'option_id': option})
+        with self.assertRaises(RuleError):
+            self.command('vote_decision', {'decision_id': decision, 'choice': 'approve'})
+        self.command('vote_option', {'decision_id': decision, 'option_id': 'wait_for_director',
+                                    'member': self.ids[2]}, 1)
+        state = self.engine.snapshot(self.tokens[0])
+        self.assertEqual(state['decisions'][0]['voted_members'], [self.ids[1]])
+        self.assertEqual(state['decisions'][0]['ballot_count'], 1)
+        self.assertNotIn('votes', state['decisions'][0])
+        self.assertIsNone(state['decisions'][0]['my_vote'])
+        with self.assertRaises(RuleError):
+            self.command('commit_decision', {'decision_id': decision})
+        self.option_ballots(decision, ['controlled_continuity', 'controlled_continuity', 'technical_first'])
+        state = self.engine.snapshot(self.tokens[0])
+        self.assertEqual(state['decisions'][0]['tally']['controlled_continuity'], 2)
+        with self.assertRaises(RuleError):
+            self.command('commit_decision', {'decision_id': decision}, 1)
+        with self.assertRaises(RuleError):
+            self.command('commit_decision', {'decision_id': decision, 'option_id': 'technical_first'})
+        state['decisions'][0]['options'][0]['proposal'] = 'Tampered snapshot'
+        result = self.command('commit_decision', {'decision_id': decision, 'proposal': 'Client override'})
+        committed = result['history'][0]
+        self.assertEqual(committed['option_id'], 'controlled_continuity')
+        self.assertEqual(committed['proposal'], DECISION['options'][0]['proposal'])
+        self.assertEqual(committed['status'], 'approved')
+        self.assertEqual(committed['reason'], 'plurality')
+        self.assertEqual(committed['tally'], {'controlled_continuity': 2, 'technical_first': 1, 'wait_for_director': 0})
+        with self.assertRaises(RuleError):
+            self.command('vote_option', {'decision_id': decision, 'option_id': 'wait_for_director'})
+        with self.assertRaises(RuleError):
+            self.command('commit_decision', {'decision_id': decision})
+        self.assertEqual(self.command('end')['phase'], 'ended')
+        self.assertEqual(len(self.engine.snapshot(self.tokens[0])['history']), 1)
+
+    def test_fixed_ballot_cannot_be_cancelled_or_replaced_with_custom_text(self):
+        decision = self.fixed_decision()
+        with self.assertRaises(RuleError):
+            self.command('cancel_decision', {'decision_id': decision, 'reason': 'Avoid the ballot'})
+        with self.assertRaises(RuleError):
+            self.command('end')
+        source = self.engine.snapshot(self.tokens[0])['transcript'][0]['id']
+        with self.assertRaises(RuleError):
+            self.command('propose_decision', {'problem': 'New problem', 'proposal': 'Different choice', 'source_ids': [source]})
+        self.assertEqual(len(self.engine.snapshot(self.tokens[0])['decisions']), 1)
+        self.assertEqual(self.engine.snapshot(self.tokens[0])['history'], [])
+
+    def test_fixed_ties_require_ceo_choice_among_leaders(self):
+        fourth = self.engine.join('Devon', self.code)
+        self.tokens.append(fourth['token'])
+        self.ids.append(self.engine.snapshot(fourth['token'])['me'])
+        decision = self.fixed_decision()
+        self.option_ballots(decision, ['controlled_continuity', 'technical_first', 'technical_first', 'controlled_continuity'])
+        for selection in (None, 'wait_for_director', 'invented'):
+            with self.assertRaises(RuleError):
+                self.command('commit_decision', {'decision_id': decision, 'option_id': selection})
+        with self.assertRaises(RuleError):
+            self.command('commit_decision', {'decision_id': decision, 'option_id': 'technical_first'}, 1)
+        state = self.command('commit_decision', {'decision_id': decision, 'option_id': 'technical_first'})
+        self.assertEqual(state['history'][0]['option_id'], 'technical_first')
+        self.assertEqual(state['history'][0]['reason'], 'ceo_tie_break')
+        self.assertEqual(state['history'][0]['proposal'], DECISION['options'][1]['proposal'])
+
+    def test_mixed_documents_do_not_activate_t01_ballot(self):
+        self.engine.set_documents(self.code, ['T01', 'other-upload'], True)
+        self.discussion()
+        self.command('finish_discussion')
+        state = self.command('skip_consultation')
+        self.assertIsNone(state['fixed_scenario'])
+        self.assertEqual(state['decisions'], [])
 
     def test_start_gates_all_members_and_index(self):
         with self.assertRaises(RuleError):
@@ -95,7 +210,10 @@ class RoundtableTests(unittest.TestCase):
         self.assertEqual(self.engine.snapshot(self.tokens[1])['phase'], 'discussion')
         with self.assertRaises(RuleError):
             self.command('finish_discussion')
-        self.assertEqual(self.command('finish_discussion', who=1)['phase'], 'decision')
+        self.assertEqual(self.command('finish_discussion', who=1)['phase'], 'consultation')
+        with self.assertRaises(RuleError):
+            self.command('skip_consultation')
+        self.assertEqual(self.command('skip_consultation', who=1)['phase'], 'decision')
         with self.assertRaises(RuleError):
             self.command('assign_roles', {'roles': roles})
 
@@ -114,11 +232,17 @@ class RoundtableTests(unittest.TestCase):
         self.assertEqual(self.engine.snapshot(self.tokens[1])['phase'], 'discussion')
         self.now = 1330
         state = self.engine.snapshot(self.tokens[1])
+        self.assertEqual(state['phase'], 'consultation')
+        self.assertEqual(state['deadline'], 1390)
+        self.assertIsNone(state['speaker'])
+        self.now = 1389.9
+        self.assertEqual(self.engine.snapshot(self.tokens[1])['phase'], 'consultation')
+        self.now = 1390
+        state = self.engine.snapshot(self.tokens[1])
         self.assertEqual(state['phase'], 'decision')
         self.assertIsNone(state['deadline'])
-        self.assertIsNone(state['speaker'])
         events = self.engine.rooms[self.code]['events']
-        self.assertEqual([event['at'] for event in events if event['type'] == 'phase'], [1000, 1030, 1330])
+        self.assertEqual([event['at'] for event in events if event['type'] == 'phase'], [1000, 1030, 1330, 1390])
 
     def test_long_poll_gap_does_not_extend_the_five_minute_round(self):
         self.start()
@@ -126,7 +250,7 @@ class RoundtableTests(unittest.TestCase):
         state = self.engine.snapshot(self.tokens[0])
         self.assertEqual(state['phase'], 'decision')
         events = self.engine.rooms[self.code]['events']
-        self.assertEqual([event['at'] for event in events if event['type'] == 'phase'], [1000, 1030, 1330])
+        self.assertEqual([event['at'] for event in events if event['type'] == 'phase'], [1000, 1030, 1330, 1390])
 
     def test_only_ceo_can_finish_discussion_early(self):
         state = self.discussion()
@@ -135,6 +259,11 @@ class RoundtableTests(unittest.TestCase):
         with self.assertRaises(RuleError):
             self.command('finish_discussion', who=1)
         state = self.command('finish_discussion')
+        self.assertEqual(state['phase'], 'consultation')
+        self.assertEqual(state['deadline'], 1099)
+        with self.assertRaises(RuleError):
+            self.command('skip_consultation', who=1)
+        state = self.command('skip_consultation')
         self.assertEqual(state['phase'], 'decision')
         self.assertIsNone(state['deadline'])
         with self.assertRaises(RuleError):

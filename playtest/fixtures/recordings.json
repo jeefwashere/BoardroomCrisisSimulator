@@ -291,6 +291,38 @@
       "text": "Has the availability of Morgan or Priya been confirmed?",
       "suggested_agent": "preparation",
       "pack_id": "T03"
+    },
+    {
+      "id": "t01_leadership_turn",
+      "title": "T01 leadership proposal",
+      "role": "Leadership participant",
+      "group": "discussion",
+      "text": "The appointment system is unavailable and our director cannot coordinate this incident. The plan names no alternate. I propose that we appoint an interim coordinator now, so someone can organize the response. Who should take that role?",
+      "pack_id": "T01"
+    },
+    {
+      "id": "t01_recovery_turn",
+      "title": "T01 technical checks",
+      "role": "Recovery participant",
+      "group": "discussion",
+      "text": "IT has reported suspicious account activity, but no disclosure is confirmed. Backup copies exist, yet restoration has not been checked. I want IT to verify backup usability, dependencies, and an estimate before we promise when appointments can resume.",
+      "pack_id": "T01"
+    },
+    {
+      "id": "t01_communications_turn",
+      "title": "T01 continuity proposal",
+      "role": "Communications participant",
+      "group": "discussion",
+      "text": "People still need appointments. I propose authorizing the service manager to use the approved paper process while technical checks continue. Our update should separate confirmed facts from unknowns and state when we will report again. Do you support that?",
+      "pack_id": "T01"
+    },
+    {
+      "id": "t01_decision_prompt",
+      "title": "T01 decision guide",
+      "role": "Recorded decision guide",
+      "group": "controls",
+      "text": "Discussion is complete. Choose a response: A, controlled continuity with an interim coordinator and approved paper appointments; B, technical checks first while appointments remain paused; or C, wait for the director. Select your own vote. The CEO confirms the winning choice after everyone has voted.",
+      "pack_id": "T01"
     }
   ]
 }

@@ -289,7 +289,7 @@ class RoundtableHTTPTests(unittest.TestCase):
         self.assertEqual(state['history'], [])
         self.assertEqual(state['phase'], 'lobby')
 
-    def test_facilitator_requires_ceo_and_discussion_or_decision(self):
+    def test_facilitator_requires_ceo_and_all_consultation_phases(self):
         body = {'command_id': uuid.uuid4().hex, 'text': 'What next?'}
         response = self.client.post('/api/roundtable/agent/facilitator', json=body, headers=self.auth())
         self.assertEqual(response.status_code, 409)
@@ -312,10 +312,13 @@ class RoundtableHTTPTests(unittest.TestCase):
         self.assertEqual(state['transcript'], [])
         self.assertEqual(state['history'], [])
         self.ok_command('finish_discussion')
+        self.assertEqual(self.state()['phase'], 'consultation')
         identifier = self.ask('facilitator', text='What should we decide?')
         state, job = self.wait_job(identifier)
         self.assertEqual(job['status'], 'done', job)
-        self.assertEqual(state['phase'], 'decision')
+        self.assertEqual(state['phase'], 'consultation')
+        self.ok_command('skip_consultation')
+        self.assertEqual(self.state()['phase'], 'decision')
 
     def test_late_facilitator_reply_is_discarded_after_early_finish(self):
         self.discussion()
@@ -328,7 +331,7 @@ class RoundtableHTTPTests(unittest.TestCase):
             self.provider.release.set()
         state, job = self.wait_job(identifier)
         self.assertEqual(job['status'], 'discarded', job)
-        self.assertEqual(state['phase'], 'decision')
+        self.assertEqual(state['phase'], 'consultation')
         self.assertFalse(any(reply['id'] == identifier for reply in state['suggestions']))
 
     def test_agent_retries_do_not_repeat_provider_requests(self):
@@ -389,6 +392,7 @@ class RoundtableHTTPTests(unittest.TestCase):
         self.ok_command('next_turn', 1)
         self.ok_command('contribute', 2, text='Who owns the public update?')
         self.ok_command('finish_discussion')
+        self.ok_command('skip_consultation')
         deadline = time.monotonic() + 3
         while time.monotonic() < deadline:
             state = self.state()

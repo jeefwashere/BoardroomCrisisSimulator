@@ -1,4 +1,6 @@
-# Live voiced meeting verification
+# Historical X11 live voiced meeting verification
+
+X12 supersedes this workflow with a consultation minute and recorded fixed choice guide. See [the current report](GUIDED_ROUND_REPORT.md). The measurements below remain the original X11 results.
 
 Open <http://127.0.0.1:8788/>. One PDF is attached automatically. Load three test people, then use the CEO's Start meeting control. The preparation agent gives an introduction during a 30 second opening; the five minute discussion begins afterward. [The guide](ROUNDTABLE_GUIDE.md) explains the exact controls and a copyable decision test.
 

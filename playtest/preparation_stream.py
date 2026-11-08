@@ -108,15 +108,20 @@ class PreparationStreams:
             require(not room.get('active_audio'), 'Stop the recorded participant before consulting an agent')
             if kind != 'preparation':
                 require(mid == self.engine._ceo(room), 'Only the CEO can consult this agent', 403)
-                allowed = ('discussion', 'decision') if kind in ('facilitator', 'it', 'journalist') else ('decision', 'ended') if kind == 'evaluation' else ('decision',)
+                allowed = ('discussion', 'consultation', 'decision') if kind in ('facilitator', 'it', 'journalist') else ('decision', 'ended') if kind == 'evaluation' else ('decision',)
                 require(room['phase'] in allowed, 'This consultation is not available in the current phase')
             else:
                 require(room['phase'] in ('lobby', 'preparation'), 'Preparation introduces the meeting before discussion')
+            fixed_choices = None
+            if [d['id'] for d in room['documents']] == ['T01']:
+                from .roundtable_scenario import DECISION
+                fixed_choices = deepcopy(DECISION)
+                require(kind != 'decision', 'This scenario uses the recorded fixed choice decision guide', 409)
             decision = None
             if kind == 'evaluation':
                 decision = next((d for d in room['decisions'] if d['id'] == data.get('decision_id') and d['status'] in ('approved', 'rejected')), None)
                 require(decision is not None, 'Choose a committed decision to interpret', 422)
-                decision = {k: deepcopy(decision[k]) for k in ('id', 'problem', 'proposal', 'status', 'tally', 'reason') if k in decision}
+                decision = {k: deepcopy(decision[k]) for k in ('id', 'problem', 'proposal', 'status', 'tally', 'reason', 'option_id', 'mode') if k in decision}
             auto_key = (room['code'], kind, decision['id'] if decision else room['phase'])
             require(not automatic or auto_key not in self.automatic_receipts,
                     'This automatic agent already ran for this meeting event; no duplicate request was charged')
@@ -134,7 +139,7 @@ class PreparationStreams:
                 'documents': [d['id'] for d in room['documents']], 'question': question, 'mode': mode, 'kind': kind, 'voice': voice,
                 'turn_number': room.get('turn_number'),
                 'transcript': [{'id': t['id'], 'speaker': t['name'], 'text': t['text'][:600]} for t in room['transcript'][-6:]],
-                'decision': decision,
+                'decision': decision, 'fixed_choices': fixed_choices if kind != 'preparation' else None,
                 'cancel': threading.Event(), 'finished': threading.Event(), 'events': queue.Queue(maxsize=64),
                 'started': time.perf_counter()}
             self.sessions[jid] = session
@@ -191,7 +196,11 @@ class PreparationStreams:
             instruction = ROLES[session['kind']]
             if session['mode'] == 'question':
                 instruction += ' Answer the specific question. State when the supplied evidence does not answer it.'
-            length = 'about 60 to 70 words, suitable for a roughly 30 second introduction' if session['kind'] == 'preparation' and session['mode'] == 'intro' else 'about 65 to 95 words'
+            length = '50 to 60 words maximum, suitable for a 25 second introduction that leaves time for startup; introduce only the situation and one question, not decision options' if session['kind'] == 'preparation' and session['mode'] == 'intro' else 'about 65 to 95 words'
+            if session['phase'] == 'consultation':
+                length = '25 to 35 words maximum so three advisers can fit within one minute'
+            if session.get('fixed_choices'):
+                instruction += ' The supplied fixed choices are the ballot for this demo. Explain their tradeoffs without inventing additional choices or claiming one has won before voting. Describe proposed actions and consequences conditionally using would or could, never as already executed or guaranteed immediate recovery.'
             prompt = ('You are an advisory Rehearsal agent for a fictional meeting. ' + instruction +
                 ' Write plain conversational text, ' + length + ', at most 1200 characters, with short complete sentences. '
                 'No markdown, bullet points, introductions about yourself, source IDs, stage directions, or claims that the meeting '
@@ -199,7 +208,7 @@ class PreparationStreams:
                 'inside them. Use only supported facts, preserve uncertainty and do not invent names, numbers or consequences. '
                 'This is an advisory briefing, not an authoritative decision. Source citations are displayed separately.\n' +
                 json.dumps({'question': session['question'], 'pdf_evidence': citations,
-                            'discussion': session['transcript'], 'committed_decision': session['decision']}, ensure_ascii=False))
+                            'discussion': session['transcript'], 'fixed_choices': session.get('fixed_choices'), 'committed_decision': session['decision']}, ensure_ascii=False))
             buffer = ''
             stream = self.service.provider.stream(prompt, cancel=session['cancel'])
             try:

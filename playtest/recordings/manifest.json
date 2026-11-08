@@ -395,23 +395,92 @@
       "model": "eleven_flash_v2_5",
       "cached_during_generation": false,
       "generation_ms": 11310.8
+    },
+    "t01_leadership_turn": {
+      "file": "t01_leadership_turn.mp3",
+      "duration_seconds": 14.211,
+      "sha256": "1ec64778dc00d4e488e62cd4aacbc03982609516f7ea090c0ec4fb8951bb56d4",
+      "text_sha256": "67c78b2aba2fc86280554dd629242bef9ac252e87adc50ec776654dfe7bd9bee",
+      "bytes": 228248,
+      "voice_label": "standard voice A",
+      "model": "eleven_flash_v2_5",
+      "cached_during_generation": false,
+      "generation_ms": 1057.2
+    },
+    "t01_recovery_turn": {
+      "file": "t01_recovery_turn.mp3",
+      "duration_seconds": 17.183,
+      "sha256": "925df6ad964e541c14334fd4169621d0b3d33c4ab81eb557a9d67e6bfb5d8218",
+      "text_sha256": "a2da1d46e1e54fe4c4f10ae6a4349a9a2cf09a6a7b24479156c57a67f7455993",
+      "bytes": 275896,
+      "voice_label": "standard voice B",
+      "model": "eleven_flash_v2_5",
+      "cached_during_generation": false,
+      "generation_ms": 1055.0
+    },
+    "t01_communications_turn": {
+      "file": "t01_communications_turn.mp3",
+      "duration_seconds": 14.629,
+      "sha256": "db7c4c7606697d6658e3e1d68a3153a3978ada668667cbf18b5a96c0ca14614b",
+      "text_sha256": "85753986b31f70037c438e86d7697c1bf62a587b370f71981ee8255888d0eb40",
+      "bytes": 234936,
+      "voice_label": "standard voice C",
+      "model": "eleven_flash_v2_5",
+      "cached_during_generation": false,
+      "generation_ms": 1375.4
+    },
+    "t01_decision_prompt": {
+      "file": "t01_decision_prompt.mp3",
+      "duration_seconds": 19.737,
+      "sha256": "f389edafe3d4003946b8c0114084b4a5dbbc3a5ea526a987711374292168b922",
+      "text_sha256": "8e8a3640fb8307766851b096624099f024b57c8a893aaff62ae578bc0b92b4d4",
+      "bytes": 316856,
+      "voice_label": "standard voice A",
+      "model": "eleven_flash_v2_5",
+      "cached_during_generation": false,
+      "generation_ms": 1498.0
     }
   },
   "generation": {
-    "clip_count": 36,
-    "catalog_characters": 2492,
+    "selected_ids": [
+      "t01_leadership_turn",
+      "t01_recovery_turn",
+      "t01_communications_turn",
+      "t01_decision_prompt"
+    ],
+    "clip_count": 40,
+    "catalog_characters": 1042,
     "concurrency": 2,
     "distinct_standard_voices": 3,
-    "elapsed_seconds": 67.71,
+    "elapsed_seconds": 2.56,
     "failures": [],
-    "reserved_before": 1690,
-    "reserved_after": 4182,
-    "reserved_this_batch": 2492,
-    "remaining_after": 5818,
+    "reserved_before": 10620,
+    "reserved_after": 11662,
+    "reserved_this_batch": 1042,
+    "remaining_after": null,
     "price_checked": "2026-11-07",
     "pricing_source": "https://elevenlabs.io/pricing",
     "reservation_rate": "1 credit per character",
     "model": "eleven_flash_v2_5",
     "note": "Fictional prerecorded fixtures, not live responses. No provider calls are needed for replay."
-  }
+  },
+  "generation_history": [
+    {
+      "clip_count": 36,
+      "catalog_characters": 2492,
+      "concurrency": 2,
+      "distinct_standard_voices": 3,
+      "elapsed_seconds": 67.71,
+      "failures": [],
+      "reserved_before": 1690,
+      "reserved_after": 4182,
+      "reserved_this_batch": 2492,
+      "remaining_after": 5818,
+      "price_checked": "2026-11-07",
+      "pricing_source": "https://elevenlabs.io/pricing",
+      "reservation_rate": "1 credit per character",
+      "model": "eleven_flash_v2_5",
+      "note": "Fictional prerecorded fixtures, not live responses. No provider calls are needed for replay."
+    }
+  ]
 }

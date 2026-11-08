@@ -130,6 +130,8 @@ def main():
                                 'provisional_only': True, 'fixture': 'discussion_owner', 'human_microphone': False}
             save()
     ceo.command('finish_discussion')
+    assert ceo.state()['phase'] == 'consultation'
+    ceo.command('skip_consultation')
     assert ceo.state()['phase'] == 'decision'
     job, reply = wait_job(ceo, clients, ceo.ask('facilitator', 'What remains unresolved before voting?'))
     report['cases'].append({'kind': 'decision_facilitator', 'job': job, 'reply': reply})
@@ -137,13 +139,11 @@ def main():
     report['cases'].append({'kind': 'automatic_minutes', 'job': job, 'reply': reply})
     state = host.state()
     assert all(any(i['text'] == t['text'] and i['source_ids'] == [t['id']] for t in state['transcript']) for i in state['summary']['items'])
-    assert state['decisions'] == [], 'AI must not create decisions'
-    host.command('propose_decision', problem='Contain affected finance device',
-                 proposal='Ask IT to isolate the affected finance device and preserve logs.',
-                 source_ids=[state['transcript'][1]['id']])
-    decision = host.state()['decisions'][0]['id']
-    for client, choice in zip(clients, ['approve', 'approve', 'reject']):
-        client.command('vote_decision', decision_id=decision, choice=choice)
+    assert len(state['decisions']) == 1 and state['decisions'][0]['mode'] == 'fixed_choice'
+    assert state['decisions'][0]['ballot_count'] == 0, 'AI must never cast human votes'
+    decision = state['decisions'][0]['id']
+    for client, choice in zip(clients, ['controlled_continuity', 'controlled_continuity', 'technical_first']):
+        client.command('vote_option', decision_id=decision, option_id=choice)
     ceo.command('commit_decision', decision_id=decision)
     ceo.command('end')
     state = host.state()

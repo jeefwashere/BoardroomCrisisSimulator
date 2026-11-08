@@ -84,6 +84,31 @@ class StreamingRoutes(unittest.TestCase):
         self.assertEqual(state['transcript'], [])
         self.assertEqual(state['decisions'], [])
         self.assertEqual(state['suggestions'][-1]['text'], FIRST+SECOND)
+    def test_consultation_is_live_and_uses_fixed_choices_without_voting(self):
+        service=self.app.state.roundtable_service
+        room=service.engine.rooms[self.code]
+        room.update(phase='consultation',documents=[{'id':'T01'}],documents_ready=True)
+        events=self.events(self.request(kind='facilitator',voice=False))
+        self.assertEqual(events[-1]['status'],'done')
+        self.assertIn('controlled_continuity',self.provider.prompts[-1])
+        self.assertIn('25 to 35 words',self.provider.prompts[-1])
+        self.assertEqual(self.memory.searches[-1][1],['T01'])
+        self.assertEqual(room['decisions'],[])
+        self.assertEqual(room['transcript'],[])
+
+    def test_introduction_keeps_ballot_options_out_of_the_timed_briefing(self):
+        room=self.app.state.roundtable_service.engine.rooms[self.code]
+        room.update(phase='preparation',documents=[{'id':'T01'}],documents_ready=True)
+        self.events(self.request(kind='preparation',voice=False))
+        self.assertNotIn('controlled_continuity',self.provider.prompts[-1])
+        self.assertIn('50 to 60 words',self.provider.prompts[-1])
+
+    def test_fixed_ballot_rejects_generated_decision_prompt(self):
+        room=self.app.state.roundtable_service.engine.rooms[self.code]
+        room.update(phase='decision',documents=[{'id':'T01'}],documents_ready=True)
+        self.assertEqual(self.request(kind='decision',voice=False).status_code,409)
+        self.assertEqual(self.provider.prompts,[])
+
     def test_text_only_needs_no_elevenlabs_configuration(self):
         self.speech.adapter = None
         events = self.events(self.request(voice=False))

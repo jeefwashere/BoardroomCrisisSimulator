@@ -18,6 +18,7 @@ from .engine import RuleError, bounded_text, require
 from .preparation_stream import PreparationStreams
 from .roundtable_recordings import RoundtableRecordings
 from .recordings import RecordingLibrary
+from .decision_prompt import DecisionPrompt
 
 
 def bearer(request):
@@ -42,6 +43,8 @@ class RoundtableService:
         self.router.include_router(self.briefings.router)
         self.recorded_turns = RoundtableRecordings(self, RecordingLibrary())
         self.router.include_router(self.recorded_turns.router)
+        self.decision_prompt = DecisionPrompt(self, RecordingLibrary())
+        self.router.include_router(self.decision_prompt.router)
 
     def start(self):
         if self.warm_memory:
@@ -131,8 +134,8 @@ class RoundtableService:
             require(len(self.receipts) < 10000, 'Request capacity reached', 429)
             require(kind != 'preparation' or room['documents_ready'], 'PDF memory is not ready')
             require(kind != 'facilitator' or mid == self.engine._ceo(room), 'Only the CEO can consult the facilitator', 403)
-            require(kind != 'facilitator' or room['phase'] in ('discussion', 'decision'),
-                    'Consult the facilitator during discussion or decisions')
+            require(kind != 'facilitator' or room['phase'] in ('discussion', 'consultation', 'decision'),
+                    'Consult the facilitator during discussion, the consultation minute or decisions')
             require(kind != 'minutes' or room['transcript'], 'Submit discussion contributions first')
             require(not any(j['kind'] == kind and j['status'] == 'pending' for j in room['jobs'].values()),
                     'This agent already has a pending request')

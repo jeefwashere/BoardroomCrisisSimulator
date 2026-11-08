@@ -75,3 +75,42 @@ test('unlimited health displays tracking without a false zero balance',async()=>
  const {run,node,ctx}=harness();ctx.fetch=async()=>({ok:true,json:async()=>({models:{model:'gemini',thinking_level:'LOW',budget:{unlimited:true,remaining_usd:null}},speech:{unlimited:true,remaining:null}})});
  await run('health()');assert.equal(node('budget').textContent,'Usage tracking only · no app spending cap');assert(!node('budget').textContent.includes('$0'));
 });
+
+function fixedFixture(run){run(`states[0].phase='decision';states[0].fixed_scenario='T01';states[0].decisions=[{id:'t01_response',mode:'fixed_choice',problem:'Choose a response',status:'pending',ballot_count:1,voted_members:['a'],my_vote:'controlled_continuity',options:[{id:'controlled_continuity',label:'Controlled continuity',proposal:'Coordinate and verify'},{id:'technical_first',label:'Technical checks first',proposal:'Prioritize technical checks'},{id:'wait_for_director',label:'Wait for director',proposal:'Defer until contact'}]}];render();`);}
+test('consultation has a visible minute timer and CEO can finish it early',()=>{
+ const {run,node}=harness();run(`states[0].phase='consultation';states[0].deadline=160;states[0].received=Date.now();render();`);
+ assert.equal(node('phase').textContent,'One minute with live advisers');assert.equal(node('timer').textContent,'01:00');assert.equal(node('consultationNotice').hidden,false);assert(!node('skipConsultation').disabled);assert(!node('facilitate').disabled);
+ run(`states[0].me='b';render();`);assert(node('skipConsultation').disabled);assert(node('facilitate').disabled);
+});
+test('fixed ballot hides custom forms and sends explicit option votes with voter status',async()=>{
+ const {run,node,ctx}=harness();fixedFixture(run);ctx.commands=[];run(`command=async(action,data)=>commands.push({action,data});`);
+ assert(node('customDecision').hidden);const decision=node('decisions').children[0],options=decision.children.find(c=>c.className==='fixed-options');assert.equal(options.children.length,3);
+ assert(decision.children.find(c=>c.className==='voter-status').children[0].textContent.includes('voted'));
+ await options.children[1].children.at(-1).onclick();assert.equal(ctx.commands[0].action,'vote_option');assert.equal(ctx.commands[0].data.option_id,'technical_first');
+ const buttons=decision.children.at(-1).children;assert(buttons[0].disabled);assert(!decision.children.some(c=>c.textContent==='approve'));
+});
+test('fixed option ties offer only tied leaders to the CEO',async()=>{
+ const {run,node,ctx}=harness();fixedFixture(run);ctx.commands=[];run(`command=async(action,data)=>commands.push({action,data});states[0].decisions[0].ballot_count=3;states[0].decisions[0].tally={controlled_continuity:1,technical_first:1,wait_for_director:1};render();`);
+ const actions=node('decisions').children[0].children.at(-1).children.filter(c=>c.onclick);assert.equal(actions.length,3);await actions[1].onclick();assert.equal(ctx.commands[0].action,'commit_decision');assert.equal(ctx.commands[0].data.option_id,'technical_first');
+});
+test('fixed decision automatically uses the recorded guide once then live evaluation',async()=>{
+ const {run,ctx}=harness();fixedFixture(run);ctx.guides=[];ctx.generated=[];
+ run(`playDecisionGuide=async owner=>guides.push(owner.token);startPreparation=async(mode,kind,extra)=>generated.push({kind,extra});`);
+ await run('automaticAgents()');await run('automaticAgents()');assert.equal(ctx.guides.length,1);assert.equal(ctx.generated.length,0);
+ run(`states[0].decisions[0].status='approved';states[0].decisions[0].option_id='technical_first';`);await run('automaticAgents()');assert.equal(ctx.generated.length,1);assert.equal(ctx.generated[0].kind,'evaluation');assert.equal(ctx.generated[0].extra.decision_id,'t01_response');
+});
+test('recorded decision guide respects text only and makes no speech or vote call',async()=>{
+ const {run,ctx,node}=harness();fixedFixture(run);const calls=[];ctx.fetch=async(url)=>{calls.push(url);return {ok:true,json:async()=>({decision_id:'t01_response',text:'Read the three responses.',audio_url:'/api/roundtable/decision-prompt/audio'})};};
+ assert.equal(await run('playDecisionGuide()'),true);assert.equal(node('decisionGuideText').textContent,'Read the three responses.');assert.deepEqual(calls,['/api/roundtable/decision-prompt']);
+});
+test('stopping a pending guide prevents stale playback and releases captured room lease',async()=>{
+ const {run,ctx}=harness();fixedFixture(run);const calls=[];let release;
+ ctx.fetch=(url,options)=>{calls.push({url,auth:options.headers.Authorization});if(url.endsWith('/audio'))return new Promise(resolve=>release=resolve);return Promise.resolve({ok:true,json:async()=>({decision_id:'t01_response',text:'Guide',audio_url:'/api/roundtable/decision-prompt/audio'})});};
+ run(`$('voiceOn').checked=true;`);const playing=run('playDecisionGuide()');await new Promise(resolve=>setImmediate(resolve));await run('stopDecisionGuide()');run(`bundle={code:'NEW',seats:[{token:'new'}]};`);release({ok:true,blob:async()=>new Blob(['audio'])});assert.equal(await playing,false);
+ assert(calls.filter(c=>c.url.endsWith('/stop')).every(c=>c.auth==='Bearer secret'));assert(!calls.some(c=>c.url.includes('/command/')||c.url.includes('/briefing')));
+});
+
+test('recorded guide replay is enabled only for the CEO seat',()=>{
+ const {run,node}=harness();fixedFixture(run);assert(!node('playDecisionGuide').disabled);
+ run(`states[0].me='b';render();`);assert(node('playDecisionGuide').disabled);
+});

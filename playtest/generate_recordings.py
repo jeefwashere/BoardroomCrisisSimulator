@@ -47,13 +47,19 @@ def save_manifest(manifest):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--generate', action='store_true', help='Explicitly allow paid generation within the existing shared cap')
+    parser.add_argument('--ids', nargs='+', help='Generate or validate only these catalog IDs; existing other assets are preserved')
     parser.add_argument('--env-file', default=str(ROOT.parent/'BoardroomCrisisSimulator/.env.local'))
     args = parser.parse_args()
     clips = json.loads(CATALOG.read_text())['clips']
     assert len({x['id'] for x in clips}) == len(clips)
+    if args.ids:
+        requested = set(args.ids)
+        if requested - {clip['id'] for clip in clips}:
+            raise ValueError('Unknown recording ID in selection')
+        clips = [clip for clip in clips if clip['id'] in requested]
     for clip in clips:
         assert re.fullmatch(r'[a-z][a-z0-9_]{0,63}', clip['id'])
-        assert 0 < len(clip['text']) <= 250
+        assert 0 < len(clip['text']) <= 500
     total = sum(len(x['text']) for x in clips)
     if total > 4500:
         raise ValueError('This library generation is limited to 4500 characters')
@@ -87,7 +93,7 @@ def main():
         if not pending:
             print(json.dumps({'already_complete': len(clips), 'budget': before}), flush=True)
             return
-        if sum(len(x['text']) for x in pending) > before['remaining']:
+        if before['remaining'] is not None and sum(len(x['text']) for x in pending) > before['remaining']:
             raise ValueError('Shared speech allowance is insufficient for this batch')
         load_env(args.env_file)
         adapter = ElevenSpeech(os.environ.get('ELEVENLABS_API_KEY'), budget, DATA/'audio', tts_per_1k=1000, stt_per_minute=400)
@@ -129,7 +135,9 @@ def main():
                     failures.append({'clip': ident, 'error_type': type(exc).__name__})
                     print(json.dumps(failures[-1]), flush=True)
         after = budget.status()
-        manifest['generation'] = {'clip_count': len(manifest['clips']), 'catalog_characters': total,
+        if 'generation' in manifest:
+            manifest.setdefault('generation_history', []).append(manifest['generation'])
+        manifest['generation'] = {'selected_ids': [clip['id'] for clip in clips], 'clip_count': len(manifest['clips']), 'catalog_characters': total,
             'concurrency': 2, 'distinct_standard_voices': len(voices),
             'elapsed_seconds': round(time.perf_counter()-started, 2), 'failures': failures,
             'reserved_before': before['reserved'], 'reserved_after': after['reserved'],

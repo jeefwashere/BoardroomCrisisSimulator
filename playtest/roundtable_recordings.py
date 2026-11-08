@@ -7,7 +7,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import FileResponse
 from .engine import require
 
-DEFAULT_CLIPS = ['discussion_owner', 'discussion_containment', 'discussion_public_update']
+DEFAULT_CLIPS = ['t01_leadership_turn', 't01_recovery_turn', 't01_communications_turn']
 
 
 class RoundtableRecordings:

@@ -37,12 +37,14 @@ export default function RoomChatPanel({ room, scenarios, chat, compact = false, 
     const send = () => { if (deciding) void sendDecision(); else void store.send(room.game?.phase_id ?? null, ended) }
     const scenario = room.game ? scenarios.find((item) => item.scenario_id === room.game?.scenario.scenario_id && item.version === room.game.scenario.version) : scenarios[0]
     const ended = room.phase === 'ended'
+    // Round 1 decisions are private records shown in the decision panel and the report, not chat messages.
+    const records = state.records.filter((entry) => entry.phase !== 'individual_decision')
     return <>
         {!compact && <p className="room-chat-note">Shared with everyone in this room. Committed messages remain in the session record.</p>}
         <div className="room-chat-history" role="log" aria-label="Committed room records" aria-live="polite" aria-relevant="additions">
             {!state.loaded && !state.historyError && <p role="status">Loading conversation…</p>}
-            {state.loaded && state.records.length === 0 && <p className="room-chat-empty">No messages yet. Start the conversation.</p>}
-            {state.records.map((entry) => {
+            {state.loaded && records.length === 0 && <p className="room-chat-empty">No messages yet. Start the conversation.</p>}
+            {records.map((entry) => {
                 const member = room.members.find((item) => item.member_id === entry.member_id)
                 const role = scenario?.roles.find((item) => item.role_id === entry.role_id)?.name ?? entry.role_id
                 return <article className={`room-chat-record${entry.member_id === room.self_member_id ? ' is-self' : ''}`} key={entry.contribution_id} data-contribution-id={entry.contribution_id}>

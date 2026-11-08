@@ -221,3 +221,8 @@
 .game-call-screen .decision-waiting { margin: 4px 0 8px; color: var(--call-ink); font-size: 13px; font-weight: 600; }
 .game-call-screen .chat-drawer .room-chat-compose .room-chat-target > button { background: transparent; color: var(--call-muted); }
 .game-call-screen .chat-drawer .room-chat-compose .room-chat-target > button.is-active { background: var(--call-red); color: var(--call-cream); }
+.game-call-screen .decision-compact { margin: 2px 0 6px; font-size: 13px; line-height: 1.45; }
+.game-call-screen .decision-compact > p { margin: 0; }
+.game-call-screen .decision-peek { margin-top: 4px; font-size: 12px; }
+.game-call-screen .decision-peek > summary { color: var(--call-muted); cursor: pointer; }
+.game-call-screen .decision-peek > .decision-text { max-height: 140px; overflow-y: auto; margin-top: 6px; }

@@ -117,15 +117,11 @@ export function DecisionStatusPanel({ room, speaking, caption, saving }: { room:
         </header>
         {canSubmit ? <p className="vote-note">Give your decision with <strong>AI reply</strong> in the control bar (spoken in your voice; only you hear it) or type it in <strong>Chat</strong>. Only you see your decision.</p>
             : !recorded && <p className="vote-note">You are observing this round. Only members taking part in this round give a decision.</p>}
-        {(speaking || saving) && caption && <div className="decision-recorded">
-            <p><span className="vote-badge decision-badge--waiting">{saving ? 'Saving…' : 'Speaking'}</span> {saving ? 'Saving your decision…' : 'Your AI decision is playing; it is saved when it finishes.'}</p>
-            <p className="decision-text">{caption}</p>
-        </div>}
-        {recorded && !speaking && !saving && <div className="decision-recorded">
-            <div className="vote-confirmed">
-                <p><span className="vote-badge vote-badge--voted">Submitted</span> Your decision is recorded.{canSubmit ? ' To replace it before decisions close, use AI reply again or send a new one in Chat.' : ''}</p>
-            </div>
-            <p className="decision-text">{recorded.text}</p>
+        {(speaking || saving) && caption && <p className="decision-compact"><span className="vote-badge decision-badge--waiting">{saving ? 'Saving…' : 'Speaking'}</span> {saving ? 'Saving your decision…' : 'Speaking your decision; it is saved when it finishes.'}</p>}
+        {recorded && !speaking && !saving && <div className="decision-compact">
+            <p><span className="vote-badge vote-badge--voted">Submitted</span> Your decision is recorded.{canSubmit ? ' AI reply or Chat replaces it.' : ''}</p>
+            {/* Kept out of the way: the full text only on request. */}
+            <details className="decision-peek"><summary>View my decision</summary><p className="decision-text">{recorded.text}</p></details>
         </div>}
         {rows.length > 0 && <div className="decision-board">
             <p className="vote-eyebrow">{progress.done} of {progress.total} decisions submitted</p>

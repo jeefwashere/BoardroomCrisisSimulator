@@ -36,7 +36,7 @@ import { clipForTurn } from '../features/game/savedClips'
 import { playerAvatarColor, playerRoleLabel } from '../features/game/playerPresentation'
 import Boardroom3D from '../features/boardroom3d/Boardroom3D'
 import { AgentPresenceContext } from '../features/boardroom3d/agentPresence'
-import { boardroomView, viewFromSearch } from '../features/boardroom3d/boardroomModel'
+import { STAGE_STORAGE_KEY, boardroomView, offersStageSwitch, stagePreference } from '../features/boardroom3d/boardroomModel'
 import type { StageAgent } from '../features/boardroom3d/boardroomModel'
 import { DEMO_STORAGE_KEY, readStoredDemo } from '../features/demo/demoModel'
 import { seatFromSearch } from '../services/tabSession'
@@ -56,9 +56,14 @@ function storeCaptions(on: boolean) {
     try { tabStorage()?.setItem(CAPTIONS_STORAGE_KEY, on ? '1' : '0') } catch { /* The choice lasts for this view only. */ }
 }
 
-/** `?view=3d` swaps the call tiles for the 3D boardroom; controls, transcript and chat stay the same. */
+/** The 3D boardroom or the call tiles: this tab's last choice, else `?view=3d`. Controls, transcript and chat stay the same. */
 function readView3d(): boolean {
-    return typeof window !== 'undefined' && viewFromSearch(window.location.search) === '3d'
+    if (typeof window === 'undefined') return false
+    try { return stagePreference(tabStorage()?.getItem(STAGE_STORAGE_KEY) ?? null, window.location.search) === '3d' } catch { return false }
+}
+
+function storeView3d(on: boolean) {
+    try { tabStorage()?.setItem(STAGE_STORAGE_KEY, on ? '3d' : 'call') } catch { /* The choice lasts for this view only. */ }
 }
 
 /** Alex's frame in the solo demo: Morgan's and Sam's clips play from the parent page, so this view captions them. */
@@ -99,7 +104,10 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const [dock, setDock] = useState<HTMLDivElement | null>(null)
     const { entries: transcriptEntries, writer: transcript } = useTranscript(`${room.room_id}:${room.game?.started_at ?? ''}`)
     const [soloBots] = useState(drivesSoloBots)
-    const [view3d] = useState(readView3d)
+    const [view3d, setView3d] = useState(readView3d)
+    const toggleView3d = useCallback(() => setView3d((on) => { storeView3d(!on); return !on }), [])
+    // Once opened, the 3D scene stays loaded (paused while hidden) so switching back and forth is instant.
+    const [mounted3d, setMounted3d] = useState(false)
     // The AI voice the current stage is playing (reported by the opening, expert and private stages) lights the 3D hub.
     const [stageAgent, setStageAgent] = useState<StageAgent | null>(null)
     // Unread counts other members' messages that arrived after the drawer was last open (history at entry counts as read).
@@ -195,7 +203,10 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     if (dictation.listening) talking.add(room.self_member_id)
     // In a private session your saved answer is spoken by your own character.
     if (privatePhase && privateAuto.status === 'playing') talking.add(room.self_member_id)
-    const board = view3d ? boardroomView({
+    const stageSwitch = offersStageSwitch(members.length)
+    const show3d = view3d && stageSwitch
+    if (show3d && !mounted3d) setMounted3d(true)
+    const board = mounted3d && stageSwitch ? boardroomView({
         phase: room.phase, selfId: room.self_member_id, eligibleIds: game.eligible_member_ids, activeSpeakerId,
         speakerIndex: game.speaker_index ?? null, speakerCount: game.speaker_order?.length ?? 0, scenarioTitle: game.scenario.title,
     }, members.map((member) => ({ id: member.id, name: member.name, role: member.roleLabel ?? playerRoleLabel(member.role), color: playerAvatarColor(member.id), connected: member.connected ?? true })),
@@ -234,8 +245,8 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
             <div className="game-call-heading"><h1>Boardroom</h1><span>Room {room.room_code}</span></div>
             <div className="game-header-end"><button className="game-summary-button" type="button" onClick={onViewSummary}>Summary preview <span aria-hidden="true">↗</span></button><span className="game-player-count">{room.members.length} / {room.capacity}</span></div>
         </header>
-        <main className={`game-call-main game-live-main${layout}${board ? ' game-live-main--3d' : ''}`}>
-            {board && <Boardroom3D view={board} clock={{ deadline: game.phase_deadline ?? null, serverTime: game.server_time ?? null }} />}
+        <main className={`game-call-main game-live-main${layout}${show3d ? ' game-live-main--3d' : ''}`}>
+            {board && <Boardroom3D active={show3d} view={board} clock={{ deadline: game.phase_deadline ?? null, serverTime: game.server_time ?? null }} />}
             <AnimatePresence mode="wait" initial={false}>
                 {opening ? <OpeningBriefing key="opening" room={room} members={members} transcript={transcript} onDismiss={() => setDismissedOpening(game.phase_id)} finishBriefing={actions.includes('finish_briefing') ? () => act(rounds + 'briefing/finish') : undefined} />
                     : experts ? <ExpertPanelStage key={`experts-${game.round_id}`} room={room} members={members} transcript={transcript} notice={error || notice} finishPanel={actions.includes('skip_phase') ? () => act(rounds + 'skip-phase') : undefined} />
@@ -253,7 +264,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
                         {room.phase === 'ended' && <TurnMedia room={room} recorder={recorder} />}
                     </motion.section>
                     : <motion.div key="call" className="game-stage-call" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4, ease: 'easeOut' }}>
-                        {!board && <CallGrid members={members} badges={badges} talking={talking} />}
+                        {!show3d && <CallGrid members={members} badges={badges} talking={talking} />}
                         {!sidePanel && (error || notice) && <p className="game-alert game-alert--float" role="alert">{error || notice}</p>}
                     </motion.div>}
             </AnimatePresence>
@@ -282,6 +293,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
             mic={{ ...mic, onClick: pressMic }}
             chat={{ open: chatOpen, unread, onToggle: () => setChatOpen((open) => !open) }}
             captions={{ on: captions, onToggle: toggleCaptions }}
+            stage={stageSwitch ? { threeD: show3d, onToggle: toggleView3d } : undefined}
             autoResponse={autoControl}
             finishTurn={actions.includes('finish_speaking') ? () => void act(rounds + 'speaker/finish') : undefined}
             skip={actions.includes('skip_phase') ? { label: skipLabel(room.phase), onClick: () => void act(rounds + 'skip-phase') } : undefined}

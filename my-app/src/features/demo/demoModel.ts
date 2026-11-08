@@ -1,6 +1,7 @@
 import type { RoomSnapshot, Scenario } from '../../services/rooms.ts'
 import type { RoleDraft } from '../rooms/roomState.ts'
 import { progressStatus } from '../game/privateSessionModel.ts'
+import { STAGE_STORAGE_KEY } from '../boardroom3d/boardroomModel.ts'
 
 // Three test memberships driven from one browser window. Seat IDs namespace
 // each frame's tab session storage (see seatStorage in services/tabSession).
@@ -19,9 +20,9 @@ export type DemoMode = 'solo' | 'seats'
 export const DEFAULT_DEMO_MODE: DemoMode = 'solo'
 export type StoredDemo = { room_id: string; room_code: string; mode: DemoMode }
 
-/** Solo stage: the 3D boardroom (default) or the call tiles. Remembered for this tab. */
+/** Solo stage: the 3D boardroom (default) or the call tiles. Shares the in game switch's choice for this tab. */
 export type DemoView = '3d' | 'call'
-export const DEMO_VIEW_KEY = 'boardroom.demoView'
+export const DEMO_VIEW_KEY = STAGE_STORAGE_KEY
 export function readDemoView(raw: string | null): DemoView {
     return raw === 'call' ? 'call' : '3d'
 }

@@ -1,8 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { BOARD_SEATS, boardMembers, boardroomView, screenSubtitle, viewFromSearch } from '../src/features/boardroom3d/boardroomModel.ts'
+import { BOARD_SEATS, STAGE_STORAGE_KEY, boardMembers, boardroomView, offersStageSwitch, screenSubtitle, stagePreference, viewFromSearch } from '../src/features/boardroom3d/boardroomModel.ts'
 import type { BoardMember, BoardroomInput, StageAgent } from '../src/features/boardroom3d/boardroomModel.ts'
-import { readDemoView, soloFrameSrc } from '../src/features/demo/demoModel.ts'
+import { DEMO_VIEW_KEY, readDemoView, soloFrameSrc } from '../src/features/demo/demoModel.ts'
 
 const member = (id: string, name: string): BoardMember => ({ id, name, role: `${name} role`, color: '#123456', connected: true })
 const alex = member('a', 'Alex')
@@ -68,4 +68,18 @@ test('view and demo stage choices', () => {
     const id = '123e4567-e89b-12d3-a456-426614174000'
     assert.equal(soloFrameSrc('/', id, '3d'), `/?seat=alex&view=3d#/room/${id}`)
     assert.equal(soloFrameSrc('/', id, 'call'), `/?seat=alex#/room/${id}`)
+})
+
+test('the stage switch remembers the tab choice over the URL and only offers 3D for three seats', () => {
+    assert.equal(stagePreference(null, '?view=3d'), '3d')
+    assert.equal(stagePreference(null, ''), 'call')
+    assert.equal(stagePreference('call', '?view=3d'), 'call')
+    assert.equal(stagePreference('3d', ''), '3d')
+    assert.equal(stagePreference('bogus', '?view=call'), 'call')
+    // The demo setup and the in game switch share one choice.
+    assert.equal(DEMO_VIEW_KEY, STAGE_STORAGE_KEY)
+    assert.equal(offersStageSwitch(3), true)
+    assert.equal(offersStageSwitch(1), true)
+    assert.equal(offersStageSwitch(0), false)
+    assert.equal(offersStageSwitch(4), false)
 })

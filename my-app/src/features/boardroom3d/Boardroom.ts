@@ -287,6 +287,9 @@ export class Boardroom {
   /** 'WebGPU' or 'WebGL2' once the renderer has initialised (WebGPURenderer falls back automatically). */
   backend = ''
   private disposed = false
+  /** Rendering runs only while the 3D stage is shown; the call view pauses it. */
+  private active = true
+  private started = false
   private tags: SeatTags
   private size = { width: 1, height: 1 }
   get aoEnabled() {
@@ -412,7 +415,22 @@ export class Boardroom {
     pmrem.dispose()
 
     this.buildPost()
-    this.renderer.setAnimationLoop(() => this.render())
+    this.started = true
+    if (this.active) this.renderer.setAnimationLoop(() => this.render())
+  }
+
+  /** Pause or resume rendering (the call view hides the 3D stage without unloading it). */
+  setActive(active: boolean) {
+    if (active === this.active) return
+    this.active = active
+    if (!this.started || this.disposed) return
+    if (active) {
+      this.clock.getDelta() // drop the paused time so animations do not jump
+      this.resize()
+      this.renderer.setAnimationLoop(() => this.render())
+    } else {
+      this.renderer.setAnimationLoop(null)
+    }
   }
 
   /**

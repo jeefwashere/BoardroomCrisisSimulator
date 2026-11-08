@@ -238,7 +238,7 @@ export default function DemoRoom() {
                 {mode === 'solo' && <fieldset className="demo-options" disabled={Boolean(busy)}>
                     <legend>Stage</legend>
                     <label><input type="radio" name="demo-view" value="3d" checked={view === '3d'} onChange={() => setView('3d')} /> 3D boardroom <span>(Alex, Morgan and Sam at the table; the hub lights up when an AI agent speaks)</span></label>
-                    <label><input type="radio" name="demo-view" value="call" checked={view === 'call'} onChange={() => setView('call')} /> Call tiles</label>
+                    <label><input type="radio" name="demo-view" value="call" checked={view === 'call'} onChange={() => setView('call')} /> Call tiles <span>(switch any time with 3D view in the game's control bar)</span></label>
                 </fieldset>}
                 <fieldset className="demo-options" disabled={Boolean(busy)}>
                     <legend>Voting options</legend>
@@ -271,7 +271,6 @@ export default function DemoRoom() {
         // the in game control bar carries Skip, and only a quiet Reset stays for after server restarts.
         return <main className="demo-room demo-room--solo">
             <button className="demo-reset-float" type="button" onClick={reset} title="Discard these test memberships and return to the demo setup">Reset demo</button>
-            <button className="demo-reset-float demo-view-float" type="button" onClick={() => setView(view === '3d' ? 'call' : '3d')} title="Reloads Alex's view with the other stage; the game continues">{view === '3d' ? 'Call view' : '3D view'}</button>
             {alert && <p className="demo-error demo-error--float" role="alert">{alert}</p>}
             <div className="demo-frames">
                 <section className="demo-frame" aria-label="Alex's player view">

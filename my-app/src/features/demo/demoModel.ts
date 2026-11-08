@@ -15,10 +15,13 @@ export type DemoSeat = (typeof DEMO_SEATS)[number]['seat']
 export const DEMO_STORAGE_KEY = 'boardroom.demoRoom'
 export const SPLIT_VIEW_MIN_WIDTH = 1400
 
-/** Solo: the user plays Alex while Morgan and Sam are automated. Seats: one person drives all three frames. */
-export type DemoMode = 'solo' | 'seats'
+/**
+ * Solo: the user plays Alex while Morgan and Sam are automated. Seats: one person drives all three frames.
+ * Windows: three independent windows (or devices); Alex hosts here and Morgan and Sam join from their own links.
+ */
+export type DemoMode = 'solo' | 'seats' | 'windows'
 export const DEFAULT_DEMO_MODE: DemoMode = 'solo'
-export type StoredDemo = { room_id: string; room_code: string; mode: DemoMode }
+export type StoredDemo = { room_id: string; room_code: string; mode: DemoMode; ballot?: BallotSource }
 
 /** Solo stage: the 3D boardroom (default) or the call tiles. Shares the in game switch's choice for this tab. */
 export type DemoView = '3d' | 'call'
@@ -37,10 +40,10 @@ export function readStoredDemo(raw: string | null): StoredDemo | null {
     try {
         const value: unknown = JSON.parse(raw)
         if (typeof value !== 'object' || value === null) return null
-        const { room_id: roomId, room_code: roomCode, mode } = value as Record<string, unknown>
+        const { room_id: roomId, room_code: roomCode, mode, ballot } = value as Record<string, unknown>
         // Demos stored before the mode choice existed were always three seats.
         return typeof roomId === 'string' && /^[0-9a-f-]{36}$/i.test(roomId) && typeof roomCode === 'string' && /^[A-Z0-9]{6}$/.test(roomCode)
-            ? { room_id: roomId, room_code: roomCode, mode: mode === 'solo' ? 'solo' : 'seats' } : null
+            ? { room_id: roomId, room_code: roomCode, mode: mode === 'solo' || mode === 'windows' ? mode : 'seats', ...(ballot === 'ai' || ballot === 'authored' ? { ballot } : {}) } : null
     } catch { return null }
 }
 
@@ -387,4 +390,39 @@ export function soloStage(snapshots: readonly Snapshot[]): SoloStage {
             return stage(game.last_result ? 'Decision recorded · game over' : 'Game over', { decision: final, over: true })
         }
     }
+}
+
+// Three window demo: Alex hosts in this window; Morgan and Sam open their own join links (other windows or devices).
+export type JoinSeat = 'morgan' | 'sam'
+export const JOIN_SEATS: readonly { seat: JoinSeat; name: string; role: string }[] = [
+    { seat: 'morgan', name: 'Morgan', role: 'IT recovery lead' },
+    { seat: 'sam', name: 'Sam', role: 'Communications lead' },
+]
+
+/** A join link for one seat: `<origin><path>#/demo/join?code=ABC123&seat=morgan[&view=3d]`. */
+export function joinLink(origin: string, pathname: string, roomCode: string, seat: JoinSeat, view: DemoView): string {
+    return `${origin}${pathname}#/demo/join?code=${roomCode}&seat=${seat}${view === '3d' ? '&view=3d' : ''}`
+}
+
+export type JoinRequest = { code: string; seat: JoinSeat; name: string; role: string; view: DemoView | null }
+
+/** Reads a join link's query (the part after `#/demo/join?`); null when the code or seat is not valid. */
+export function readJoinRequest(query: string): JoinRequest | null {
+    const params = new URLSearchParams(query)
+    const code = (params.get('code') ?? '').trim().toUpperCase()
+    const seat = JOIN_SEATS.find((option) => option.seat === params.get('seat'))
+    if (!/^[A-Z0-9]{6}$/.test(code) || !seat) return null
+    const view = params.get('view')
+    return { code, seat: seat.seat, name: seat.name, role: seat.role, view: view === '3d' || view === 'call' ? view : null }
+}
+
+/** Alex is the host; Morgan and Sam are matched by display name (case and spacing ignored). */
+export function windowSeats(room: Pick<RoomSnapshot, 'host_member_id' | 'members'>): { alex: string | null; morgan: string | null; sam: string | null } {
+    const named = (name: string) => room.members.find((member) => member.member_id !== room.host_member_id && member.display_name.trim().toLowerCase() === name.toLowerCase())?.member_id ?? null
+    return { alex: room.host_member_id ?? null, morgan: named('Morgan'), sam: named('Sam') }
+}
+
+/** Links built on a loopback address only open on this computer. */
+export function isLoopbackOrigin(origin: string): boolean {
+    try { return ['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin).hostname) } catch { return false }
 }

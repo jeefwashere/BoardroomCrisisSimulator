@@ -7,6 +7,9 @@ import { acceptSnapshot, startInput } from '../rooms/roomState'
 import { DEFAULT_DEMO_MODE, DEMO_SEATS, DEMO_STORAGE_KEY, DEMO_VIEW_KEY, SPLIT_VIEW_MIN_WIDTH, demoRoles, demoRoomCode, followTarget, phaseLabel, pickDemoScenario, readDemoView, readStoredDemo, seatStatus, soloFrameSrc } from './demoModel'
 import type { BallotSource, DemoMode, DemoView, StoredDemo } from './demoModel'
 import { useSoloBots } from './useSoloBots'
+import WindowsDemo from './WindowsDemo'
+import { roomApi } from '../rooms/useRoom'
+import { browserSessionStorage, saveSessionName } from '../identity/sessionName'
 import { usePrivateBots } from './usePrivateBots'
 import './DemoRoom.css'
 
@@ -44,6 +47,8 @@ function message(failure: unknown): string {
 function initialDemo(): { demo: StoredDemo | null; clients: SeatClient[] | null } {
     const storage = tabStorage()
     const demo = storage ? readStoredDemo(storage.getItem(DEMO_STORAGE_KEY)) : null
+    // The three window demo uses this window's ordinary membership (Alex), not seat memberships.
+    if (demo?.mode === 'windows') return { demo, clients: null }
     return demo && storage ? { demo, clients: seatClients(storage) } : { demo: null, clients: null }
 }
 
@@ -85,6 +90,12 @@ export default function DemoRoom() {
             setSkipping(false)
         }
     }
+    const resetToSetup = useCallback((notice?: string) => {
+        try { tabStorage()?.removeItem(DEMO_STORAGE_KEY) } catch { /* Nothing persisted. */ }
+        setLoaded({ demo: null, clients: null })
+        setProgress([])
+        setError(notice ?? '')
+    }, [])
     const followRef = useRef(autoFollow && !split)
     const lastTargetRef = useRef('')
 
@@ -141,6 +152,29 @@ export default function DemoRoom() {
         setError('')
         const steps: string[] = []
         const step = (text: string) => { steps.push(text); setProgress([...steps]) }
+        if (mode === 'windows') {
+            try {
+                step('Alex is creating a room with this window\'s own membership…')
+                saveSessionName(browserSessionStorage(), 'Alex')
+                await roomApi.initializeSession()
+                let room: RoomSnapshot | null = null
+                for (let attempt = 0; !room; attempt++) {
+                    try {
+                        room = await roomApi.create({ command_id: crypto.randomUUID(), room_code: demoRoomCode(), display_name: 'Alex' })
+                    } catch (failure) {
+                        if (!(failure instanceof RoomApiError && failure.code === 'room_code_taken') || attempt >= 4) throw failure
+                    }
+                }
+                const stored: StoredDemo = { room_id: room.room_id, room_code: room.room_code, mode, ballot: ballotSource }
+                storage.setItem(DEMO_STORAGE_KEY, JSON.stringify(stored))
+                setLoaded({ demo: stored, clients: null })
+            } catch (failure) {
+                setError(message(failure))
+            } finally {
+                setBusy(null)
+            }
+            return
+        }
         try {
             DEMO_SEATS.forEach(({ seat }) => clearSeatSession(storage, seat))
             const next = seatClients(storage)
@@ -216,17 +250,20 @@ export default function DemoRoom() {
 
     const roleName = (roleId: string | null) => roleId ? scenarios.flatMap((scenario) => scenario.roles).find((role) => role.role_id === roleId)?.name ?? roleId.replaceAll('_', ' ') : 'No role yet'
 
+    if (demo?.mode === 'windows') return <WindowsDemo demo={demo} view={view} onReset={resetToSetup} />
+
     if (!demo || !clients) {
         return <main className="demo-setup">
             <section className="demo-setup__card" aria-labelledby="demo-title">
                 <button className="demo-link" type="button" onClick={() => { window.location.hash = '/' }}>‹ Back home</button>
-                <p className="demo-eyebrow">Single window test</p>
-                <h1 id="demo-title">{mode === 'solo' ? 'Solo demo' : 'Three player demo'}</h1>
-                {mode === 'solo'
+                <p className="demo-eyebrow">{mode === 'windows' ? 'Three window test' : 'Single window test'}</p>
+                <h1 id="demo-title">{mode === 'solo' ? 'Solo demo' : mode === 'windows' ? 'Three window demo' : 'Three player demo'}</h1>
+                {mode === 'windows' ? <p className="demo-lede">Play T01 with <strong>three independent windows</strong>: this window is Alex (CEO and host); Morgan and Sam open their own join links in other windows or on other devices. <strong>Nothing is automated</strong>: each player takes their own turn, writes their own decision and answers their own coach.</p>
+                    : mode === 'solo'
                     ? <p className="demo-lede">Play a full game as <strong>Alex, the CEO and host</strong>. Morgan (IT recovery) and Sam (communications) are automated board members with their own <strong>test memberships</strong>: they play their saved clips on their turns and vote after you (in individual decision scenarios such as T01 Cedar Bridge, they each write their own decision).</p>
                     : <p className="demo-lede">Drive a full three player game from this one window. Alex, Morgan and Sam each get a separate <strong>test membership</strong> on the room server, shown side by side so you can act as every player.</p>}
                 <ol className="demo-steps">
-                    <li>Alex creates a room; Morgan and Sam join it.</li>
+                    <li>{mode === 'windows' ? 'Alex creates a room here; Morgan and Sam join from their links.' : 'Alex creates a room; Morgan and Sam join it.'}</li>
                     <li>Alex is CEO; Morgan takes the recovery (IT) role and Sam the communications role.</li>
                     <li>Alex starts the T01 Cedar Bridge test (or the first scenario if it is not listed), so the game opens on the briefing.</li>
                 </ol>
@@ -234,8 +271,9 @@ export default function DemoRoom() {
                     <legend>Mode</legend>
                     <label><input type="radio" name="demo-mode" value="solo" checked={mode === 'solo'} onChange={() => setMode('solo')} /> Solo: you are Alex (CEO); Morgan and Sam are automated</label>
                     <label><input type="radio" name="demo-mode" value="seats" checked={mode === 'seats'} onChange={() => setMode('seats')} /> Three seats in one window <span>(you act as every player)</span></label>
+                    <label><input type="radio" name="demo-mode" value="windows" checked={mode === 'windows'} onChange={() => setMode('windows')} /> Three independent windows <span>(Alex here; Morgan and Sam join from their own windows or devices; nothing automated)</span></label>
                 </fieldset>
-                {mode === 'solo' && <fieldset className="demo-options" disabled={Boolean(busy)}>
+                {(mode === 'solo' || mode === 'windows') && <fieldset className="demo-options" disabled={Boolean(busy)}>
                     <legend>Stage</legend>
                     <label><input type="radio" name="demo-view" value="3d" checked={view === '3d'} onChange={() => setView('3d')} /> 3D boardroom <span>(Alex, Morgan and Sam at the table; the hub lights up when an AI agent speaks)</span></label>
                     <label><input type="radio" name="demo-view" value="call" checked={view === 'call'} onChange={() => setView('call')} /> Call tiles <span>(switch any time with 3D view in the game's control bar)</span></label>
@@ -246,8 +284,8 @@ export default function DemoRoom() {
                     <label><input type="radio" name="ballot-source" value="ai" checked={ballotSource === 'ai'} onChange={() => setBallotSource('ai')} /> AI generated by Vertex agents</label>
                 </fieldset>
                 <div className="demo-actions">
-                    <button className="demo-primary" type="button" disabled={Boolean(busy)} aria-busy={busy === 'start'} onClick={() => void load(true)}>{busy === 'start' ? 'Loading…' : mode === 'solo' ? 'Start solo game as Alex' : 'Load 3 test participants'}</button>
-                    <button className="demo-secondary" type="button" disabled={Boolean(busy)} aria-busy={busy === 'lobby'} onClick={() => void load(false)}>{busy === 'lobby' ? 'Loading…' : 'Load seats only (start from lobby)'}</button>
+                    <button className="demo-primary" type="button" disabled={Boolean(busy)} aria-busy={busy === 'start'} onClick={() => void load(true)}>{busy === 'start' ? 'Loading…' : mode === 'solo' ? 'Start solo game as Alex' : mode === 'windows' ? 'Create room as Alex' : 'Load 3 test participants'}</button>
+                    {mode !== 'windows' && <button className="demo-secondary" type="button" disabled={Boolean(busy)} aria-busy={busy === 'lobby'} onClick={() => void load(false)}>{busy === 'lobby' ? 'Loading…' : 'Load seats only (start from lobby)'}</button>}
                 </div>
                 {progress.length > 0 && <ol className="demo-progress" aria-live="polite">{progress.map((text, index) => <li key={index}>{text}</li>)}</ol>}
                 {error && <p className="demo-error" role="alert">{error}</p>}

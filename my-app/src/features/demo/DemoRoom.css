@@ -550,3 +550,16 @@
   transform: translateX(-50%);
   box-shadow: 0 6px 20px #00000040;
 }
+
+/* Three window demo: the join links Alex shares with Morgan and Sam. */
+.demo-joins { display: grid; gap: 10px; margin: 18px 0 8px; padding: 0; list-style: none; }
+.demo-join { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 14px; border: 1px solid #e3d6c2; border-radius: 12px; background: #fffaf1; }
+.demo-join.is-joined { border-color: #9cbf9f; background: #eef4ea; }
+.demo-join > div:first-child { display: grid; gap: 2px; min-width: 0; }
+.demo-join strong { color: #422820; font-size: 15px; }
+.demo-join span { color: #7a6656; font-size: 12px; }
+.demo-join__link { display: block; overflow: hidden; margin-top: 4px; color: #8b362c; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.demo-join__actions { display: flex; flex: none; align-items: center; gap: 8px; }
+.demo-join__state { color: #7a6656; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.demo-join.is-joined .demo-join__state { color: #2f6b45; }
+a.demo-secondary { display: inline-flex; align-items: center; text-decoration: none; }

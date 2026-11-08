@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { DEMO_BOTS, backsCeoByChance, botStatusLine, botStatusText, botVoteChoice, demoRoles, demoRoomCode, followTarget, keywordScore, nextBotAction, pickDemoScenario, readStoredDemo, seatStatus, seededHash, soloStage, turnBudgetMs } from '../src/features/demo/demoModel.ts'
+import { DEMO_BOTS, backsCeoByChance, botStatusLine, botStatusText, botVoteChoice, demoRoles, demoRoomCode, followTarget, isLoopbackOrigin, joinLink, keywordScore, nextBotAction, pickDemoScenario, readJoinRequest, readStoredDemo, seatStatus, seededHash, soloStage, turnBudgetMs, windowSeats } from '../src/features/demo/demoModel.ts'
 import type { RoomGame, RoomSnapshot, Scenario } from '../src/services/rooms.ts'
 
 const scenario: Scenario = {
@@ -247,4 +247,27 @@ test('private sessions: the solo bar addresses Alex and the Board strip shows ea
     assert.equal(botStatusText(SAM, ended, null), 'ended early')
     assert.equal(soloStage(ended).over, true)
     assert.match(DEMO_BOTS[0].privateAnswers.assessment, /review/)
+})
+
+test('three window demo: join links round trip and name their seat', () => {
+    const link = joinLink('https://abc.ngrok-free.app', '/', 'ABC123', 'morgan', '3d')
+    assert.equal(link, 'https://abc.ngrok-free.app/#/demo/join?code=ABC123&seat=morgan&view=3d')
+    assert.deepEqual(readJoinRequest(link.split('?')[1]), { code: 'ABC123', seat: 'morgan', name: 'Morgan', role: 'IT recovery lead', view: '3d' })
+    assert.equal(readJoinRequest('code=abc123&seat=sam')?.code, 'ABC123')
+    assert.equal(readJoinRequest('code=abc123&seat=sam')?.view, null)
+    assert.equal(readJoinRequest('code=ABC12&seat=sam'), null)
+    assert.equal(readJoinRequest('code=ABC123&seat=alex'), null)
+    assert.equal(joinLink('http://x', '/app/', 'ABC123', 'sam', 'call'), 'http://x/app/#/demo/join?code=ABC123&seat=sam')
+})
+
+test('three window demo: seats come from the host and the joined names; stored mode survives a reload', () => {
+    const member = (member_id: string, display_name: string) => ({ member_id, display_name }) as RoomSnapshot['members'][number]
+    const room = { host_member_id: 'a', members: [member('a', 'Alex'), member('x', 'Visitor'), member('s', ' sam '), member('m', 'Morgan')] }
+    assert.deepEqual(windowSeats(room), { alex: 'a', morgan: 'm', sam: 's' })
+    assert.deepEqual(windowSeats({ host_member_id: 'a', members: [member('a', 'Alex')] }), { alex: 'a', morgan: null, sam: null })
+    const id = '123e4567-e89b-12d3-a456-426614174000'
+    assert.deepEqual(readStoredDemo(JSON.stringify({ room_id: id, room_code: 'ABC123', mode: 'windows', ballot: 'ai' })), { room_id: id, room_code: 'ABC123', mode: 'windows', ballot: 'ai' })
+    assert.equal(isLoopbackOrigin('http://127.0.0.1:5173'), true)
+    assert.equal(isLoopbackOrigin('http://localhost:5175'), true)
+    assert.equal(isLoopbackOrigin('https://abc.ngrok-free.app'), false)
 })

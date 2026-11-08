@@ -101,11 +101,11 @@ test('private sessions: skip label, own round caption and dictation into the ans
     assert.match(answer({ ready: false }).title, /coach asks/)
 })
 
-test('the Report button is offered only in the first session', () => {
-    assert.equal(offersReport(1, 'briefing'), true)
-    assert.equal(offersReport(1, 'individual_decision'), true)
-    assert.equal(offersReport(2, 'private_session'), false)
-    assert.equal(offersReport(1, 'private_session'), false)
-    assert.equal(offersReport(3, 'voting'), false)
-    assert.equal(offersReport(1, 'ended'), false)
+test('the Report button is offered only in the opening session', () => {
+    assert.equal(offersReport('briefing'), true)
+    assert.equal(offersReport('reading'), true)
+    assert.equal(offersReport('speaking'), false)
+    assert.equal(offersReport('individual_decision'), false)
+    assert.equal(offersReport('private_session'), false)
+    assert.equal(offersReport('ended'), false)
 })

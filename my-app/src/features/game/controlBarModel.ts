@@ -2,9 +2,9 @@
 import type { CaptureState } from './manualRecorder.ts'
 import { DICTATION_UNAVAILABLE } from './dictationModel.ts'
 
-/** The incident report only matters in the first session (round 1); private coaching and the end screen drop the Report button. */
-export function offersReport(round: number, phase: string): boolean {
-    return round <= 1 && phase !== 'private_session' && phase !== 'ended'
+/** The incident report belongs to the opening session only: the briefing and the reading time after it. */
+export function offersReport(phase: string): boolean {
+    return phase === 'briefing' || phase === 'reading'
 }
 
 /** Host skip label for the current phase; the server decides whether `skip_phase` is allowed. */

@@ -31,6 +31,7 @@ import { useTurnRecorder } from '../features/game/useTurnRecorder'
 import RoomNameEditor from '../features/rooms/RoomNameEditor'
 import TranscriptPanel from '../features/game/TranscriptPanel'
 import ReportDialog from '../features/game/ReportDialog'
+import { useWindowMute } from '../features/game/windowMute'
 import { useMeetingDocuments } from '../features/facilitation/useMeetingDocuments'
 import { useSpokenLine, useTranscript } from '../features/game/useTranscript'
 import { CAPTIONS_STORAGE_KEY, captionsPreference, speechDurationMs, turnEntry } from '../features/game/transcriptModel'
@@ -113,6 +114,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const report = useMeetingDocuments(room.room_id).featured
     const [reportOpen, setReportOpen] = useState(false)
     const closeReport = useCallback(() => setReportOpen(false), [])
+    const [muted, toggleMuted] = useWindowMute()
     // CC: the live transcript panel, on by default and remembered for this tab. Chat replaces it while open.
     const [captions, setCaptions] = useState(readCaptions)
     const toggleCaptions = useCallback(() => setCaptions((on) => { storeCaptions(!on); return !on }), [])
@@ -180,7 +182,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     // Games with private rounds also keep the call full width and end on the centered card.
     const centered = individual || Boolean(game.private_rounds)
     const ownRound = privatePhase ? ownPrivateRound(privateSession.session, game.private_progress, room.self_member_id) : null
-    const reportAvailable = offersReport(ownRound ?? game.round_number, room.phase)
+    const reportAvailable = offersReport(room.phase)
     async function act(path: string, fields: Record<string, unknown> = {}) {
         if (pending) return false
         setPending(true); setNotice('')
@@ -315,6 +317,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
             chat={{ open: chatOpen, unread, onToggle: () => setChatOpen((open) => !open) }}
             captions={{ on: captions, onToggle: toggleCaptions }}
             stage={stageSwitch ? { threeD: show3d, onToggle: toggleView3d } : undefined}
+            mute={{ on: muted, onToggle: toggleMuted }}
             report={report && reportAvailable ? { open: reportOpen, onToggle: () => setReportOpen((open) => !open) } : undefined}
             autoResponse={autoControl}
             finishTurn={actions.includes('finish_speaking') ? () => void act(rounds + 'speaker/finish') : undefined}

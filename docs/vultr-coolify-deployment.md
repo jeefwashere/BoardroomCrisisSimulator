@@ -1,6 +1,6 @@
 # Coolify deployment on Vultr
 
-This prepares `jeefwashere/BoardroomCrisisSimulator`, branch `integration/main-vultr-test-20261108`, for an existing Vultr Cloud Compute instance running Ubuntu with 2 vCPU, 4 GB RAM and Coolify. It does not provision a server, install Coolify, change DNS or deploy anything automatically. Use an existing Linux Docker destination in Coolify. The deployment files must be committed and pushed to that branch before Coolify can fetch them; local uncommitted files are not available to Coolify.
+This prepares `jeefwashere/BoardroomCrisisSimulator`, branch `chore/vultr-deployment`, for an existing Vultr Cloud Compute instance running Ubuntu with 2 vCPU, 4 GB RAM and Coolify. It does not provision a server, install Coolify, change DNS or deploy anything automatically. Use an existing Linux Docker destination in Coolify. The deployment files must be committed and pushed to that branch before Coolify can fetch them; local uncommitted files are not available to Coolify.
 
 ## Deployment layout
 
@@ -18,7 +18,7 @@ The backend command explicitly uses `--workers 1` and no reload. Keep exactly on
 
 ## Coolify configuration
 
-1. In the intended Coolify project and environment, choose New Resource and an existing Docker destination on the Vultr instance. Connect `https://github.com/jeefwashere/BoardroomCrisisSimulator` through its GitHub App, deploy key or public repository source, as appropriate. In Git Source, select `integration/main-vultr-test-20261108`, not `main`, and confirm the intended commit contains these files.
+1. In the intended Coolify project and environment, choose New Resource and an existing Docker destination on the Vultr instance. Connect `https://github.com/jeefwashere/BoardroomCrisisSimulator` through its GitHub App, deploy key or public repository source, as appropriate. In Git Source, select `chore/vultr-deployment`, not `main`, and confirm the intended commit contains these files.
 2. Choose the Docker Compose build strategy. Set the base directory to `/` and the Compose location to `/compose.yaml`. Save and load the Compose content. Keep both build contexts at the repository root; do not select `my-app/` as the base directory.
 3. In the application's environment settings, enter the values listed below. These are application variables, not Coolify instance configuration. Mark provider credentials as runtime only, with build time disabled. Do not upload the entire development `.env` or put credentials in build arguments.
 4. Under Domains, select the `frontend` service, HTTPS, your actual hostname and internal port `8080`. In versions with a single URL field, the equivalent is `https://boardroom.example.com:8080`. Visitors use `https://boardroom.example.com`, without `:8080`. Enable HTTP to HTTPS redirection. Do not assign a backend domain or publish backend port 8000. [Coolify Compose configuration](https://coolify.io/docs/applications/builds/docker-compose), [domain port settings](https://coolify.io/docs/applications/configuration/general).
@@ -77,9 +77,9 @@ That restarts the already built frontend image. For new frontend source, use the
 
 For routine GitHub updates:
 
-1. Review and test changes on `integration/main-vultr-test-20261108`, then commit and push normally when authorized. Do not merge into `main`, rewrite history or force push for this deployment workflow.
+1. Review and test changes on `chore/vultr-deployment`, then commit and push normally when authorized. Do not merge into `main`, rewrite history or force push for this deployment workflow.
 2. Before a release, record the last working commit, environment configuration and actual volume names. Retain an appropriate private backup of recordings and a consistent backup of the voice ledger. Never clear existing reservations.
-3. In Coolify Git Source, confirm the branch remains `integration/main-vultr-test-20261108`. Keep automatic deployments disabled while an exercise is running. Schedule a maintenance window for any release that can replace the backend.
+3. In Coolify Git Source, confirm the branch remains `chore/vultr-deployment`. Keep automatic deployments disabled while an exercise is running. Schedule a maintenance window for any release that can replace the backend.
 4. Select Deploy for the intended pushed commit. Check Deployment Logs, both component health checks and Runtime Logs. Full stack reconciliation can replace the backend and therefore end memory rooms even when the code change looked small. Do not add another backend replica to avoid downtime. [Coolify Compose update behavior](https://coolify.io/docs/applications/deployments/rolling-updates).
 5. Repeat connectivity and three tab checks. Users must create new rooms after a backend replacement. Keep the same application resource and its volumes; do not delete and recreate the resource as a routine redeployment.
 
@@ -88,7 +88,7 @@ For routine GitHub updates:
 For this Git based Compose application, use a reviewed source rollback as the reliable recovery path. Generic image rollback controls vary by deployment type; do not assume they restore this entire two image Compose stack. Coolify's documented registry rollback integration excludes the Docker Compose build pack. Image rollback also does not restore persistent state. [Coolify rollback limitations](https://coolify.io/docs/applications/deployments/rollbacks).
 
 1. Capture the failed commit and deployment logs. Pause automatic deployments so they cannot immediately reapply the failed release. If the previous containers are still healthy, retain them while preparing the correction.
-2. On `integration/main-vultr-test-20261108`, create a normal revert commit for the faulty deployment changes, or a reviewed corrective commit that restores the last working source and Compose configuration. Push normally; do not reset or force push the branch and do not deploy `main` as a shortcut.
+2. On `chore/vultr-deployment`, create a normal revert commit for the faulty deployment changes, or a reviewed corrective commit that restores the last working source and Compose configuration. Push normally; do not reset or force push the branch and do not deploy `main` as a shortcut.
 3. Confirm the Coolify environment values remain compatible with that source. Restore intended variable values if they were changed, while keeping the same recording and voice volume mounts and ledger data. A source rollback must not delete a volume or reset spending reservations.
 4. Deploy the corrective commit through the same Coolify application. Inspect both services' health and logs, then repeat the public HTTPS and three tab checks.
 5. A replaced backend cannot recover its former in memory rooms. Inform users to create new rooms. If a release changed persisted data, use its separate data restore plan; a code rollback alone cannot undo that change.
@@ -183,7 +183,7 @@ After an authorized deployment, verify `/healthz`, `/api/health`, `/api/scenario
 
 ## Preparation validation, November 8, 2026
 
-Validation used the current Windows checkout based on `224669e`, now on `integration/main-vultr-test-20261108`, without deploying or changing a running service. Frontend and full backend source test results below are retained from the immediately preceding preparation run because that source is unchanged in this documentation follow up. Compose and the four proxy tests were checked again after the restart configuration update.
+Validation used the current Windows checkout based on `224669e`, now on `chore/vultr-deployment`, without deploying or changing a running service. Frontend and full backend source test results below are retained from the immediately preceding preparation run because that source is unchanged in this documentation follow up. Compose and the four proxy tests were checked again after the restart configuration update.
 
 | Check | Result |
 | --- | --- |

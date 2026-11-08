@@ -162,12 +162,23 @@ class RoundtableTests(unittest.TestCase):
         self.assertEqual(len(self.engine.snapshot(self.tokens[0])['decisions']), 1)
         self.assertEqual(self.engine.snapshot(self.tokens[0])['history'], [])
 
+    def test_only_ceo_can_add_custom_response(self):
+        decision=self.fixed_decision()
+        payload={'decision_id':decision,'title':'Member proposal','proposal':'Review recovery evidence.','ballot_version':1}
+        for who in (1,2):
+            with self.assertRaises(RuleError) as caught:
+                self.command('add_custom_option',payload,who)
+            self.assertIn('Only the CEO',str(caught.exception))
+        self.assertEqual(len(self.engine.snapshot(self.tokens[0])['decisions'][0]['options']),3)
+        self.command('add_custom_option',payload)
+        self.assertEqual(len(self.engine.snapshot(self.tokens[0])['decisions'][0]['options']),4)
+
     def test_custom_response_can_win_and_replace_the_prepared_plan(self):
         decision=self.fixed_decision()
         proposal='Authorize paper appointments, appoint an interim coordinator, and review after IT reports verified recovery prerequisites.'
-        state=self.command('add_custom_option',{'decision_id':decision,'title':'Combined response','proposal':proposal,'ballot_version':1},1)
+        state=self.command('add_custom_option',{'decision_id':decision,'title':'Combined response','proposal':proposal,'ballot_version':1})
         d=state['decisions'][0];custom=d['options'][-1]
-        self.assertTrue(custom['custom']);self.assertEqual(custom['proposed_by'],self.ids[1])
+        self.assertTrue(custom['custom']);self.assertEqual(custom['proposed_by'],self.ids[0])
         self.assertEqual(d['options'][:3],DECISION['options']);self.assertEqual(d['ballot_version'],2)
         state['decisions'][0]['options'][-1]['proposal']='Tampered snapshot'
         for who,option in enumerate([custom['id'],custom['id'],'technical_first']):
@@ -186,17 +197,17 @@ class RoundtableTests(unittest.TestCase):
         decision=self.fixed_decision()
         self.command('vote_option',{'decision_id':decision,'option_id':'controlled_continuity'})
         payload={'decision_id':decision,'title':'Revised response','proposal':'Assign a coordinator and review the recovery evidence.','ballot_version':1}
-        with self.assertRaises(RuleError):self.command('add_custom_option',payload,2)
+        with self.assertRaises(RuleError):self.command('add_custom_option',payload)
         self.assertEqual(self.engine.snapshot(self.tokens[0])['decisions'][0]['ballot_count'],1)
         cid=uuid.uuid4().hex
-        self.command('add_custom_option',{**payload,'acknowledge_reset':True,'command_id':cid},2)
+        self.command('add_custom_option',{**payload,'acknowledge_reset':True,'command_id':cid})
         state=self.engine.snapshot(self.tokens[0]);d=state['decisions'][0]
         self.assertEqual(d['ballot_count'],0);self.assertEqual(d['next_voter'],self.ids[0]);self.assertEqual(d['ballot_version'],2)
         for action in ('vote_option','commit_decision'):
             with self.assertRaises(RuleError):
                 self.command(action,{'decision_id':decision,'option_id':'controlled_continuity','ballot_version':1})
         self.command('vote_option',{'decision_id':decision,'option_id':'controlled_continuity','ballot_version':2})
-        self.command('add_custom_option',{**payload,'acknowledge_reset':True,'command_id':cid},2)
+        self.command('add_custom_option',{**payload,'acknowledge_reset':True,'command_id':cid})
         self.assertEqual(self.engine.snapshot(self.tokens[0])['decisions'][0]['ballot_count'],1)
         self.assertEqual(len(self.engine.snapshot(self.tokens[0])['decisions'][0]['options']),4)
 

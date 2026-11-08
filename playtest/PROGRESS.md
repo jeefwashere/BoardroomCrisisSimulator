@@ -1,8 +1,12 @@
 # Rehearsal implementation progress
 
-Status snapshot: November 7, 2026, updated for task X16. The single window local model experiment is implemented and evaluated. The active test application now routes all text agents and extraction to Gemini 3.8 Flash with LOW reasoning through Google Vertex AI, with no local model fallback. The same fourteen case comparison has completed. The custom proposal round and Vertex speech integration check also passed.
+Status snapshot: November 7, 2026, updated for task X17. The single window local model experiment is implemented and evaluated. The active test application now routes all text agents and extraction to Gemini 3.8 Flash with LOW reasoning through Google Vertex AI, with no local model fallback. The same fourteen case comparison has completed. The custom proposal round and Vertex speech integration check also passed.
 
 The work is isolated on branch `experiment/ai-voice-playtest` in `/Users/arjunbehl/Developer/CommuniHacks/BoardroomCrisisSimulator-ai-playtest`. It has not been merged into the production application. Existing teammate modules and the shared GPU service are preserved.
+
+## Current X17 voting guide
+
+A new 23.13 second ElevenLabs guide explains CEO custom proposals, explicit member ballots, reset on a new option and CEO confirmation or selection among tied leaders. Only the CEO can add custom options through the UI or API. Existing nine participant recordings remain unchanged. See [the voting audio update](VOTING_AUDIO_UPDATE.md).
 
 ## Current X16 conversation and custom ballot
 

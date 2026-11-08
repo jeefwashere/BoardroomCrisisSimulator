@@ -55,8 +55,9 @@ def main():
     host.command('vote_option',decision_id=decision,option_id='technical_first',ballot_version=1)
     proposal='Appoint an interim coordinator, authorize the approved paper appointment process, and ask IT to verify backup usability, recovery dependencies and a restoration estimate. Return to the board for a recorded review before making any restoration promise; issue a factual update with the next update time.'
     data={'decision_id':decision,'title':'Continuity with a board review','proposal':proposal,'ballot_version':1}
-    expect_error(people[2],'add_custom_option',409,**data)
-    people[2].command('add_custom_option',**data,acknowledge_reset=True)
+    expect_error(people[2],'add_custom_option',403,**data)
+    expect_error(host,'add_custom_option',409,**data)
+    host.command('add_custom_option',**data,acknowledge_reset=True)
     ballot=host.state()['decisions'][0];assert ballot['ballot_count']==0 and ballot['ballot_version']==2
     custom=ballot['options'][-1]['id']
     expect_error(host,'vote_option',409,decision_id=decision,option_id=custom,ballot_version=1)

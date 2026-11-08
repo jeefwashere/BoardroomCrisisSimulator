@@ -403,6 +403,14 @@
       "group": "controls",
       "text": "Discussion is complete. Choose controlled continuity, technical checks first, or wait for the director. You may also propose a custom response that describes your preferred action. Compare the choices, then each participant must cast their own vote. A spoken preference is not a ballot. The CEO confirms the winning choice after everyone has voted.",
       "pack_id": "T01"
+    },
+    {
+      "id": "t01_ceo_voting_guide",
+      "title": "CEO proposal and member voting",
+      "role": "Decision guide",
+      "group": "decision",
+      "text": "The CEO may now add a custom response alongside the three prepared choices. Review every option, then each member chooses and confirms their own vote in the app. A new option resets voting for everyone. After all votes, the CEO confirms the winner, or chooses among tied leaders. Spoken agreement does not count as a vote.",
+      "suggested_agent": "decision"
     }
   ]
 }

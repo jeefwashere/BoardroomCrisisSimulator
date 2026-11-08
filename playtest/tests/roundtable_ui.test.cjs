@@ -186,3 +186,9 @@ test('confirmed choices and CEO ties carry the captured ballot revision',async()
  await node('decisions').children[0].children.find(c=>c.className==='fixed-options').children[1].children.at(-1).onclick();await node('decisions').children[0].children.find(c=>c.className==='vote-confirmation').children.at(-1).onclick();assert.equal(ctx.commands[0].data.ballot_version,2);
  run(`states[0].decisions[0].ballot_count=3;states[0].decisions[0].tally={controlled_continuity:1,technical_first:1,wait_for_director:1};render();`);await node('decisions').children[0].children.at(-1).children.find(c=>c.onclick).onclick();assert.equal(ctx.commands[1].data.ballot_version,2);
 });
+
+test('only the CEO sees the custom option form',async()=>{
+ const {run,node}=harness();fixedFixture(run);assert(!node('fixedCustomForm').hidden);
+ run(`states[0].me='b';render();`);assert(node('fixedCustomForm').hidden);assert(node('addCustomOption').disabled);
+ await assert.rejects(run('addCustomOption()'),/participant or ballot changed/);
+});

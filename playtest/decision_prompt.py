@@ -5,7 +5,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import FileResponse
 from .engine import require
 
-PROMPT_ID = 't01_custom_decision_guide'
+PROMPT_ID = 't01_ceo_voting_guide'
 
 
 class DecisionPrompt:

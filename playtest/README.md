@@ -1,5 +1,7 @@
 # Rehearsal meeting playtest
 
+Latest: [CEO custom response voting audio](VOTING_AUDIO_UPDATE.md).
+
 Working branch: **`experiment/ai-voice-playtest`**. Read [the implementation and branch summary](IMPLEMENTATION_SUMMARY.md) for the current handoff and verification status.
 
 Open <http://127.0.0.1:8788/>. The page automatically attaches one incident PDF. Click **Load 3 test participants**, then have the CEO **Start meeting**. A roughly 30 second live spoken preparation introduction leads into a five minute discussion.

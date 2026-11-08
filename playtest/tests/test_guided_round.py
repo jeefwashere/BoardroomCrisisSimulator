@@ -64,7 +64,7 @@ class GuidedRoundTests(unittest.TestCase):
                 self.assertEqual(call('state').json()['decisions'][0]['ballot_count'],0)
                 command('vote_option',decision_id=decision['id'],option_id='technical_first',ballot_version=1)
                 proposal='Appoint an interim coordinator and approve paper appointments while IT verifies recovery; require a board review before a restoration promise.'
-                updated=command('add_custom_option',2,decision_id=decision['id'],title='Verified continuity',proposal=proposal,ballot_version=1,acknowledge_reset=True)['decisions'][0]
+                updated=command('add_custom_option',0,decision_id=decision['id'],title='Verified continuity',proposal=proposal,ballot_version=1,acknowledge_reset=True)['decisions'][0]
                 self.assertEqual(updated['ballot_count'],0)
                 custom=updated['options'][-1]['id']
                 for who,option in enumerate([custom,custom,'technical_first']):
@@ -80,4 +80,4 @@ class GuidedRoundTests(unittest.TestCase):
                 self.assertEqual(json.loads(result.text.splitlines()[-1])['status'],'done')
                 self.assertIn(committed['proposal'],provider.prompts[-1])
                 self.assertEqual(command('end')['phase'],'ended')
-                self.assertEqual(prompt['clip_id'],'t01_custom_decision_guide')
+                self.assertEqual(prompt['clip_id'],'t01_ceo_voting_guide')

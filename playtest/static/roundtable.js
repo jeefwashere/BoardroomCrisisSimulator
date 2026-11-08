@@ -26,7 +26,7 @@ function syncBallotRevision(){
  }
 }
 function renderCustomForm(s,locked){
- const d=s?.decisions?.find(d=>d.mode==='fixed_choice'&&d.status==='pending'),visible=s?.phase==='decision'&&!!d;
+ const d=s?.decisions?.find(d=>d.mode==='fixed_choice'&&d.status==='pending'),visible=s?.phase==='decision'&&!!d&&s.me===s.ceo;
  $('fixedCustomForm').hidden=!visible;if(!visible){$('addCustomOption').disabled=true;customFormContext=null;customFormKey='';return;}
  const revision=ballotVersion(d),key=s.code+':'+d.id+':'+revision+':'+s.me;
  if(customFormKey!==key){customFormKey=key;customFormContext={owner:context(),decisionId:d.id,revision};$('customOptionTitle').value='';$('customOptionProposal').value='';$('acknowledgeReset').checked=false;}
@@ -36,7 +36,7 @@ function renderCustomForm(s,locked){
 }
 async function addCustomOption(){
  const form=customFormContext,s=state(),d=s?.decisions?.find(d=>d.id===form?.decisionId);
- if(!form||!same(form.owner)||context().token!==form.owner.token||s.phase!=='decision'||d?.status!=='pending'||ballotVersion(d)!==form.revision)throw new Error('The participant or ballot changed. Review the custom response again.');
+ if(!form||!same(form.owner)||context().token!==form.owner.token||s.me!==s.ceo||s.phase!=='decision'||d?.status!=='pending'||ballotVersion(d)!==form.revision)throw new Error('The participant or ballot changed. Review the custom response again.');
  const title=$('customOptionTitle').value.trim(),proposal=$('customOptionProposal').value.trim(),acknowledge_reset=$('acknowledgeReset').checked===true;
  if(!title||title.length>80||!proposal||proposal.length>1500)throw new Error('Enter a title of up to 80 characters and a response of up to 1500 characters.');
  if(d.options.length>=6)throw new Error('This ballot already has six choices.');if(d.ballot_count>0&&!acknowledge_reset)throw new Error('Confirm that all existing votes will be cleared before adding this option.');

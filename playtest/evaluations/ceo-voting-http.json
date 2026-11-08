@@ -1,0 +1,9 @@
+{
+  "new_guide_served": true,
+  "audio_sha256": "bce2231ea08b5c83711eda6b52ef78c3460dbb3196c14b6b1f2f8db493c10841",
+  "non_ceo_add_rejected": true,
+  "ceo_add_accepted": true,
+  "individual_votes_and_commit": true,
+  "speech_reservations_unchanged": true,
+  "method": "Live localhost HTTP, no browser playback or model calls. Saved audio fetched; role gates, votes and commitment checked."
+}

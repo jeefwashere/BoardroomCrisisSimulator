@@ -281,7 +281,7 @@ class Roundtable:
             room['transcript'].append(deepcopy(entry))
         elif action == 'add_custom_option':
             require(phase == 'decision', 'Add a response during the decision stage')
-            require(mid in room['electorate'], 'Only eligible members can propose a response', 403)
+            require(mid == self._ceo(room), 'Only the CEO can add a custom response', 403)
             decision = next((item for item in room['decisions'] if item['id'] == data.get('decision_id')), None)
             require(decision is not None and decision.get('mode') == 'fixed_choice', 'Choice ballot not found', 404)
             require(decision['status'] == 'pending', 'This decision is already final')

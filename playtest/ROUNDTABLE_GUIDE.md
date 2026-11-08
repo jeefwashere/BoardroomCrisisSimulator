@@ -70,7 +70,7 @@ Wait for the minute to finish, or click **CEO: Finish adviser minute** to procee
 
 ## Hear the guide and choose a response
 
-For the default T01 report, the server opens one shared ballot under **Choose the board’s response**. The CEO's page plays the separately labelled **RECORDED DECISION GUIDE** once when voting opens. It lasts **21.97 seconds** and explains that the group may choose a prepared response or write a custom one. **CEO: Replay recorded guide** replays it; **Stop guide** stops it. With **Speak with ElevenLabs** unchecked, its text remains available without playback.
+For the default T01 report, the server opens one shared ballot under **Choose the board’s response**. The CEO's page plays the separately labelled **RECORDED DECISION GUIDE** once when voting opens. It lasts **23.13 seconds** and explains that the group may choose a prepared response or write a custom one. **CEO: Replay recorded guide** replays it; **Stop guide** stops it. With **Speak with ElevenLabs** unchecked, its text remains available without playback.
 
 This guide is a saved explanation of the choices. It does not generate live advice, add a contribution, vote, choose a winner or commit a result. Replaying it makes no provider request.
 
@@ -96,7 +96,7 @@ The T01 ballot cannot be cancelled, and the meeting cannot end while it is unres
 
 ## Add a custom response
 
-During the decision phase, any participant can use **Write a custom response** below the recorded guide. Enter a **Short title** of up to 80 characters and **Your proposed response** of up to 1,500 characters, then click **Add custom option**. Up to three custom options can be added alongside the three prepared choices.
+During the decision phase, the CEO can use **Write a custom response** below the recorded guide. Enter a **Short title** of up to 80 characters and **Your proposed response** of up to 1,500 characters, then click **Add custom option**. Up to three custom options can be added alongside the three prepared choices.
 
 A custom response is human supplied and unverified. Adding one does not accept it, remove the prepared choices or override another participant's vote. If it later wins and the CEO records it, its exact proposal becomes the final decision text, taking precedence over the prepared plans for that committed result. The live evaluator receives this winning custom text.
 
@@ -119,7 +119,7 @@ This is a manual procedure and its expected result, not a claim that the live ca
 ## Test changing the ballot after a vote
 
 1. Start a fresh meeting and proceed to decisions. As Alex, choose **Controlled continuity** and click **Confirm my vote**. One confirmed ballot now exists.
-2. As any participant, enter a new custom title and proposal. Leave the reset acknowledgement unchecked: the option must not be added while confirmed ballots exist.
+2. As the CEO, enter a new custom title and proposal. Leave the reset acknowledgement unchecked: the option must not be added while confirmed ballots exist.
 3. Check the acknowledgement and click **Add custom option**. Expect a new ballot version, all prior ballots cleared, and Alex prompted to vote again. The previous Controlled continuity vote must not remain counted.
 4. Repeat selection and confirmation for Alex, Morgan and Sam. Confirm that the CEO cannot commit before all three updated ballots arrive.
 5. If you add another custom option, expect the same reset. A fourth custom addition must be refused because the limit is three custom options.

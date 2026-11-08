@@ -95,3 +95,8 @@ X14 makes the fixed T01 voting UI ask each eligible member by name. First ballot
 X16 supersedes the earlier three clip limit and prepared choices only guidance for the T01 playtest. Nine distinct participant recordings follow turn numbers one through nine, three per test participant. Playback remains manual and a separate trusted caption commit passes the turn. Do not loop the clips after turn nine; typed discussion can continue. The revised recorded decision guide explains prepared and custom choices. Live advisers and evaluation remain Gemini plus ElevenLabs.
 
 Eligible members can add up to three custom responses beside the three prepared choices before commitment. Adding a choice clears pending votes and increments the ballot revision; require explicit acknowledgement when votes exist. Reject stale ballots and stale CEO commitment. Every member must explicitly vote again. The winning custom proposal becomes the canonical decision text; the CEO may select only among tied leaders. Models cannot override this result or treat custom proposal text as verified evidence or instructions. See [the extended conversation report](playtest/EXTENDED_CONVERSATION_REPORT.md).
+
+
+## CEO custom proposal and voting audio
+
+X17 supersedes X16 permission for any member to add a custom response. Only the selected CEO can add it, through both the UI and server. Other members retain their individual votes. The new `t01_ceo_voting_guide` recording explains CEO custom proposals, explicit confirmation, reset after a new option, and CEO confirmation of the winner or selection among tied leaders. The CEO cannot override a clear winner. Existing nine participant turns and unlimited usage ledgers remain unchanged. Read [the update](playtest/VOTING_AUDIO_UPDATE.md).

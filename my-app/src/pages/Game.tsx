@@ -10,11 +10,12 @@ type GameProps = {
     roomCode: string
     roomContext: string
     onReturnToLobby: () => void
+    onViewSummary: () => void
 }
 
 // Temporary 2D stage. Keep room data outside the renderer so a future 3D scene
 // can stay mounted behind blurred menus and become clear when Start is pressed.
-function Game({ members, roomCode, roomContext, onReturnToLobby }: GameProps) {
+function Game({ members, roomCode, roomContext, onReturnToLobby, onViewSummary }: GameProps) {
     return (
         <MotionConfig reducedMotion="user">
             <div className="game-call-screen">
@@ -35,6 +36,7 @@ function Game({ members, roomCode, roomContext, onReturnToLobby }: GameProps) {
 
                 <footer className="game-call-footer">
                     <p title={roomContext}><span>Context:</span> {roomContext}</p>
+                    <button className="game-summary-button" type="button" onClick={onViewSummary}>View summary <span aria-hidden="true">↗</span></button>
                 </footer>
             </div>
         </MotionConfig>

@@ -5,6 +5,7 @@ import DocumentUpload from '../features/lobby/DocumentUpload'
 import { useSessionName } from '../features/identity/useSessionName'
 import LobbyIcon from '../features/lobby/LobbyIcon'
 import Game from './Game'
+import Summary from './Summary'
 import { addLobbyMember, assignLobbyRole, LOBBY_ROLES, MAX_LOBBY_MEMBERS } from '../features/lobby/lobbyModel'
 import type { LobbyMember } from '../features/lobby/lobbyModel'
 import './Host.css'
@@ -19,7 +20,7 @@ function Host() {
     const [roomCode] = useState(() => crypto.randomUUID().replaceAll('-', '').slice(0, 6).toUpperCase())
     const [roomContext, setRoomContext] = useState('Upload a document to set the room context.')
     const [notice, setNotice] = useState('')
-    const [isStarted, setIsStarted] = useState(false)
+    const [stage, setStage] = useState<'lobby' | 'game' | 'summary'>('lobby')
     const [isDocumentUploading, setIsDocumentUploading] = useState(false)
     const displayedMembers = members.map((member) => member.isHost ? { ...member, name: sessionName || member.name } : member)
     const [previewTarget] = useState(() => {
@@ -29,7 +30,7 @@ function Host() {
     })
 
     useEffect(() => {
-        if (isStarted || members.length >= previewTarget) return
+        if (stage !== 'lobby' || members.length >= previewTarget) return
         const timer = window.setTimeout(() => {
             setMembers((current) => {
                 const index = current.length - 1
@@ -43,7 +44,7 @@ function Host() {
             })
         }, 450)
         return () => window.clearTimeout(timer)
-    }, [members.length, previewTarget, isStarted])
+    }, [members.length, previewTarget, stage])
 
     function assignRole(memberId: string, role: string) {
         try {
@@ -65,8 +66,12 @@ function Host() {
         }
     }
 
-    if (isStarted) {
-        return <Game members={displayedMembers} roomCode={roomCode} roomContext={roomContext} onReturnToLobby={() => setIsStarted(false)} />
+    if (stage === 'summary') {
+        return <Summary members={displayedMembers} roomCode={roomCode} onBackToCall={() => setStage('game')} />
+    }
+
+    if (stage === 'game') {
+        return <Game members={displayedMembers} roomCode={roomCode} roomContext={roomContext} onReturnToLobby={() => setStage('lobby')} onViewSummary={() => setStage('summary')} />
     }
 
     return (
@@ -89,7 +94,7 @@ function Host() {
                 </main>
 
                 <footer className="lobby-context">
-                    <button className="lobby-start-button" type="button" disabled={isDocumentUploading} onClick={() => setIsStarted(true)} title={isDocumentUploading ? 'Wait for the document upload to finish' : 'Open the 2D game preview'}>
+                    <button className="lobby-start-button" type="button" disabled={isDocumentUploading} onClick={() => setStage('game')} title={isDocumentUploading ? 'Wait for the document upload to finish' : 'Open the 2D game preview'}>
                         Start <LobbyIcon name="play" />
                     </button>
                     <p id="room-context" role="status" aria-live="polite" aria-atomic="true" title={roomContext}>

@@ -1,12 +1,16 @@
-import { DOCUMENT_PROCESSOR_ENDPOINT, isDocumentReceipt, validateLobbyDocument } from '../features/lobby/documentContract.ts'
+import { DOCUMENT_PROCESSOR_ENDPOINT, isDocumentReceipt, validateLobbyDocuments } from '../features/lobby/documentContract.ts'
 import type { DocumentReceipt } from '../features/lobby/documentContract.ts'
 
 export async function uploadLobbyDocument(file: File, roomCode: string, signal?: AbortSignal): Promise<DocumentReceipt> {
-    const validationError = validateLobbyDocument(file)
+    return (await uploadLobbyDocuments([file], roomCode, signal))[0]
+}
+
+export async function uploadLobbyDocuments(files: File[], roomCode: string, signal?: AbortSignal): Promise<DocumentReceipt[]> {
+    const validationError = validateLobbyDocuments(files)
     if (validationError) throw new Error(validationError)
 
     const body = new FormData()
-    body.append('document', file)
+    for (const file of files) body.append('document', file)
     body.append('roomCode', roomCode)
 
     const response = await fetch(DOCUMENT_PROCESSOR_ENDPOINT, {
@@ -23,7 +27,11 @@ export async function uploadLobbyDocument(file: File, roomCode: string, signal?:
             : 'The document endpoint is unavailable. Please try again.'
         throw new Error(message)
     }
-    if (!isDocumentReceipt(payload)) throw new Error('The document endpoint returned an unexpected response.')
-
-    return payload
+    // Preserve the existing single-document response while supporting batch uploads.
+    const receipts = isDocumentReceipt(payload) ? [payload]
+        : typeof payload === 'object' && payload !== null && 'documents' in payload ? payload.documents : null
+    if (!Array.isArray(receipts) || receipts.length !== files.length || !receipts.every(isDocumentReceipt)) {
+        throw new Error('The document endpoint returned an unexpected response.')
+    }
+    return receipts
 }

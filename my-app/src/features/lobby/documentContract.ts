@@ -1,5 +1,6 @@
 export const DOCUMENT_PROCESSOR_ENDPOINT = '/api/documents/process'
 export const MAX_DOCUMENT_BYTES = 20 * 1024 * 1024
+export const MAX_DOCUMENT_FILES = 5
 export const DOCUMENT_ACCEPT = '.doc,.docx,.pdf'
 
 export type DocumentReceipt = {
@@ -16,6 +17,16 @@ export function validateLobbyDocument(file: { name: string; size: number }): str
     if (!/\.(docx?|pdf)$/i.test(file.name)) return 'Choose a DOC, DOCX, or PDF document.'
     if (file.size === 0) return 'This document is empty. Choose a file with content.'
     if (file.size > MAX_DOCUMENT_BYTES) return 'The document is too large. The limit is 20 MB.'
+    return null
+}
+
+export function validateLobbyDocuments(files: readonly { name: string; size: number }[]): string | null {
+    if (files.length === 0) return 'Choose at least one document to upload.'
+    if (files.length > MAX_DOCUMENT_FILES) return `Choose up to ${MAX_DOCUMENT_FILES} documents at a time.`
+    for (const file of files) {
+        const error = validateLobbyDocument(file)
+        if (error) return `${file.name}: ${error}`
+    }
     return null
 }
 
@@ -39,4 +50,8 @@ export function formatDocumentSize(bytes: number): string {
 
 export function describeRoomContext(receipt: DocumentReceipt): string {
     return `${receipt.filename} · context awaiting document processing.`
+}
+
+export function describeDocumentsContext(receipts: DocumentReceipt[]): string {
+    return `${receipts.map((receipt) => receipt.filename).join(', ')} · context awaiting document processing.`
 }

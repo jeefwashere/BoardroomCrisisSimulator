@@ -4,6 +4,8 @@ The preparation service retrieves page cited text from three public demo PDFs us
 
 ## Documents
 
+The index retains the three public demo packs below. The simplified X11 meeting automatically attaches only T01 to a new room; preparation searches only the documents attached to that room. Other packs remain available as developer reference files.
+
 | ID | Public participant pack | PDF |
 | --- | --- | --- |
 | T01 | Service outage and unavailable director | [Open PDF](../output/pdf/demo-t01-service-outage.pdf) |

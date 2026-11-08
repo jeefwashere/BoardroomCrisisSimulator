@@ -1,8 +1,16 @@
 # Rehearsal implementation progress
 
-Status snapshot: November 7, 2026, updated for task X10. The single window local model experiment is implemented and evaluated. The active test application now routes all text agents and extraction to Gemini 3.8 Flash with LOW reasoning through Google Vertex AI, with no local model fallback. The same fourteen case comparison has completed. The custom proposal round and Vertex speech integration check also passed.
+Status snapshot: November 7, 2026, updated for task X11. The single window local model experiment is implemented and evaluated. The active test application now routes all text agents and extraction to Gemini 3.8 Flash with LOW reasoning through Google Vertex AI, with no local model fallback. The same fourteen case comparison has completed. The custom proposal round and Vertex speech integration check also passed.
 
 The work is isolated on branch `experiment/ai-voice-playtest` in `/Users/arjunbehl/Developer/CommuniHacks/BoardroomCrisisSimulator-ai-playtest`. It has not been merged into the production application. Existing teammate modules and the shared GPU service are preserved.
+
+## Current X11 meeting
+
+The main page loads one T01 PDF and offers three ready test participants. CEO Start gives a 30 second live introduction, then a five minute turn based discussion. Manual playback controls live beneath each participant, with a clear current turn indicator; participant autoplay is removed. Only three participant recordings are available. Every AI agent voice is generated live through Gemini and ElevenLabs.
+
+The CEO can consult facilitator, IT and journalist agents and finish the round early. A decision guide prompts human choices. Votes and CEO confirmation determine the result, then an evaluation agent interprets the actual decision. The full live HTTP flow passed, including six streamed roles and three timed recording commits. Introduction audio was 26.19 seconds; first speech arrived in 1.82 to 2.65 seconds across the roles. See [the report](STREAMING_PREPARATION.md) and [guide](ROUNDTABLE_GUIDE.md).
+
+The user then removed application spending limits. Both persistent ledgers are unlimited, with all history preserved. Tracked totals at this update are 8,713 speech units and US$2.00 Vertex reservations. The old cap figures below describe historical checkpoints and no longer block this application. The separate recorded audio website is removed. Browser listening, visual layout and microphone permission remain manual checks; no computer controls were used.
 
 ## New CEO meeting workflow
 
@@ -10,7 +18,7 @@ The separate `/roundtable` mode adds three preloaded demo PDFs, room scoped Gemm
 
 [The guide](ROUNDTABLE_GUIDE.md) explains the one window three seat test. [The roundtable report](ROUNDTABLE_REPORT.md) records current verification and limitations. The new mode keeps its own room state, with the same provider objects and persistent spending ledgers as the existing pages. The model download and local PDF vectors are not committed. No Velocity service or production frontend is changed.
 
-The X10 verification passed 88 playtest tests, 31 existing tests and eight Node UI checks. Six real Vertex jobs and one explicit Scribe fixture transcription completed. The app preparation questions found the expected evidence in all three public reports. Current reservations are US$1.55 of US$20 and 5,782 of 30,000 credits. The standalone readable guide is `/Users/arjunbehl/Downloads/Rehearsal_Roundtable_Guide.html`.
+The X10 verification passed 88 playtest tests, 31 existing tests and eight Node UI checks. Six real Vertex jobs and one explicit Scribe fixture transcription completed. The app preparation questions found the expected evidence in all three public reports. At the X10 checkpoint, reservations were US$1.55 of US$20 and 5,782 of 30,000 credits. The standalone readable guide is `/Users/arjunbehl/Downloads/Rehearsal_Roundtable_Guide.html`.
 
 ## What is already implemented
 

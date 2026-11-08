@@ -1,30 +1,46 @@
 'use strict';
 const $=id=>document.getElementById(id),uid=()=>crypto.randomUUID(),el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
 let bundle=null;try{bundle=JSON.parse(sessionStorage.getItem('rehearsal_roundtable')||'null');}catch{}
-let states=[],active=0,busy=false,polling=false,memory=null,recording=null,clip=null,clipOwner=null,source='typed',documentKey='',transcriptKey='',rosterKey='';
+let states=[],active=0,busy=false,polling=false,memory=null,recording=null,clip=null,clipOwner=null,source='typed',documentKey='',transcriptKey='',rosterKey='',briefing=null,turnPlayback=null,completedPlayback=null,recordings=[],automaticRunning=false;
 const save=()=>sessionStorage.setItem('rehearsal_roundtable',JSON.stringify(bundle)),state=()=>states[active],say=t=>{$('notice').textContent=t;};
 const context=()=>({code:bundle?.code,token:bundle?.seats[active]?.token,seat:active});
 const same=c=>bundle?.code===c.code&&bundle?.seats[c.seat]?.token===c.token;
 async function api(path,data,c=context(),extra={}){const headers={...extra.headers};if(c?.token)headers.Authorization='Bearer '+c.token;let body=data;if(data!==undefined&&!(data instanceof Blob)){headers['Content-Type']='application/json';body=JSON.stringify(data);}const r=await fetch(path,{method:data===undefined?'GET':'POST',headers,body});if(!r.ok){let e;try{e=await r.json();}catch{}throw new Error(e?.error||e?.detail||'Request failed ('+r.status+')');}return extra.blob?r.blob():r.json();}
-async function command(action,data={},c=context()){await api('/api/roundtable/command/'+action,{command_id:uid(),...data},c);await refresh();}
+async function command(action,data={},c=context()){const result=await api('/api/roundtable/command/'+action,{command_id:uid(),...data},c);if(same(c)&&result?.me)states[c.seat]={...result,received:Date.now()};await refresh();}
 function bind(id,fn){$(id).onclick=async()=>{if(busy)return;busy=true;render();try{say('');await fn();}catch(e){say(e.message);}finally{busy=false;render();}};}
 function button(text,fn,disabled=false){const b=el('button',text,'secondary');b.disabled=disabled||busy;b.onclick=async()=>{if(busy)return;busy=true;render();try{await fn();}catch(e){say(e.message);}finally{busy=false;render();}};return b;}
-async function refresh(){if(polling||!bundle)return;polling=true;const b=bundle;try{const results=await Promise.all(b.seats.map((s,seat)=>api('/api/roundtable/state',undefined,{code:b.code,token:s.token,seat})));if(bundle!==b)return;states=results.map(s=>({...s,received:Date.now()}));if(recording&&state()?.phase!=='discussion')await stopRecording();render();}catch(e){say(e.message);}finally{polling=false;}}
+async function refresh(){if(polling||!bundle)return;polling=true;const b=bundle;try{const results=await Promise.all(b.seats.map((s,seat)=>api('/api/roundtable/state',undefined,{code:b.code,token:s.token,seat})));if(bundle!==b)return;states=results.map((s,i)=>states[i]?.server_time>s.server_time?states[i]:({...s,received:Date.now()}));if(briefing&&(!same(briefing.owner)||state()?.phase!==briefing.phase))await stopBriefing();if((turnPlayback&&!sameTurn(turnPlayback))||(completedPlayback&&!sameTurn(completedPlayback)))await stopTurnPlayback();if(recording&&(state()?.phase!=='discussion'||state()?.speaker!==state()?.me))await stopRecording();render();void automaticAgents();}catch(e){say(e.message);}finally{polling=false;}}
 async function loadMemory(){const c=context();const m=await api('/api/roundtable/memory',undefined,c);if(same(c)){memory=m;documentKey='';render();}}
-async function health(){try{const h=await api('/api/health',undefined,{});$('health').textContent=(h.models?.model||'Vertex Flash')+' · '+(h.models?.thinking_level||'LOW');$('budget').textContent=(h.speech?.remaining??'?')+' speech credits remaining · Vertex $'+Number(h.models?.budget?.remaining_usd||0).toFixed(2)+' remaining. Entering decisions requests one automatic AI minutes update.';}catch{$('health').textContent='Local server unavailable';}}
-async function join(test){if(recording)throw new Error('Stop recording first.');const names=test?['Alex · test CEO','Morgan · test member','Sam · test member']:[$('name').value.trim()];if(!names[0])throw new Error('Enter a name.');const first=await api('/api/roundtable/join',{name:names[0],...(test||!$('code').value.trim()?{}:{code:$('code').value.trim().toUpperCase()})},{});bundle={code:first.code,seats:[{name:names[0],token:first.token}],test};active=0;states=[];memory=null;clip=null;clipOwner=null;source='typed';$('message').value='';save();for(const name of names.slice(1)){const r=await api('/api/roundtable/join',{name,code:bundle.code},{});bundle.seats.push({name,token:r.token});save();}documentKey=transcriptKey=rosterKey='';await refresh();await loadMemory();}
-const phaseNames={lobby:'Prepare together',opening_facilitator:'Opening facilitator minute',discussion:'Discuss the problem',closing_facilitator:'Closing facilitator minute',decision:'Make your decisions',ended:'Meeting complete'};
-const phaseHints={lobby:'Everyone marks ready. The CEO starts after documents finish indexing.',opening_facilitator:'Optional questions for 60 seconds. The CEO can skip this window.',discussion:'Three minutes for typed or explicitly transcribed contributions.',closing_facilitator:'Optional closing questions for 60 seconds. The CEO can skip.',decision:'Review the written record, propose actions and vote on each problem.',ended:'Your committed decisions and written record are available to export.'};
-function render(){const s=state(),phase=s?.phase,ceo=s&&s.me===s.ceo,host=s&&s.me===s.host,fac=['opening_facilitator','closing_facilitator'].includes(phase),locked=busy||!!recording;
- const disabled={join:locked,testSeats:locked,ready:busy||phase!=='lobby',allReady:busy||phase!=='lobby'||!bundle?.test,start:busy||!ceo||!s?.can_start,skip:busy||!ceo||!fac,finishDiscussion:locked||!ceo||phase!=='discussion',end:busy||!ceo||phase!=='decision'||s?.decisions?.some(d=>d.status==='pending'),export:!s,assignCeo:busy||!host||phase!=='lobby',upload:busy||phase!=='lobby'||!(ceo||host),prepare:busy||!s||!s.documents_ready,facilitate:busy||!fac,commit:locked||phase!=='discussion',record:locked||phase!=='discussion',stopRecord:!recording,transcribe:locked||phase!=='discussion'||!clip||clipOwner?.token!==context().token,propose:busy||phase!=='decision',minutes:busy||!s?.transcript?.length};for(const[id,v]of Object.entries(disabled))$(id).disabled=!!v;
+async function health(){try{const h=await api('/api/health',undefined,{});$('health').textContent=(h.models?.model||'Vertex Flash')+' · '+(h.models?.thinking_level||'LOW');$('budget').textContent=h.speech?.unlimited&&h.models?.budget?.unlimited?'Usage tracking only · no app spending cap':'Usage tracking enabled. Live agent replies use Gemini and ElevenLabs.';}catch{$('health').textContent='Local server unavailable';}}
+async function join(test){if(recording)throw new Error('Stop recording first.');const names=test?['Alex · test CEO','Morgan · test member','Sam · test member']:[$('name').value.trim()];if(!names[0])throw new Error('Enter a name.');const first=await api('/api/roundtable/join',{name:names[0],...(test||!$('code').value.trim()?{}:{code:$('code').value.trim().toUpperCase()})},{});bundle={code:first.code,seats:[{name:names[0],token:first.token}],test,autoEvents:[]};recordings=[];completedPlayback=null;active=0;states=[];memory=null;clip=null;clipOwner=null;source='typed';$('message').value='';save();for(const name of names.slice(1)){const r=await api('/api/roundtable/join',{name,code:bundle.code},{});bundle.seats.push({name,token:r.token});save();}documentKey=transcriptKey=rosterKey='';await refresh();await loadMemory();await loadRecordings();}
+const phaseNames={lobby:'Prepare together',preparation:'Your 30 second introduction',discussion:'Five minute discussion',decision:'Make your decisions',ended:'Meeting complete'};
+const phaseHints={lobby:'Load your test participants, then the CEO starts the introduction.',preparation:'The preparation agent sets the scene. Discussion opens after 30 seconds.',discussion:'Each participant speaks in turn. The CEO can consult an agent or finish early.',decision:'An agent suggests what to decide. Your votes and CEO confirmation record the result.',ended:'Review the evaluation and export your written record.'};
+function render(){const s=state(),phase=s?.phase,ceo=s&&s.me===s.ceo,host=s&&s.me===s.host,fac=['discussion','decision'].includes(phase)&&ceo,turn=phase==='discussion'&&s?.speaker===s?.me,locked=busy||!!recording||!!turnPlayback;
+ $('stopBriefing').disabled=!briefing;$('intro').disabled=busy||!s?.documents_ready||phase!=='lobby';$('intro').hidden=phase!=='lobby';
+ $('playTurn').disabled=locked||!!briefing||!turn||!recordings.length||!!completedPlayback;$('stopTurn').disabled=!turnPlayback&&!completedPlayback;$('commitRecorded').disabled=locked||!completedPlayback||!sameTurn(completedPlayback);$('nextTurn').disabled=locked||!!briefing||phase!=='discussion'||!(turn||ceo)||!!completedPlayback;
+ const disabled={join:locked,testSeats:locked,ready:busy||phase!=='lobby',allReady:busy||phase!=='lobby'||!bundle?.test,start:busy||!ceo||!s?.can_start,finishDiscussion:locked||!ceo||phase!=='discussion',end:busy||!ceo||phase!=='decision'||s?.decisions?.some(d=>d.status==='pending'),export:!s,assignCeo:busy||!host||phase!=='lobby',upload:busy||phase!=='lobby'||!(ceo||host),prepare:locked||!!briefing||!s||!s.documents_ready||!['lobby','preparation'].includes(phase),facilitate:locked||!!briefing||!fac,commit:locked||!!briefing||!turn,record:locked||!!briefing||!turn,stopRecord:!recording,transcribe:locked||!turn||!clip||clipOwner?.token!==context().token,propose:busy||phase!=='decision',minutes:busy||!s?.transcript?.length};for(const[id,v]of Object.entries(disabled))$(id).disabled=!!v;
+ $('agentKind').disabled=locked||!!briefing||!fac;
  $('roleControls').hidden=!host||phase!=='lobby';if(!s)return;
+ const speaker=s.members.find(m=>m.id===s.speaker);$('turnSpeaker').textContent=speaker?'Turn '+s.turn_number+' · '+speaker.name:'Waiting for discussion';$('contributionHint').textContent=speaker?'Current speaker: '+speaker.name+'. Only that participant can commit a contribution.':'Discussion contributions open after the introduction.';const recordingForSeat=recordings.find(r=>r.seat_index===((s.speaking||[]).indexOf(s.speaker)%3));$('recordedCaption').textContent=recordingForSeat?.text||'Each participant has a fixed saved clip. You choose when to play and commit it.';
  $('roomCode').textContent='ROOM '+s.code;$('phase').textContent=phaseNames[phase]||phase;$('phaseHint').textContent=phaseHints[phase]||'';const left=s.deadline?Math.max(0,Math.ceil(s.deadline-s.server_time-(Date.now()-s.received)/1000)):0;$('timer').textContent=s.deadline?String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0'):phase==='ended'?'Done':'Ready';$('memberCount').textContent=s.members.length;$('activeSeat').textContent=s.members.find(m=>m.id===s.me)?.name||'Participant';$('ready').textContent=s.members.find(m=>m.id===s.me)?.ready?'Mark not ready':'I am ready';$('allReady').hidden=!bundle.test;$('blockers').textContent=(s.start_blockers||[]).join(' · ');
- $('seats').replaceChildren(...bundle.seats.map((seat,i)=>{const b=button(seat.name,async()=>{if(recording)throw new Error('Stop recording before switching seats.');active=i;source='typed';$('message').value='';await refresh();},!!recording);b.className='seat'+(i===active?' selected':'');b.append(el('small',i===active?'Controlling this member':'Select member'));return b;}));
+ $('seats').replaceChildren(...bundle.seats.map((seat,i)=>{
+  const member=s.members.find(m=>m.id===states[i]?.me),speaking=phase==='discussion'&&member?.id===s.speaker;
+  const saved=recordings.find(r=>r.seat_index===((s.speaking||[]).indexOf(member?.id)%3)),card=el('article',undefined,'participant-card'+(i===active?' selected':'')+(speaking?' speaking':''));
+  const select=button(seat.name,async()=>{if(recording||turnPlayback)throw new Error('Stop recording or playback before switching seats.');active=i;source='typed';$('message').value='';await refresh();},!!recording||!!turnPlayback);
+  select.className='participant-select';card.append(select,el('span',speaking?'SPEAKING NOW':phase==='discussion'?'Waiting for turn':phase==='lobby'?'Ready for the meeting':phase==='preparation'?'Listening to introduction':'Discussion finished','turn-badge'));
+  card.append(el('small',(member?.role||'participant')+' · '+(i===active?'You control this seat':'Select to control')));
+  const controls=el('div',undefined,'actions');
+  controls.append(button("Play this participant’s saved clip",async()=>{active=i;source='typed';$('message').value='';await playRecordedTurn();},!speaking||!saved?.available||locked||!!briefing||!!completedPlayback));
+  const ownedPlayback=(turnPlayback||completedPlayback)?.owner.seat===i;
+  const stop=el('button','Stop','secondary');stop.disabled=!ownedPlayback;stop.onclick=()=>stopTurnPlayback().catch(e=>say(e.message));controls.append(stop);
+  controls.append(button('Commit caption and pass',commitRecordedTurn,!completedPlayback||completedPlayback.owner.seat!==i||!sameTurn(completedPlayback)||locked));
+  card.append(controls,el('p',saved?.title||'Saved participant recording','muted'));return card;
+ }));
  $('roster').replaceChildren(...s.members.map(m=>{const n=el('div',undefined,'member');n.append(el('b',m.name),el('span',m.role+' · '+(m.ready?'ready':'not ready')+(m.connected?'':' · offline')));return n;}));
  const rk=s.members.map(m=>m.id+':'+m.role).join();if(rosterKey!==rk){rosterKey=rk;$('ceoSelect').replaceChildren(...s.members.map(m=>{const o=el('option',m.name);o.value=m.id;return o;}));$('ceoSelect').value=s.ceo;}
  const docs=s.documents||memory?.documents||[];const dk=JSON.stringify([docs,s.documents_ready]);if(dk!==documentKey){documentKey=dk;$('documents').replaceChildren(...docs.map(d=>{const n=el('div',undefined,'document');n.append(el('b',d.title||d.filename||d.id),el('small',(d.pages||'?')+' pages'),button('Download PDF',()=>downloadDocument(d)));return n;}));}
  for(const b of $('documents').querySelectorAll('button'))b.disabled=busy;
- $('memoryStatus').textContent=s.documents_ready?'Indexed':'Index not ready';$('memoryModel').textContent=(memory?.model||'Gemma embeddings')+' · '+(memory?.note||'Preparation uses documents available to this room.');
+ $('memoryStatus').textContent=s.documents_ready?'Ready':'Preparing';$('memoryModel').textContent=s.documents_ready?'Loaded automatically. Your agent uses this report to prepare the meeting.':'The report is being prepared. You can load participants while it finishes.';
  $('recordCount').textContent=(s.transcript||[]).length+' contributions';const tk=JSON.stringify(s.transcript);if(tk!==transcriptKey){transcriptKey=tk;$('transcript').replaceChildren(...(s.transcript||[]).map(t=>{const n=el('article',undefined,'line');n.append(el('b',s.members.find(m=>m.id===(t.member||t.member_id))?.name||t.name||t.speaker||'Member'),el('small',' · '+t.id+' · '+t.source),el('p',t.text));return n;}));const checked=new Set([...$('sourceChoices').querySelectorAll('input:checked')].map(x=>x.value));$('sourceChoices').replaceChildren(...(s.transcript||[]).map(t=>{const l=el('label',undefined,'source'),c=el('input');c.type='checkbox';c.value=t.id;c.checked=checked.has(t.id);l.append(c,el('span',t.id+': '+t.text));return l;}));}
  $('replies').replaceChildren(...(s.suggestions||[]).filter(r=>r.kind!=='minutes').slice(-6).map(r=>{const n=el('article',undefined,'reply');n.append(el('b',r.kind+' · AI suggestion'),el('p',r.text));for(const c of r.citations||[])n.append(el('div',(c.title||c.document_id)+' · page '+c.page+'\n'+(c.text||''),'citation'));if(r.source_ids?.length)n.append(el('small','Discussion sources: '+r.source_ids.join(', ')));return n;}));
  $('jobs').textContent=(s.jobs||[]).slice(-5).map(j=>j.kind+': '+j.status+(j.error?' · '+j.error:'')).join(' · ');
@@ -36,17 +52,112 @@ function render(){const s=state(),phase=s?.phase,ceo=s&&s.me===s.ceo,host=s&&s.m
 async function ask(kind){const c=context();await api('/api/roundtable/agent/'+kind,{command_id:uid(),...(kind==='minutes'?{}:{text:$('question').value})},c);await refresh();await health();}
 async function downloadDocument(d){const c=context();const blob=await api('/api/roundtable/documents/'+encodeURIComponent(d.id),undefined,c,{blob:true});if(same(c))download(blob,d.filename||d.id+'.pdf');}
 function download(blob,name){const url=URL.createObjectURL(blob),a=el('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
-bind('join',()=>join(false));bind('testSeats',()=>join(true));bind('ready',()=>command('ready',{ready:!state().members.find(m=>m.id===state().me).ready}));bind('allReady',async()=>{for(let i=0;i<bundle.seats.length;i++)await command('ready',{ready:true},{code:bundle.code,token:bundle.seats[i].token,seat:i});});
+bind('join',()=>join(false));bind('testSeats',loadTestPeople);bind('ready',()=>command('ready',{ready:!state().members.find(m=>m.id===state().me).ready}));bind('allReady',async()=>{for(let i=0;i<bundle.seats.length;i++)await command('ready',{ready:true},{code:bundle.code,token:bundle.seats[i].token,seat:i});});
 bind('assignCeo',()=>{const s=state(),roles=Object.fromEntries(s.members.map(m=>[m.id,m.id===$('ceoSelect').value?'ceo':m.role==='ceo'?'operations':m.role]));return command('assign_roles',{roles});});
-for(const[id,action]of [['start','start'],['skip','skip_facilitator'],['finishDiscussion','finish_discussion'],['end','end']])bind(id,()=>command(action));
-bind('prepare',()=>ask('preparation'));bind('facilitate',()=>ask('facilitator'));bind('minutes',()=>ask('minutes'));
+bind('start',async()=>{let player=null;if($('voiceOn').checked){player=new PCMStreamPlayer();await player.unlock();}try{await command('start');await startPreparation('intro','preparation',{automatic:true},context(),player);}catch(e){await player?.stop();throw e;}});
+for(const[id,action]of [['finishDiscussion','finish_discussion'],['end','end']])bind(id,()=>command(action));
+bind('nextTurn',()=>command('next_turn',{turn_number:state().turn_number}));
+bind('intro',()=>startPreparation('intro'));bind('prepare',()=>startPreparation('question'));bind('facilitate',()=>startPreparation('question',$('agentKind').value));bind('minutes',()=>ask('minutes'));
 bind('commit',async()=>{await command('contribute',{text:$('message').value,source});$('message').value='';source='typed';clip=null;});
 bind('propose',async()=>{await command('propose_decision',{problem:$('problem').value,proposal:$('proposal').value,source_ids:[...$('sourceChoices').querySelectorAll('input:checked')].map(c=>c.value)});$('problem').value='';$('proposal').value='';});
 bind('upload',async()=>{const file=$('pdf').files[0];if(!file)throw new Error('Select a PDF first.');if(file.size>5*1024*1024)throw new Error('PDF must be no larger than 5 MB.');await api('/api/roundtable/upload',file,context(),{headers:{'Content-Type':'application/pdf','X-Filename':encodeURIComponent(file.name)}});await loadMemory();await refresh();});
 bind('export',()=>{const s=state();download(new Blob([JSON.stringify({code:s.code,phase:s.phase,members:s.members,documents:s.documents,transcript:s.transcript,summary:s.summary,decisions:s.decisions,history:s.history,jobs:s.jobs,suggestions:s.suggestions,recording_policy:s.recording_policy},null,2)],{type:'application/json'}),'roundtable-'+s.code+'.json');});
 function wav(chunks,rate){const length=chunks.reduce((s,c)=>s+c.length,0),b=new ArrayBuffer(44+length*2),v=new DataView(b),str=(p,t)=>[...t].forEach((c,i)=>v.setUint8(p+i,c.charCodeAt(0)));str(0,'RIFF');v.setUint32(4,36+length*2,true);str(8,'WAVE');str(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,rate,true);v.setUint32(28,rate*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);str(36,'data');v.setUint32(40,length*2,true);let p=44;for(const c of chunks)for(const x of c){const n=Math.max(-1,Math.min(1,x));v.setInt16(p,n<0?n*32768:n*32767,true);p+=2;}return new Blob([b],{type:'audio/wav'});}
-bind('record',async()=>{const owner=context();let stream;try{stream=await navigator.mediaDevices.getUserMedia({audio:true});const fresh=await api('/api/roundtable/state',undefined,owner);if(!same(owner)||fresh.phase!=='discussion')throw new Error('Discussion ended before microphone permission arrived.');const ctx=new AudioContext(),input=ctx.createMediaStreamSource(stream),processor=ctx.createScriptProcessor(4096,1,1),mute=ctx.createGain(),chunks=[];mute.gain.value=0;processor.onaudioprocess=e=>{if(recording)chunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));};input.connect(processor);processor.connect(mute);mute.connect(ctx.destination);recording={owner,stream,ctx,input,processor,mute,chunks};recording.timer=setTimeout(()=>stopRecording().catch(e=>say(e.message)),29000);$('micStatus').textContent='Recording locally, up to 29 seconds. Stop before transcribing.';}catch(e){stream?.getTracks().forEach(t=>t.stop());throw e;}});
+bind('record',async()=>{const owner=context();let stream;try{stream=await navigator.mediaDevices.getUserMedia({audio:true});const fresh=await api('/api/roundtable/state',undefined,owner);if(!same(owner)||(fresh.phase!=='discussion'||fresh.speaker!==fresh.me))throw new Error('Discussion ended before microphone permission arrived.');const ctx=new AudioContext(),input=ctx.createMediaStreamSource(stream),processor=ctx.createScriptProcessor(4096,1,1),mute=ctx.createGain(),chunks=[];mute.gain.value=0;processor.onaudioprocess=e=>{if(recording)chunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));};input.connect(processor);processor.connect(mute);mute.connect(ctx.destination);recording={owner,stream,ctx,input,processor,mute,chunks};recording.timer=setTimeout(()=>stopRecording().catch(e=>say(e.message)),29000);$('micStatus').textContent='Recording locally, up to 29 seconds. Stop before transcribing.';}catch(e){stream?.getTracks().forEach(t=>t.stop());throw e;}});
 async function stopRecording(){if(!recording)return;const r=recording;recording=null;clearTimeout(r.timer);r.stream.getTracks().forEach(t=>t.stop());r.processor.disconnect();r.input.disconnect();r.mute.disconnect();clip=wav(r.chunks,r.ctx.sampleRate);clipOwner=r.owner;await r.ctx.close();$('micStatus').textContent='Local clip ready. Explicitly transcribe, review the text, then commit. Nothing was uploaded automatically.';render();}
 bind('stopRecord',stopRecording);bind('transcribe',async()=>{const c=context(),r=await api('/api/roundtable/transcribe',clip,c,{headers:{'Content-Type':'audio/wav','X-Command-ID':uid()}});if(same(c)&&active===c.seat){$('message').value=r.text;source='speech';$('micStatus').textContent='Provisional Scribe transcript. Review and edit before Commit contribution.';}await health();});
-window.addEventListener('beforeunload',()=>recording?.stream.getTracks().forEach(t=>t.stop()));
-async function init(){render();await health();if(bundle){await refresh();try{await loadMemory();}catch(e){say(e.message);}}}void init();setInterval(refresh,1000);setInterval(render,1000);setInterval(health,20000);
+window.addEventListener('beforeunload',()=>{recording?.stream.getTracks().forEach(t=>t.stop());if(briefing){briefing.controller.abort();void briefing.player?.stop();}if(turnPlayback||completedPlayback)void stopTurnPlayback();});
+async function loadTestPeople(){
+ const current=state();
+ if(bundle?.test&&bundle.seats.length===3&&current?.phase==='lobby'){
+   // Repeated clicks reuse the existing three seats, rather than creating rooms.
+ }else if(bundle&&current?.phase==='lobby'&&current.host===current.me&&current.members.length===1){
+   for(const name of ['Morgan · test member','Sam · test member']){const r=await api('/api/roundtable/join',{name,code:bundle.code},{});bundle.seats.push({name,token:r.token});}
+   bundle.test=true;save();
+ }else{await join(true);}
+ for(let i=0;i<bundle.seats.length;i++)await api('/api/roundtable/command/ready',{command_id:uid(),ready:true},{code:bundle.code,token:bundle.seats[i].token,seat:i});
+ await refresh();await loadMemory();await loadRecordings();say('Three test participants loaded and ready. The CEO can Start meeting to hear the introduction.');
+}
+async function stopBriefing(){
+ const task=briefing;if(!task)return;
+ task.controller.abort();await task.player?.stop();
+ if(task.id)void api('/api/roundtable/briefing/'+task.id+'/stop',{},task.owner).catch(()=>{});
+ if(briefing===task){$('briefingStatus').textContent='Stopped. Your written briefing stays here.';}
+}
+$('stopBriefing').onclick=()=>stopBriefing().catch(e=>say(e.message));
+async function startPreparation(mode,kind='preparation',extra={},owner=context(),preparedPlayer=null){
+ if(briefing||turnPlayback||completedPlayback)throw new Error('Stop the current audio before asking an agent.');
+ const controller=new AbortController();let voice=$('voiceOn').checked;
+ const task={owner,controller,phase:state().phase,player:voice?(preparedPlayer||new PCMStreamPlayer()):null,id:null};
+ briefing=task;render();$('briefingText').textContent='';$('streamSources').replaceChildren();$('briefingStatus').textContent=kind==='preparation'?'Reading your PDF…':'Listening to the '+kind+' agent…';
+ let ended=false,streamError=false;
+ try{
+   // Unlock audio in the click gesture, before waiting for network or model work.
+   if(task.player){$('resumeAudio').hidden=false;await Promise.race([task.player.unlock(),new Promise(resolve=>setTimeout(resolve,1500))]);if(task.player.context?.state==='suspended'){$('briefingStatus').textContent='Audio needs permission. Press Resume audio; written text continues.';}}
+   const response=await fetch('/api/roundtable/briefing',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+owner.token},signal:controller.signal,body:JSON.stringify({command_id:uid(),mode,kind,text:$('question').value,voice:!!voice,...extra})});
+   if(!response.ok){const error=await response.json();throw new Error(error.error||'Could not start preparation');}
+   await consumeNDJSON(response.body,async event=>{
+     if(controller.signal.aborted||!same(owner)||briefing!==task)return;
+     if(event.id)task.id=event.id;
+     if(event.type==='status')$('briefingStatus').textContent=event.message;
+     if(event.type==='sources')for(const c of event.citations){const n=el('div',undefined,'citation');n.append(el('b',c.title+' · page '+c.page),el('p',c.text));$('streamSources').append(n);}
+     if(event.type==='text'){$('briefingText').textContent+=event.text;$('briefingStatus').textContent=voice?'Writing and speaking…':'Writing the briefing…';}
+     if(event.type==='audio'&&task.player){try{task.player.append(event.pcm,event.sample_rate);}catch(e){await task.player.stop();say(e.message+' The written briefing will continue.');}}
+     if(event.type==='speech_error'){say(event.message);await task.player?.stop();}
+     if(event.type==='error'){streamError=true;say(event.message);}
+     if(event.type==='done'){ended=true;streamError ||= event.status!=='done';$('briefingStatus').textContent=event.status==='limited'?'Briefing reached its length limit.':voice?'Finishing the spoken briefing…':'Briefing ready.';}
+   },controller.signal);
+   if(!ended&&!controller.signal.aborted)throw new Error('Connection ended early. The text shown is a partial briefing.');
+   await task.player?.drain();
+   if(!controller.signal.aborted&&same(owner))$('briefingStatus').textContent=streamError?'Partial briefing. Review the report or try a new question.':'Agent finished. Continue the meeting or ask another question.';
+ }catch(e){if(e.name!=='AbortError'){if(same(owner))$('briefingStatus').textContent='Preparation stopped before completion.';throw e;}}
+ finally{await task.player?.stop();if(briefing===task)briefing=null;$('resumeAudio').hidden=true;await refresh();await health();render();}
+}
+
+$('resumeAudio').onclick=()=>briefing?.player?.unlock().catch(e=>say(e.message));
+async function loadRecordings(){const c=context(),result=await api('/api/roundtable/recordings',undefined,c);if(same(c)){recordings=(result.clips||[]).map(r=>({...r,seat_index:r.default_seat}));render();}}
+function sameTurn(task){const s=states[task.owner.seat];return same(task.owner)&&s?.phase==='discussion'&&s.speaker===task.speaker&&s.turn_number===task.turn;}
+async function stopTurnPlayback(){const task=turnPlayback||completedPlayback;if(!task)return;task.cancelled=true;task.resolve?.(false);$('recordedAudio').pause();$('recordedAudio').removeAttribute('src');if(task.url)URL.revokeObjectURL(task.url);if(turnPlayback===task)turnPlayback=null;if(completedPlayback===task)completedPlayback=null;if(task.id)await api('/api/roundtable/recordings/stop',{command_id:uid(),id:task.id},task.owner).catch(()=>{});$('recordedStatus').textContent='Playback stopped. No caption was committed.';render();}
+async function playRecordedTurn(){
+ if(briefing||recording||turnPlayback||completedPlayback)throw new Error('Stop or commit the current audio first.');
+ const s=state(),owner=context();if(s?.phase!=='discussion'||s.speaker!==s.me)throw new Error('Select the current speaker before playing.');
+ const recordingForSeat=recordings.find(r=>r.seat_index===((s.speaking||[]).indexOf(s.speaker)%3));if(!recordingForSeat?.available)throw new Error('The recording for this test seat is unavailable.');
+ const task={owner,speaker:s.speaker,turn:s.turn_number,id:null,url:null,cancelled:false};turnPlayback=task;render();
+ try{
+  const lease=await api('/api/roundtable/recordings/play',{command_id:uid(),clip_id:recordingForSeat.id},owner);task.id=lease.id;
+  if(task.cancelled||!sameTurn(task)){await api('/api/roundtable/recordings/stop',{command_id:uid(),id:task.id},owner).catch(()=>{});return false;}
+  const blob=await api('/api/roundtable/recordings/audio/'+encodeURIComponent(task.id),undefined,owner,{blob:true});
+  if(task.cancelled||!sameTurn(task)){await stopTurnPlayback();return false;}
+  const audio=$('recordedAudio');task.url=URL.createObjectURL(blob);audio.src=task.url;
+  const finished=new Promise((resolve,reject)=>{task.resolve=resolve;audio.onended=()=>resolve(true);audio.onerror=()=>reject(new Error('Recording playback failed. No text was committed.'));});
+  $('recordedStatus').textContent='Playing existing recording for '+s.members.find(m=>m.id===s.me)?.name+'. Stop cancels without a commit.';
+  try{await audio.play();}catch{throw new Error('Browser blocked playback. Press Play this turn’s recording to retry.');}
+  const ended=await finished;
+  if(!ended||task.cancelled||!sameTurn(task)){await stopTurnPlayback();return false;}
+  turnPlayback=null;completedPlayback=task;$('recordedStatus').textContent='Playback finished. Commit the trusted caption and advance to the next participant, or Stop to discard.';return true;
+ }catch(e){await stopTurnPlayback();throw e;}
+ finally{render();}
+}
+async function commitRecordedTurn(){const task=completedPlayback;if(!task||!sameTurn(task))throw new Error('Finish a recording in the current speaking turn first.');await new Promise(resolve=>setTimeout(resolve,250));if(!sameTurn(task)||completedPlayback!==task)throw new Error('The speaking turn changed. Nothing was committed.');await api('/api/roundtable/recordings/complete',{command_id:uid(),id:task.id},task.owner);if(task.url)URL.revokeObjectURL(task.url);if(completedPlayback===task)completedPlayback=null;$('recordedAudio').removeAttribute('src');$('recordedStatus').textContent='Recorded caption committed. The next participant now has the floor.';while(polling)await new Promise(resolve=>setTimeout(resolve,30));await refresh();}
+bind('playTurn',playRecordedTurn);bind('commitRecorded',commitRecordedTurn);$('stopTurn').onclick=()=>stopTurnPlayback().catch(e=>say(e.message));
+
+async function automaticAgents(){
+ if(automaticRunning||busy||briefing||recording||turnPlayback||completedPlayback||!bundle)return;
+ const seat=states.findIndex(s=>s.me===s.ceo);if(seat<0)return;const s=states[seat];if(!['decision','ended'].includes(s.phase))return;
+ bundle.autoEvents ||= [];let event=null;
+ if(s.phase==='decision'&&!bundle.autoEvents.includes('decision'))event={key:'decision',kind:'decision',extra:{}};
+ else{const d=(s.decisions||[]).find(d=>['approved','rejected'].includes(d.status)&&!bundle.autoEvents.includes('evaluation:'+d.id));if(d)event={key:'evaluation:'+d.id,kind:'evaluation',extra:{decision_id:d.id}};}
+ if(!event)return;bundle.autoEvents.push(event.key);save();automaticRunning=true;busy=true;render();
+ try{await startPreparation('intro',event.kind,{...event.extra,automatic:true},{code:bundle.code,token:bundle.seats[seat].token,seat});}
+ catch(e){say('Automatic '+event.kind+' agent: '+e.message+' This automatic request will not repeat.');}
+ finally{busy=false;automaticRunning=false;render();}
+}
+async function init(){
+ render();await health();
+ try{
+   if(bundle){await refresh();if(!states.length){bundle=null;save();}}
+   if(!bundle)await join(false);
+   else {await loadMemory();await loadRecordings();}
+ }catch(e){say(e.message);}
+}
+void init();setInterval(refresh,1000);setInterval(render,1000);setInterval(health,20000);

@@ -13,9 +13,8 @@ from .engine import RuleError, SCENARIO, bounded_text, require
 class Roundtable:
     """An ephemeral meeting whose membership tokens never enter public snapshots."""
 
-    DURATIONS = {'opening_facilitator': 60, 'discussion': 180, 'closing_facilitator': 60}
-    NEXT = {'opening_facilitator': 'discussion', 'discussion': 'closing_facilitator',
-            'closing_facilitator': 'decision'}
+    DURATIONS = {'preparation': 30, 'discussion': 300}
+    NEXT = {'preparation': 'discussion', 'discussion': 'decision'}
     RECORDING_POLICY = ('Written contributions and summaries only. Microphone transcription '
                         'requires an explicit recording action and participant review before submission.')
 
@@ -44,14 +43,48 @@ class Roundtable:
             return room, mid
 
     def tick(self, room):
+        lease = room.get('active_audio')
+        if lease and (lease.get('expires', float('inf')) <= self.clock() or
+                      lease.get('phase', room['phase']) != room['phase'] or
+                      (room['phase'] == 'discussion' and
+                       (lease.get('member') != room['speaker'] or
+                        lease.get('turn_number', room['turn_number']) != room['turn_number']))):
+            self.cancel_audio(room, 'lease_expired_or_stale')
         while room['deadline'] is not None and self.clock() >= room['deadline']:
             self._transition(room, self.NEXT[room['phase']], room['deadline'], 'deadline')
 
     def _transition(self, room, phase, at=None, reason='command'):
         at = self.clock() if at is None else at
+        self.cancel_audio(room, 'phase_changed')
         room['phase'] = phase
+        if phase == 'discussion':
+            room['turn_index'], room['turn_number'] = 0, 1
+            room['speaker'] = room['electorate'][0]
+        else:
+            room['speaker'], room['turn_index'] = None, None
         room['deadline'] = at + self.DURATIONS[phase] if phase in self.DURATIONS else None
         self.event(room, 'phase', at=at, phase=phase, deadline=room['deadline'], reason=reason)
+
+    def cancel_audio(self, room, reason='cancelled'):
+        """Trusted service helper; callers may hold the reentrant engine lock."""
+        with self.lock:
+            lease = room.get('active_audio')
+            if lease:
+                lease['status'] = 'cancelled'
+                room['active_audio'] = None
+                self.event(room, 'audio_cancelled', audio_id=lease.get('id'), reason=reason)
+
+    def contribute_recorded(self, token, text, recording_id, command_id, turn_number=None):
+        """Trusted API commits its catalog caption after verified playback completion.
+
+        The HTTP command endpoint cannot select this trusted source. The caller
+        must check the playback lease and pass its turn_number to reject stale audio.
+        """
+        data = {'command_id': command_id, 'text': bounded_text(text, 4000),
+                'source': 'recorded', 'recording_id': bounded_text(recording_id, 200)}
+        if turn_number is not None:
+            data['turn_number'] = turn_number
+        return self._command(token, 'contribute_recorded', data, trusted_recording=True)
 
     def _connected(self, member):
         return member['active'] and self.clock() - member['seen'] < 30
@@ -92,6 +125,7 @@ class Roundtable:
                     code = ''.join(secrets.choice('ABCDEFGHJKLMNPQRSTUVWXYZ23456789') for _ in range(6))
                 self.rooms[code] = {'code': code, 'members': {}, 'host': None, 'phase': 'lobby',
                     'version': 0, 'events': [], 'deadline': None, 'electorate': [],
+                    'speaker': None, 'turn_index': None, 'turn_number': 0, 'active_audio': None, 'active_stream': None,
                     'documents': [], 'documents_ready': False, 'transcript': [], 'summary': {'items': []},
                     'decision_prompts': [], 'decisions': [], 'history': [], 'jobs': {}, 'suggestions': []}
             require(isinstance(code, str) and code in self.rooms, 'Room code not found', 404)
@@ -139,6 +173,9 @@ class Roundtable:
                        ready=room['documents_ready'])
 
     def command(self, token, action, data):
+        return self._command(token, action, data)
+
+    def _command(self, token, action, data, trusted_recording=False):
         with self.lock:
             room, mid = self.identity(token)
             require(isinstance(data, dict) and isinstance(action, str), 'Invalid command', 422)
@@ -151,16 +188,18 @@ class Roundtable:
                 require(old_digest == digest, 'command_id was already used for another command')
                 return deepcopy(receipt)
             require(len(self.receipts) < 100000, 'Playtest command limit reached', 429)
-            self._apply(room, mid, action, data)
+            self._apply(room, mid, action, data, trusted_recording=trusted_recording)
             receipt = self._snapshot(room, mid)
             self.receipts[key] = (digest, deepcopy(receipt))
             return receipt
 
-    def _apply(self, room, mid, action, data):
+    def _apply(self, room, mid, action, data, trusted_recording=False):
         phase = room['phase']
         member = room['members'][mid]
         if action == 'leave':
             member['active'] = False
+            if room.get('active_audio') and room['active_audio'].get('member') == mid:
+                self.cancel_audio(room, 'member_left')
             if phase == 'lobby':
                 member['ready'] = False
             self.event(room, 'left', member=mid)
@@ -183,31 +222,45 @@ class Roundtable:
                 room['members'][target].update(role=role, ready=False)
             self.event(room, 'roles_assigned', member=mid, roles=deepcopy(roles))
             return
-        if action in {'start', 'skip_facilitator', 'finish_discussion', 'commit_decision', 'cancel_decision', 'end'}:
+        if action in {'start', 'finish_discussion', 'commit_decision', 'cancel_decision', 'end'}:
             require(mid == self._ceo(room), 'Only the CEO can perform this action', 403)
         if action == 'start':
             blockers = self._start_blockers(room)
             require(not blockers, ' '.join(blockers))
             room['electorate'] = list(room['members'])
             self.event(room, 'started', member=mid, electorate=list(room['electorate']))
-            self._transition(room, 'opening_facilitator')
-        elif action == 'skip_facilitator':
-            require(phase in {'opening_facilitator', 'closing_facilitator'}, 'No facilitator window is active')
-            self.event(room, 'facilitator_skipped', member=mid, phase=phase)
-            self._transition(room, self.NEXT[phase], reason='ceo_skip')
+            self._transition(room, 'preparation')
         elif action == 'finish_discussion':
             require(phase == 'discussion', 'Discussion is not active')
             self.event(room, 'discussion_finished', member=mid)
-            self._transition(room, 'closing_facilitator', reason='ceo_finish')
-        elif action == 'contribute':
+            self._transition(room, 'decision', reason='ceo_finish')
+        elif action == 'next_turn':
+            require(phase == 'discussion', 'Discussion is not active')
+            require(mid in (room['speaker'], self._ceo(room)),
+                    'Only the current speaker or CEO can pass the turn', 403)
+            if 'turn_number' in data:
+                require(data['turn_number'] == room['turn_number'], 'This speaking turn has ended')
+            self.cancel_audio(room, 'turn_changed')
+            room['turn_index'] = (room['turn_index'] + 1) % len(room['electorate'])
+            room['turn_number'] += 1
+            room['speaker'] = room['electorate'][room['turn_index']]
+            self.event(room, 'turn_changed', member=mid, speaker=room['speaker'],
+                       turn_number=room['turn_number'])
+        elif action == 'contribute' or (action == 'contribute_recorded' and trusted_recording):
             require(phase == 'discussion', 'Contributions are accepted during discussion')
+            require(mid == room['speaker'], 'Wait for your speaking turn', 403)
+            if 'turn_number' in data:
+                require(data['turn_number'] == room['turn_number'], 'This speaking turn has ended')
             text = bounded_text(data.get('text'), 4000)
             source = data.get('source', 'typed')
-            require(isinstance(source, str) and source in {'typed', 'speech'}, 'Contribution source must be typed or speech', 422)
-            entry = self.event(room, 'contribution', member=mid, name=member['name'], text=text, source=source)
+            allowed = {'recorded'} if trusted_recording else {'typed', 'speech'}
+            require(isinstance(source, str) and source in allowed, 'Invalid contribution source', 422)
+            details = {'recording_id': data['recording_id']} if trusted_recording else {}
+            entry = self.event(room, 'contribution', member=mid, name=member['name'], text=text,
+                               source=source, turn_number=room['turn_number'], **details)
             room['transcript'].append(deepcopy(entry))
         elif action == 'propose_decision':
-            require(phase == 'decision', 'Decisions follow the closing facilitator window')
+            require(phase == 'decision', 'Decisions follow the discussion round')
             problem = bounded_text(data.get('problem'), 1000)
             proposal = bounded_text(data.get('proposal'), 2000)
             sources = data.get('source_ids')
@@ -278,11 +331,15 @@ class Roundtable:
     def _snapshot(self, room, mid):
         public = {key: deepcopy(room[key]) for key in ('code', 'host', 'phase', 'version', 'deadline',
             'electorate', 'documents', 'documents_ready', 'transcript', 'summary', 'decision_prompts',
-            'history', 'suggestions')}
+            'history', 'suggestions', 'speaker', 'turn_index', 'turn_number', 'active_stream')}
         public.update(me=mid, ceo=self._ceo(room), server_time=self.clock(), roles=deepcopy(self.roles),
-                      recording_policy=self.RECORDING_POLICY)
+                      recording_policy=self.RECORDING_POLICY, speaking=list(room['electorate']) if room['phase'] == 'discussion' else [])
+        lease = room.get('active_audio')
+        public['active_audio'] = ({key: deepcopy(value) for key, value in lease.items()
+                                   if key in {'id', 'recording_id', 'member', 'phase', 'turn_number',
+                                              'status', 'expires', 'captions', 'clip_id', 'text', 'started_at', 'complete_after'}} if lease else None)
         public['members'] = [{**{key: member[key] for key in ('id', 'name', 'role', 'ready')},
-                              'connected': self._connected(member)} for member in room['members'].values()]
+                              'connected': self._connected(member), 'speaking': member['id'] == room['speaker']} for member in room['members'].values()]
         public['start_blockers'] = self._start_blockers(room)
         public['can_start'] = mid == self._ceo(room) and not public['start_blockers']
         public['decisions'] = []

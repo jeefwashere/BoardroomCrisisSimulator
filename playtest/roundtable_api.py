@@ -15,6 +15,9 @@ from fastapi import APIRouter, Request
 from fastapi.responses import FileResponse
 from .agents import parse_object
 from .engine import RuleError, bounded_text, require
+from .preparation_stream import PreparationStreams
+from .roundtable_recordings import RoundtableRecordings
+from .recordings import RecordingLibrary
 
 
 def bearer(request):
@@ -32,19 +35,42 @@ class RoundtableService:
         self.receipts, self.media_receipts = {}, {}
         self.media_lock, self.upload_lock = threading.Lock(), threading.Lock()
         self.uploading = set()
+        self.warm_memory, self.memory_warming, self.memory_warm_error = False, False, False
         self.router = APIRouter(prefix='/api/roundtable')
         self.routes()
+        self.briefings = PreparationStreams(self)
+        self.router.include_router(self.briefings.router)
+        self.recorded_turns = RoundtableRecordings(self, RecordingLibrary())
+        self.router.include_router(self.recorded_turns.router)
 
     def start(self):
+        if self.warm_memory:
+            self.memory_warming = True
+            def warm():
+                try:
+                    status = self.memory.status()
+                    if status['ready']:
+                        self.memory.search('What is happening in the service outage?',
+                                           document_ids=status.get('demo_document_ids', [])[:1], limit=1)
+                    else:
+                        self.memory_warm_error = True
+                except Exception:
+                    self.memory_warm_error = True
+                finally:
+                    self.memory_warming = False
+            threading.Thread(target=warm, daemon=True, name='warm-pdf-memory').start()
         self.thread.start()
 
     def close(self):
+        self.briefings.close()
         self.stop.set()
         if self.thread.is_alive():
             self.thread.join(timeout=2)
         self.pool.shutdown(wait=False, cancel_futures=True)
 
     def tick(self):
+        if hasattr(self, 'briefings'):
+            self.briefings.check_active()
         with self.engine.lock:
             for room in self.engine.rooms.values():
                 self.engine.tick(room)
@@ -76,16 +102,18 @@ class RoundtableService:
         if room['phase'] == 'lobby' and room['code'] not in self.uploading:
             selected = {d['id'] for d in room['documents']}
             if not selected:
-                selected = set(status.get('demo_document_ids', []))
+                selected = set(status.get('demo_document_ids', [])[:1])
             docs = [d for d in status.get('documents', []) if d['id'] in selected]
-            ready = bool(status['ready'] and len(docs) == len(selected))
+            ready = bool(status['ready'] and len(docs) == len(selected) and
+                         not self.memory_warming and not self.memory_warm_error)
             if ready != room['documents_ready'] or not room['documents']:
                 self.engine.set_documents(room['code'], docs, ready)
         selected = {d['id'] for d in room['documents']}
         return {'ready': room['documents_ready'], 'model': status['model'],
                 'documents': [d for d in status.get('documents', []) if d['id'] in selected],
                 'demo_document_ids': [d for d in status.get('demo_document_ids', []) if d in selected],
-                'note': status.get('note', '')}
+                'note': ('Warming the PDF reader before the meeting starts.' if self.memory_warming else
+                         'PDF reader could not warm up. Check local model setup.' if self.memory_warm_error else status.get('note', ''))}
 
     def request(self, token, kind, data):
         require(kind in ('preparation', 'facilitator', 'minutes'), 'Unknown agent', 422)
@@ -102,8 +130,9 @@ class RoundtableService:
                 return deepcopy(result)
             require(len(self.receipts) < 10000, 'Request capacity reached', 429)
             require(kind != 'preparation' or room['documents_ready'], 'PDF memory is not ready')
-            require(kind != 'facilitator' or room['phase'] in ('opening_facilitator', 'closing_facilitator'),
-                    'Facilitator is available in the optional opening and closing windows')
+            require(kind != 'facilitator' or mid == self.engine._ceo(room), 'Only the CEO can consult the facilitator', 403)
+            require(kind != 'facilitator' or room['phase'] in ('discussion', 'decision'),
+                    'Consult the facilitator during discussion or decisions')
             require(kind != 'minutes' or room['transcript'], 'Submit discussion contributions first')
             require(not any(j['kind'] == kind and j['status'] == 'pending' for j in room['jobs'].values()),
                     'This agent already has a pending request')
@@ -309,6 +338,7 @@ class RoundtableService:
             with engine.lock:
                 room, mid = engine.identity(auth)
                 require(room['phase'] == 'discussion' and mid in room['electorate'], 'Record during discussion')
+                require(room['speaker'] == mid, 'Wait for your speaking turn', 403)
             payload = await request.body()
             require(len(payload) <= 4_000_000, 'Recording too large', 413)
             key, digest = (auth, cid), hashlib.sha256(payload).hexdigest()

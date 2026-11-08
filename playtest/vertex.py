@@ -38,10 +38,19 @@ nonpromotional $1.50/$7.50 per million input/output tokens this covers our
         with closing(sqlite3.connect(self.path)) as db, db:
             db.execute('CREATE TABLE IF NOT EXISTS settings(cap INTEGER)')
             if not db.execute('SELECT cap FROM settings').fetchone():
-                db.execute('INSERT INTO settings VALUES (?)', (cap_cents,))
+                db.execute('INSERT INTO settings(cap) VALUES (?)', (cap_cents,))
             self.cap = min(cap_cents, db.execute('SELECT cap FROM settings').fetchone()[0])
+            if 'unlimited' not in {row[1] for row in db.execute('PRAGMA table_info(settings)')}:
+                db.execute('ALTER TABLE settings ADD COLUMN unlimited INTEGER NOT NULL DEFAULT 0')
+            self.unlimited = bool(db.execute('SELECT unlimited FROM settings').fetchone()[0])
             db.execute('CREATE TABLE IF NOT EXISTS calls(id TEXT PRIMARY KEY, cents INTEGER, usage TEXT)')
         Path(path).chmod(0o600)
+
+    def authorize_unlimited(self):
+        """Explicit user authorization: keep usage accounting without an app cap."""
+        with closing(sqlite3.connect(self.path)) as db, db:
+            db.execute('UPDATE settings SET unlimited=1')
+        self.unlimited = True
 
     def authorize_increase(self, new_cap_cents):
         """Explicit operator authorization only; never clear prior calls or usage."""
@@ -62,7 +71,7 @@ nonpromotional $1.50/$7.50 per million input/output tokens this covers our
         with closing(sqlite3.connect(self.path)) as db, db:
             db.execute('BEGIN IMMEDIATE')
             used = db.execute('SELECT COALESCE(SUM(cents),0) FROM calls').fetchone()[0]
-            if used + 5 > self.cap:
+            if not self.unlimited and used + 5 > self.cap:
                 raise VertexError('Vertex test spending cap reached')
             ident = uuid.uuid4().hex
             db.execute('INSERT INTO calls VALUES (?,?,NULL)', (ident, 5))
@@ -75,8 +84,9 @@ nonpromotional $1.50/$7.50 per million input/output tokens this covers our
     def status(self):
         with closing(sqlite3.connect(self.path)) as db:
             used, count = db.execute('SELECT COALESCE(SUM(cents),0),COUNT(*) FROM calls').fetchone()
-        return {'cap_usd': self.cap / 100, 'reserved_usd': used / 100,
-                'remaining_usd': max(0, self.cap-used) / 100, 'attempts': count,
+        return {'cap_usd': None if self.unlimited else self.cap / 100, 'reserved_usd': used / 100,
+                'remaining_usd': None if self.unlimited else max(0, self.cap-used) / 100, 'attempts': count,
+                'unlimited': self.unlimited,
                 'note': 'Local test reservations, including failures; excludes other account spending.'}
 
 
@@ -105,6 +115,59 @@ class VertexModels:
                     'model': MODEL, 'thinking_level': THINKING, 'name': self.name,
                     'note': self.last_error or ('Live response verified' if self.verified else 'Configured; live response not yet verified'),
                     'budget': self.budget.status()}
+
+    def stream(self, prompt, cancel=None, timeout=60):
+        """Yield real SSE text deltas, reserving once in the shared ledger."""
+        if not self.key:
+            raise VertexError('Vertex is not configured')
+        if not isinstance(prompt, str) or len(prompt.encode()) > 20000:
+            raise ValueError('Vertex input limit exceeded')
+        if cancel and cancel.is_set():
+            return
+        payload = {'contents': [{'role': 'user', 'parts': [{'text': prompt}]}],
+                   'generationConfig': {'thinkingConfig': {'thinkingLevel': THINKING},
+                                        'maxOutputTokens': 800, 'temperature': .3}}
+        ident = self.budget.reserve()
+        usage, finished = {}, False
+        request = urllib.request.Request(ENDPOINT.replace(':generateContent', ':streamGenerateContent') + '?alt=sse',
+            data=json.dumps(payload).encode(), headers={'Content-Type': 'application/json', 'x-goog-api-key': self.key})
+        try:
+            with self.opener.open(request, timeout=timeout) as response:
+                for line in response:
+                    if cancel and cancel.is_set():
+                        return
+                    if not line.startswith(b'data:'):
+                        continue
+                    value = line[5:].strip()
+                    if value == b'[DONE]':
+                        continue
+                    event = json.loads(value)
+                    if 'error' in event:
+                        raise VertexError('Vertex stream failed')
+                    usage.update({k: v for k, v in event.get('usageMetadata', {}).items()
+                                  if k in ('promptTokenCount', 'candidatesTokenCount', 'thoughtsTokenCount', 'totalTokenCount')
+                                  and type(v) is int})
+                    for candidate in event.get('candidates', []):
+                        reason = candidate.get('finishReason')
+                        if reason and reason != 'STOP':
+                            raise VertexError('Vertex stream ended without a complete answer')
+                        finished |= reason == 'STOP'
+                        for part in candidate.get('content', {}).get('parts', []):
+                            if part.get('text') and not part.get('thought'):
+                                yield part['text']
+            if not finished:
+                raise VertexError('Vertex stream ended early')
+            with self.lock:
+                self.verified, self.last_error = True, None
+        except GeneratorExit:
+            raise
+        except Exception:
+            with self.lock:
+                self.last_error = 'Vertex stream failed or ended early'
+            raise VertexError(self.last_error) from None
+        finally:
+            if usage:
+                self.budget.record(ident, usage)
 
     def run(self, prompt, model='text', timeout=120):
         if not self.key:

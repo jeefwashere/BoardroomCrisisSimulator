@@ -1,5 +1,7 @@
 # Rehearsal audio conversation test guide
 
+Archived guide: the separate recorded audio website was removed in X11. Use the [current manual meeting guide](ROUNDTABLE_GUIDE.md); only participant recordings are reused there.
+
 Use this guide with the isolated `experiment/ai-voice-playtest` application. It explains how to test recorded voices, a conversation with three test seats, turn permissions, live agents and one decision round. These are repeatable manual tests. A listed expected result is not a claim that your browser, microphone or every case has already passed.
 
 ## Start here

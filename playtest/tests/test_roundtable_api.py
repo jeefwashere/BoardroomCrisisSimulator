@@ -154,7 +154,8 @@ class RoundtableHTTPTests(unittest.TestCase):
     def discussion(self):
         self.ready()
         self.ok_command('start')
-        self.ok_command('skip_facilitator')
+        self.now += 30
+        self.assertEqual(self.state()['phase'], 'discussion')
 
     def ask(self, kind, **data):
         response = self.client.post('/api/roundtable/agent/' + kind,
@@ -224,8 +225,8 @@ class RoundtableHTTPTests(unittest.TestCase):
         self.assertEqual(self.command('start').status_code, 409)
         self.ready()
         self.assertEqual(self.command('start', 1).status_code, 403)
-        self.assertEqual(self.ok_command('start')['phase'], 'opening_facilitator')
-        self.assertEqual(self.command('skip_facilitator', 1).status_code, 403)
+        self.assertEqual(self.ok_command('start')['phase'], 'preparation')
+        self.assertEqual(self.command('finish_discussion', 1).status_code, 403)
         response = self.client.post('/api/roundtable/upload', content=b'%PDF-1.4\nTest',
             headers={**self.auth(), 'Content-Type': 'application/pdf', 'X-Filename': 'late.pdf'})
         self.assertEqual(response.status_code, 403)
@@ -288,36 +289,46 @@ class RoundtableHTTPTests(unittest.TestCase):
         self.assertEqual(state['history'], [])
         self.assertEqual(state['phase'], 'lobby')
 
-    def test_facilitator_requires_its_window_and_returns_bounded_question(self):
-        response = self.client.post('/api/roundtable/agent/facilitator',
-            json={'command_id': uuid.uuid4().hex, 'text': 'What next?'}, headers=self.auth())
+    def test_facilitator_requires_ceo_and_discussion_or_decision(self):
+        body = {'command_id': uuid.uuid4().hex, 'text': 'What next?'}
+        response = self.client.post('/api/roundtable/agent/facilitator', json=body, headers=self.auth())
         self.assertEqual(response.status_code, 409)
         self.assertEqual(self.provider.calls, [])
         self.ready()
         self.ok_command('start')
+        response = self.client.post('/api/roundtable/agent/facilitator', json=body, headers=self.auth())
+        self.assertEqual(response.status_code, 409)
+        self.now += 30
+        self.state()
+        response = self.client.post('/api/roundtable/agent/facilitator', json=body, headers=self.auth(1))
+        self.assertEqual(response.status_code, 403)
         identifier = self.ask('facilitator', text='What next?')
         state, job = self.wait_job(identifier)
         self.assertEqual(job['status'], 'done', job)
         reply = next(reply for reply in state['suggestions'] if reply['id'] == identifier)
         self.assertEqual(reply['evidence_ids'], ['question_0'])
         self.assertIn('Which facts are confirmed', reply['text'])
-        self.assertEqual(state['phase'], 'opening_facilitator')
+        self.assertEqual(state['phase'], 'discussion')
         self.assertEqual(state['transcript'], [])
         self.assertEqual(state['history'], [])
+        self.ok_command('finish_discussion')
+        identifier = self.ask('facilitator', text='What should we decide?')
+        state, job = self.wait_job(identifier)
+        self.assertEqual(job['status'], 'done', job)
+        self.assertEqual(state['phase'], 'decision')
 
-    def test_late_facilitator_reply_is_discarded_after_skip(self):
-        self.ready()
-        self.ok_command('start')
+    def test_late_facilitator_reply_is_discarded_after_early_finish(self):
+        self.discussion()
         self.provider.release = threading.Event()
         identifier = self.ask('facilitator', text='What next?')
         try:
             self.assertTrue(self.provider.started.wait(2))
-            self.ok_command('skip_facilitator')
+            self.ok_command('finish_discussion')
         finally:
             self.provider.release.set()
         state, job = self.wait_job(identifier)
         self.assertEqual(job['status'], 'discarded', job)
-        self.assertEqual(state['phase'], 'discussion')
+        self.assertEqual(state['phase'], 'decision')
         self.assertFalse(any(reply['id'] == identifier for reply in state['suggestions']))
 
     def test_agent_retries_do_not_repeat_provider_requests(self):
@@ -339,6 +350,7 @@ class RoundtableHTTPTests(unittest.TestCase):
         _, job = self.wait_job(identifier)
         self.assertEqual(job['status'], 'failed', job)
         self.discussion()
+        self.ok_command('next_turn')
         state = self.ok_command('contribute', 1, text='Preserve logs.', source='typed')
         self.assertEqual(state['transcript'][0]['text'], 'Preserve logs.')
         self.assertEqual(self.speech.calls, 0)
@@ -350,6 +362,11 @@ class RoundtableHTTPTests(unittest.TestCase):
         self.assertEqual(response.status_code, 409)
         self.assertEqual(self.speech.calls, 0)
         self.discussion()
+        response = self.client.post('/api/roundtable/transcribe', content=audio, headers=headers)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self.speech.calls, 0)
+        self.ok_command('next_turn')
+        self.ok_command('next_turn', 1)
         response = self.client.post('/api/roundtable/transcribe', content=audio, headers=headers)
         self.assertEqual(response.status_code, 200, response.text)
         self.assertFalse(response.json()['committed'])
@@ -367,10 +384,11 @@ class RoundtableHTTPTests(unittest.TestCase):
 
     def test_discussion_sources_and_automatic_minutes_have_no_authority(self):
         self.discussion()
+        self.ok_command('next_turn')
         self.ok_command('contribute', 1, text='Blair will verify backups by 3 PM.')
+        self.ok_command('next_turn', 1)
         self.ok_command('contribute', 2, text='Who owns the public update?')
         self.ok_command('finish_discussion')
-        self.ok_command('skip_facilitator')
         deadline = time.monotonic() + 3
         while time.monotonic() < deadline:
             state = self.state()

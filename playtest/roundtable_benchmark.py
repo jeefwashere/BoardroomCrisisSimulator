@@ -46,7 +46,7 @@ def wait_job(client, clients, jid=None, kind=None):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--url', default='http://127.0.0.1:8788')
-    parser.add_argument('--live-models', action='store_true', help='Authorize six Vertex requests within the existing cap')
+    parser.add_argument('--live-models', action='store_true', help='Authorize four Vertex requests within the existing cap')
     parser.add_argument('--allow-paid-transcription', action='store_true', help='One explicit Scribe fixture request, 400 credits')
     parser.add_argument('--output', default='playtest/evaluations/roundtable.json')
     args = parser.parse_args()
@@ -66,7 +66,7 @@ def main():
         output.write_text(json.dumps(report, indent=2) + '\n')
     save()
     memory = host.request('/api/roundtable/memory')
-    assert memory['ready'] and len(memory['documents']) == 3, memory
+    assert memory['ready'] and len(memory['documents']) == 1, memory
     report['memory'] = memory
     roles = {m['id']: ('ceo' if m['id'] == ceo.state()['me'] else 'operations') for m in host.state()['members']}
     host.command('assign_roles', roles=roles)
@@ -76,6 +76,8 @@ def main():
         ('T03', 'In the succession report, does appointing an acting director provision payroll access?', 'does not provision'),
     ]
     for pack, question, expected in probes:
+        if pack not in {d['id'] for d in memory['documents']}:
+            continue
         job, reply = wait_job(host, clients, host.ask('preparation', question))
         passed = expected.lower() in reply['text'].lower() and any(c['document_id'] == pack for c in reply['citations'])
         report['cases'].append({'kind': 'preparation', 'pack': pack, 'question': question, 'job': job,
@@ -91,15 +93,30 @@ def main():
         assert exc.code == 403
         exc.close()
     ceo.command('start')
-    assert ceo.state()['phase'] == 'opening_facilitator'
-    job, reply = wait_job(host, clients, host.ask('facilitator', 'What should we clarify before deciding?'))
-    report['cases'].append({'kind': 'opening_facilitator', 'job': job, 'reply': reply})
-    ceo.command('skip_facilitator')
+    preparation = ceo.state()
+    assert preparation['phase'] == 'preparation'
+    preparation_started = time.monotonic()
+    while time.monotonic() - preparation_started < 45:
+        states = [client.state() for client in clients]
+        state = states[1]
+        if state['phase'] == 'discussion':
+            break
+        assert state['phase'] == 'preparation', state['phase']
+        time.sleep(.25)
+    else:
+        raise AssertionError('Preparation did not advance into discussion')
+    assert state['deadline'] - preparation['deadline'] == 300
+    report['preparation_wait_seconds'] = round(time.monotonic() - preparation_started, 2)
+    job, reply = wait_job(ceo, clients, ceo.ask('facilitator', 'What should we clarify before deciding?'))
+    report['cases'].append({'kind': 'discussion_facilitator', 'job': job, 'reply': reply})
     statements = ['Alex will ask IT to verify backup usability before 3 PM.',
                   'We need a decision on isolating the affected finance device while preserving logs.',
                   'Separate confirmed facts from unknowns before publishing an update.']
     for client, text in zip(clients, statements):
-        client.command('contribute', text=text, source='typed')
+        state = client.state()
+        assert state['speaker'] == state['me'], 'Server must grant each participant their turn'
+        client.command('contribute', text=text, source='typed', turn_number=state['turn_number'])
+        client.command('next_turn', turn_number=state['turn_number'])
     if args.allow_paid_transcription:
         with tempfile.TemporaryDirectory(prefix='roundtable-check-') as directory:
             path = RecordingLibrary().wav('discussion_owner', Path(directory)/'clip.wav')
@@ -113,9 +130,9 @@ def main():
                                 'provisional_only': True, 'fixture': 'discussion_owner', 'human_microphone': False}
             save()
     ceo.command('finish_discussion')
-    job, reply = wait_job(third, clients, third.ask('facilitator', 'What remains unresolved before voting?'))
-    report['cases'].append({'kind': 'closing_facilitator', 'job': job, 'reply': reply})
-    ceo.command('skip_facilitator')
+    assert ceo.state()['phase'] == 'decision'
+    job, reply = wait_job(ceo, clients, ceo.ask('facilitator', 'What remains unresolved before voting?'))
+    report['cases'].append({'kind': 'decision_facilitator', 'job': job, 'reply': reply})
     job, reply = wait_job(host, clients, kind='minutes')
     report['cases'].append({'kind': 'automatic_minutes', 'job': job, 'reply': reply})
     state = host.state()
@@ -134,7 +151,8 @@ def main():
     report['record'] = {k: state[k] for k in ('phase', 'documents', 'transcript', 'summary', 'decision_prompts', 'decisions', 'history', 'jobs')}
     report['health_after'] = host.request('/api/health')
     report['checks'] = {'ceo_is_not_host': True, 'non_ceo_start_rejected': True, 'all_ready_and_pdfs_gated': True,
-                        'optional_windows_skipped': True, 'quote_provenance': True, 'human_votes_required': True,
+                        'preparation_timer_observed': True, 'five_minute_round_deadline': True,
+                        'speaker_turns_enforced': True, 'ceo_ended_round_early': True, 'quote_provenance': True, 'human_votes_required': True,
                         'one_approved_decision': True, 'live_calls': len(report['cases'])}
     save()
     print(json.dumps(report['checks']))

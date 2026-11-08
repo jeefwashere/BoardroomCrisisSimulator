@@ -31,14 +31,15 @@ class RoundtableTests(unittest.TestCase):
 
     def discussion(self):
         self.start()
-        return self.command('skip_facilitator')
+        self.now += 30
+        return self.engine.snapshot(self.tokens[0])
 
     def decision(self):
         self.discussion()
+        self.command('next_turn')
         state = self.command('contribute', {'text': 'Verify the backup before restoring.', 'source': 'typed'}, 1)
         source = state['transcript'][0]['id']
         self.command('finish_discussion')
-        self.command('skip_facilitator')
         state = self.command('propose_decision', {'problem': 'Backup status unknown',
                              'proposal': 'Ask IT to verify it', 'source_ids': [source]}, 1)
         return state['decisions'][0]['id']
@@ -62,7 +63,7 @@ class RoundtableTests(unittest.TestCase):
             self.command('start')
         for token in self.tokens:
             self.engine.snapshot(token)
-        self.assertEqual(self.command('start')['phase'], 'opening_facilitator')
+        self.assertEqual(self.command('start')['phase'], 'preparation')
 
     def test_new_join_and_document_change_need_readiness(self):
         self.ready()
@@ -87,40 +88,128 @@ class RoundtableTests(unittest.TestCase):
         self.ready()
         with self.assertRaises(RuleError):
             self.command('start')
-        self.assertEqual(self.command('start', who=1)['phase'], 'opening_facilitator')
+        self.assertEqual(self.command('start', who=1)['phase'], 'preparation')
         with self.assertRaises(RuleError):
-            self.command('skip_facilitator')
-        self.assertEqual(self.command('skip_facilitator', who=1)['phase'], 'discussion')
+            self.command('finish_discussion', who=1)
+        self.now += 30
+        self.assertEqual(self.engine.snapshot(self.tokens[1])['phase'], 'discussion')
+        with self.assertRaises(RuleError):
+            self.command('finish_discussion')
+        self.assertEqual(self.command('finish_discussion', who=1)['phase'], 'decision')
         with self.assertRaises(RuleError):
             self.command('assign_roles', {'roles': roles})
 
     def test_clock_catches_up_exact_deadlines(self):
         state = self.start()
-        self.assertEqual(state['deadline'], 1060)
-        self.now = 1059.9
-        self.assertEqual(self.engine.snapshot(self.tokens[1])['phase'], 'opening_facilitator')
-        self.now = 1060
+        self.assertEqual(state['deadline'], 1030)
+        self.assertIsNone(state['speaker'])
+        self.now = 1029.9
+        self.assertEqual(self.engine.snapshot(self.tokens[1])['phase'], 'preparation')
+        self.now = 1030
+        state = self.engine.snapshot(self.tokens[1])
+        self.assertEqual(state['phase'], 'discussion')
+        self.assertEqual(state['deadline'], 1330)
+        self.assertEqual(state['speaker'], self.ids[0])
+        self.now = 1329.9
         self.assertEqual(self.engine.snapshot(self.tokens[1])['phase'], 'discussion')
-        self.now = 1300
+        self.now = 1330
         state = self.engine.snapshot(self.tokens[1])
         self.assertEqual(state['phase'], 'decision')
         self.assertIsNone(state['deadline'])
+        self.assertIsNone(state['speaker'])
         events = self.engine.rooms[self.code]['events']
-        self.assertEqual([event['at'] for event in events if event['type'] == 'phase'], [1000, 1060, 1240, 1300])
+        self.assertEqual([event['at'] for event in events if event['type'] == 'phase'], [1000, 1030, 1330])
 
-    def test_skips_reset_deadline_and_only_ceo_can_finish(self):
+    def test_long_poll_gap_does_not_extend_the_five_minute_round(self):
         self.start()
+        self.now = 2000
+        state = self.engine.snapshot(self.tokens[0])
+        self.assertEqual(state['phase'], 'decision')
+        events = self.engine.rooms[self.code]['events']
+        self.assertEqual([event['at'] for event in events if event['type'] == 'phase'], [1000, 1030, 1330])
+
+    def test_only_ceo_can_finish_discussion_early(self):
+        state = self.discussion()
+        self.assertEqual(state['deadline'], 1330)
         self.now += 9
-        state = self.command('skip_facilitator')
-        self.assertEqual(state['deadline'], 1189)
         with self.assertRaises(RuleError):
             self.command('finish_discussion', who=1)
-        self.now += 4
         state = self.command('finish_discussion')
-        self.assertEqual(state['deadline'], 1073)
+        self.assertEqual(state['phase'], 'decision')
+        self.assertIsNone(state['deadline'])
         with self.assertRaises(RuleError):
-            self.command('skip_facilitator', who=2)
-        self.assertEqual(self.command('skip_facilitator')['phase'], 'decision')
+            self.command('skip_facilitator')
+
+    def test_only_speaker_can_contribute_and_turns_cycle(self):
+        state = self.discussion()
+        self.assertEqual(state['speaking'], self.ids)
+        self.assertEqual(state['turn_number'], 1)
+        self.assertTrue(state['members'][0]['speaking'])
+        self.assertFalse(state['members'][1]['speaking'])
+        with self.assertRaises(RuleError):
+            self.command('contribute', {'text': 'Out of turn'}, 1)
+        with self.assertRaises(RuleError):
+            self.command('next_turn', who=2)
+        self.command('contribute', {'text': 'CEO speaks first'})
+        state = self.command('next_turn', {'turn_number': 1})
+        self.assertEqual(state['speaker'], self.ids[1])
+        self.command('contribute', {'text': 'Blair speaks next'}, 1)
+        with self.assertRaises(RuleError):
+            self.command('contribute', {'text': 'Even CEO must wait'})
+        state = self.command('next_turn', who=1)
+        self.assertEqual(state['speaker'], self.ids[2])
+        state = self.command('next_turn')
+        self.assertEqual(state['speaker'], self.ids[0])
+        self.assertEqual(state['turn_number'], 4)
+        with self.assertRaises(RuleError):
+            self.command('next_turn', {'turn_number': 1})
+
+    def test_audio_expires_and_cannot_survive_turn_or_phase_changes(self):
+        self.discussion()
+        room = self.engine.rooms[self.code]
+        def lease():
+            audio = {'id': uuid.uuid4().hex, 'member': room['speaker'], 'phase': 'discussion',
+                     'turn_number': room['turn_number'], 'status': 'playing', 'expires': self.now + 10,
+                     'path': '/private/file.mp3', 'token': 'private-service-token'}
+            room['active_audio'] = audio
+            return audio
+        first = lease()
+        public = self.engine.snapshot(self.tokens[0])['active_audio']
+        self.assertNotIn('path', public)
+        self.assertNotIn('token', public)
+        self.command('next_turn')
+        self.assertIsNone(room['active_audio'])
+        self.assertEqual(first['status'], 'cancelled')
+        second = lease()
+        self.now += 10
+        self.assertIsNone(self.engine.snapshot(self.tokens[1])['active_audio'])
+        self.assertEqual(second['status'], 'cancelled')
+        third = lease()
+        self.command('finish_discussion')
+        self.assertIsNone(room['active_audio'])
+        self.assertEqual(third['status'], 'cancelled')
+
+    def test_recorded_caption_requires_trusted_helper_and_current_turn(self):
+        self.discussion()
+        with self.assertRaises(RuleError):
+            self.command('contribute', {'text': 'Forged caption', 'source': 'recorded'})
+        with self.assertRaises(RuleError):
+            self.command('contribute_recorded', {'text': 'Forged caption', 'recording_id': 'clip-1'})
+        state = self.engine.contribute_recorded(self.tokens[0], 'Caption from catalog', 'clip-1',
+                                                'trusted-recording', turn_number=1)
+        entry = state['transcript'][0]
+        self.assertEqual(entry['source'], 'recorded')
+        self.assertEqual(entry['recording_id'], 'clip-1')
+        self.assertEqual(entry['turn_number'], 1)
+        self.engine.contribute_recorded(self.tokens[0], 'Caption from catalog', 'clip-1',
+                                        'trusted-recording', turn_number=1)
+        self.assertEqual(len(self.engine.rooms[self.code]['transcript']), 1)
+        self.command('next_turn')
+        self.command('next_turn', who=1)
+        self.command('next_turn', who=2)
+        with self.assertRaises(RuleError):
+            self.engine.contribute_recorded(self.tokens[0], 'Late caption', 'clip-1',
+                                            'late-recording', turn_number=1)
 
     def test_transcript_reviewed_sources_and_document_freeze(self):
         self.start()
@@ -130,7 +219,8 @@ class RoundtableTests(unittest.TestCase):
             self.engine.set_documents(self.code, ['different'], True)
         with self.assertRaises(RuleError):
             self.engine.join('Late', self.code)
-        self.command('skip_facilitator')
+        self.now += 30
+        self.command('next_turn')
         state = self.command('contribute', {'text': 'Reviewed microphone text', 'source': 'speech'}, 1)
         entry = state['transcript'][0]
         self.assertEqual((entry['member'], entry['name'], entry['source']), (self.ids[1], 'Blair', 'speech'))
@@ -196,6 +286,7 @@ class RoundtableTests(unittest.TestCase):
 
     def test_idempotency_conflict_and_immutable_snapshot(self):
         self.discussion()
+        self.command('next_turn')
         data = {'command_id': 'unique-contribution', 'text': 'Preserve logs.'}
         before = self.engine.command(self.tokens[1], 'contribute', data)
         repeat = self.engine.command(self.tokens[1], 'contribute', data)
@@ -246,7 +337,7 @@ class RoundtableTests(unittest.TestCase):
         with self.assertRaises(RuleError):
             self.command('start')
         self.command('ready', {'ready': True}, 1)
-        self.assertEqual(self.command('start')['phase'], 'opening_facilitator')
+        self.assertEqual(self.command('start')['phase'], 'preparation')
 
 
 if __name__ == '__main__':

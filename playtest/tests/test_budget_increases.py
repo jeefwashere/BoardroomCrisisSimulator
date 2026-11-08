@@ -78,6 +78,38 @@ class BudgetIncreaseTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             stale.authorize_increase(1000)
 
+    def test_explicit_unlimited_speech_preserves_usage_and_survives_restart(self):
+        path=self.root/'speech.sqlite'
+        budget=CreditBudget(path,10)
+        budget.reserve('before',5)
+        budget.authorize_unlimited()
+        budget.reserve('after',50000)
+        restarted=CreditBudget(path)
+        self.assertTrue(restarted.status()['unlimited'])
+        self.assertIsNone(restarted.status()['cap'])
+        self.assertIsNone(restarted.status()['remaining'])
+        self.assertEqual(restarted.status()['reserved'],50005)
+        restarted.reserve('continued',1)
+        with closing(sqlite3.connect(path)) as db:
+            self.assertEqual(db.execute('SELECT operation,amount FROM credits').fetchall(),
+                             [('before',5),('after',50000),('continued',1)])
+
+    def test_explicit_unlimited_vertex_keeps_every_call(self):
+        path=self.root/'vertex.sqlite'
+        budget=DollarBudget(path,5)
+        first=budget.reserve();budget.record(first,{'totalTokenCount':14})
+        budget.authorize_unlimited()
+        for _ in range(3):budget.reserve()
+        restarted=DollarBudget(path,0)
+        self.assertTrue(restarted.status()['unlimited'])
+        self.assertIsNone(restarted.status()['cap_usd'])
+        self.assertIsNone(restarted.status()['remaining_usd'])
+        self.assertEqual(restarted.status()['attempts'],4)
+        restarted.reserve()
+        with closing(sqlite3.connect(path)) as db:
+            self.assertEqual(db.execute('SELECT usage FROM calls WHERE id=?',(first,)).fetchone()[0],
+                             '{"totalTokenCount": 14}')
+
 
 if __name__ == '__main__':
     unittest.main()

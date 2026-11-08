@@ -117,6 +117,10 @@ def create_app(engine=None, provider=None, speech=None, port=8788, recordings=No
     def roundtable_script():
         return FileResponse(STATIC / 'roundtable.js')
 
+    @app.get('/preparation.js')
+    def preparation_script():
+        return FileResponse(STATIC / 'preparation.js')
+
     @app.get('/roundtable.css')
     def roundtable_style():
         return FileResponse(STATIC / 'roundtable.css')
@@ -127,6 +131,10 @@ def create_app(engine=None, provider=None, speech=None, port=8788, recordings=No
 
     @app.get('/')
     def index():
+        return FileResponse(STATIC / 'roundtable.html')
+
+    @app.get('/classic')
+    def classic():
         return FileResponse(STATIC / 'index.html')
 
     @app.get('/app.js')
@@ -148,22 +156,6 @@ def create_app(engine=None, provider=None, speech=None, port=8788, recordings=No
     @app.get('/meeting.css')
     def meeting_style():
         return FileResponse(STATIC / 'meeting.css', media_type='text/css')
-
-    @app.get('/audio-lab')
-    def audio_lab():
-        return FileResponse(STATIC / 'audio-lab.html')
-
-    @app.get('/audio-lab.js')
-    def audio_lab_script():
-        return FileResponse(STATIC / 'audio-lab.js', media_type='text/javascript')
-
-    @app.get('/audio-lab.css')
-    def audio_lab_style():
-        return FileResponse(STATIC / 'audio-lab.css', media_type='text/css')
-
-    @app.get('/audio-guide')
-    def audio_guide():
-        return FileResponse(STATIC / 'audio-guide.html')
 
     @app.get('/api/recordings')
     def recording_catalog(request: Request):

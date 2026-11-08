@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'motion/react'
 import type { RoomSnapshot } from '../../services/rooms'
-import Countdown from './Countdown'
 import DecisionGuideButton from './DecisionGuideButton'
 import { voteCountSummary } from './votePresentation'
 import {
@@ -116,7 +115,6 @@ export default function VotingPanel({ room, pending, act, notice }: { room: Room
                 {aiNotice && <p className="vote-ai-notice" role="status">{aiNotice}</p>}
                 {isVoting && game.options_source !== 'ai' && <DecisionGuideButton />}
             </div>
-            {(isVoting || isTie) && <Countdown key={game.phase_id + (game.server_time ?? '')} deadline={game.phase_deadline} serverTime={game.server_time} className="vote-countdown" />}
         </header>
 
         {canVote && !selfVote && <p className="vote-decide" role="status"><span className="vote-badge vote-badge--decide">Decide now</span><span>{self?.display_name ?? 'You'}, choose a response, then confirm it before the deadline.</span></p>}

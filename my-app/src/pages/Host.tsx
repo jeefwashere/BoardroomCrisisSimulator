@@ -12,10 +12,12 @@ import Game from './Game'
 import Summary from './Summary'
 import LobbyNameEditor from '../features/rooms/LobbyNameEditor'
 import RoomChat from '../features/rooms/RoomChat'
+import { useRoomChat } from '../features/rooms/useRoomChat'
 import './Host.css'
 
 function Host({ roomId, initialRoom }: { roomId: string; initialRoom?: RoomSnapshot }) {
     const { room, scenarios, error, accessError, starting, leaving, start, leave, rename, execute, refresh } = useRoom(roomId, initialRoom)
+    const chat = useRoomChat(roomId, refresh)
     const [draft, setDraft] = useState<RoleDraft>({})
     const [selectedScenario, setSelectedScenario] = useState('')
     const [selectedTiming, setSelectedTiming] = useState('')
@@ -58,7 +60,7 @@ function Host({ roomId, initialRoom }: { roomId: string; initialRoom?: RoomSnaps
     const members = roomMembers(room, isHost ? draft : {})
 
     return <>
-        {summaryPreview ? <Summary members={roomMembers(room, {}, scenario)} roomCode={room.room_code} onBackToCall={returnToRoom} /> : room.phase !== 'lobby' ? <Game room={room} scenarios={scenarios} error={error} rename={rename} execute={execute} onViewSummary={showSummaryPreview} /> : <MotionConfig reducedMotion="user">
+        {summaryPreview ? <Summary members={roomMembers(room, {}, scenario)} roomCode={room.room_code} onBackToCall={returnToRoom} /> : room.phase !== 'lobby' ? <Game room={room} scenarios={scenarios} error={error} rename={rename} execute={execute} onViewSummary={showSummaryPreview} chat={chat} /> : <MotionConfig reducedMotion="user">
         <div className="host-lobby">
             <header className="lobby-toolbar">
                 <button className="lobby-leave-button" type="button" disabled={controlsDisabled} title={isHost ? 'Close this lobby for everyone' : 'Leave this lobby and remove your seat'} onClick={() => void leaveLobby()}>{leaving ? 'Leaving…' : 'Leave'}</button>
@@ -82,7 +84,7 @@ function Host({ roomId, initialRoom }: { roomId: string; initialRoom?: RoomSnaps
             </footer>
         </div>
     </MotionConfig>}
-        <RoomChat key={room.room_id} room={room} scenarios={scenarios} refreshRoom={refresh} />
+        {(summaryPreview || room.phase === 'lobby') && <RoomChat room={room} scenarios={scenarios} chat={chat} />}
     </>
 }
 

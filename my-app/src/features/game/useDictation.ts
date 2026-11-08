@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { DICTATION_UNAVAILABLE, dictationErrorNote, readSpeechEvent, speechRecognitionConstructor } from './dictationModel'
+import { DICTATION_UNAVAILABLE, createSpeechReader, dictationErrorNote, speechRecognitionConstructor } from './dictationModel'
 import type { SpeechRecognitionLike } from './dictationModel'
 
 /**
@@ -28,8 +28,10 @@ export function useDictation(onFinal: (words: string) => void) {
         instance.lang = 'en-US'
         instance.continuous = true
         instance.interimResults = true
+        // One reader per recognition session: it never re-delivers final words Chrome sends again.
+        const read = createSpeechReader()
         instance.onresult = (event) => {
-            const { final, interim: words } = readSpeechEvent(event)
+            const { final, interim: words } = read(event)
             if (final) onFinalRef.current(final)
             setInterim(words)
         }

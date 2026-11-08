@@ -51,6 +51,63 @@ export function readSpeechEvent(event: SpeechRecognitionEventLike): { final: str
     return { final, interim }
 }
 
+type Word = { raw: string; norm: string }
+
+/** Whitespace separated words with a case and punctuation free form for comparison ("restore." matches "restore"). */
+function words(text: string): Word[] {
+    return text.trim().split(/\s+/).map((raw) => ({ raw, norm: raw.toLowerCase().replace(/[^\p{L}\p{N}']/gu, '') })).filter((word) => word.norm)
+}
+
+function startsWith(text: readonly Word[], prefix: readonly Word[]): boolean {
+    return prefix.length > 0 && prefix.length <= text.length && prefix.every((word, index) => word.norm === text[index].norm)
+}
+
+/**
+ * The part of a newly final transcript that was not already delivered.
+ * Chrome can finalize a phrase and then finalize a revised, longer phrase that repeats it (Android delivers cumulative
+ * finals and duplicate finals). A final that repeats an earlier delivered final as its opening words only adds its tail;
+ * a final that is fully contained at the start of one already delivered adds nothing.
+ */
+export function unseenFinal(transcript: string, delivered: readonly string[]): string {
+    const next = words(transcript)
+    if (!next.length) return ''
+    const tail = (count: number) => next.slice(count).map((word) => word.raw).join(' ')
+    // Cumulative: the final restates everything delivered so far in this session.
+    const session = words(delivered.join(' '))
+    if (startsWith(next, session)) return tail(session.length)
+    // Revised or duplicate: the final restates (or is a repeat of the start of) the most recent final.
+    const last = words(delivered.at(-1) ?? '')
+    if (startsWith(next, last)) return tail(last.length)
+    if (startsWith(last, next)) return ''
+    return tail(0)
+}
+
+/**
+ * Per recognition session reader. Unlike `readSpeechEvent`, it never hands out the same final words twice:
+ * a final result index is delivered once (an event that re-sends it with an older `resultIndex` is ignored) and
+ * finals that repeat already delivered words only contribute their new tail.
+ */
+export function createSpeechReader() {
+    const deliveredByIndex = new Map<number, string>()
+    const delivered: string[] = []
+    return (event: SpeechRecognitionEventLike): { final: string; interim: string } => {
+        let final = ''
+        let interim = ''
+        for (let index = Math.max(0, event.resultIndex); index < event.results.length; index++) {
+            const result = event.results[index]
+            const transcript = result?.[0]?.transcript ?? ''
+            if (!result?.isFinal) { interim = appendTranscript(interim, transcript); continue }
+            const clean = transcript.replace(/\s+/g, ' ').trim()
+            if (!clean || deliveredByIndex.get(index) === clean) continue
+            deliveredByIndex.set(index, clean)
+            const fresh = unseenFinal(clean, delivered)
+            delivered.push(clean)
+            final = appendTranscript(final, fresh)
+        }
+        return { final, interim }
+    }
+}
+
 export const DICTATION_UNAVAILABLE = "Voice input isn't available in this browser; type instead."
 
 /** Inline note for a recognition error; null for errors that simply end listening (silence, a manual stop). */

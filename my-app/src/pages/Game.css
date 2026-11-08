@@ -1,8 +1,11 @@
 .game-call-screen {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr);
   height: 100dvh;
   padding-inline: clamp(12px, 2.5vw, 36px);
+  /* The fixed control bar never covers content. */
+  padding-bottom: calc(var(--control-bar-height, 84px) + 12px);
+  box-sizing: border-box;
   overflow: hidden;
   background: #1e1f22;
   color: #f2f3f5;
@@ -53,7 +56,8 @@
 .game-call-heading { text-align: center; }
 .game-call-heading h1 { margin: 0 0 5px; font-size: 20px; font-weight: 650; letter-spacing: -0.035em; }
 .game-call-heading > span { color: #b0b4bf; font-size: 10px; letter-spacing: 0.04em; }
-.game-player-count { justify-self: end; padding-right: 10px; font-size: 14px; font-weight: 650; }
+.game-header-end { display: flex; align-items: center; justify-self: end; gap: 6px; }
+.game-player-count { padding-right: 10px; font-size: 14px; font-weight: 650; }
 .game-player-count > span { color: #a0a5b1; font-size: 12px; font-weight: 400; }
 
 .game-call-main {
@@ -129,11 +133,8 @@
 }
 
 .game-host-indicator svg { width: 14px; height: 14px; }
-.game-call-footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-width: 0; padding-block: 15px max(20px, env(safe-area-inset-bottom)); }
-.game-call-footer p { margin: 0; overflow: hidden; color: #a6abb6; font-size: 11px; line-height: 1.7; text-overflow: ellipsis; white-space: nowrap; }
 .game-summary-button { display: inline-flex; align-items: center; gap: 10px; flex-shrink: 0; min-height: 44px; padding: 8px 12px; border: 0; background: transparent; color: #f2f3f5; font: inherit; font-size: 13px; cursor: pointer; }
 .game-summary-button:hover { color: #c6caff; }
-.game-call-footer p > span { color: #d0d3da; }
 .game-empty-grid { align-self: center; margin: 0; color: #a6abb6; font-size: 14px; }
 .game-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .game-call-screen button:focus-visible, .game-call-viewport:focus-visible { outline: 2px solid #9da4ff; outline-offset: 3px; }
@@ -146,7 +147,6 @@
   .game-call-heading > span { font-size: 8px; }
   .game-player-count { padding-right: 0; font-size: 12px; }
   .game-player-count > span { font-size: 10px; }
-  .game-call-footer p { font-size: 10px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -155,19 +155,31 @@
 
 .game-live-main { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(320px, 1fr); gap: 24px; min-height: 0; }
 .game-briefing { overflow-y: auto; padding: 16px 22px; border: 1px solid #bba38a; background: #fff9ee; color: #422820; }
-.game-briefing h2 { margin-top: 0; }
+.game-briefing h2 { margin: 0 0 10px; font-size: 16px; font-weight: 650; letter-spacing: -.01em; color: #6b4f3f; }
+.game-alert { margin: 0 0 10px; padding: 8px 12px; border-left: 3px solid #aa2929; border-radius: 6px; background: #aa29290f; color: #7a1f1f; }
+.game-situation h3 { margin: 6px 0; font-size: 18px; }
+.game-briefing .game-question { margin: 6px 0; padding-left: 12px; border-left: 3px solid #d9ccb8; }
+.game-situation-toggle, .game-documents { margin-block: 12px; }
+.game-situation-toggle > summary, .game-documents > summary { cursor: pointer; color: #6b4f3f; font-size: 13px; font-weight: 600; }
+.game-notice { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-block: 10px; padding: 10px 12px; border: 1px solid #d9ccb8; border-radius: 10px; background: #fffdf8; font-size: 13px; }
+.game-notice > summary { cursor: pointer; font-weight: 650; }
+details.game-notice { display: block; border-color: #b58c28; background: #fbf1d6; }
+.game-notice--warn { border-color: #d4a5a5; background: #fbeaea; color: #7a1f1f; }
+.game-review-item { padding-top: 8px; }
+.game-briefing .game-review-meta { margin: 4px 0; color: #796655; font-size: 12px; }
+.game-review-actions { display: flex; flex-wrap: wrap; gap: 4px; }
+.game-briefing .game-quiet-button { background: transparent; color: #354c3c; }
+.game-briefing .game-media-note { margin: 6px 0; color: #796655; font-size: 13px; }
 .game-briefing p { font-size: 14px; line-height: 1.5; }
 .game-public-document h3 { font-size: 15px; text-transform: capitalize; }
 .game-public-document > div { white-space: pre-wrap; line-height: 1.6; font-size: 14px; overflow-wrap: anywhere; }
 .game-integration-note { border-top: 1px solid #bba38a; padding-top: 12px; color: #796655; }
-.game-phase { text-transform: capitalize; }
 .game-player-caption small { font-size: 10px; color: #796655; }
 @media (max-width: 760px) {
   .game-live-main { grid-template-columns: 1fr; grid-template-rows: minmax(180px, 35vh) minmax(240px, 1fr); overflow-y: auto; }
   .game-live-screen { height: auto; min-height: 100dvh; overflow: auto; }
   .game-briefing { max-height: 60vh; }
 }
-.game-countdown { display: inline-block; margin-left: 12px; padding: 5px 10px; background: #e4ead9; border-radius: 6px; font-weight: 700; }
 .game-actions, .game-briefing fieldset { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 14px; }
 .game-briefing button { padding: 9px 13px; margin: 4px; background: #354c3c; color: #fff9ee; border: 1px solid #354c3c; border-radius: 6px; cursor: pointer; font: inherit; font-size: 13px; }
 .game-briefing button:disabled { opacity: .5; cursor: wait; }
@@ -176,19 +188,10 @@
 .game-briefing textarea, .game-briefing select { width: 100%; padding: 9px; background: #fffdf8; color: #422820; border: 1px solid #bba38a; border-radius: 5px; font: inherit; }
 .game-briefing textarea { min-height: 80px; resize: vertical; }
 .game-result { padding: 16px; border-left: 4px solid #698261; background: #f1eddf; }
-.game-media { margin-block: 20px; padding-top: 14px; border-top: 1px solid #bba38a; }
+.game-media { margin-block: 12px; }
 .game-media audio { width: 100%; }
 .game-media article { border-bottom: 1px solid #d9ccb8; padding-bottom: 12px; }
 .game-feedback { white-space: pre-wrap; overflow-wrap: anywhere; }
-.game-briefing .game-end { background: #783e32; border-color: #783e32; }
-.microphone-control { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 14px; border: 1px solid #bba38a; border-radius: 12px; background: #f5eddf; }
-.microphone-status { flex: 1 1 220px; margin: 0; }
-.microphone-status span { margin-right: 6px; }
-.microphone-recording .microphone-status span { color: #aa2929; }
-.microphone-help { flex-basis: 100%; margin: 0; font-size: .85rem; line-height: 1.4; }
-.microphone-control button { min-height: 44px; }
-.microphone-control .microphone-stop { background: #9a3030; color: white; }
-.microphone-control button svg { display: inline-block; vertical-align: middle; margin-right: 5px; }
 
 /* Live layout: stage (opening or call grid) | briefing | facilitation. */
 .game-live-main { grid-template-columns: minmax(0, 1.15fr) minmax(320px, 1fr) minmax(280px, 340px); gap: 20px; transition: grid-template-columns 450ms ease; }
@@ -285,7 +288,6 @@
 .vote-panel-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .vote-panel h3 { margin: 2px 0 0; font-size: 18px; letter-spacing: -.02em; }
 .vote-eyebrow { display: block; margin: 0; color: #796655; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
-.vote-countdown { flex-shrink: 0; padding: 5px 10px; border-radius: 6px; background: #e4ead9; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .game-briefing .vote-panel p { margin: 0; }
 .vote-decide { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 12px 14px; border: 2px solid #b58c28; border-radius: 10px; background: #fbf1d6; font-weight: 600; }
 .vote-badge { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; vertical-align: middle; }
@@ -420,7 +422,6 @@
 .vote-guide { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.5rem; flex-wrap: wrap; }
 .vote-guide-tag { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; opacity: 0.7; }
 
-.game-skip-phase { border: 1px dashed currentColor; background: transparent; }
 
 /* Expert panel stage: three AI experts speak in turn between the turns and voting. */
 .expert-heading { margin: 0; font-weight: 600; }
@@ -495,8 +496,6 @@
 .decision-helper { color: #796655; font-size: 12px; line-height: 1.4; }
 .game-briefing .decision-field textarea { min-height: 130px; line-height: 1.5; }
 .decision-voice { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
-.game-briefing .decision-mic { margin: 0; }
-.game-briefing .decision-mic.is-listening { background: #9a3030; border-color: #9a3030; color: #fff9ee; }
 .decision-listening { display: inline-flex; align-items: center; gap: 8px; color: #9a3030; font-size: 13px; font-weight: 650; }
 .decision-listening .vote-waiting-dot { background: #c04040; }
 .decision-interim { flex: 1 1 100%; color: #796655; font-size: 13px; font-style: italic; line-height: 1.45; }

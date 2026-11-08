@@ -1,0 +1,82 @@
+import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
+import Countdown from './Countdown'
+import { badgeText, formatClock } from './controlBarModel'
+import type { MicControl } from './controlBarModel'
+import './ControlBar.css'
+
+type IconName = 'mic' | 'mic-off' | 'stop' | 'chat' | 'skip' | 'skip-speaker' | 'check' | 'end'
+
+function Icon({ name }: { name: IconName }) {
+    const paths: Record<IconName, ReactNode> = {
+        mic: <><rect x="9" y="2.5" width="6" height="12" rx="3" /><path d="M5 10.5v1a7 7 0 0 0 14 0v-1M12 18.5v3M8.5 21.5h7" /></>,
+        'mic-off': <><path d="M15 9.4V5.5a3 3 0 0 0-5.7-1.3M9 9v2.5a3 3 0 0 0 4.9 2.3M19 10.5v1a7 7 0 0 1-1.1 3.8M5 10.5v1a7 7 0 0 0 11.4 5.4M12 18.5v3M8.5 21.5h7M3.5 3.5l17 17" /></>,
+        stop: <rect x="6.5" y="6.5" width="11" height="11" rx="2" className="control-icon-fill" />,
+        chat: <path d="M4.5 5.5h15a1 1 0 0 1 1 1v9.5a1 1 0 0 1-1 1H10l-4.5 3.5V17h-1a1 1 0 0 1-1-1V6.5a1 1 0 0 1 1-1Z" />,
+        skip: <path d="M5 6l7 6-7 6V6ZM12.5 6l7 6-7 6V6Z" />,
+        'skip-speaker': <><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20a6.5 6.5 0 0 1 13 0M17 9l4 3-4 3" /></>,
+        check: <path d="M5 12.5l4.5 4.5L19 7.5" />,
+        end: <path d="M3.2 14.6c4.9-4.6 12.7-4.6 17.6 0l-2.3 2.6-3.6-1.4v-2.6a10.4 10.4 0 0 0-5.8 0v2.6l-3.6 1.4-2.3-2.6Z" />,
+    }
+    return <svg className="control-icon" aria-hidden="true" viewBox="0 0 24 24">{paths[name]}</svg>
+}
+
+function ControlButton({ icon, label, title, onClick, disabled, tone, pressed, badge }: { icon: IconName; label: string; title?: string; onClick?: () => void; disabled?: boolean; tone?: 'live' | 'accent'; pressed?: boolean; badge?: number }) {
+    // A disabled control keeps its tooltip on the wrapper, since disabled buttons do not receive pointer events.
+    return <span className="control-slot" title={title}>
+        <button type="button" className={`control-button${tone ? ` control-button--${tone}` : ''}`} disabled={disabled} aria-pressed={pressed} onClick={onClick}>
+            <span className="control-disc"><Icon name={icon} />{badge ? <span className="control-badge" aria-label={`${badge} unread`}>{badgeText(badge)}</span> : null}</span>
+            <span className="control-label">{label}</span>
+        </button>
+    </span>
+}
+
+export type ControlBarProps = {
+    caption: string
+    round: string | null
+    phaseId: string
+    deadline?: string | null
+    serverTime?: string
+    showCountdown: boolean
+    pending: boolean
+    mic: MicControl & { onClick: () => void }
+    chat: { open: boolean; unread: number; onToggle: () => void }
+    finishTurn?: () => void
+    skip?: { label: string; onClick: () => void }
+    skipSpeaker?: () => void
+    end?: () => void
+}
+
+/** Zoom style call toolbar fixed to the bottom of the game screen. Host controls only render when the server allows them. */
+export default function ControlBar({ caption, round, phaseId, deadline, serverTime, showCountdown, pending, mic, chat, finishTurn, skip, skipSpeaker, end }: ControlBarProps) {
+    const [armedEnd, setArmedEnd] = useState(false)
+    useEffect(() => {
+        if (!armedEnd) return
+        const timer = setTimeout(() => setArmedEnd(false), 4000)
+        return () => clearTimeout(timer)
+    }, [armedEnd])
+    const micIcon: IconName = mic.live ? 'stop' : mic.muted ? 'mic-off' : 'mic'
+    return <nav className="control-bar" aria-label="Call controls">
+        <div className="control-bar-status">
+            <span className="control-phase" role="status">
+                <span className="control-phase-dot" aria-hidden="true" />
+                <span className="control-phase-text">{caption}</span>
+                {showCountdown && <Countdown key={phaseId + (serverTime ?? '')} deadline={deadline} serverTime={serverTime} className="control-clock" format={formatClock} />}
+            </span>
+            {round && <span className="control-round">{round}</span>}
+        </div>
+        <div className="control-bar-center">
+            <ControlButton icon={micIcon} label={mic.label} title={mic.title} disabled={!mic.action} tone={mic.live ? 'live' : undefined} pressed={mic.live} onClick={mic.onClick} />
+            <ControlButton icon="chat" label="Chat" title={chat.open ? 'Close chat' : 'Open room chat'} pressed={chat.open} badge={chat.open ? 0 : chat.unread} onClick={chat.onToggle} />
+            {finishTurn && <ControlButton icon="check" label="Finish my turn" title="Pass the floor to the next participant" tone="accent" disabled={pending} onClick={finishTurn} />}
+            {skip && <ControlButton icon="skip" label={skip.label} title={`${skip.label} (host)`} disabled={pending} onClick={skip.onClick} />}
+            {skipSpeaker && <ControlButton icon="skip-speaker" label="Skip speaker" title="Move the floor to the next participant (host)" disabled={pending} onClick={skipSpeaker} />}
+        </div>
+        <div className="control-bar-end">
+            {end && <button type="button" className={`control-end${armedEnd ? ' is-armed' : ''}`} disabled={pending} title="End this meeting for everyone and preserve its records"
+                onClick={() => { if (!armedEnd) { setArmedEnd(true); return } setArmedEnd(false); end() }} onBlur={() => setArmedEnd(false)}>
+                <Icon name="end" /><span>{armedEnd ? 'Click again to end' : 'End'}</span>
+            </button>}
+        </div>
+    </nav>
+}

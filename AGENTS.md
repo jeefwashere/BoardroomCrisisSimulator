@@ -100,3 +100,10 @@ Eligible members can add up to three custom responses beside the three prepared 
 ## CEO custom proposal and voting audio
 
 X17 supersedes X16 permission for any member to add a custom response. Only the selected CEO can add it, through both the UI and server. Other members retain their individual votes. The new `t01_ceo_voting_guide` recording explains CEO custom proposals, explicit confirmation, reset after a new option, and CEO confirmation of the winner or selection among tied leaders. The CEO cannot override a clear winner. Existing nine participant turns and unlimited usage ledgers remain unchanged. Read [the update](playtest/VOTING_AUDIO_UPDATE.md).
+
+
+## Four round design and individual Round 1
+
+X18 implements only the group first round of [the user design](playtest/FOUR_ROUND_DESIGN.md). New browser rooms use `flow: board_round1`; preserve `legacy` rooms for the earlier ballot experiment. Keep the 30 second preparation agent. Group discussion precedes three live expert perspectives: IT/security, operations/community services and governance/finance. All three completed perspectives are required before individual decisions. A failed request cannot silently satisfy this gate.
+
+Each member submits their own action, reasoning, evidence and unknowns, with explicit review. No shared winning ballot, CEO override, points or group evaluation occurs in this mode. The CEO closes Round 1 only after all members submit. Snapshots and authenticated preparation exports expose only the caller's individual decision, alongside shared discussion and expert advice. Models cannot submit or edit human decisions. Private rounds, twists, scores and reunion remain deferred. Preserve the old assets and unlimited usage ledgers. Read [current verification](playtest/ROUND_ONE_REPORT.md).

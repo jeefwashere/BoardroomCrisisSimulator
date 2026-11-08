@@ -1,0 +1,123 @@
+{
+  "method": "Targeted real text review after filtering outdated T01 participant voting instructions and clarifying Round 1 authority. No speech request; this is not a complete round rerun.",
+  "replies": [
+    {
+      "kind": "facilitator",
+      "text": "You are weighing several individual proposals. The continuity plan lets the board authorize paper appointments and appoint an interim coordinator, but no alternate is currently named. IT support must verify backups and recovery dependencies before promising a restoration time. The communications lead must provide confirmed facts, state unknowns, and set a next update time, though no alternate channel exists. Insurers also require an incident contact and specific records. Which interim coordinator will you authorize to lead these operations and external communications while IT verifies recovery dependencies?",
+      "citations": [
+        {
+          "id": "T01:p1:c3",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+          "score": 0.685039
+        },
+        {
+          "id": "T01:p1:c4",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "T01-POLICY:POLICY-1\nOn contact, the simulated insurer requests an incident contact, an event timeline and a staff-training record.\n\nT01-POLICY:POLICY-2\nA missing training record means evidence is outstanding. This excerpt does not determine whether coverage is\nvalid or denied.",
+          "score": 0.665789
+        },
+        {
+          "id": "T01:p1:c2",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "T01-ORG\nFictional organization for software testing. The organization coordinates community appointments. Anika Rao is\nexecutive director. Morgan Ellis is service manager. The board exercise uses the common three-person voting\nrules. IT support is an external supplier and cannot authorize board spending.\nContinuity plan, version 1",
+          "score": 0.658428
+        },
+        {
+          "id": "T01:p2:c8",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 2,
+          "text": "needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.\nReference scope: this is a preparation pack, not a fully implemented timed scenario. Unknowns remain unknown. Use page\nnumbers and clause IDs when citing evidence.",
+          "score": 0.634567
+        },
+        {
+          "id": "T01:p1:c1",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 1\nREHEARSAL / PARTICIPANT REFERENCE / T01\nService outage and unavailable director\nFictional exercise material. Public participant information only. These documents support preparation; they do\nnot establish live application voting rules or reveal future events.\nCedar Bridge Community Services",
+          "score": 0.624849
+        }
+      ],
+      "result": {
+        "type": "done",
+        "status": "done",
+        "timing": {
+          "retrieval_ms": 133.4,
+          "first_text_ms": 2626.3,
+          "text_complete_ms": 3550.5,
+          "total_ms": 3550.5
+        },
+        "speech_error": false,
+        "elapsed_ms": 3554.0
+      },
+      "total_ms": 3568.5
+    },
+    {
+      "kind": "governance",
+      "text": "From a governance perspective, the board must authorize an interim incident coordinator and approve activating paper appointments. IT support is an external supplier and cannot authorize board spending. We must check available funds and existing financial delegations for unforeseen operational costs. Individual members should consider whether these authorizations align with responsible resource oversight while technical checks continue.",
+      "citations": [
+        {
+          "id": "T01:p2:c8",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 2,
+          "text": "needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.\nReference scope: this is a preparation pack, not a fully implemented timed scenario. Unknowns remain unknown. Use page\nnumbers and clause IDs when citing evidence.",
+          "score": 0.646964
+        },
+        {
+          "id": "T01:p1:c3",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+          "score": 0.643915
+        },
+        {
+          "id": "T01:p1:c2",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "T01-ORG\nFictional organization for software testing. The organization coordinates community appointments. Anika Rao is\nexecutive director. Morgan Ellis is service manager. The board exercise uses the common three-person voting\nrules. IT support is an external supplier and cannot authorize board spending.\nContinuity plan, version 1",
+          "score": 0.607967
+        },
+        {
+          "id": "T01:p1:c1",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 1\nREHEARSAL / PARTICIPANT REFERENCE / T01\nService outage and unavailable director\nFictional exercise material. Public participant information only. These documents support preparation; they do\nnot establish live application voting rules or reveal future events.\nCedar Bridge Community Services",
+          "score": 0.607006
+        },
+        {
+          "id": "T01:p2:c5",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 2,
+          "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 2\nT01 / OPENING INFORMATION\nFacts and exercise rules\nOpening update",
+          "score": 0.601297
+        }
+      ],
+      "result": {
+        "type": "done",
+        "status": "done",
+        "timing": {
+          "retrieval_ms": 449.4,
+          "first_text_ms": 1566.3,
+          "text_complete_ms": 2295.6,
+          "total_ms": 2295.7
+        },
+        "speech_error": false,
+        "elapsed_ms": 2295.8
+      },
+      "total_ms": 2307.1
+    }
+  ]
+}

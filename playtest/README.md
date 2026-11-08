@@ -1,6 +1,6 @@
 # Rehearsal meeting playtest
 
-Latest: [CEO custom response voting audio](VOTING_AUDIO_UPDATE.md).
+Latest: [Round 1 implementation](ROUND_ONE_REPORT.md), [full four round design](FOUR_ROUND_DESIGN.md), and [current test guide](ROUNDTABLE_GUIDE.md). Earlier custom voting audio remains in the legacy flow.
 
 Working branch: **`experiment/ai-voice-playtest`**. Read [the implementation and branch summary](IMPLEMENTATION_SUMMARY.md) for the current handoff and verification status.
 

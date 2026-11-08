@@ -9,9 +9,10 @@ import uuid
 
 from .engine import RuleError, SCENARIO, bounded_text, require
 from .roundtable_scenario import DECISION
+from .round_one import RoundOne, EXPERTS
 
 
-class Roundtable:
+class Roundtable(RoundOne):
     """An ephemeral meeting whose membership tokens never enter public snapshots."""
 
     DURATIONS = {'preparation': 30, 'discussion': 300, 'consultation': 60}
@@ -64,8 +65,10 @@ class Roundtable:
         else:
             room['speaker'], room['turn_index'] = None, None
         room['deadline'] = at + self.DURATIONS[phase] if phase in self.DURATIONS else None
+        if self.is_round_one(room) and phase == 'consultation':
+            room['deadline'] = None
         self.event(room, 'phase', at=at, phase=phase, deadline=room['deadline'], reason=reason)
-        if phase == 'decision' and self._fixed_scenario(room):
+        if phase == 'decision' and self._fixed_scenario(room) and not self.is_round_one(room):
             self._open_fixed_decision(room, at)
 
     @staticmethod
@@ -124,9 +127,10 @@ class Roundtable:
             blockers.append('Exactly one participant must hold the CEO role.')
         return blockers
 
-    def join(self, name, code=None, token=None, role=None):
+    def join(self, name, code=None, token=None, role=None, flow=None):
         with self.lock:
             name = bounded_text(name, 40)
+            require(flow in (None, "legacy", "board_round1"), "Unknown meeting flow", 422)
             if isinstance(token, str) and token in self.identities:
                 old_code, _ = self.identities[token]
                 require(code in (None, old_code), 'Membership belongs to another room', 403)
@@ -141,6 +145,7 @@ class Roundtable:
                     code = ''.join(secrets.choice('ABCDEFGHJKLMNPQRSTUVWXYZ23456789') for _ in range(6))
                 self.rooms[code] = {'code': code, 'members': {}, 'host': None, 'phase': 'lobby',
                     'version': 0, 'events': [], 'deadline': None, 'electorate': [],
+                    'flow': flow or 'legacy', 'expert_briefings': {}, 'individual_decisions': {},
                     'speaker': None, 'turn_index': None, 'turn_number': 0, 'active_audio': None, 'active_stream': None,
                     'documents': [], 'documents_ready': False, 'transcript': [], 'summary': {'items': []},
                     'decision_prompts': [], 'decisions': [], 'history': [], 'jobs': {}, 'suggestions': []}
@@ -238,6 +243,8 @@ class Roundtable:
                 room['members'][target].update(role=role, ready=False)
             self.event(room, 'roles_assigned', member=mid, roles=deepcopy(roles))
             return
+        if self.round_one_command(room, mid, action, data):
+            return
         if action in {'start', 'finish_discussion', 'skip_consultation', 'commit_decision', 'cancel_decision', 'end'}:
             require(mid == self._ceo(room), 'Only the CEO can perform this action', 403)
         if action == 'start':
@@ -252,6 +259,10 @@ class Roundtable:
             self._transition(room, 'consultation', reason='ceo_finish')
         elif action == 'skip_consultation':
             require(phase == 'consultation', 'Consultation is not active')
+            if self.is_round_one(room):
+                require(all(kind in room['expert_briefings'] for kind in EXPERTS),
+                        'Hear all three expert perspectives before individual decisions', 409)
+                require(not room.get('active_stream'), 'Wait for the current expert to finish', 409)
             self.event(room, 'consultation_skipped', member=mid)
             self._transition(room, 'decision', reason='ceo_skip')
         elif action == 'next_turn':
@@ -428,7 +439,8 @@ class Roundtable:
     def _snapshot(self, room, mid):
         public = {key: deepcopy(room[key]) for key in ('code', 'host', 'phase', 'version', 'deadline',
             'electorate', 'documents', 'documents_ready', 'transcript', 'summary', 'decision_prompts',
-            'history', 'suggestions', 'speaker', 'turn_index', 'turn_number', 'active_stream')}
+            'history', 'suggestions', 'speaker', 'turn_index', 'turn_number', 'active_stream', 'flow')}
+        public.update(self.round_one_snapshot(room, mid))
         public.update(me=mid, ceo=self._ceo(room), fixed_scenario=self._fixed_scenario(room), server_time=self.clock(), roles=deepcopy(self.roles),
                       recording_policy=self.RECORDING_POLICY, speaking=list(room['electorate']) if room['phase'] == 'discussion' else [])
         lease = room.get('active_audio')

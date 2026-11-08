@@ -1,5 +1,7 @@
 # Current implementation and branch handoff
 
+Current X18 update: the default browser now runs [Round 1](ROUND_ONE_REPORT.md) of [the four round design](FOUR_ROUND_DESIGN.md), with preparation, group discussion, three experts and individual decisions without scoring. The earlier ballot implementation described below remains a legacy mode.
+
 Working branch: **`experiment/ai-voice-playtest`** in [BoardroomCrisisSimulator](https://github.com/jeefwashere/BoardroomCrisisSimulator/tree/experiment/ai-voice-playtest). The guided round was introduced in [commit 5c1bc8f](https://github.com/jeefwashere/BoardroomCrisisSimulator/commit/5c1bc8f3a82629b8958a3e066205c2c491681e64). It is published on this side branch and has not been merged into `main`.
 
 ## What is implemented

@@ -1,8 +1,12 @@
 # Rehearsal implementation progress
 
-Status snapshot: November 7, 2026, updated for task X17. The single window local model experiment is implemented and evaluated. The active test application now routes all text agents and extraction to Gemini 3.8 Flash with LOW reasoning through Google Vertex AI, with no local model fallback. The same fourteen case comparison has completed. The custom proposal round and Vertex speech integration check also passed.
+Status snapshot: November 7, 2026, updated for task X18. The single window local model experiment is implemented and evaluated. The active test application now routes all text agents and extraction to Gemini 3.8 Flash with LOW reasoning through Google Vertex AI, with no local model fallback. The same fourteen case comparison has completed. The custom proposal round and Vertex speech integration check also passed.
 
 The work is isolated on branch `experiment/ai-voice-playtest` in `/Users/arjunbehl/Developer/CommuniHacks/BoardroomCrisisSimulator-ai-playtest`. It has not been merged into the production application. Existing teammate modules and the shared GPU service are preserved.
+
+## Current X18 group first round
+
+The default browser flow now follows [the four round design](FOUR_ROUND_DESIGN.md) through Round 1 only. The preparation agent remains. Discussion leads to three live experts and separate member decisions with no points. Each member's frozen context supports future private coaching without exposing another member's individual decision. The earlier ballot flow is retained as legacy. [Current report](ROUND_ONE_REPORT.md).
 
 ## Current X17 voting guide
 

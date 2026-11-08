@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse
 from .engine import require
 
 DEFAULT_CLIPS = [f't01_dialogue_{number:02d}' for number in range(1, 10)]
+ROUND_ONE_CLIPS = DEFAULT_CLIPS[:7] + ['r1_dialogue_08', 'r1_dialogue_09']
 
 
 class RoundtableRecordings:
@@ -53,12 +54,13 @@ class RoundtableRecordings:
         @router.get('/recordings')
         def catalog(request: Request):
             with engine.lock:
-                engine.identity(self.token(request))
-            clips = [clip for clip in self.library.entries() if clip['id'] in DEFAULT_CLIPS]
+                room, _ = engine.identity(self.token(request))
+                selected = ROUND_ONE_CLIPS if engine.is_round_one(room) else DEFAULT_CLIPS
+            clips = [clip for clip in self.library.entries() if clip['id'] in selected]
             for clip in clips:
-                clip['turn_number'] = DEFAULT_CLIPS.index(clip['id']) + 1
+                clip['turn_number'] = selected.index(clip['id']) + 1
                 clip['default_seat'] = (clip['turn_number'] - 1) % 3
-            return {'clips': clips, 'default_clip_ids': DEFAULT_CLIPS, 'script_length': len(DEFAULT_CLIPS),
+            return {'clips': clips, 'default_clip_ids': selected, 'script_length': len(selected),
                     'note': 'Nine fixed participant turns in order. Each clip belongs to one numbered speaking turn; the script does not repeat after turn nine. AI agent voices are not prerecorded here. Completion commits the exact caption and passes the turn; playback does not call a provider.'}
 
         @router.post('/recordings/play')
@@ -71,7 +73,8 @@ class RoundtableRecordings:
                         'Stop the current room audio before starting a recorded turn', 409)
                 require(1 <= room['turn_number'] <= len(DEFAULT_CLIPS),
                         'The nine recorded turns are complete; continue by text or proceed to a decision', 409)
-                assigned = DEFAULT_CLIPS[room['turn_number'] - 1]
+                selected = ROUND_ONE_CLIPS if engine.is_round_one(room) else DEFAULT_CLIPS
+                assigned = selected[room['turn_number'] - 1]
                 require(data.get('clip_id') == assigned,
                         'Only the recording assigned to this numbered speaking turn may play', 403)
                 item, path = self.library.get(assigned)

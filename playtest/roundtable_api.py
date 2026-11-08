@@ -133,7 +133,7 @@ class RoundtableService:
                 return deepcopy(result)
             require(len(self.receipts) < 10000, 'Request capacity reached', 429)
             require(kind != 'preparation' or room['documents_ready'], 'PDF memory is not ready')
-            require(kind != 'facilitator' or mid == self.engine._ceo(room), 'Only the CEO can consult the facilitator', 403)
+            require(kind != 'facilitator' or self.engine.is_round_one(room) or mid == self.engine._ceo(room), 'Only the CEO can consult the facilitator', 403)
             require(kind != 'facilitator' or room['phase'] in ('discussion', 'consultation', 'decision'),
                     'Consult the facilitator during discussion, the consultation minute or decisions')
             require(kind != 'minutes' or room['transcript'], 'Submit discussion contributions first')
@@ -148,7 +148,7 @@ class RoundtableService:
                 'AI queue is busy; try again after a response', 429)
         require(len(room['jobs']) < 200, 'Room AI request limit reached', 429)
         jid = uuid.uuid4().hex
-        context = {'phase': room['phase'], 'document_ids': [d['id'] for d in room['documents']],
+        context = {'phase': room['phase'], 'round_one': self.engine.is_round_one(room), 'document_ids': [d['id'] for d in room['documents']],
                    'transcript': deepcopy(room['transcript']), 'question': question, 'kind': kind}
         room['jobs'][jid] = {'id': jid, 'kind': kind, 'member': mid, 'status': 'pending', 'error': None,
                              'question': question, 'submitted_at': self.engine.clock()}
@@ -179,6 +179,8 @@ class RoundtableService:
                     'Who owns the next action, and when will the group review it?',
                     'What risks and service continuity tradeoffs should the group discuss?',
                     'Which unresolved problem needs an explicit decision and recorded vote?']
+                if context.get('round_one'):
+                    authored[-1] = 'What would you individually recommend, why, and which information still needs checking?'
                 evidence = {f'question_{i}': {'id': f'question_{i}', 'text': t} for i, t in enumerate(authored)}
                 instructions = ('Select one or two clarification prompts relevant to the question and discussion. '
                                 'Return {"evidence_ids":["question id"]}. Do not provide new facts.')
@@ -261,7 +263,7 @@ class RoundtableService:
         def join(data: dict, request: Request):
             auth = request.headers.get('authorization', '')
             with engine.lock:
-                result = engine.join(data.get('name'), data.get('code'), auth[7:] if auth.startswith('Bearer ') else None)
+                result = engine.join(data.get('name'), data.get('code'), auth[7:] if auth.startswith('Bearer ') else None, flow=data.get('flow'))
                 room, _ = engine.identity(result['token'])
                 self.refresh_documents(room)
                 return result
@@ -282,6 +284,10 @@ class RoundtableService:
                 result = engine.command(bearer(request), action, data)
                 self.tick()
                 return result
+
+        @router.get('/round1-context')
+        def round1_context(request: Request):
+            return engine.round_one_context(bearer(request))
 
         @router.get('/memory')
         def memory(request: Request):
@@ -340,8 +346,9 @@ class RoundtableService:
             require(isinstance(cid, str) and 8 <= len(cid) <= 80, 'A command ID is required', 422)
             with engine.lock:
                 room, mid = engine.identity(auth)
-                require(room['phase'] == 'discussion' and mid in room['electorate'], 'Record during discussion')
-                require(room['speaker'] == mid, 'Wait for your speaking turn', 403)
+                individual = engine.is_round_one(room) and room['phase'] == 'decision'
+                require((room['phase'] == 'discussion' or individual) and mid in room['electorate'], 'Record during discussion or your individual decision')
+                require(individual or room['speaker'] == mid, 'Wait for your speaking turn', 403)
             payload = await request.body()
             require(len(payload) <= 4_000_000, 'Recording too large', 413)
             key, digest = (auth, cid), hashlib.sha256(payload).hexdigest()

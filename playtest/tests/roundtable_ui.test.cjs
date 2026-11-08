@@ -192,3 +192,26 @@ test('only the CEO sees the custom option form',async()=>{
  run(`states[0].me='b';render();`);assert(node('fixedCustomForm').hidden);assert(node('addCustomOption').disabled);
  await assert.rejects(run('addCustomOption()'),/participant or ballot changed/);
 });
+
+test('Round 1 hides ballots, preserves preparation and waits for all experts and members',()=>{
+ const {run,node}=harness();run(`states[0]={...states[0],flow:'board_round1',expert_order:['it','operations','governance'],expert_briefings:{},decision_submissions:[{member:'a',submitted:false},{member:'b',submitted:false},{member:'c',submitted:false}],individual_decision:null};render();`);
+ assert(node('legacyDecisionPanel').hidden);assert(!node('individualPanel').hidden);assert(!node('intro').hidden);
+ run(`states[0].phase='consultation';render();`);assert(node('skipConsultation').disabled);assert(!node('nextExpert').disabled);
+ run(`states[0].expert_briefings={it:{text:'IT'},operations:{text:'Operations'},governance:{text:'Governance'}};render();`);assert(!node('skipConsultation').disabled);
+ run(`states[0].phase='decision';render();`);assert(node('end').disabled);assert(node('submitIndividual').disabled);
+ run(`states[0].decision_submissions.forEach(s=>s.submitted=true);render();`);assert(!node('end').disabled);
+});
+test('Round 1 decision drafts stay with their selected member and require confirmation',async()=>{
+ const {run,node,ctx}=harness();ctx.commands=[];run(`states=['a','b','c'].map(me=>({...states[0],me,flow:'board_round1',phase:'decision',expert_order:['it','operations','governance'],expert_briefings:{},decision_submissions:[],individual_decision:null}));command=async(action,data,owner)=>commands.push({action,data,token:owner.token});render();`);
+ for(const id of ['individualAction','individualReasoning','individualEvidence','individualUnknowns'])node(id).value='A own answer';
+ await assert.rejects(run('submitIndividual()'),/confirm/);
+ run(`active=1;render();`);assert.equal(node('individualAction').value,'');node('individualAction').value='B draft';
+ run(`active=0;render();`);assert.equal(node('individualAction').value,'A own answer');
+ run(`$('confirmIndividual').checked=true;`);await run('submitIndividual()');assert.equal(ctx.commands[0].action,'submit_individual_decision');assert.equal(ctx.commands[0].token,'secret');assert.equal(ctx.commands[0].data.action,'A own answer');assert.equal(ctx.commands[0].data.revision,0);
+ run(`active=1;`);await assert.rejects(run('submitIndividual()'),/member or phase changed/);
+});
+test('Round 1 automatically presents three experts without requesting a vote guide or evaluation',async()=>{
+ const {run,ctx}=harness();ctx.calls=[];run(`states[0]={...states[0],flow:'board_round1',phase:'consultation',expert_order:['it','operations','governance'],expert_briefings:{},decision_submissions:[]};startPreparation=async(mode,kind,extra)=>{calls.push(kind);states[0].expert_briefings[kind]={text:kind};};`);
+ await run('automaticAgents()');await run('automaticAgents()');await run('automaticAgents()');await run('automaticAgents()');assert.deepEqual([...ctx.calls],['it','operations','governance']);
+ run(`states[0].phase='decision';`);await run('automaticAgents()');run(`states[0].phase='ended';`);await run('automaticAgents()');assert.equal(ctx.calls.length,3);
+});

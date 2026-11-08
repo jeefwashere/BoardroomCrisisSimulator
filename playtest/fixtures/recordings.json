@@ -411,6 +411,22 @@
       "group": "decision",
       "text": "The CEO may now add a custom response alongside the three prepared choices. Review every option, then each member chooses and confirms their own vote in the app. A new option resets voting for everyone. After all votes, the CEO confirms the winner, or chooses among tied leaders. Spoken agreement does not count as a vote.",
       "suggested_agent": "decision"
+    },
+    {
+      "id": "r1_dialogue_08",
+      "title": "Round 1 turn 8: conditions and uncertainty",
+      "role": "Recovery participant",
+      "group": "discussion",
+      "pack_id": "T01",
+      "text": "The combined response addresses my concern if technical verification remains explicit. Paper appointments would not prove the system is safe or the backups work. I want the experts to challenge that assumption before I write my own action and explain what remains unknown."
+    },
+    {
+      "id": "r1_dialogue_09",
+      "title": "Round 1 turn 9: prepare individual decisions",
+      "role": "Communications participant",
+      "group": "discussion",
+      "pack_id": "T01",
+      "text": "We have discussed continuity, technical checks, and the leadership gap. Let us hear the technical, operations, and governance perspectives next. Then each of us should explain our own action, reasons, supporting information, and unanswered questions. Our individual responses can differ."
     }
   ]
 }

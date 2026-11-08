@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion } from 'motion/react'
 import type { RoomSnapshot } from '../../services/rooms'
 import Countdown from './Countdown'
+import DecisionGuideButton from './DecisionGuideButton'
 import { voteCountSummary } from './votePresentation'
 import { aiOptionsNotice, ballotProgress, mergeLabels, optionDescription, tallyRows } from './votingModel'
 import type { ChoiceOption } from './votingModel'
@@ -61,6 +62,7 @@ export default function VotingPanel({ room, pending, act }: { room: RoomSnapshot
                 <p className="vote-eyebrow">Round {game.round_number} decision</p>
                 <h3 id="vote-panel-title">{title}</h3>
                 {aiNotice && <p className="vote-ai-notice" role="status">{aiNotice}</p>}
+                {isVoting && game.options_source !== 'ai' && <DecisionGuideButton />}
             </div>
             {(isVoting || isTie) && <Countdown key={game.phase_id + (game.server_time ?? '')} deadline={game.phase_deadline} serverTime={game.server_time} className="vote-countdown" />}
         </header>

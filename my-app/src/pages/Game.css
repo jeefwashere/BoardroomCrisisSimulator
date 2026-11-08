@@ -192,17 +192,20 @@
 
 /* Live layout: stage (opening or call grid) | briefing | facilitation. */
 .game-live-main { grid-template-columns: minmax(0, 1.15fr) minmax(320px, 1fr) minmax(280px, 340px); gap: 20px; transition: grid-template-columns 450ms ease; }
-.game-live-main--opening { grid-template-columns: minmax(0, 1.7fr) minmax(300px, 1fr) minmax(280px, 340px); }
+.game-live-main--opening { grid-template-columns: minmax(0, 1fr); max-width: 980px; width: 100%; margin-inline: auto; }
+.game-live-main--focus { grid-template-columns: minmax(0, 1.2fr) minmax(320px, 1fr); }
 .game-stage-call { display: flex; min-width: 0; min-height: 0; }
 .game-facilitation-slot { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .game-facilitation-slot > * { flex: 1 1 auto; }
 @media (max-width: 1180px) {
-  .game-live-main, .game-live-main--opening { grid-template-columns: minmax(0, 1fr) minmax(320px, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, auto); }
+  .game-live-main, .game-live-main--focus { grid-template-columns: minmax(0, 1fr) minmax(320px, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, auto); }
+  .game-live-main--opening { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; }
+  .game-live-main--opening > :first-child { grid-row: auto; }
   .game-live-main > :first-child { grid-row: 1 / span 2; }
   .game-facilitation-slot { grid-column: 2; max-height: 42vh; }
 }
 @media (max-width: 760px) {
-  .game-live-main, .game-live-main--opening { grid-template-columns: 1fr; grid-template-rows: auto; }
+  .game-live-main, .game-live-main--opening, .game-live-main--focus { grid-template-columns: 1fr; grid-template-rows: auto; }
   .game-live-main > :first-child { grid-row: auto; min-height: 35vh; }
   .game-live-main--opening > :first-child { min-height: 0; }
   .game-facilitation-slot { grid-column: auto; max-height: none; }
@@ -413,3 +416,6 @@
 .vote-choice-rationale { display: block; margin-top: 0.3rem; font-size: 0.8rem; font-style: italic; opacity: 0.75; }
 @keyframes vote-ai-pulse { 50% { opacity: 0.45; } }
 @media (prefers-reduced-motion: reduce) { .vote-ai-notice.is-pending { animation: none; } }
+
+.vote-guide { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.5rem; flex-wrap: wrap; }
+.vote-guide-tag { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; opacity: 0.7; }

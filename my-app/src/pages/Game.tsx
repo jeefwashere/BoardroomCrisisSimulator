@@ -50,6 +50,9 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary }: { room
     const speaker = room.members.find((member) => member.member_id === game.active_speaker_id)
     // The AI opening owns the stage before the call splits into the participant grid.
     const opening = room.phase === 'briefing' && dismissedOpening !== game.phase_id
+    // Advisers, recorded audio and documents stay out of the way until the round's decision is made.
+    const showFacilitation = !opening && ['resolving', 'resolution_failed', 'decision', 'result', 'ended'].includes(room.phase)
+    const layout = opening ? ' game-live-main--opening' : showFacilitation ? '' : ' game-live-main--focus'
     // Only the caller's own ballot is known, so ballot badges are limited to the self tile.
     const badges: Record<string, TileBadge> = {}
     if (speaker && room.phase === 'speaking') badges[speaker.member_id] = { label: 'Speaking', tone: 'speaking' }
@@ -61,12 +64,12 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary }: { room
             <div className="game-call-heading"><h1>Boardroom</h1><span>{room.phase.replaceAll('_', ' ')} · {room.room_code}</span></div>
             <span className="game-player-count">{room.members.length} / {room.capacity}</span>
         </header>
-        <main className={`game-call-main game-live-main${opening ? ' game-live-main--opening' : ''}`}>
+        <main className={`game-call-main game-live-main${layout}`}>
             <AnimatePresence mode="wait" initial={false}>
                 {opening ? <OpeningBriefing key="opening" room={room} onDismiss={() => setDismissedOpening(game.phase_id)} finishBriefing={actions.includes('finish_briefing') ? () => act(rounds + 'briefing/finish') : undefined} />
                     : <motion.div key="call" className="game-stage-call" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4, ease: 'easeOut' }}><CallGrid members={roomMembers(room, {}, scenario)} badges={badges} /></motion.div>}
             </AnimatePresence>
-            <section className="game-briefing" aria-labelledby="briefing-title">
+            {!opening && <section className="game-briefing" aria-labelledby="briefing-title">
                 <h2 id="briefing-title">{game.scenario.title}</h2>
                 <p className="game-phase" role="status">{room.phase.replaceAll('_', ' ')} · Round {game.round_number} <Countdown key={game.phase_id + (game.server_time ?? '')} deadline={game.phase_deadline} serverTime={game.server_time} /></p>
                 {self && <p>Your role: {scenario?.roles.find((role) => role.role_id === self.role_id)?.name ?? self.role_id}. {self.eligible_current_round ? 'You participate in this round.' : `You join from round ${self.eligible_from_round}.`}</p>}
@@ -89,8 +92,8 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary }: { room
                 <TurnMedia room={room} />
                 <details open={room.phase === 'briefing'}><summary>Public scenario documents</summary>{game.public_documents.map((document) => <article key={document.id} className="game-public-document"><h3>{document.id.replaceAll('_', ' ')}</h3><div>{document.text}</div></article>)}</details>
                 {actions.includes('end') && <button className="game-end" disabled={pending} onClick={() => { if (window.confirm('End this meeting and preserve its records?')) void act('end') }}>End meeting</button>}
-            </section>
-            <div className="game-facilitation-slot"><FacilitationPanel room={room} /></div>
+            </section>}
+            {showFacilitation && <div className="game-facilitation-slot"><FacilitationPanel room={room} /></div>}
         </main><footer className="game-call-footer"><p>Scenario {game.scenario.scenario_id}, version {game.scenario.version}. Room version {room.room_version}.</p><button className="game-summary-button" type="button" onClick={onViewSummary}>Summary demo preview <span aria-hidden="true">↗</span></button></footer>
     </div></MotionConfig>
 }

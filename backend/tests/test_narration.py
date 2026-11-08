@@ -151,7 +151,7 @@ class NarrationEnvironmentTests(unittest.IsolatedAsyncioTestCase):
         with TemporaryDirectory() as directory:
             complete = self.config(directory)
             variants = [{key: value for key, value in complete.items() if key != missing}
-                        for missing in complete if missing not in ("ELEVENLABS_API_KEY", "BOARDROOM_TTS_CACHE")]
+                        for missing in complete if missing not in ("ELEVENLABS_API_KEY", "BOARDROOM_TTS_CACHE", "BOARDROOM_TTS_VOICE_ID")]
             variants += [dict(complete, **changes) for changes in (
                 {"BOARDROOM_TTS_ENABLED": "TRUE"},
                 {"BOARDROOM_VOICE_BUDGET_USD": "0"},
@@ -187,6 +187,28 @@ class NarrationEnvironmentTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual((await service.prepare(uuid4(), uuid4(), "Caption")).status, "disabled")
             self.assertEqual(list(Path(directory).iterdir()), [])
 
+    async def test_opening_uses_existing_facilitator_voice_without_a_general_voice_id(self):
+        from backend.app.voices import DEFAULT_VOICES
+        for value in (None, ""):
+            with self.subTest(value=value), TemporaryDirectory() as directory:
+                config = self.config(directory)
+                if value is None:
+                    config.pop("BOARDROOM_TTS_VOICE_ID")
+                else:
+                    config["BOARDROOM_TTS_VOICE_ID"] = value
+                audio = Path(directory) / "fixture.mp3"
+                audio.write_bytes(b"fixture-audio")
+                with patch.dict(os.environ, config, clear=True), \
+                        patch("rehearsal.voice.VoiceBudget"), \
+                        patch("rehearsal.voice.ElevenSpeech") as speech:
+                    speech.return_value.speak.return_value = {"path": str(audio), "cached": True}
+                    service = NarrationService.from_env()
+                    result = await service.prepare(uuid4(), uuid4(), "Opening briefing")
+                self.assertEqual(result.status, "ready")
+                speech.return_value.speak.assert_called_once_with(
+                    "Opening briefing", DEFAULT_VOICES["facilitator"],
+                    model_id="eleven_flash_v2_5", output_format="mp3_44100_64")
+
     async def test_selected_real_adapter_wiring_uses_mocks_only(self):
         with TemporaryDirectory() as directory:
             config = self.config(directory)
@@ -205,7 +227,7 @@ class NarrationEnvironmentTests(unittest.IsolatedAsyncioTestCase):
             speech.assert_called_once_with("mock-key", budget.return_value,
                                            config["BOARDROOM_TTS_CACHE"], tts_per_1k=0.01)
             speech.return_value.speak.assert_called_once_with(
-                "Exact caption", "selected_voice", model_id="eleven_flash_v2_5")
+                "Exact caption", "selected_voice", model_id="eleven_flash_v2_5", output_format="mp3_44100_64")
 
     async def test_local_adapter_initialization_failure_disables_media_without_leaking_errors(self):
         with TemporaryDirectory() as directory:

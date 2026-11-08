@@ -1,0 +1,14 @@
+{
+  "feedback": {
+    "status": "failed",
+    "text": "Committed decisions: 3. Ending: controlled_recovery_plan.\nRound 1: Isolate affected finance devices and bridge, suspend the suspicious account, preserve available logs, and appoint an incident lead. Keep the separate storefront under active monitoring.. The investigation boundary narrows. At least 160 customer records were exported before access was suspended. The incident is still under investigation.\nRound 2: Publish a limited factual notice about service disruption and the data investigation, commit to another update in 30 simulated minutes, and assign privacy coordination.. Customers receive an accurate limited update with accountable follow through. The verified export count does not change.\nRound 3: Begin staged recovery in a validated environment, address compromised access, use the limited manual process, and move the promotion with an owned recovery plan.. A controlled recovery plan is authorized with reduced near term capacity. Recovery is still in progress, not proven complete.",
+    "error": "AI evaluation failed after 1 of 3 evidence batches. The factual history is complete and unchanged.",
+    "completed_parts": 1,
+    "total_parts": 3
+  },
+  "failure_kind": "JSONDecodeError",
+  "responses": [
+    "{\n  \"observations\": [\n    {\n      \"evidence_ids\": [\"E1\"],\n      \"text\": \"Isolating finance devices, suspending suspicious account, preserving logs, appointing lead narrowed boundary; 160+ records exported before suspension.\"\n    },\n    {\n      \"evidence_ids\": [\"E2\"],\n      \"text\": \"Limited public notice given; customers informed accurately; marketing updated ahead of promotion; verification unchanged.\"\n    },\n    {\n      \"evidence_ids\": [\"E3\"],\n      \"text\": \"Recovery planned via validated environment; limited manual queue (200) accepted; promotion moved with owned recovery plan; still in progress.\"\n    }\n  ]\n}",
+    "{\n  \"observations\": [\n    {\n      \"evidence_ids\": [\"E1\"],\n      \"text\": \"Security round 2 participant 0 answer.\"\n    },\n    {\n      \"evidence_ids\": [\"E2\"],\n      \"text\": \"CEO round 2 participant 1 answer.\"\n    },\n    {\n      \"evidence_ids\": [\"E3\"],\n      \"text\": \"Security round 2 participant 2 answer.\"\n    },\n    {\n      \"evidence_ids\": [\"E4\"],\n      \"text\": \"Security round 3 participant 0 answer.\"\n    },\n    {\n      \"evidence_ids\": [\"E5\"],\n      \"text\": \"CEO round 3 participant 1 answer.\"\n    },\n    {\n      \"evidence_ids\": [\"E6\"],\n      \"text\": \"Security round 3 participant 2 answer.\"\n    },\n    {\n      \"evidence_ids\": [\"E7\"],\n      \"text\": \"Elapsed time for security round 3 (participant 0): 00:24:56 \u2192 00:25:26 (~30s).\"\n    },\n    {\n      \"evidence_ids\": [\"E8\"],\n      \"text\": \"Elapsed time for CEO round 3 (part"
+  ]
+}

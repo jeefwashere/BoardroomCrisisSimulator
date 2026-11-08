@@ -18,7 +18,7 @@ def command(name, **extra):
 class TabSessionTests(unittest.TestCase):
     def setUp(self):
         self.now = 1000.0
-        self.rooms = Rooms(ScenarioCatalog(), lambda: self.now)
+        self.rooms = Rooms(ScenarioCatalog(), lambda: self.now, automatic=False)
         self.client = self.enterContext(TestClient(create_app(rooms=self.rooms)))
         self.client.get("/api/session")
         self.cookie = self.client.cookies[COOKIE_NAME]
@@ -212,7 +212,7 @@ class TabSessionTests(unittest.TestCase):
         self.transition(tokens[0], room, sim.BeginDecision())
         result = self.transition(tokens[0], room, sim.ResolvePrepared("contain_targeted"))
         renamed_result = self.join(tokens[1], "Result renamed").json()
-        self.assertEqual(renamed_result["game"], result["game"])
+        self.assertEqual(renamed_result["game"], {**result["game"], "allowed_actions": []})
         self.assertEqual(renamed_result["game"]["history"], result["game"]["history"])
 
     def test_ended_names_freeze_but_same_name_rejoin_and_receipt_still_work(self):

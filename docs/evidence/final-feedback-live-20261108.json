@@ -1,0 +1,11 @@
+{
+  "provider": "existing hosted lfm3",
+  "source": "explicit fictional test game evidence",
+  "status": "ready",
+  "completed_parts": 1,
+  "total_parts": 1,
+  "feedback": "Committed decisions: 0. Ending: host_ended.\n\n\nEvidence based feedback:\nRecommends preserving logs, restricting access proportionally, and explaining uncertainty to customers\u2014directly addressing data retention, access control, and customer communication during an incident. [contribution:76637530-c84b-4643-8d0f-28c2889cad7c]\n\nLacks specifics on which logs (e.g., system, application), scope of affected access, or exact nature of uncertainty; thus, actionable details for implementation are missing. [contribution:76637530-c84b-4643-8d0f-28c2889cad7c]",
+  "error": null,
+  "paid_speech_calls": 0,
+  "verification_status": "Partial observation only. Provider returned feedback, but this early harness failed during cleanup. The later complete game smoke supersedes it."
+}

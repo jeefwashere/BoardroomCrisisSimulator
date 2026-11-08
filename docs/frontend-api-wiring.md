@@ -1,5 +1,7 @@
 # Frontend room API wiring
 
+Current prepared gameplay update: [gameplay HTTP contract](gameplay-api.md) now documents automatic reading, sequential speaking, ballots, CEO ties, results, ending and rejoin. Custom actions, final AI evaluation, audio capture and gameplay frontend integration remain separate. Historical foundation descriptions below retain their original evidence scope.
+
 This integration uses the implemented FastAPI room contract in [room-api.md](room-api.md) and [start-api.md](start-api.md). The broader API catalog in [backend-architecture.md](backend-architecture.md) includes proposed endpoints and is not the request layer's source of truth.
 
 ## Request layer

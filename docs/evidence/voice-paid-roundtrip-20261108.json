@@ -1,0 +1,16 @@
+{
+  "tts_model": "eleven_flash_v2_5",
+  "stt_model": "scribe_v2",
+  "input": "Explicitly synthetic fictional exercise sentence",
+  "tts_cached": false,
+  "transcript": "We should preserve the evidence, restrict affected access, and communicate only verified facts.",
+  "credits_before": 662,
+  "credits_after": 662,
+  "credit_delta": 0,
+  "authorized_cap_usd": 100,
+  "reservation_rates_are_public_estimates": true,
+  "tts_usd_per_1k": 0.04,
+  "stt_usd_per_minute": 0.006666666666666667,
+  "billed_usd": "Not returned per request by provider; no exact dollar claim",
+  "overage_extension_enabled": false
+}

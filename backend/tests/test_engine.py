@@ -24,7 +24,7 @@ class FakeClock:
 class NarrativeEngineTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.clock = FakeClock()
-        self.rooms = Rooms(ScenarioCatalog(), self.clock)
+        self.rooms = Rooms(ScenarioCatalog(), self.clock, automatic=False)
         self.counter = 0
 
     async def create_started(self):

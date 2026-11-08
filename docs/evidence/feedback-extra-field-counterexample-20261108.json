@@ -1,0 +1,14 @@
+{
+  "feedback": {
+    "status": "failed",
+    "text": "Committed decisions: 3. Ending: controlled_recovery_plan.\nRound 1: Isolate affected finance devices and suspend the suspicious account while preserving available logs and appointing an incident lead.. The investigation boundary narrows. At least 160 customer records were exported before access was suspended. The incident is still under investigation.\nRound 2: Publish a limited factual notice about service disruption and the data investigation, commit to another update in 30 simulated minutes, and assign privacy coordination.. Customers receive an accurate limited update with accountable follow through. The verified export count does not change.\nRound 3: Begin staged recovery in a validated environment, address compromised access, use the limited manual process, and move the promotion with an owned recovery plan.. A controlled recovery plan is authorized with reduced near term capacity. Recovery is still in progress, not proven complete.",
+    "error": "AI evaluation failed after 0 of 5 evidence batches. The factual history is complete and unchanged.",
+    "completed_parts": 0,
+    "total_parts": 5,
+    "evidence_refs": []
+  },
+  "failure_kind": "ValueError",
+  "responses": [
+    "E1|C1|supported\nE2|C2|supported\nE3|C1|supported"
+  ]
+}

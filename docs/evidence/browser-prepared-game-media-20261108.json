@@ -1,0 +1,11 @@
+{
+  "mode": "three real browser pages, real HTTP, controlled server clock",
+  "preparedRounds": 3,
+  "ceoTie": true,
+  "originalBrowserMediaRecorder": true,
+  "sourceAudio": "synthetic oscillator, not physical microphone",
+  "transcription": "explicit fixture, not ElevenLabs",
+  "paidCalls": 0,
+  "finalReport": true,
+  "physicalMicrophoneVerified": false
+}

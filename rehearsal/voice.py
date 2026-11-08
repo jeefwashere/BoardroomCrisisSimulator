@@ -11,6 +11,7 @@ import math
 import os
 from pathlib import Path
 import sqlite3
+import ssl
 import urllib.request
 import uuid
 import wave
@@ -49,7 +50,12 @@ class ElevenSpeech:
     def request(self, path, body=None, content_type="application/json"):
         req = urllib.request.Request("https://api.elevenlabs.io" + path, data=body,
                                      headers={"xi-api-key": self.key, "Content-Type": content_type})
-        with urllib.request.urlopen(req, timeout=45) as response:
+        try:
+            import truststore
+            context = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        except ImportError:
+            context = ssl.create_default_context()
+        with urllib.request.urlopen(req, timeout=45, context=context) as response:
             return response.read()
 
     def voices(self):

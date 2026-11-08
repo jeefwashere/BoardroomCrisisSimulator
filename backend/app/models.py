@@ -109,6 +109,8 @@ class ScenarioView(ScenarioRef):
 class VisibleOptionView(View):
     option_id: str
     label: str
+    kind: Literal["prepared", "custom"] = "prepared"
+    member_id: UUID | None = None
 
 
 class CurrentNodeView(View):
@@ -130,13 +132,57 @@ class DecisionView(View):
     question: str
     selected_option_id: str | None
     selected_option_label: str | None
-    resolution_kind: Literal["prepared", "no_decision"]
+    resolution_kind: Literal["prepared", "no_decision", "custom"]
     outcome_id: str
     text: str
     facts_before: dict[str, FactValue] = Field(validation_alias="facts_before_view")
     facts_after: dict[str, FactValue] = Field(validation_alias="facts_after_view")
     contribution_ids: list[UUID]
     resolved_at: datetime
+    vote_counts: dict[str, int] = Field(validation_alias="vote_counts_view")
+    selection_method: str
+    ai_job_id: UUID | None = None
+    ai_attempt: int | None = None
+    proposer_id: UUID | None = None
+
+
+class ProposalView(View):
+    option_id: str
+    member_id: UUID
+    text: str
+    contribution_id: UUID
+
+
+class ResolutionView(View):
+    job_id: UUID
+    attempt: int
+    option_id: str
+    member_id: UUID
+    text: str
+    text_sha256: str
+    selection_method: str
+    status: str
+    error: str | None
+    processed_fragments: int
+    total_fragments: int
+
+
+class TurnView(View):
+    member_id: UUID
+    round_id: UUID
+    phase_id: UUID
+    reason: str
+    started_at: datetime
+    ended_at: datetime
+    actor_id: UUID | None
+
+
+class CeoChangeView(View):
+    round_id: UUID
+    previous_member_id: UUID
+    member_id: UUID
+    actor_id: UUID
+    at: datetime
 
 
 class NarrationCaptionView(View):
@@ -163,6 +209,21 @@ class GameView(View):
     last_result: DecisionView | None
     ending_label: str | None
     narration: NarrationCaptionView | None
+    server_time: datetime
+    phase_deadline: datetime | None
+    session_deadline: datetime | None
+    active_speaker_id: UUID | None
+    speaker_order: list[UUID]
+    self_vote: str | None
+    vote_counts: dict[str, int] | None
+    tied_option_ids: list[str]
+    allowed_actions: list[str]
+    turns: list[TurnView]
+    ceo_changes: list[CeoChangeView]
+    ended_at: datetime | None
+    feedback: dict[str, Any] | None = None
+    proposals: list[ProposalView] = Field(default_factory=list)
+    resolution: ResolutionView | None = None
 
 
 class RoomFields(View):
@@ -182,7 +243,7 @@ class LobbyRoomView(RoomFields):
 
 
 class StartedRoomView(RoomFields):
-    phase: Literal["briefing", "decision", "result", "ended"]
+    phase: Literal["briefing", "reading", "speaking", "discussion", "voting", "tie_break", "resolving", "resolution_failed", "decision", "result", "ended"]
     game: GameView
 
 
@@ -242,6 +303,23 @@ class EvidenceMemberView(View):
     joined_at: datetime
 
 
+class RecordingView(View):
+    recording_id: UUID
+    member_id: UUID
+    round_id: UUID
+    round_number: int
+    phase_id: UUID
+    status: str
+    transcript: str
+    reviewed_text: str | None
+    error: str | None
+    mime_type: str | None
+    audio_available: bool
+    started_at: datetime
+    ended_at: datetime | None
+    duration_seconds: float | None
+
+
 class EvaluationEvidenceView(View):
     room_id: UUID
     scenario: ScenarioRef
@@ -252,6 +330,54 @@ class EvaluationEvidenceView(View):
     public_documents: list[PublicDocumentView]
     decisions: list[DecisionView]
     contributions: list[ContributionView]
+    turns: list[TurnView]
+    ceo_changes: list[CeoChangeView]
+    recordings: list[RecordingView] = Field(default_factory=list)
+    unresolved_action: ResolutionView | None = None
+
+
+class PhaseCommand(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    command_id: UUID
+    phase_id: UUID
+
+
+class VoteCommand(PhaseCommand):
+    option_id: str = Field(min_length=1, max_length=128)
+
+
+class SkipCommand(PhaseCommand):
+    reason: str = Field(min_length=1, max_length=200)
+
+    @field_validator("reason")
+    @classmethod
+    def require_reason(cls, value):
+        if not value.strip():
+            raise ValueError("Provide a reason")
+        return value
+
+
+class CeoCommand(PhaseCommand):
+    member_id: UUID
+
+
+class ProposalCommand(PhaseCommand):
+    text: str
+
+
+class BeginRecording(PhaseCommand):
+    round_id: UUID
+
+
+class AudioBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    audio_base64: str = Field(min_length=1, max_length=13_333_336)
+    mime_type: str = Field(min_length=1, max_length=80)
+
+
+class ReviewBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    text: str = Field(min_length=1, max_length=12000)
 
 
 class MediaView(View):

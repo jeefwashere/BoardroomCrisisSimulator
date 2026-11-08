@@ -35,7 +35,7 @@ class NarrativeApiTests(unittest.IsolatedAsyncioTestCase):
         self.provider = self.enterContext(patch(
             "rehearsal.voice.ElevenSpeech.request", side_effect=AssertionError("Live provider forbidden")))
         self.clock = FakeClock()
-        self.rooms = Rooms(ScenarioCatalog(), self.clock)
+        self.rooms = Rooms(ScenarioCatalog(), self.clock, automatic=False)
         self.media = NarrationService()
         self.app = create_app(rooms=self.rooms, narration_service=self.media)
         self.host = await self.client()

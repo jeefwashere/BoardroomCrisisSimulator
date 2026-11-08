@@ -1,0 +1,14 @@
+{
+  "feedback": {
+    "status": "failed",
+    "text": "Committed decisions: 3. Ending: controlled_recovery_plan.\nRound 1: Isolate affected finance devices and bridge, suspend the suspicious account, preserve available logs, and appoint an incident lead. Keep the separate storefront under active monitoring.. The investigation boundary narrows. At least 160 customer records were exported before access was suspended. The incident is still under investigation.\nRound 2: Publish a limited factual notice about service disruption and the data investigation, commit to another update in 30 simulated minutes, and assign privacy coordination.. Customers receive an accurate limited update with accountable follow through. The verified export count does not change.\nRound 3: Begin staged recovery in a validated environment, address compromised access, use the limited manual process, and move the promotion with an owned recovery plan.. A controlled recovery plan is authorized with reduced near term capacity. Recovery is still in progress, not proven complete.",
+    "error": "AI evaluation failed after 0 of 4 evidence batches. The factual history is complete and unchanged.",
+    "completed_parts": 0,
+    "total_parts": 4,
+    "evidence_refs": []
+  },
+  "failure_kind": "JSONDecodeError",
+  "responses": [
+    "{\n  items: [\n    {\n      \"id\": \"E1\",\n      \"c\": \"C1\",\n      \"v\": \"supported\",\n      \"q\": \"\\\"proportionate containment based on stated dependencies\\\"\"\n    },\n    {\n      \"id\": \"E2\",\n      \"c\": \"C1\",\n      \"v\": \"clarify\",\n      \"q\": \"\"\n    },\n    {\n      \"id\": \"E3\",\n      \"c\": \"C1\",\n      \"v\": \"supported\",\n      \"q\": \"\\\"validation and access risk before restoration\\\"\"\n    }\n  ]\n}"
+  ]
+}

@@ -13,7 +13,7 @@ import RoomChat from '../features/rooms/RoomChat'
 import './Host.css'
 
 function Host({ roomId }: { roomId: string }) {
-    const { room, scenarios, error, starting, start, rename, refresh } = useRoom(roomId)
+    const { room, scenarios, error, starting, start, rename, execute, refresh } = useRoom(roomId)
     const [draft, setDraft] = useState<RoleDraft>({})
     const [selectedScenario, setSelectedScenario] = useState('')
     const [selectedTiming, setSelectedTiming] = useState('')
@@ -45,7 +45,7 @@ function Host({ roomId }: { roomId: string }) {
     const members = roomMembers(room, isHost ? draft : {})
 
     return <>
-        {room.phase !== 'lobby' ? <Game room={room} scenarios={scenarios} error={error} rename={rename} /> : <MotionConfig reducedMotion="user">
+        {room.phase !== 'lobby' ? <Game room={room} scenarios={scenarios} error={error} rename={rename} execute={execute} /> : <MotionConfig reducedMotion="user">
         <div className="host-lobby">
             <header className="lobby-toolbar">
                 <div className="room-personal-controls"><button className="lobby-leave-button" type="button" title="Stop viewing. Your registered seat remains in this room." onClick={() => { window.location.hash = '/' }}>Leave</button><RoomNameEditor room={room} rename={rename} disabled={starting} /></div>

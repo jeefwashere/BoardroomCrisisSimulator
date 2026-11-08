@@ -31,6 +31,12 @@ class Timing:
     profile_id: str
     briefing_seconds: int
     result_seconds: int
+    reading_seconds: int
+    discussion_seconds: int
+    voting_seconds: int
+    tie_seconds: int
+    session_seconds: int
+    speaker_max_seconds: int
 
 
 @dataclass(frozen=True)
@@ -59,6 +65,8 @@ class Node:
     options: tuple[PreparedOption, ...]
     outcomes: tuple[Outcome, ...]
     no_decision_outcome_id: str
+    allowed_custom_outcome_ids: tuple[str, ...]
+    custom_rubric: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -226,6 +234,7 @@ def _validate_nodes(data):
         node_values.append(Node(
             node_id, node["title"], node["inject"], tuple(node["study_questions"]),
             tuple(option_values), tuple(outcome_values), no_decision,
+            tuple(node["allowed_custom_outcome_ids"]), tuple(node["custom_rubric"]),
         ))
 
     visiting, depth = set(), {}
@@ -286,7 +295,12 @@ def _validate_timings(data, rounds):
         _text(value.get("unused_speaking_seconds"), "unused_speaking_seconds")
         if type(value.get("result_window_includes_ai")) is not bool:
             raise ValueError("result_window_includes_ai must be boolean")
-        timings.append(Timing(name, value["briefing_seconds"], value["result_seconds_per_round"]))
+        timings.append(Timing(
+            name, value["briefing_seconds"], value["result_seconds_per_round"],
+            value["reading_seconds_per_round"], value["discussion_seconds_per_round"],
+            value["voting_seconds_per_round"], value["tie_seconds_per_round_max"],
+            value["gameplay_ceiling_from_briefing_start_seconds"], value["speaker_max_seconds"],
+        ))
     vote = _object(data.get("vote_policy"), "vote_policy")
     if type(vote.get("duration_seconds")) is not int or vote["duration_seconds"] != 60:
         raise ValueError("vote_policy must specify 60 seconds")

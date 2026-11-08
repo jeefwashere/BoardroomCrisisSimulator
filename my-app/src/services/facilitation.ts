@@ -82,6 +82,8 @@ export type PrivateMessage = {
     source: 'vertex' | 'hosted' | 'offline' | 'canonical' | null
     speech_id: string | null
     at: string
+    /** Member answers only: true when the answer came from a saved (prerecorded) clip. */
+    used_clip?: boolean
 }
 export type CardFieldKey = 'action' | 'responsibility' | 'evidence' | 'dependencies' | 'fallback' | 'communication' | 'review'
 export type ResponseCardFields = Record<CardFieldKey, string>
@@ -91,6 +93,38 @@ export type CriterionFeedback = { id: string; label: string; max: number; points
 export type StageFeedback = { step: number; criteria: CriterionFeedback[] }
 export type Assessment = { stages: AssessmentStage[]; total: number | null; max: number; feedback: StageFeedback[] | null }
 export type PrivateClip = { clip_id: string; audio_url: string; text: string; duration_seconds: number | null }
+// Round 3: five multiple choice questions (`quiz` in the private session payload). Points are revealed per question once answered.
+export type QuizChoice = { choice_id: string; text: string }
+export type QuizQuestion = {
+    step: number
+    question: string
+    choices: QuizChoice[]
+    chosen: string | null
+    points: number | null
+    max: number
+    /** When this question closes (ISO-8601 UTC); set for the current question and kept for closed ones. */
+    deadline: string | null
+    /** The clock ran out before a pick: closed with 0 points and no choice. */
+    timed_out: boolean
+}
+/** One choice in the released review: its points (0 to 20) and why. */
+export type QuizReviewChoice = QuizChoice & { points: number; rationale: string }
+export type QuizReview = { step: number; question: string; chosen: string | null; points: number | null; choices: QuizReviewChoice[]; timed_out: boolean }
+export type PrivateQuiz = {
+    status: 'generating' | 'ready' | 'failed'
+    /** The question to answer now (1 to 5); null while generating, after a failure and once complete. */
+    current: number | null
+    /** Only questions already reached: the answered ones plus the current one. */
+    questions: QuizQuestion[]
+    total: number
+    max: number
+    /** Seconds allowed per question (60). */
+    question_seconds: number
+    /** The server clock when the payload was built, to correct the local clock for countdowns. */
+    server_time: string | null
+    /** Every choice's points and rationale, released once the stage is complete. */
+    review: QuizReview[] | null
+}
 export type PrivateSession = {
     round: PrivateRound
     stage: PrivateStage
@@ -102,11 +136,13 @@ export type PrivateSession = {
     clip: PrivateClip | null
     card: ResponseCard | null
     assessment: Assessment
+    /** Round 3 multiple choice assessment; null before Round 3. */
+    quiz: PrivateQuiz | null
     retryable: boolean
 }
 
 /** A Vertex written draft reply; nothing is submitted until the member's own client commits it. */
-export type AiReply = { reply_id: string; speech_id: string; mode: 'turn' | 'private'; text: string; source: string }
+export type AiReply = { reply_id: string; speech_id: string; mode: 'turn' | 'private' | 'decision'; text: string; source: string }
 
 export type SpeechStatus = { status: 'ready' | 'disabled' | 'failed' | 'pending'; error?: string | null }
 
@@ -137,7 +173,7 @@ export function createFacilitationApi(api: RoomApi) {
             body: JSON.stringify({ command_id: crypto.randomUUID(), kind, question }),
         })),
         /** An AI written reply for the caller to use as their own (speaking turn, or an answer to the coach); spoken in their role's voice. */
-        reply: async (roomId: string, input: { mode: 'turn' | 'private'; question?: string }) => json<AiReply>(await api.authorized(`${room(roomId)}/reply`, {
+        reply: async (roomId: string, input: { mode: 'turn' | 'private' | 'decision'; question?: string }) => json<AiReply>(await api.authorized(`${room(roomId)}/reply`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ command_id: crypto.randomUUID(), ...input }),
         })),
@@ -162,6 +198,10 @@ export function createFacilitationApi(api: RoomApi) {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input), signal,
         })),
         privateCard: async (roomId: string, input: { command_id: string; fields: ResponseCardFields }, signal?: AbortSignal) => json<unknown>(await api.authorized(`/api/rooms/${encodeURIComponent(roomId)}/private-session/card`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input), signal,
+        })),
+        /** Round 3: the member's final pick for the current question (`choice_id` is "a" to "d"). */
+        privateChoice: async (roomId: string, input: { command_id: string; step: number; choice_id: string }, signal?: AbortSignal) => json<unknown>(await api.authorized(`/api/rooms/${encodeURIComponent(roomId)}/private-session/choice`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input), signal,
         })),
         privateRetry: async (roomId: string, input: { command_id: string }, signal?: AbortSignal) => json<unknown>(await api.authorized(`/api/rooms/${encodeURIComponent(roomId)}/private-session/retry`, {

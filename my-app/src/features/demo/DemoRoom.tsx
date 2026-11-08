@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createRoomApi, RoomApiError } from '../../services/rooms'
-import type { RoomApi, RoomSnapshot, Scenario } from '../../services/rooms'
+import type { RoomApi, RoomSnapshot, Scenario, StartAt } from '../../services/rooms'
 import { clearSeatSession, createTabSession, seatStorage } from '../../services/tabSession'
 import type { StoragePort } from '../../services/tabSession'
 import { acceptSnapshot, startInput } from '../rooms/roomState'
-import { DEFAULT_DEMO_MODE, DEMO_SEATS, DEMO_STORAGE_KEY, DEMO_VIEW_KEY, SPLIT_VIEW_MIN_WIDTH, demoRoles, demoRoomCode, followTarget, phaseLabel, pickDemoScenario, readDemoView, readStoredDemo, seatStatus, soloFrameSrc } from './demoModel'
+import { DEFAULT_DEMO_MODE, DEMO_SEATS, DEMO_STORAGE_KEY, DEMO_VIEW_KEY, SPLIT_VIEW_MIN_WIDTH, demoRoles, demoRoomCode, followTarget, phaseLabel, pickDemoScenario, readDemoView, readStoredDemo, seatStatus, soloFrameSrc, startAtInput } from './demoModel'
 import type { BallotSource, DemoMode, DemoView, StoredDemo } from './demoModel'
 import { useSoloBots } from './useSoloBots'
 import WindowsDemo from './WindowsDemo'
+import DemoSetup from './DemoSetup'
 import { roomApi } from '../rooms/useRoom'
 import { browserSessionStorage, saveSessionName } from '../identity/sessionName'
 import { usePrivateBots } from './usePrivateBots'
@@ -17,13 +18,6 @@ type SeatClient = { seat: string; name: string; api: RoomApi }
 type Snapshots = (RoomSnapshot | null)[]
 
 const EMPTY: Snapshots = DEMO_SEATS.map(() => null)
-// The four saved T01 Cedar Bridge recordings, in seat order, plus the guide.
-const DEMO_RECORDINGS = [
-    { seat: 'Alex', topic: 'Leadership', text: 'Appointing an interim coordinator when the director is unavailable and no alternate is named.', seconds: '14.21' },
-    { seat: 'Morgan', topic: 'Recovery', text: 'Checking backup usability, dependencies and a restoration estimate before promising recovery.', seconds: '17.18' },
-    { seat: 'Sam', topic: 'Communications', text: 'Considering approved paper appointments and separating facts, unknowns and the next update.', seconds: '14.63' },
-    { seat: 'Recorded decision guide', topic: 'Voting', text: 'Reads the fixed T01 choices when voting opens. It is labelled as recorded and never counts as a ballot.', seconds: '19.74' },
-]
 
 function rejectsBallotSource(failure: unknown): boolean {
     return failure instanceof RoomApiError && failure.code === 'validation_error' && failure.details.some((detail) => detail.loc.includes('ballot_source'))
@@ -56,6 +50,7 @@ export default function DemoRoom() {
     const [{ demo, clients }, setLoaded] = useState(initialDemo)
     const [busy, setBusy] = useState<'start' | 'lobby' | null>(null)
     const [ballotSource, setBallotSource] = useState<BallotSource>('authored')
+    const [startAt, setStartAt] = useState<StartAt>('beginning')
     const [mode, setMode] = useState<DemoMode>(() => demo?.mode ?? DEFAULT_DEMO_MODE)
     const [view, setViewState] = useState<DemoView>(() => readDemoView(tabStorage()?.getItem(DEMO_VIEW_KEY) ?? null))
     const setView = (next: DemoView) => { setViewState(next); try { tabStorage()?.setItem(DEMO_VIEW_KEY, next) } catch { /* Lasts for this view only. */ } }
@@ -205,8 +200,8 @@ export default function DemoRoom() {
                     const timing = scenario?.timings[0]?.profile_id
                     if (!scenario || !timing) throw new Error('No scenario with a timing profile is available.')
                     const latest = await next[0].api.snapshot(room.room_id)
-                    const body = { ...startInput(latest, scenario, timing, demoRoles(latest, memberIds, scenario), crypto.randomUUID()), ballot_source: ballotSource }
-                    step(`Alex starts “${scenario.title}” (${timing.replaceAll('_', ' ')}, ${ballotSource === 'ai' ? 'AI generated' : 'hardcoded T01'} voting options)…`)
+                    const body = { ...startInput(latest, scenario, timing, demoRoles(latest, memberIds, scenario), crypto.randomUUID()), ballot_source: ballotSource, ...startAtInput(startAt) }
+                    step(`Alex starts “${scenario.title}” (${timing.replaceAll('_', ' ')}, ${ballotSource === 'ai' ? 'AI generated' : 'hardcoded T01'} voting options${startAt === 'assessment' ? ', straight to Round 3 with prerecorded Rounds 1 and 2' : ''})…`)
                     try {
                         await next[0].api.start(room.room_id, body)
                     } catch (failure) {
@@ -253,50 +248,7 @@ export default function DemoRoom() {
     if (demo?.mode === 'windows') return <WindowsDemo demo={demo} view={view} onReset={resetToSetup} />
 
     if (!demo || !clients) {
-        return <main className="demo-setup">
-            <section className="demo-setup__card" aria-labelledby="demo-title">
-                <button className="demo-link" type="button" onClick={() => { window.location.hash = '/' }}>‹ Back home</button>
-                <p className="demo-eyebrow">{mode === 'windows' ? 'Three window test' : 'Single window test'}</p>
-                <h1 id="demo-title">{mode === 'solo' ? 'Solo demo' : mode === 'windows' ? 'Three window demo' : 'Three player demo'}</h1>
-                {mode === 'windows' ? <p className="demo-lede">Play T01 with <strong>three independent windows</strong>: this window is Alex (CEO and host); Morgan and Sam open their own join links in other windows or on other devices. <strong>Nothing is automated</strong>: each player takes their own turn, writes their own decision and answers their own coach.</p>
-                    : mode === 'solo'
-                    ? <p className="demo-lede">Play a full game as <strong>Alex, the CEO and host</strong>. Morgan (IT recovery) and Sam (communications) are automated board members with their own <strong>test memberships</strong>: they play their saved clips on their turns and vote after you (in individual decision scenarios such as T01 Cedar Bridge, they each write their own decision).</p>
-                    : <p className="demo-lede">Drive a full three player game from this one window. Alex, Morgan and Sam each get a separate <strong>test membership</strong> on the room server, shown side by side so you can act as every player.</p>}
-                <ol className="demo-steps">
-                    <li>{mode === 'windows' ? 'Alex creates a room here; Morgan and Sam join from their links.' : 'Alex creates a room; Morgan and Sam join it.'}</li>
-                    <li>Alex is CEO; Morgan takes the recovery (IT) role and Sam the communications role.</li>
-                    <li>Alex starts the T01 Cedar Bridge test (or the first scenario if it is not listed), so the game opens on the briefing.</li>
-                </ol>
-                <fieldset className="demo-options" disabled={Boolean(busy)}>
-                    <legend>Mode</legend>
-                    <label><input type="radio" name="demo-mode" value="solo" checked={mode === 'solo'} onChange={() => setMode('solo')} /> Solo: you are Alex (CEO); Morgan and Sam are automated</label>
-                    <label><input type="radio" name="demo-mode" value="seats" checked={mode === 'seats'} onChange={() => setMode('seats')} /> Three seats in one window <span>(you act as every player)</span></label>
-                    <label><input type="radio" name="demo-mode" value="windows" checked={mode === 'windows'} onChange={() => setMode('windows')} /> Three independent windows <span>(Alex here; Morgan and Sam join from their own windows or devices; nothing automated)</span></label>
-                </fieldset>
-                {(mode === 'solo' || mode === 'windows') && <fieldset className="demo-options" disabled={Boolean(busy)}>
-                    <legend>Stage</legend>
-                    <label><input type="radio" name="demo-view" value="3d" checked={view === '3d'} onChange={() => setView('3d')} /> 3D boardroom <span>(Alex, Morgan and Sam at the table; the hub lights up when an AI agent speaks)</span></label>
-                    <label><input type="radio" name="demo-view" value="call" checked={view === 'call'} onChange={() => setView('call')} /> Call tiles <span>(switch any time with 3D view in the game's control bar)</span></label>
-                </fieldset>}
-                <fieldset className="demo-options" disabled={Boolean(busy)}>
-                    <legend>Voting options</legend>
-                    <label><input type="radio" name="ballot-source" value="authored" checked={ballotSource === 'authored'} onChange={() => setBallotSource('authored')} /> Hardcoded T01 choices <span>(matches recorded decision guide)</span></label>
-                    <label><input type="radio" name="ballot-source" value="ai" checked={ballotSource === 'ai'} onChange={() => setBallotSource('ai')} /> AI generated by Vertex agents</label>
-                </fieldset>
-                <div className="demo-actions">
-                    <button className="demo-primary" type="button" disabled={Boolean(busy)} aria-busy={busy === 'start'} onClick={() => void load(true)}>{busy === 'start' ? 'Loading…' : mode === 'solo' ? 'Start solo game as Alex' : mode === 'windows' ? 'Create room as Alex' : 'Load 3 test participants'}</button>
-                    {mode !== 'windows' && <button className="demo-secondary" type="button" disabled={Boolean(busy)} aria-busy={busy === 'lobby'} onClick={() => void load(false)}>{busy === 'lobby' ? 'Loading…' : 'Load seats only (start from lobby)'}</button>}
-                </div>
-                {progress.length > 0 && <ol className="demo-progress" aria-live="polite">{progress.map((text, index) => <li key={index}>{text}</li>)}</ol>}
-                {error && <p className="demo-error" role="alert">{error}</p>}
-                <details className="demo-recordings" open>
-                    <summary>Demo recordings (4 saved T01 clips)</summary>
-                    <ul>{DEMO_RECORDINGS.map((clip) => <li key={clip.topic}><strong>{clip.topic}</strong> · {clip.seat} · {clip.seconds}s<span>{clip.text}</span></li>)}</ul>
-                    <p>Saved clips play only when you choose; their captions become contributions only after an explicit commit.</p>
-                </details>
-                <p className="demo-note">These memberships live only in this browser tab. Reloading keeps them; Reset demo discards them.</p>
-            </section>
-        </main>
+        return <DemoSetup mode={mode} onMode={setMode} view={view} onView={setView} ballotSource={ballotSource} onBallot={setBallotSource} startAt={startAt} onStartAt={setStartAt} busy={busy} progress={progress} error={error} onStart={() => void load(true)} onLobby={() => void load(false)} />
     }
 
     const hostRoom = snapshots[0]

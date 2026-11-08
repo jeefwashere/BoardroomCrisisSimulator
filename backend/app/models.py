@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
-from pydantic import AfterValidator, BaseModel, BeforeValidator, ConfigDict, Field, StrictBool, StringConstraints, field_validator
+from pydantic import AfterValidator, BaseModel, BeforeValidator, ConfigDict, Field, StrictBool, StrictInt, StringConstraints, field_validator
 
 from .rules import PRESENCE_WINDOW_SECONDS, ROOM_CAPACITY
 
@@ -71,6 +71,8 @@ class StartRoom(BaseModel):
     ballot_source: Literal["ai", "authored"] = "ai"
     # Untimed speaking turns and no session ceiling: each turn waits for the speaker to finish.
     manual_turns: bool = False
+    # Test shortcut: "assessment" opens directly at Round 3 with prerecorded Round 1 and 2 answers.
+    start_at: Literal["beginning", "assessment"] = "beginning"
 
 
 class View(BaseModel):
@@ -295,6 +297,7 @@ class GameView(View):
     # Open floor rooms: nobody holds the floor and any member may take it.
     floor_open: bool = False
     last_speaker_id: UUID | None = None
+    start_at: Literal["beginning", "assessment"] = "beginning"
 
 
 class RoomFields(View):
@@ -483,7 +486,7 @@ class DeliveryBody(BaseModel):
 class ReplyBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     command_id: UUID
-    mode: Literal["turn", "private"]
+    mode: Literal["turn", "private", "decision"]
     # Private answers only: the coach's current question, as shown to the member.
     question: str | None = Field(default=None, min_length=1, max_length=1200)
 
@@ -532,3 +535,11 @@ class PrivateCardBody(BaseModel):
 class PrivateRetryBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     command_id: UUID
+
+
+class PrivateChoiceBody(BaseModel):
+    """A Round 3 multiple choice pick. The service checks choice_id (a to d) so it can answer 422 invalid_choice."""
+    model_config = ConfigDict(extra="forbid")
+    command_id: UUID
+    step: Annotated[StrictInt, Field(ge=1, le=5)]
+    choice_id: str = Field(min_length=1, max_length=8)

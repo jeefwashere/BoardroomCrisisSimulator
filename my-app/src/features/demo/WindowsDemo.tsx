@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { RoomApiError } from '../../services/rooms'
-import type { RoomSnapshot } from '../../services/rooms'
+import type { RoomSnapshot, StartAt } from '../../services/rooms'
 import { roomApi } from '../rooms/useRoom'
 import { startInput } from '../rooms/roomState'
-import { JOIN_SEATS, demoRoles, isLoopbackOrigin, joinLink, pickDemoScenario, windowSeats } from './demoModel'
+import { JOIN_SEATS, demoRoles, isLoopbackOrigin, joinLink, pickDemoScenario, startAtInput, windowSeats } from './demoModel'
 import type { DemoView, StoredDemo } from './demoModel'
+import StartAtOptions from './StartAtOptions'
 
 const GONE = new Set(['room_not_found', 'room_closed', 'not_a_member', 'session_required'])
 
@@ -22,6 +23,7 @@ export default function WindowsDemo({ demo, view, onReset }: { demo: StoredDemo;
     const [error, setError] = useState('')
     const [starting, setStarting] = useState(false)
     const [copied, setCopied] = useState('')
+    const [startAt, setStartAt] = useState<StartAt>('beginning')
 
     useEffect(() => {
         const controller = new AbortController()
@@ -63,7 +65,7 @@ export default function WindowsDemo({ demo, view, onReset }: { demo: StoredDemo;
             if (!scenario || !timing) throw new Error('No scenario with a timing profile is available.')
             const latest = await roomApi.snapshot(room.room_id)
             const order = [seats.alex!, seats.morgan!, seats.sam!]
-            const body = { ...startInput(latest, scenario, timing, demoRoles(latest, order, scenario), crypto.randomUUID()), ballot_source: demo.ballot ?? 'authored', manual_turns: true }
+            const body = { ...startInput(latest, scenario, timing, demoRoles(latest, order, scenario), crypto.randomUUID()), ballot_source: demo.ballot ?? 'authored', manual_turns: true, ...startAtInput(startAt) }
             await roomApi.start(room.room_id, body)
             window.location.hash = `/room/${room.room_id}`
         } catch (failure) {
@@ -103,8 +105,9 @@ export default function WindowsDemo({ demo, view, onReset }: { demo: StoredDemo;
                 })}
             </ul>
             <p className="demo-note">Others can also join from the home page with room code <strong>{demo.room_code}</strong>, using the name Morgan or Sam.</p>
+            <StartAtOptions value={startAt} onChange={setStartAt} disabled={starting} />
             <div className="demo-actions">
-                <button className="demo-primary" type="button" disabled={!ready || starting} aria-busy={starting} onClick={() => void start()}>{starting ? 'Starting…' : ready ? 'Start the game' : 'Start (waiting for both players)'}</button>
+                <button className="demo-primary" type="button" disabled={!ready || starting} aria-busy={starting} onClick={() => void start()}>{starting ? 'Starting…' : !ready ? 'Start (waiting for both players)' : startAt === 'assessment' ? 'Start at Round 3' : 'Start the game'}</button>
                 <button className="demo-secondary" type="button" onClick={() => onReset()}>Reset demo</button>
             </div>
             {error && <p className="demo-error" role="alert">{error}</p>}

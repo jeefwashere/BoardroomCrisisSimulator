@@ -47,7 +47,11 @@ export type StartRoomInput = {
     ballot_source?: 'ai' | 'authored'
     /** Untimed speaking turns (three window demo): each turn lasts until the speaker finishes or the host skips. */
     manual_turns?: boolean
+    /** Test shortcut: "assessment" opens straight on Round 3 (Rounds 1 and 2 filled from the prerecorded answers). */
+    start_at?: StartAt
 }
+
+export type StartAt = 'beginning' | 'assessment'
 
 type ScenarioReference = {
     scenario_id: string
@@ -137,6 +141,8 @@ export type RoomGame = {
     /** Readable ending heading, e.g. "Private sessions complete". */
     ending_title?: string | null
     private_progress?: PrivateProgress[]
+    /** Where the game started: the briefing (default) or straight at the Round 3 assessment. */
+    start_at?: StartAt
 }
 export type PrivateProgressStage = 'not_started' | 'coaching' | 'card' | 'assessment' | 'complete'
 /** Each member's private session stage; never their answers. */

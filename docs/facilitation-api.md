@@ -51,7 +51,7 @@ Speed: spoken text (agent lines, AI replies and coach questions) is generated wi
 
 `GET /api/rooms/{room_id}/facilitation/speech/{speech_id}/stream` returns a line's MP3 as ElevenLabs produces it (64 kbps, first audio in about a quarter second). The first request starts one upstream synthesis; every other window reads the same chunks, and once complete the line is cached for `prepare` and `audio` like any other. Access rules match `audio`. The app plays it through Media Source Extensions and falls back to the whole file where those are unavailable. Measured end to end in Chrome: about 2.9 seconds from pressing AI reply to hearing it, down from 8 to 11 seconds.
 
-In the private session the coach's and examiner's questions are now phrased by Vertex (temperature 0.3, at most 60 words) from the approved canonical question, the member's decision and previous answer; the canonical question stays the graded question and is used whenever Vertex is off or returns no question. Answers open once the phrased question is ready.
+In the private session the Round 2 coach's questions are now phrased by Vertex (temperature 0.3, at most 60 words) from the approved canonical question, the member's decision and previous answer; the canonical question stays the graded question and is used whenever Vertex is off or returns no question. Answers open once the phrased question is ready.
 
 ## Routes
 
@@ -214,12 +214,12 @@ When an AI option wins (vote or CEO tie decision), it resolves immediately to it
 
 After the Round 1 individual decisions, Cedar Bridge rooms enter the `private_session` phase (see [the gameplay API](gameplay-api.md#rounds-2-and-3-private-session-phase)). Each electorate member works through a private branch with one agent, labelled "Crisis coach". The same agent coaches in Round 2 and becomes the examiner in Round 3. Branches run concurrently and independently: one member's answers never change another member's branch. The implementation is `backend/app/private_sessions.py`, ported from the playtest four round beta.
 
-Beta mode is always on. The approved twists and the canonical questions follow the order of the saved fixture answers. Gemini writes only the short acknowledgements, the response card draft and the rubric scores, all at temperature 0. This improves repeatability but does not guarantee identical wording or points across runs.
+Beta mode is always on for Round 2. The approved twists and the canonical coaching questions follow the order of the saved fixture answers. Gemini writes the short acknowledgements and the response card draft at temperature 0, and the five Round 3 multiple choice questions at temperature 0.4. The server validates the questions, shuffles the choices, records each pick and computes every total.
 
 ### Flow
 
 1. Round 2 coaching, no points. The first GET during the phase creates the branch and presents the twist "The IT specialist is now unavailable. Your original response relied on their advice." and question 1. After each answer the coach acknowledges it in one short sentence and asks the next canonical question. Question 2 follows the approved update "The alternate provider can investigate, but needs an authorized contact." After the third answer the coach drafts a seven field response card (action, responsibility, evidence, dependencies, fallback, communication, review). The member edits every field and confirms it.
-2. Round 3 assessment, up to 100 points. Confirming the card adds the transition "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information." and stage 1. Each answer is scored before the next stage is asked. Stage 2 follows the approved update "The alternate provider cannot begin immediately. Staff still need instructions." Numeric points appear after each stage; detailed reasons appear only once the member completes all three stages.
+2. Round 3 assessment, up to 100 points. After the card is recorded the examiner posts the transition "Your preparation is complete. The scored challenge begins now. I will ask you five multiple choice questions about your response." and Gemini writes five questions for this member (`quiz.status: "generating"`, `busy: true`). Each question is posted as a ready agent `question` message (round 3, step 1 to 5) when it becomes current, so it is spoken and captioned like other coach lines; its four choices are shown as buttons and are not spoken. The member picks one choice per question with `POST .../private-session/choice`; picks are final. The server reveals that question's points, posts "Question n: X of 20 points." and then the next question. After question 5 the stage becomes `complete` and the full review (every choice's points and rationale) is released.
 3. Complete. The phase ends for the whole room when every electorate member is complete, at the deadline, or on a host `skip_phase`.
 
 | Round | Step | Development message | Question |
@@ -227,9 +227,7 @@ Beta mode is always on. The approved twists and the canonical questions follow t
 | 2 | 1 | twist: The IT specialist is now unavailable. Your original response relied on their advice. | What would you do next? |
 | 2 | 2 | update: The alternate provider can investigate, but needs an authorized contact. | What authority, access and dependencies must you establish before they can investigate? |
 | 2 | 3 | none | Review your proposed response: who should act, what is the fallback, who needs an update, and when would you review progress? |
-| 3 | 1 | transition (after card confirmation) | Explain your response as if briefing the rest of the board. What should happen first, and why? |
-| 3 | 2 | update: The alternate provider cannot begin immediately. Staff still need instructions. | What changes in your plan? |
-| 3 | 3 | none | Give your final instruction: who does what, under whose authority, what happens if it fails, and when will you review it? |
+| 3 | 1 to 5 | transition (after the card) | Five Gemini multiple choice questions for this member; a later question may introduce the approved update "The alternate provider cannot begin immediately. Staff still need instructions." inside its own text. |
 
 ### `GET /api/rooms/{room_id}/private-session`
 
@@ -252,52 +250,64 @@ Returns the caller's own branch only. It works during `private_session` and afte
   "clip": {"clip_id": "r2_member_1_step_1", "audio_url": "/api/recordings/r2_member_1_step_1/audio", "text": "caption", "duration_seconds": 17.18},
   "card": {"status": "drafting | draft | confirmed", "fields": {"action": "", "responsibility": "", "evidence": "", "dependencies": "", "fallback": "", "communication": "", "review": ""}},
   "assessment": {
-    "stages": [
-      {"step": 1, "max": 30, "points": null, "status": "waiting | scoring | scored | failed"},
-      {"step": 2, "max": 40, "points": null, "status": "waiting"},
-      {"step": 3, "max": 30, "points": null, "status": "waiting"}
+    "stages": [{"step": 1, "max": 20, "points": null, "status": "waiting | scored"}, "... five entries"],
+    "total": null, "max": 100, "feedback": null
+  },
+  "quiz": {
+    "status": "generating | ready | failed",
+    "current": 2,
+    "questions": [
+      {"step": 1, "question": "...", "choices": [{"choice_id": "a", "text": "..."}, "... four"],
+       "chosen": "c", "points": 15, "max": 20, "deadline": "ISO timestamp or null", "timed_out": false}
     ],
-    "total": null, "max": 100,
-    "feedback": [{"step": 1, "criteria": [{"id": "facts_uncertainty", "label": "Accurate use of facts and uncertainty", "max": 10, "points": 7, "reason": "...", "quote": "exact words from the answer"}]}]
+    "total": 15, "max": 100, "question_seconds": 60, "server_time": "ISO timestamp",
+    "review": [{"step": 1, "question": "...", "chosen": "c", "points": 15, "timed_out": false,
+                "choices": [{"choice_id": "a", "text": "...", "points": 0, "rationale": "..."}, "... four"]}]
   },
   "retryable": false
 }
 ```
 
 1. `round` is 2 for the `coaching` and `card` stages and 3 afterwards; `agent.role` is `coach` then `examiner`.
-2. `expecting` is the question awaiting an answer. Its `question` is self contained: it includes the twist or update shown as a separate message before the question. It is `null` while the agent is busy, during the card stage, after completion, after a failed job, and once the phase has ended.
+2. `expecting` is the Round 2 coaching question awaiting a free text answer. Its `question` is self contained: it includes the twist or update shown as a separate message before the question. It is `null` while the agent is busy, during the card stage, throughout Round 3 (no free text), after a failed job, and once the phase has ended.
 3. `clip` is the caller's saved fictional answer for the expecting round and step, chosen by seat (the member's index in `game.eligible_member_ids`: 0 leadership, 1 recovery, 2 communications), or `null`. Its `audio_url` is served by `GET /api/recordings/{clip_id}/audio`. Playing it never submits anything.
-4. Agent messages carry `source: "canonical"` for server authored text (twist, updates, questions, transition), the provider for acknowledgements, and `"vertex"` for stage results. A `pending` placeholder appears while an acknowledgement or score is being produced; it becomes `ready` or `failed`. Member answers have `source: null`.
-5. `card` is `null` until drafting starts. `assessment.total` is the server computed sum of scored stages, or `null` before the first score. `feedback` is `null` until `stage` is `complete`.
-6. `retryable` is `true` when an agent or scoring job failed; nothing else can happen in the branch until it is retried.
+4. Agent messages carry `source: "canonical"` for server authored text (twist, updates, coaching questions, transition, Round 3 results), the provider for acknowledgements, and `"vertex"` for Round 3 questions. A `pending` placeholder appears while an acknowledgement is being produced; it becomes `ready` or `failed`. Member messages (free text answers, and the chosen choice text in Round 3) have `source: null`.
+5. `card` is `null` until drafting starts. `quiz` is `null` before Round 3. `quiz.current` is the question to answer now (1 to 5), or `null` while generating, after a failure and once complete. `quiz.questions` lists only questions already reached (answered ones plus the current one); choices carry only `choice_id` and `text`, and `points` is set once that question is answered. `quiz.review` with every choice's points and rationale is `null` until `stage` is `complete`. `quiz.total` is the server computed sum of earned points. `assessment` is kept for compatibility: five 20 point stages, `total` (`null` before the first pick) and `feedback: null`.
+6. `retryable` is `true` when an agent job (acknowledgement, card or quiz generation) failed; nothing else can happen in the branch until it is retried.
 
 ### `POST /api/rooms/{room_id}/private-session/answer`
 
-`{"command_id": "UUID", "text": "1 to 1200 characters, not blank", "used_clip": false}`. Returns the session payload with `busy: true`. Returns 409 `not_expecting` when no question is waiting (including after the phase ends) and 409 `agent_busy` while a job runs. Commands are idempotent by `command_id`: a replay returns the current payload, and reusing an ID with a different body returns 409 `command_conflict`. `used_clip` is recorded with the answer for later review. In Round 2 the answer starts an acknowledgement, followed by the next question or, after step 3, the card draft. In Round 3 it starts scoring for that stage (`status: "scoring"`), followed by the next stage question or completion with feedback.
+`{"command_id": "UUID", "text": "1 to 1200 characters, not blank", "used_clip": false}`. Returns the session payload with `busy: true`. Returns 409 `not_expecting` when no question is waiting (including after the phase ends) and 409 `agent_busy` while a job runs. Commands are idempotent by `command_id`: a replay returns the current payload, and reusing an ID with a different body returns 409 `command_conflict`. `used_clip` is recorded with the answer for later review. The answer starts an acknowledgement, followed by the next question or, after step 3, the card and then the Round 3 quiz generation. Round 3 has no free text answers.
 
 ### `POST /api/rooms/{room_id}/private-session/card`
 
 `{"command_id": "UUID", "fields": {"action", "responsibility", "evidence", "dependencies", "fallback", "communication", "review"}}`, each 1 to 600 characters and not blank. Allowed only when `card.status` is `draft` (otherwise 409 `card_not_ready`) and the phase is active (otherwise 409 `private_session_closed`). The confirmed card replaces the draft, then the transition message and the Round 3 stage 1 question follow. Idempotent by `command_id`.
 
+### `POST /api/rooms/{room_id}/private-session/choice`
+
+`{"command_id": "UUID", "step": 1, "choice_id": "a"}` with `step` 1 to 5 (extra fields forbidden). Records the member's final pick for the current Round 3 question and returns the session payload. Errors: 409 `quiz_not_ready` (not Round 3, generating or failed), 409 `question_timed_out` (that question's time ran out), 409 `already_answered`, 409 `private_session_closed` after the phase ends, 409 `not_current_question` when `step` is not `quiz.current`, 422 `invalid_choice` when `choice_id` is not one of `a` to `d`. Idempotent by `command_id`: a replay returns the current payload, and reusing an ID with a different body returns 409 `command_conflict`.
+
+### Question timer
+
+Each Round 3 question has `QUESTION_SECONDS = 60`, counted from when its question message is posted (the member may answer while the examiner reads it). `deadline` is set for the current question and kept for answered ones; clients compute the remaining time from `deadline` minus `server_time`, which corrects clock skew. When the deadline passes (plus 1.5 seconds of grace for network latency) the question closes with `points: 0`, `chosen: null`, `timed_out: true`, the examiner posts "Question n: time is up, 0 of 20 points." and the next question follows, or the quiz completes after question 5. Expiry runs lazily on every GET and choice and from a scheduled task at the deadline, so it advances even when nobody polls; it is idempotent. A pick for a closed question returns 409 `question_timed_out`. Timed out questions count 0 in the totals.
+
+### Start at Round 3 (test shortcut)
+
+`POST /api/rooms/{room_id}/start` accepts `start_at: "beginning" | "assessment"` (default `"beginning"`), echoed as `game.start_at`. With `"assessment"` (only for timing profiles with private rounds, otherwise 422 `start_at_unavailable`) the game opens directly in `private_session` with every member's stage at `assessment`, and the phase deadline is at least 600 seconds. Earlier rounds are filled with the saved fictional answers from `playtest/fixtures/recordings.json`, by electorate seat: the Round 1 individual decision `r1_member_{seat}_step_1` is recorded in the game state and as that member's private contribution, and the branch replays the canonical Round 2 developments and questions with the answers `r2_member_{seat}_step_{1..3}` (stored with `used_clip: true`), then a response card built by the offline helper from those texts (no model call). The examiner posts "Test start: prerecorded answers were used for Rounds 1 and 2. ..." and every member's quiz job starts at game start. A seat with no saved set starts with an empty history. Completion and the room ending work as after a normal Round 2.
+
 ### `POST /api/rooms/{room_id}/private-session/retry`
 
-`{"command_id": "UUID"}`. Retries the failed acknowledgement, card draft or scoring job when `retryable` is `true`; otherwise 409 `nothing_to_retry`. Submitted answers are always kept. A scoring job for an answer submitted before the deadline can still be retried after the phase ends. Idempotent by `command_id`.
+`{"command_id": "UUID"}`. Retries the failed acknowledgement, card draft or quiz generation when `retryable` is `true`; otherwise 409 `nothing_to_retry`. Submitted answers are always kept. Idempotent by `command_id`.
 
 ### Generation and scoring
 
 1. Acknowledgements and the card draft use the same chain as other facilitation text: Vertex Gemini first (JSON output, temperature 0), then the hosted model, then an offline fallback. The offline acknowledgement is a neutral sentence; the offline card splits the member's own decision text into the matching fields and leaves the rest empty for the member to complete.
-2. Scoring uses Vertex Gemini only, at temperature 0, with no hosted or offline fabrication. Each criterion is an integer from 0 to 10. Every positive award needs an exact quote copied from that submitted Round 3 answer. Missing or duplicate criteria, points outside 0 to 10, or a quote that does not appear in the answer reject the whole response: the stage becomes `failed` and `retryable`. The server computes stage points and the total; stage maxima are 30, 40 and 30.
-3. The examiner scores only the submitted Round 3 answer against the public report and the stage question, not the coaching history or the card. Communication means understandable, relevant and responsive; confidence, speaking speed and accent are never scored.
-
-| Stage | Criteria (10 points each) |
-| --- | --- |
-| 1, max 30 | `facts_uncertainty` Accurate use of facts and uncertainty; `reasoning` Clear reasoning; `communication` Clear, relevant communication |
-| 2, max 40 | `new_constraint` Recognizes the new constraint; `feasible_adjustment` Proposes a feasible adjustment; `tradeoff` Explains the tradeoff; `responsive_answer` Addresses the question and relevant concerns |
-| 3, max 30 | `action_owner_authority` Clear action, owner and appropriate authority; `fallback` Workable fallback; `update_review` Clear update and review arrangement |
+2. The Round 3 quiz uses Vertex Gemini only (JSON output, LOW thinking, temperature 0.4, up to 12288 output tokens, 90 second timeout), with no hosted or offline fabrication. It is grounded in the public report and documents, the Round 1 discussion and expert panel, the member's role, their own written decision, their coaching answers and their recorded card. Questions test crisis judgment for this scenario and member (authority, facts versus uncertainty, dependencies, fallback, communication, review), never trivia or invented facts. Two live generations on the Cedar Bridge grounding took 13.0 and 14.9 seconds.
+3. Validation: exactly 5 questions of 10 to 400 characters, each with exactly 4 choices (text 2 to 300 characters, rationale 1 to 300, whole number points, no duplicate texts); the points are exactly one 0, one 20 and two distinct values strictly between. Invalid output is retried once with the rejection reason; a second failure (or a provider failure) leaves `quiz.status: "failed"` and `retryable`. The server shuffles each question's choices and assigns `choice_id` `a` to `d` in shown order. Points and rationales never leave the server before that question is answered, and other choices' points and every rationale only after completion.
 
 ### Private isolation
 
-A member's prompts contain only the public report and public documents, the Round 1 discussion (attributed answers and chat, excluding every individual decision), the expert panel, that member's own Round 1 decision and that member's own private history and card. Other members' decisions and private answers are never included. The GET returns only the caller's branch, and a member can never read another member's session. Rubric judgments still depend on Gemini: quote validation proves that the evidence exists, not that a judgment is fair.
+A member's prompts contain only the public report and public documents, the Round 1 discussion (attributed answers and chat, excluding every individual decision), the expert panel, that member's own Round 1 decision and that member's own private history and card. Other members' decisions and private answers are never included. The GET returns only the caller's branch, and a member can never read another member's session. The points Gemini assigns to each choice are its judgment; validation enforces the points structure, not that the judgment is fair.
 
 ### Speech
 

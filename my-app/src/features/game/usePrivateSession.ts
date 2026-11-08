@@ -9,6 +9,7 @@ const UNAVAILABLE_RETRY_MS = 5000
 export const PRIVATE_UNAVAILABLE = 'Private sessions are not available on this server yet. The host can end the private sessions.'
 export const PRIVATE_NOT_STARTED = 'private_session_not_started'
 export const PRIVATE_NOT_ELIGIBLE = 'not_eligible'
+export const QUESTION_TIMED_OUT = 'question_timed_out'
 export const PRIVATE_OBSERVER = 'Private sessions are for the board members who wrote a Round 1 decision. You are observing; the board reunites when everyone has finished.'
 
 export type PrivateSessionHandle = {
@@ -23,6 +24,8 @@ export type PrivateSessionHandle = {
     sending: boolean
     answer: (text: string, usedClip: boolean) => Promise<boolean>
     confirmCard: (fields: ResponseCardFields) => Promise<boolean>
+    /** Round 3: the final pick for question `step` ("a" to "d"). */
+    choose: (step: number, choiceId: string) => Promise<boolean>
     retry: () => Promise<boolean>
 }
 
@@ -82,7 +85,9 @@ export function usePrivateSession(roomId: string, active: boolean, refreshKey = 
             setError('')
             return true
         } catch (failure) {
-            setError(facilitationErrorMessage(failure, 'The private session could not be updated. Please try again.'))
+            // A pick that lands after the clock ran out: the next read shows the closed question (0 points).
+            if (failure instanceof FacilitationError && failure.code === QUESTION_TIMED_OUT) setError('Time ran out for that question before your answer arrived.')
+            else setError(facilitationErrorMessage(failure, 'The private session could not be updated. Please try again.'))
             return false
         } finally {
             sendingRef.current = false
@@ -93,7 +98,8 @@ export function usePrivateSession(roomId: string, active: boolean, refreshKey = 
 
     const answer = useCallback((text: string, usedClip: boolean) => send(() => facilitationApi.privateAnswer(roomId, { command_id: crypto.randomUUID(), text, used_clip: usedClip })), [roomId, send])
     const confirmCard = useCallback((fields: ResponseCardFields) => send(() => facilitationApi.privateCard(roomId, { command_id: crypto.randomUUID(), fields })), [roomId, send])
+    const choose = useCallback((step: number, choiceId: string) => send(() => facilitationApi.privateChoice(roomId, { command_id: crypto.randomUUID(), step, choice_id: choiceId })), [roomId, send])
     const retry = useCallback(() => send(() => facilitationApi.privateRetry(roomId, { command_id: crypto.randomUUID() })), [roomId, send])
 
-    return { session: active ? session : null, unavailable, notStarted, notEligible, error, sending, answer, confirmCard, retry }
+    return { session: active ? session : null, unavailable, notStarted, notEligible, error, sending, answer, confirmCard, choose, retry }
 }

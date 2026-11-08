@@ -17,7 +17,6 @@ import { decisionBadges, isIndividualMode, roundLabel } from '../features/game/i
 import TurnMedia from '../features/game/TurnMedia'
 import SavedClipTurn from '../features/game/SavedClipTurn'
 import RoomNameEditor from '../features/rooms/RoomNameEditor'
-import { FacilitationPanel } from '../features/facilitation'
 import './Game.css'
 
 const SKIP_LABELS: Record<string, string> = {
@@ -71,8 +70,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary }: { room
     const experts = !opening && showsExpertStage(room.phase, game.discussion_mode)
     const fullStage = opening || experts
     // Advisers, recorded audio and documents stay out of the way until the round's decision is made.
-    const showFacilitation = !fullStage && ['resolving', 'resolution_failed', 'decision', 'result', 'ended'].includes(room.phase)
-    const layout = fullStage ? ' game-live-main--opening' : showFacilitation ? '' : ' game-live-main--focus'
+    const layout = fullStage ? ' game-live-main--opening' : ' game-live-main--focus'
     // Only the caller's own ballot is known, so ballot badges are limited to the self tile.
     const badges: Record<string, TileBadge> = room.phase === 'individual_decision' ? decisionBadges(game.individual_decisions, room.self_member_id) : {}
     if (speaker && room.phase === 'speaking') badges[speaker.member_id] = { label: 'Speaking', tone: 'speaking' }
@@ -117,7 +115,6 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary }: { room
                 <details open={room.phase === 'briefing'}><summary>Public scenario documents</summary>{game.public_documents.map((document) => <article key={document.id} className="game-public-document"><h3>{document.id.replaceAll('_', ' ')}</h3><div>{document.text}</div></article>)}</details>
                 {actions.includes('end') && <button className="game-end" disabled={pending} onClick={() => { if (window.confirm('End this meeting and preserve its records?')) void act('end') }}>End meeting</button>}
             </section>}
-            {showFacilitation && <div className="game-facilitation-slot"><FacilitationPanel room={room} /></div>}
         </main><footer className="game-call-footer"><p>Scenario {game.scenario.scenario_id}, version {game.scenario.version}. Room version {room.room_version}.</p><button className="game-summary-button" type="button" onClick={onViewSummary}>Summary demo preview <span aria-hidden="true">↗</span></button></footer>
     </div></MotionConfig>
 }

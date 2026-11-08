@@ -59,8 +59,8 @@ class SpeakingPhase:
     slot_seconds: int
     started_at: float
     kind: Literal["speaking"] = "speaking"
-    # The saved clip the speaker started for everyone to hear: (clip_id, start instant), or None.
-    clip: tuple[str, float] | None = None
+    # The clip or AI reply the speaker started for everyone to hear: (clip_id, start instant, caption), or None.
+    clip: tuple[str, float, str | None] | None = None
 
 
 @dataclass(frozen=True)

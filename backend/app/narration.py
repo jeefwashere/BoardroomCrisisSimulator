@@ -33,6 +33,8 @@ class Delivery:
 class _Entry:
     result: MediaResult
     task: asyncio.Task | None = None
+    # Which speaker's voice to use (a key such as "coach" or "ceo"); None means the default voice.
+    voice: str | None = None
     audio: bytes | None = None
     deliveries: tuple[Delivery, ...] = field(default_factory=tuple)
 
@@ -45,7 +47,7 @@ class NarrationService:
     whether a narration still belongs to the current phase.
     """
 
-    def __init__(self, synthesizer: Callable[[str], bytes] | None = None):
+    def __init__(self, synthesizer: Callable[..., bytes] | None = None):
         self._synthesizer = synthesizer
         self._entries: dict[tuple[UUID, UUID], _Entry] = {}
 
@@ -80,12 +82,14 @@ class NarrationService:
             # Optional media setup must never prevent the text game starting.
             return cls()
         synthesis_lock = Lock()
+        from .voices import voice_map
+        voices = voice_map()
 
-        def synthesize(text: str) -> bytes:
+        def synthesize(text: str, speaker: str | None = None) -> bytes:
             # ElevenSpeech owns disk caching and the shared budget reservation.
             # Serial access also protects its cache's single temporary filename.
             with synthesis_lock:
-                result = speech.speak(text, voice, model_id="eleven_flash_v2_5")
+                result = speech.speak(text, voices.get(speaker or "", voice), model_id="eleven_flash_v2_5")
                 with Path(result["path"]).open("rb") as audio:
                     return audio.read(MAX_AUDIO_BYTES + 1)
 
@@ -107,17 +111,21 @@ class NarrationService:
     def status(self, room_id: UUID, narration_id: UUID, text: str) -> MediaResult:
         return self._entry(room_id, narration_id, text).result
 
-    async def prepare(self, room_id: UUID, narration_id: UUID, text: str) -> MediaResult:
+    async def prepare(self, room_id: UUID, narration_id: UUID, text: str, voice: str | None = None) -> MediaResult:
         entry = self._entry(room_id, narration_id, text)
         if entry.result.status == "disabled":
             return entry.result
         if entry.task is None:
+            entry.voice = voice
             entry.task = asyncio.create_task(self._generate(entry))
         return await asyncio.shield(entry.task)
 
     async def _generate(self, entry: _Entry) -> MediaResult:
         try:
-            audio = await asyncio.to_thread(self._synthesizer, entry.result.text)
+            if entry.voice:
+                audio = await asyncio.to_thread(self._synthesizer, entry.result.text, entry.voice)
+            else:
+                audio = await asyncio.to_thread(self._synthesizer, entry.result.text)
             if not isinstance(audio, bytes) or not 0 < len(audio) <= MAX_AUDIO_BYTES:
                 raise ValueError("Invalid audio result")
             entry.audio = audio

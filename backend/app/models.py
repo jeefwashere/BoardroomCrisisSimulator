@@ -80,6 +80,7 @@ class View(BaseModel):
 class SpeakerClipView(View):
     clip_id: str
     started_at: datetime
+    text: str | None = None
 
 
 class LeaveView(View):
@@ -426,6 +427,8 @@ class DecisionCommand(PhaseCommand):
 
 class ClipCommand(PhaseCommand):
     clip_id: str | None = Field(default=None, min_length=1, max_length=120, pattern=r"^[A-Za-z0-9_.:-]+$")
+    # The caption of an AI generated reply, so listening windows can show it while it plays.
+    text: str | None = Field(default=None, min_length=1, max_length=1200)
 
 
 class SkipCommand(PhaseCommand):
@@ -472,6 +475,14 @@ class MediaView(View):
 class DeliveryBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     event: Literal["started", "completed", "failed"]
+
+
+class ReplyBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    command_id: UUID
+    mode: Literal["turn", "private"]
+    # Private answers only: the coach's current question, as shown to the member.
+    question: str | None = Field(default=None, min_length=1, max_length=1200)
 
 
 class ConsultBody(BaseModel):

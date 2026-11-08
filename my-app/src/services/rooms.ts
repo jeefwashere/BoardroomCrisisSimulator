@@ -108,7 +108,7 @@ export type RoomGame = {
     /** True when speaking turns are untimed (see `StartInput.manual_turns`). */
     manual_turns?: boolean
     /** The saved clip the active speaker started, so every window plays it from the same moment. */
-    speaker_clip?: { clip_id: string; started_at: string } | null
+    speaker_clip?: { clip_id: string; started_at: string; text?: string | null } | null
     self_vote?: string | null
     vote_counts?: Record<string, number> | null
     tied_option_ids?: string[]

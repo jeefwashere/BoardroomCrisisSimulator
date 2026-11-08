@@ -105,6 +105,9 @@ export type PrivateSession = {
     retryable: boolean
 }
 
+/** A Vertex written draft reply; nothing is submitted until the member's own client commits it. */
+export type AiReply = { reply_id: string; speech_id: string; mode: 'turn' | 'private'; text: string; source: string }
+
 export type SpeechStatus = { status: 'ready' | 'disabled' | 'failed' | 'pending'; error?: string | null }
 
 export class FacilitationError extends Error {
@@ -132,6 +135,11 @@ export function createFacilitationApi(api: RoomApi) {
         consult: async (roomId: string, kind: AdviserKind, question: string) => json<Consultation>(await api.authorized(`${room(roomId)}/consult`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ command_id: crypto.randomUUID(), kind, question }),
+        })),
+        /** An AI written reply for the caller to use as their own (speaking turn, or an answer to the coach); spoken in their role's voice. */
+        reply: async (roomId: string, input: { mode: 'turn' | 'private'; question?: string }) => json<AiReply>(await api.authorized(`${room(roomId)}/reply`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ command_id: crypto.randomUUID(), ...input }),
         })),
         prepareSpeech: async (roomId: string, speechId: string) => json<SpeechStatus>(await api.authorized(`${room(roomId)}/speech/${encodeURIComponent(speechId)}/prepare`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })),
         speechAudio: async (roomId: string, speechId: string) => {

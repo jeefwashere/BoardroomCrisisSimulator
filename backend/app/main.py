@@ -17,7 +17,7 @@ from fastapi.exceptions import RequestValidationError
 from .models import (LeaveRoom, LeaveView, ProposalCommand, RecordingView, AudioBody, BeginRecording, ReviewBody, CeoCommand, DecisionCommand, PhaseCommand, ClipCommand, SkipCommand, VoteCommand,
                      ContributionBody, ContributionView, CreateRoom, DeliveryBody, ErrorResponse,
                      EvaluationEvidenceView, JoinRoom, MediaView, RoomView, ScenarioView, StartRoom,
-                     TabSessionBody, TabSessionView, ValidationErrorResponse, ConsultBody,
+                     TabSessionBody, TabSessionView, ValidationErrorResponse, ConsultBody, ReplyBody,
                      PrivateAnswerBody, PrivateCardBody, PrivateRetryBody)
 from .narration import NarrationService
 from .rooms import RoomError, Rooms, StartSpec
@@ -195,7 +195,8 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
 
     @app.post("/api/rooms/{room_id}/rounds/{round_id}/speaker/clip", response_model=RoomView, responses=errors)
     async def speaker_clip(room_id: UUID, round_id: UUID, body: ClipCommand, member_session: authenticated):
-        return await rooms.play(member_session, room_id, body.command_id, body.phase_id, round_id, "speaker_clip", body.clip_id)
+        return await rooms.play(member_session, room_id, body.command_id, body.phase_id, round_id, "speaker_clip",
+                                (body.clip_id, body.text) if body.clip_id else None)
 
     @app.post("/api/rooms/{room_id}/rounds/{round_id}/briefing/finish", response_model=RoomView, responses=errors)
     async def finish_briefing(room_id: UUID, round_id: UUID, body: PhaseCommand, member_session: authenticated):
@@ -333,6 +334,10 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     @app.get("/api/rooms/{room_id}/facilitation", responses=errors)
     async def facilitation_view(room_id: UUID, member_session: authenticated):
         return await facilitation.view(member_session, room_id)
+
+    @app.post("/api/rooms/{room_id}/facilitation/reply", responses=errors)
+    async def facilitation_reply(room_id: UUID, body: ReplyBody, member_session: authenticated):
+        return await facilitation.reply(member_session, room_id, body.command_id, body.mode, body.question)
 
     @app.post("/api/rooms/{room_id}/facilitation/consult", responses=errors)
     async def facilitation_consult(room_id: UUID, body: ConsultBody, member_session: authenticated):

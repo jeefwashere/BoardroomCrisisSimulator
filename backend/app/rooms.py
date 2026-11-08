@@ -398,7 +398,8 @@ class Room:
                 state.timing.private_rounds, self.private_progress(state, assignments),
                 state.phase.index if isinstance(state.phase, sim.SpeakingPhase) else None,
                 manual_turns=state.manual_turns,
-                speaker_clip={"clip_id": state.phase.clip[0], "started_at": gameplay.at(state, state.phase.clip[1])}
+                speaker_clip={"clip_id": state.phase.clip[0], "started_at": gameplay.at(state, state.phase.clip[1]),
+                              "text": state.phase.clip[2]}
                 if isinstance(state.phase, sim.SpeakingPhase) and state.phase.clip is not None else None,
             )
         members = []
@@ -503,7 +504,7 @@ class Rooms:
                     raise RoomError(409, "not_speaking", "There is no active speaker")
                 if caller.member_id != phase.order[phase.index]:
                     raise RoomError(403, "speaker_required", "Only the active speaker can share a clip")
-                state = replace(state, phase=replace(phase, clip=(value, now) if value else None))
+                state = replace(state, phase=replace(phase, clip=(value[0], now, value[1]) if value else None))
             elif action in {"finish", "skip"}:
                 if not isinstance(phase, sim.SpeakingPhase):
                     raise RoomError(409, "not_speaking", "There is no active speaker")

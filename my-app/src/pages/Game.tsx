@@ -144,7 +144,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const privatePhase = room.phase === 'private_session'
     const privateRecord = privatePhase || (room.phase === 'ended' && Boolean(game?.private_rounds))
     const privateSession = usePrivateSession(room.room_id, privateRecord, room.phase)
-    const privateAuto = usePrivateAutoResponse(privatePhase ? privateSession.session : null, privateSession.sending, privateSession.answer)
+    const privateAuto = usePrivateAutoResponse(room.room_id, privatePhase ? privateSession.session : null, privateSession.sending, privateSession.answer, (failure) => setNotice(errorMessage(failure)))
     // Keep the caller's last recorded decision so the ended report can show it even if that projection omits it.
     const seenDecision = game?.individual_decisions?.self?.text
     if (seenDecision && seenDecision !== ownDecision) setOwnDecision(seenDecision)
@@ -173,8 +173,8 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     // Untimed turns: another player's saved clip plays here too, captioned in step like your own.
     const shared = useSharedClip(room, auto.catalog)
     const sharedMember = shared ? members.find((member) => member.id === shared.speakerId) : undefined
-    const sharedLine = shared && sharedMember ? {
-        entry: turnEntry(shared.turn, { name: sharedMember.name, role: sharedMember.roleLabel ?? playerRoleLabel(sharedMember.role) }, shared.clip.text, false),
+    const sharedLine = shared && sharedMember && shared.text ? {
+        entry: turnEntry(shared.turn, { name: sharedMember.name, role: sharedMember.roleLabel ?? playerRoleLabel(sharedMember.role) }, shared.text, false),
         durationMs: shared.remainingMs,
     } : null
     useSpokenLine(transcript, sharedLine)
@@ -255,16 +255,16 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
         else if (mic.action === 'dictate') dictation.start()
         else if (mic.action === 'stop-dictation') dictation.stop()
     }
-    // Auto response: the saved clip for the caller's speaking turn, or for the current private question.
+    // AI reply: a Vertex written, ElevenLabs spoken reply for the caller's speaking turn, or for the current private question.
     // In a private session the button stays (disabled) between questions so the bar does not jump.
     const activeAuto = privatePhase ? privateAuto : auto
     const privateAnswering = privatePhase && (privateSession.session?.stage === 'coaching' || privateSession.session?.stage === 'assessment')
     const autoControl = activeAuto.status === 'unavailable'
-        ? privateAnswering ? { label: 'Auto response', live: false, disabled: true, title: 'Available when your coach asks a question that has a saved answer.', onClick: () => undefined } : undefined
+        ? privateAnswering ? { label: 'AI reply', live: false, disabled: true, title: 'Available when your coach asks you a question.', onClick: () => undefined } : undefined
         : {
-            label: activeAuto.status === 'playing' ? 'Stop response' : activeAuto.status === 'saving' ? 'Saving…' : activeAuto.status === 'done' ? 'Response sent' : 'Auto response',
-            live: activeAuto.status === 'playing', disabled: pending || (privatePhase && privateSession.sending) || activeAuto.status === 'saving' || activeAuto.status === 'done',
-            title: privatePhase ? 'Play your saved answer (captioned in the live transcript), then submit it to your coach' : undefined,
+            label: activeAuto.status === 'playing' ? 'Stop reply' : activeAuto.status === 'writing' ? 'Writing…' : activeAuto.status === 'saving' ? 'Saving…' : activeAuto.status === 'done' ? 'Reply sent' : 'AI reply',
+            live: activeAuto.status === 'playing', disabled: pending || (privatePhase && privateSession.sending) || activeAuto.status === 'writing' || activeAuto.status === 'saving' || activeAuto.status === 'done',
+            title: privatePhase ? 'Let the AI write and speak an answer to your coach in your voice, then submit it' : 'Let the AI write and speak your turn in your voice (Vertex AI and ElevenLabs), then add it to the transcript',
             onClick: () => { if (activeAuto.status === 'playing') activeAuto.stop(); else activeAuto.start() },
         }
     const node = game.current_node

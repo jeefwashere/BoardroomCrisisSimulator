@@ -36,6 +36,19 @@ Provider errors never reach the client; a failure silently moves to the next sou
 
 The ledger file is created lazily on the first call, so starting the server or running tests never touches disk. Automated tests inject fakes and force `BOARDROOM_VERTEX_ENABLED=false`.
 
+## Voices and AI replies
+
+Every speaker has its own premade ElevenLabs voice (`backend/app/voices.py`, chosen through the ElevenLabs MCP): the facilitator (George), the IT and security expert and IT adviser (River), operations (Matilda), governance (Alice), the journalist (Laura) and the private coach (Sarah). Players' AI replies speak in their role's voice: CEO (Roger), IT recovery lead (Will) and communications lead (Bella). `BOARDROOM_TTS_VOICES` (a JSON object of key to voice ID) overrides any entry; missing keys use `BOARDROOM_TTS_VOICE_ID`. The voice is chosen on the server when a line is prepared, so clients never pick voices.
+
+`POST /api/rooms/{room_id}/facilitation/reply` with `{command_id, mode, question?}` drafts a reply the caller can use as their own:
+
+* `mode: "turn"`: only during the caller's own speaking turn (409 `not_your_turn` otherwise). Vertex writes a first person reply of 50 to 80 words for the caller's role, grounded in the scenario, documents, attached report and this round's contributions. Any room member can play its speech, so the three window demo shares it with every window.
+* `mode: "private"`: only in the private session; `question` is the coach's current question. The answer builds on the caller's own written decision. Its speech is readable only by the caller.
+
+The response is `{reply_id, speech_id, mode, text, source}`; `source` is `vertex` (or `hosted` if Vertex failed). There is no offline fallback: 503 `ai_reply_unavailable` asks the player to retry or type. Play it with the speech `prepare` and `audio` routes below. A reply is only a draft: the player's client commits it as a contribution (speaking turns) or submits it as the private answer, and the model never submits anything itself.
+
+In the private session the coach's and examiner's questions are now phrased by Vertex (temperature 0.3, at most 60 words) from the approved canonical question, the member's decision and previous answer; the canonical question stays the graded question and is used whenever Vertex is off or returns no question. Answers open once the phrased question is ready.
+
 ## Routes
 
 ### `GET /api/rooms/{room_id}/facilitation`

@@ -32,6 +32,8 @@ Agent voice is generated once per room and line on the backend and shared, so ex
 
 3. Your own local dev server on port 5173 keeps working and is not affected.
 
+Free ngrok accounts need agent version 3.28 or newer. If the script reports `ERR_NGROK_121`, run `ngrok update`; this machine was updated from 3.21.0 to 3.39.13.
+
 ### Login
 
 The backend can spend paid Vertex AI and ElevenLabs credit, so by default the tunnel asks for a login. It uses ngrok basic auth with a generated password stored in `my-app/.local/ngrok-demo/login`, which git ignores. Share the login with the other players.

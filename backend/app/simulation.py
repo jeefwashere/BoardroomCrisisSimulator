@@ -84,6 +84,52 @@ class TiePhase:
 
 
 @dataclass(frozen=True)
+class ResolvingPhase:
+    phase_id: UUID
+    deadline: float
+    job_id: UUID
+    attempt: int
+    kind: Literal["resolving"] = "resolving"
+
+
+@dataclass(frozen=True)
+class ResolutionFailedPhase:
+    phase_id: UUID
+    kind: Literal["resolution_failed"] = "resolution_failed"
+
+
+@dataclass(frozen=True)
+class Proposal:
+    option_id: str
+    member_id: UUID
+    text: str
+    contribution_id: UUID
+
+
+@dataclass(frozen=True)
+class BallotOption:
+    option_id: str
+    label: str
+    kind: Literal["prepared", "custom"] = "prepared"
+    member_id: UUID | None = None
+
+
+@dataclass(frozen=True)
+class Resolution:
+    job_id: UUID
+    attempt: int
+    option_id: str
+    member_id: UUID
+    text: str
+    text_sha256: str
+    selection_method: str
+    status: str = "pending"
+    error: str | None = None
+    processed_fragments: int = 0
+    total_fragments: int = 0
+
+
+@dataclass(frozen=True)
 class TurnRecord:
     member_id: UUID
     round_id: UUID
@@ -112,7 +158,7 @@ class DecisionRecord:
     question: str
     selected_option_id: str | None
     selected_option_label: str | None
-    resolution_kind: Literal["prepared", "no_decision"]
+    resolution_kind: Literal["prepared", "no_decision", "custom"]
     outcome_id: str
     text: str
     facts_before: Facts
@@ -121,6 +167,9 @@ class DecisionRecord:
     resolved_at: datetime
     vote_counts: tuple[tuple[str, int], ...] = ()
     selection_method: str = "internal"
+    ai_job_id: UUID | None = None
+    ai_attempt: int | None = None
+    proposer_id: UUID | None = None
 
     @property
     def facts_before_view(self) -> dict:
@@ -145,7 +194,7 @@ class Game:
     node_id: str
     facts: Facts
     history: tuple[DecisionRecord, ...]
-    phase: BriefingPhase | DecisionPhase | ResultPhase | EndedPhase | ReadingPhase | SpeakingPhase | DiscussionPhase | VotingPhase | TiePhase
+    phase: BriefingPhase | DecisionPhase | ResultPhase | EndedPhase | ReadingPhase | SpeakingPhase | DiscussionPhase | VotingPhase | TiePhase | ResolvingPhase | ResolutionFailedPhase
     started_mono: float = 0
     session_deadline: float | None = None
     ballots: tuple[tuple[UUID, str], ...] = ()
@@ -153,6 +202,9 @@ class Game:
     turns: tuple[TurnRecord, ...] = ()
     ceo_changes: tuple[CeoChange, ...] = ()
     ended_at: datetime | None = None
+    proposals: tuple[Proposal, ...] = ()
+    frozen_options: tuple[BallotOption, ...] = ()
+    resolution: Resolution | None = None
 
 
 @dataclass(frozen=True)
@@ -171,11 +223,18 @@ class ResolveNoDecision:
 
 
 @dataclass(frozen=True)
+class ResolveCustom:
+    option_id: str
+    text: str
+    outcome_id: str
+
+
+@dataclass(frozen=True)
 class AdvanceResult:
     pass
 
 
-InternalEvent = BeginDecision | ResolvePrepared | ResolveNoDecision | AdvanceResult
+InternalEvent = BeginDecision | ResolvePrepared | ResolveNoDecision | ResolveCustom | AdvanceResult
 
 
 @dataclass(frozen=True)
@@ -215,7 +274,7 @@ def transition(game: Game, event: InternalEvent, now: float, at: datetime,
             raise TransitionError("phase_not_elapsed", "The result presentation period has not elapsed")
         return replace(game, phase=DecisionPhase(ids.phase_id), node_id=phase.next_node_id,
                        round_number=game.round_number + 1, round_id=ids.round_id)
-    if not isinstance(phase, DecisionPhase) or not isinstance(event, (ResolvePrepared, ResolveNoDecision)):
+    if not isinstance(phase, DecisionPhase) or not isinstance(event, (ResolvePrepared, ResolveNoDecision, ResolveCustom)):
         raise TransitionError("invalid_transition", "This internal event is not valid in the current phase")
     node = current_node(game)
     option = None
@@ -224,6 +283,10 @@ def transition(game: Game, event: InternalEvent, now: float, at: datetime,
         if option is None:
             raise TransitionError("option_not_found", "The selected option is not part of this node", 422)
         outcome_id = option.outcome_id
+    elif isinstance(event, ResolveCustom):
+        if event.outcome_id not in node.allowed_custom_outcome_ids:
+            raise TransitionError("invalid_custom_outcome", "AI must select an allowed authored outcome", 422)
+        outcome_id = event.outcome_id
     else:
         outcome_id = node.no_decision_outcome_id
     outcome = next(item for item in node.outcomes if item.outcome_id == outcome_id)
@@ -232,8 +295,9 @@ def transition(game: Game, event: InternalEvent, now: float, at: datetime,
     next_facts = tuple(sorted(facts.items()))
     record = DecisionRecord(
         ids.decision_id, game.round_id, game.round_number, game.node_id, render(node.inject, game.facts),
-        option.option_id if option else None, option.label if option else None,
-        "prepared" if option else "no_decision", outcome.outcome_id, outcome.summary,
+        event.option_id if isinstance(event, ResolveCustom) else option.option_id if option else None,
+        event.text if isinstance(event, ResolveCustom) else option.label if option else None,
+        "custom" if isinstance(event, ResolveCustom) else "prepared" if option else "no_decision", outcome.outcome_id, outcome.summary,
         game.facts, next_facts, contribution_ids, at,
     )
     if outcome.terminal:

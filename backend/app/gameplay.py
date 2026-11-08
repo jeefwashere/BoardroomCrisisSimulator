@@ -3,6 +3,7 @@
 from collections import Counter
 from dataclasses import replace
 from datetime import timedelta
+import hashlib
 from uuid import UUID, uuid4
 
 from . import simulation as sim
@@ -20,12 +21,22 @@ def deadline(game: sim.Game) -> float | None:
     return getattr(phase, "deadline", None)
 
 
+def options(game: sim.Game) -> tuple[sim.BallotOption, ...]:
+    if game.frozen_options:
+        return game.frozen_options
+    return tuple(sim.BallotOption(option.option_id, option.label) for option in sim.current_node(game).options) + tuple(
+        sim.BallotOption(item.option_id, item.text, "custom", item.member_id) for item in game.proposals)
+
+
 def end(game: sim.Game, instant: float, reason: str) -> sim.Game:
     if isinstance(game.phase, sim.EndedPhase):
         return game
     if isinstance(game.phase, sim.SpeakingPhase):
         game = finish_record(game, instant, reason)
-    return replace(game, phase=sim.EndedPhase(uuid4(), reason), ended_at=at(game, instant))
+    resolution = game.resolution
+    if resolution is not None and resolution.status != "ready":
+        resolution = replace(resolution, status="unresolved", error="Game ended before the selected custom action was resolved")
+    return replace(game, phase=sim.EndedPhase(uuid4(), reason), ended_at=at(game, instant), resolution=resolution)
 
 
 def finish_record(game: sim.Game, instant: float, reason: str, actor_id: UUID | None = None):
@@ -69,13 +80,32 @@ def resolve(game: sim.Game, instant: float, option_id: str | None,
             contribution_ids: tuple[UUID, ...], method: str) -> sim.Game:
     tally = Counter(dict(game.ballots).values())
     counts = tuple((option.option_id, tally[option.option_id])
-                   for option in sim.current_node(game).options)
+                   for option in options(game))
+    selected = next((item for item in options(game) if item.option_id == option_id), None)
+    if selected is not None and selected.kind == "custom":
+        job = uuid4()
+        resolution = sim.Resolution(job, 1, selected.option_id, selected.member_id, selected.label,
+                                    hashlib.sha256(selected.label.encode()).hexdigest(), method)
+        return replace(game, phase=sim.ResolvingPhase(uuid4(), instant + 15, job, 1),
+                       resolution=resolution, last_tally=counts)
     event = sim.ResolvePrepared(option_id) if option_id else sim.ResolveNoDecision()
     candidate = sim.transition(replace(game, phase=sim.DecisionPhase(game.phase.phase_id)), event,
                                instant, at(game, instant), sim.TransitionIds(uuid4(), uuid4(), uuid4()),
                                contribution_ids)
     record = replace(candidate.history[-1], vote_counts=counts, selection_method=method)
     return replace(candidate, last_tally=counts, history=candidate.history[:-1] + (record,))
+
+
+def complete_custom(game: sim.Game, instant: float, outcome_id: str,
+                    contribution_ids: tuple[UUID, ...]) -> sim.Game:
+    job = game.resolution
+    candidate = sim.transition(replace(game, phase=sim.DecisionPhase(game.phase.phase_id)),
+                               sim.ResolveCustom(job.option_id, job.text, outcome_id), instant,
+                               at(game, instant), sim.TransitionIds(uuid4(), uuid4(), uuid4()), contribution_ids)
+    record = replace(candidate.history[-1], vote_counts=game.last_tally, selection_method=job.selection_method,
+                     ai_job_id=job.job_id, ai_attempt=job.attempt, proposer_id=job.member_id)
+    return replace(candidate, history=candidate.history[:-1] + (record,),
+                   resolution=replace(job, status="ready", error=None))
 
 
 def reconcile(game: sim.Game, now: float, roster: tuple[tuple[UUID, int, float], ...],
@@ -103,7 +133,7 @@ def reconcile(game: sim.Game, now: float, roster: tuple[tuple[UUID, int, float],
         elif isinstance(phase, sim.SpeakingPhase):
             game = next_speaker(game, due, last_seen, reason)
         elif isinstance(phase, sim.DiscussionPhase):
-            game = replace(game, phase=sim.VotingPhase(uuid4(), due + game.timing.voting_seconds),
+            game = replace(game, frozen_options=options(game), phase=sim.VotingPhase(uuid4(), due + game.timing.voting_seconds),
                            ballots=(), last_tally=())
         elif isinstance(phase, sim.VotingPhase):
             counts = Counter(dict(game.ballots).values())
@@ -117,10 +147,13 @@ def reconcile(game: sim.Game, now: float, roster: tuple[tuple[UUID, int, float],
                                "vote" if high else "no_decision")
         elif isinstance(phase, sim.TiePhase):
             game = resolve(game, due, None, contributions, "tie_timeout")
+        elif isinstance(phase, sim.ResolvingPhase):
+            game = replace(game, phase=sim.ResolutionFailedPhase(uuid4()),
+                           resolution=replace(game.resolution, status="failed", error="AI resolution exceeded its 15 second deadline"))
         elif isinstance(phase, sim.ResultPhase):
             game = replace(game, node_id=phase.next_node_id, round_number=game.round_number + 1,
                            round_id=uuid4(), phase=sim.ReadingPhase(uuid4(), due + game.timing.reading_seconds),
-                           ballots=(), last_tally=())
+                           ballots=(), last_tally=(), proposals=(), frozen_options=(), resolution=None)
         else:
             return game
     return game

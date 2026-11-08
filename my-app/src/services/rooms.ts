@@ -87,7 +87,7 @@ export type RoomGame = {
 }
 export type Decision = { decision_id: string; round_number: number; question: string; selected_option_label: string | null; text: string; selection_method: string; vote_counts: Record<string, number> }
 export type Recording = { recording_id: string; member_id: string; round_number: number; phase_id: string; status: string; transcript: string; reviewed_text: string | null; error: string | null; mime_type: string | null; audio_available: boolean }
-export type Extras = { feedback?: { status: string; text: string; error: string | null; completed_parts: number; total_parts: number }; recordings: Recording[]; contributions: { member_id: string; round_number: number | null; text: string; kind: string }[] }
+export type Extras = { feedback?: { status: string; text: string; error: string | null; completed_parts: number; total_parts: number; evidence_refs?: { id: string; label: string; assessment: string; criterion: string; quote: string; fragment: number }[] }; recordings: Recording[]; contributions: { member_id: string; round_number: number | null; text: string; kind: string }[] }
 
 
 export type RoomSnapshot = RoomFields & (

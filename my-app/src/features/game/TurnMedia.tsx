@@ -111,7 +111,7 @@ export default function TurnMedia({ room }: { room: RoomSnapshot }) {
         {ownTurn && consent && canRetry && <button type="button" onClick={() => { setCanRetry(false); setCaptureAttempt((value) => value + 1) }}>Retry recording</button>}
         {notice && <p role="status">{notice}</p>}
         {audioUrl && <audio controls src={audioUrl} />}
-        {room.phase === 'ended' && <section><h3>AI feedback</h3><p role="status">{extras.feedback?.status ?? 'Preparing feedback'}</p><p className="game-feedback">{extras.feedback?.text}</p>{extras.feedback?.error && <p>{extras.feedback.error}</p>}</section>}
+        {room.phase === 'ended' && <section><h3>AI feedback</h3><p role="status">{extras.feedback?.status ?? 'Preparing feedback'}</p><p className="game-feedback">{extras.feedback?.text}</p>{extras.feedback?.error && <p>{extras.feedback.error}</p>}{extras.feedback?.evidence_refs?.map((item, index) => <details key={`${item.id}:${index}`}><summary>{item.label}: {item.criterion}</summary><p>AI assessment: {item.assessment === 'supported' ? 'Addresses this criterion' : 'Needs clarification'}</p><blockquote className="game-feedback">{item.quote}</blockquote></details>)}</section>}
         <details open={room.phase === 'ended'}><summary>Recordings and transcripts ({extras.recordings.length})</summary>
             {extras.recordings.map((recording) => <article key={recording.recording_id}>
                 <h4>{room.members.find((member) => member.member_id === recording.member_id)?.display_name ?? 'Participant'}, round {recording.round_number}</h4>

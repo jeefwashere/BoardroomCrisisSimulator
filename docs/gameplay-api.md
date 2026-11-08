@@ -1,6 +1,6 @@
 # Prepared gameplay HTTP API
 
-The backend now runs the prepared scenario flow automatically. Start uses the existing request and the explicitly selected scenario timing profile. This delivery implements B05, B06, B07, B08, B11 and B13 for prepared actions. Custom proposals, custom outcome inference, final AI feedback, participant audio and the gameplay frontend remain separate work.
+The backend now runs the prepared scenario flow automatically. Start uses the existing request and the explicitly selected scenario timing profile. This delivery implements B05, B06, B07, B08, B11 and B13 for prepared actions. The complete frontend, custom outcome, feedback and participant audio extension is documented below and in the integration report.
 
 ## Confirmed policies
 
@@ -85,4 +85,23 @@ The socket HTTP demo starts and stops its own ephemeral loopback Uvicorn server.
 
 Regression checks cover 30 concurrent voters, replacement, hidden counts, exact retries, cutoff equality, stale round commands, repeated timer work, offline speakers, zero votes, CEO absence and reassignment, earlier and equal total expiry, ending before any decision, room isolation and lifespan cancellation. Reproduced late Start and create retries which could skip an online speaker are retained as regressions. Host ending invalidates prior consequence narration. The final backend suite passes 112 tests; 31 existing Python tests and seven narration player tests also pass.
 
-The expanded frontend now accepts the new phases and binds the prepared gameplay controls. The subsequent audio and bounded feedback implementation, live evidence and remaining decisions are documented in [full game integration](full-game-integration.md). Shared activation is still separate. No frontend source, existing local server, cloud deployment, WebSocket delivery, model service, microphone, original audio store or paid provider was changed by this unit. I01, I02, I03, B09, B10, B12 and O02 remain open for their full criteria.
+## Custom actions, audio and final assessment extension
+
+Snapshots also accept `resolving` and `resolution_failed`, include member proposals and resolution identity, status, attempt and fragment progress, and distinguish frozen custom options from prepared options. The same frozen option set drives voting and CEO tie selection.
+
+```text
+POST /api/rooms/{room_id}/rounds/{round_id}/proposal
+{ "command_id": "UUID", "phase_id": "UUID", "text": "The exact custom action" }
+
+POST /api/rooms/{room_id}/rounds/{round_id}/resolution/retry
+{ "command_id": "UUID", "phase_id": "UUID" }
+
+POST /api/rooms/{room_id}/feedback
+{ "command_id": "UUID", "phase_id": "UUID" }
+```
+
+One editable proposal per eligible member is allowed during speaking or discussion, with no product character cap. Empty text withdraws it. Revisions remain evidence. Voting freezes proposals. Only a winning custom choice enters a 15 second resolution attempt, with one explicit host retry after failure. Code admits only the current node's authored allowed outcomes. History retains proposer, selected text, selection method, job and attempt; ending retains unresolved selected text too.
+
+`POST /api/rooms/{room_id}/recordings/begin` takes command, phase and round IDs. Upload original audio with `POST /api/rooms/{room_id}/recordings/{recording_id}` using `audio_base64` and `mime_type`. The original owner reviews with `POST /api/rooms/{room_id}/recordings/{recording_id}/review` and `{ "text": "reviewed transcript" }`. Member authenticated audio is available at the same recording path with `/audio`. `GET /api/rooms/{room_id}/extras` supplies contributions, recordings and final assessment status. Pending upload, transcription or owner review prevents premature assessment. Every route uses the private tab session header.
+
+The actual custom winner, real voice provider and three tab end to end evidence, failure boundaries, storage and configuration are documented in [full game integration](full-game-integration.md). Shared activation and deployment remain I04. The historical 112 test count above describes the prepared delivery; final delivery checks are in completion record 21.

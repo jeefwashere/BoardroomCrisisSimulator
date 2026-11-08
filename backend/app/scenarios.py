@@ -65,6 +65,8 @@ class Node:
     options: tuple[PreparedOption, ...]
     outcomes: tuple[Outcome, ...]
     no_decision_outcome_id: str
+    allowed_custom_outcome_ids: tuple[str, ...]
+    custom_rubric: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -232,6 +234,7 @@ def _validate_nodes(data):
         node_values.append(Node(
             node_id, node["title"], node["inject"], tuple(node["study_questions"]),
             tuple(option_values), tuple(outcome_values), no_decision,
+            tuple(node["allowed_custom_outcome_ids"]), tuple(node["custom_rubric"]),
         ))
 
     visiting, depth = set(), {}

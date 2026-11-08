@@ -12,8 +12,9 @@ from fastapi import Depends, FastAPI, Request, Response, Security
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyCookie, APIKeyHeader
+from fastapi.exceptions import RequestValidationError
 
-from .models import (RecordingView, AudioBody, BeginRecording, ReviewBody, CeoCommand, PhaseCommand, SkipCommand, VoteCommand,
+from .models import (ProposalCommand, RecordingView, AudioBody, BeginRecording, ReviewBody, CeoCommand, PhaseCommand, SkipCommand, VoteCommand,
                      ContributionBody, ContributionView, CreateRoom, DeliveryBody, ErrorResponse,
                      EvaluationEvidenceView, JoinRoom, MediaView, RoomView, ScenarioView, StartRoom,
                      TabSessionBody, TabSessionView, ValidationErrorResponse)
@@ -22,6 +23,7 @@ from .rooms import RoomError, Rooms, StartSpec
 from .scenarios import ScenarioCatalog
 from .recordings import Recordings
 from .feedback import Feedback
+from .custom_resolution import CustomResolver
 
 COOKIE_NAME = "boardroom_session"
 SESSION_HEADER = "X-Boardroom-Session"
@@ -38,6 +40,7 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     speech = narration_service if narration_service is not None else NarrationService.from_env()
     recordings = recordings_service if recordings_service is not None else Recordings.from_env(rooms)
     feedback = Feedback(rooms, recordings, inference_provider)
+    resolver = CustomResolver(rooms, inference_provider)
     secure = secure_cookie if secure_cookie is not None else os.getenv("BOARDROOM_SECURE_COOKIE", "false").lower() == "true"
     origins = allowed_origins if allowed_origins is not None else [
         origin.strip() for origin in os.getenv(
@@ -49,6 +52,7 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     async def run_clock():
         while True:
             await rooms.tick()
+            await resolver.tick()
             await feedback.tick()
             await asyncio.sleep(0.1)
 
@@ -62,11 +66,15 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
             task.cancel()
             with suppress(asyncio.CancelledError):
                 await task
+            await resolver.close()
             await feedback.close()
             await recordings.close()
 
     app = FastAPI(title="Boardroom gameplay and evidence API", version="0.4.0", lifespan=lifespan)
     app.state.feedback = feedback
+    app.state.resolver = resolver
+    app.state.recordings = recordings
+    app.state.speech = speech
     app.add_middleware(
         CORSMiddleware, allow_origins=origins, allow_credentials=True,
         allow_methods=["GET", "POST"], allow_headers=["Content-Type", SESSION_HEADER],
@@ -89,6 +97,17 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
         return JSONResponse(status_code=error.status, content={"detail": {
             "code": error.code, "message": error.message,
         }})
+
+    @app.exception_handler(RequestValidationError)
+    async def invalid_request(request: Request, error: RequestValidationError):
+        # Keep actionable locations, without echoing raw credentials, audio or malformed Unicode.
+        def safe(value):
+            return str(value).encode("utf-8", errors="replace").decode("utf-8")
+        return JSONResponse(status_code=422, content={"detail": [
+            {"loc": [part if isinstance(part, int) else safe(part) for part in item.get("loc", ())],
+             "msg": safe(item.get("msg", "Invalid input")), "type": safe(item.get("type", "validation_error"))}
+            for item in error.errors()
+        ]})
 
     cookie = APIKeyCookie(name=COOKIE_NAME, auto_error=False)
     tab_header = APIKeyHeader(name=SESSION_HEADER, auto_error=False)
@@ -161,6 +180,14 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     @app.post("/api/rooms/{room_id}/end", response_model=RoomView, responses=errors)
     async def end_room(room_id: UUID, body: PhaseCommand, member_session: authenticated):
         return await rooms.play(member_session, room_id, body.command_id, body.phase_id, None, "end")
+
+    @app.post("/api/rooms/{room_id}/rounds/{round_id}/proposal", response_model=RoomView, responses=errors)
+    async def proposal(room_id: UUID, round_id: UUID, body: ProposalCommand, member_session: authenticated):
+        return await rooms.play(member_session, room_id, body.command_id, body.phase_id, round_id, "proposal", body.text)
+
+    @app.post("/api/rooms/{room_id}/rounds/{round_id}/resolution/retry", response_model=RoomView, responses=errors)
+    async def retry_resolution(room_id: UUID, round_id: UUID, body: PhaseCommand, member_session: authenticated):
+        return await rooms.play(member_session, room_id, body.command_id, body.phase_id, round_id, "retry_resolution")
 
     @app.post("/api/rooms/{room_id}/feedback", response_model=RoomView, responses=errors)
     async def final_feedback(room_id: UUID, body: PhaseCommand, member_session: authenticated):

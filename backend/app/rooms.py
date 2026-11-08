@@ -8,7 +8,7 @@ import secrets
 import time
 from uuid import UUID, uuid4
 
-from .rules import MINIMUM_TO_START, PRESENCE_WINDOW_SECONDS, ROOM_CAPACITY
+from .rules import valid_unicode, MINIMUM_TO_START, PRESENCE_WINDOW_SECONDS, ROOM_CAPACITY
 from .scenarios import Facts, PublicDocument, ScenarioCatalog
 from . import simulation as sim
 from . import gameplay
@@ -82,6 +82,8 @@ class ScenarioIdentity:
 class VisibleOption:
     option_id: str
     label: str
+    kind: str = "prepared"
+    member_id: UUID | None = None
 
 
 @dataclass(frozen=True)
@@ -137,6 +139,8 @@ class GameSnapshot:
     turns: tuple[sim.TurnRecord, ...]
     ceo_changes: tuple[sim.CeoChange, ...]
     ended_at: datetime | None
+    proposals: tuple[sim.Proposal, ...]
+    resolution: sim.Resolution | None
 
     @property
     def facts(self) -> dict:
@@ -201,6 +205,7 @@ class EvaluationEvidence:
     contributions: tuple[Contribution, ...]
     turns: tuple[sim.TurnRecord, ...]
     ceo_changes: tuple[sim.CeoChange, ...]
+    unresolved_action: sim.Resolution | None
 
 
 def active(seat: Seat, now: float) -> bool:
@@ -254,10 +259,11 @@ class Room:
             electorate = phase.electorate
             current = None
             if isinstance(state.phase, (sim.DecisionPhase, sim.ReadingPhase, sim.SpeakingPhase,
-                                        sim.DiscussionPhase, sim.VotingPhase, sim.TiePhase)):
+                                        sim.DiscussionPhase, sim.VotingPhase, sim.TiePhase,
+                                        sim.ResolvingPhase, sim.ResolutionFailedPhase)):
                 node = sim.current_node(state)
                 current = CurrentNode(node.node_id, node.title, sim.render(node.inject, state.facts),
-                                      node.study_questions, tuple(VisibleOption(option.option_id, option.label) for option in node.options))
+                                      node.study_questions, tuple(VisibleOption(option.option_id, option.label, option.kind, option.member_id) for option in gameplay.options(state)))
             actions = []
             if not isinstance(state.phase, sim.EndedPhase):
                 if caller.member_id == self.host_member_id:
@@ -269,6 +275,10 @@ class Room:
                         actions.append("skip_speaker")
                 if isinstance(state.phase, sim.VotingPhase) and caller.member_id in electorate:
                     actions.append("vote")
+                if isinstance(state.phase, (sim.SpeakingPhase, sim.DiscussionPhase)) and caller.member_id in electorate:
+                    actions.append("proposal")
+                if isinstance(state.phase, sim.ResolutionFailedPhase) and state.resolution.attempt < 2 and caller.member_id == self.host_member_id:
+                    actions.append("retry_resolution")
                 if isinstance(state.phase, sim.TiePhase):
                     if assignments[caller.member_id].role_id == "ceo":
                         actions.append("tie_decision")
@@ -290,7 +300,7 @@ class Room:
                 dict(state.ballots).get(caller.member_id),
                 None if isinstance(state.phase, sim.VotingPhase) else state.last_tally,
                 state.phase.leaders if isinstance(state.phase, sim.TiePhase) else (), tuple(actions),
-                state.turns, state.ceo_changes, state.ended_at,
+                state.turns, state.ceo_changes, state.ended_at, state.proposals, state.resolution,
             )
         members = []
         for seat in self.members.values():
@@ -379,11 +389,38 @@ class Rooms:
                     raise RoomError(409, "not_voting", "Voting is not open")
                 if caller.member_id not in group.electorate:
                     raise RoomError(403, "not_eligible", "Participation begins next round")
-                if value not in {option.option_id for option in sim.current_node(state).options}:
-                    raise RoomError(422, "invalid_option", "Choose a current prepared option")
+                if value not in {option.option_id for option in gameplay.options(state)}:
+                    raise RoomError(422, "invalid_option", "Choose a frozen current option")
                 ballots = dict(state.ballots)
                 ballots[caller.member_id] = value
                 state = replace(state, ballots=tuple(ballots.items()))
+            elif action == "proposal":
+                if not isinstance(phase, (sim.SpeakingPhase, sim.DiscussionPhase)):
+                    raise RoomError(409, "proposals_frozen", "Custom actions are editable only during speaking and discussion")
+                if caller.member_id not in group.electorate:
+                    raise RoomError(403, "not_eligible", "Participation begins next round")
+                if not isinstance(value, str) or not valid_unicode(value):
+                    raise RoomError(422, "invalid_proposal", "Submit custom action text")
+                previous = next((item for item in state.proposals if item.member_id == caller.member_id), None)
+                proposals = tuple(item for item in state.proposals if item.member_id != caller.member_id)
+                if value.strip():
+                    contribution = Contribution(uuid4(), len(room.contributions) + 1, caller.member_id,
+                        next(item.role_id for item in assignments if item.member_id == caller.member_id),
+                        phase.phase_id, phase.kind, state.round_id, state.round_number, state.node_id,
+                        "answer", "typed", value, utc_now())
+                    room.contributions += (contribution,)
+                    option_id = previous.option_id if previous else "custom_" + uuid4().hex
+                    proposals += (sim.Proposal(option_id, caller.member_id, value, contribution.contribution_id),)
+                state = replace(state, proposals=proposals)
+            elif action == "retry_resolution":
+                if caller.member_id != room.host_member_id:
+                    raise RoomError(403, "host_required", "Only the host can retry AI resolution")
+                if not isinstance(phase, sim.ResolutionFailedPhase) or state.resolution.attempt >= 2:
+                    raise RoomError(409, "retry_not_allowed", "One explicit retry is available after failure")
+                job = uuid4()
+                resolution = replace(state.resolution, job_id=job, attempt=state.resolution.attempt + 1,
+                                     status="pending", error=None, processed_fragments=0, total_fragments=0)
+                state = replace(state, phase=sim.ResolvingPhase(uuid4(), now + 15, job, resolution.attempt), resolution=resolution)
             elif action == "tie_decision":
                 if not isinstance(phase, sim.TiePhase):
                     raise RoomError(409, "not_tied", "There is no pending CEO decision")
@@ -628,7 +665,7 @@ class Rooms:
                 raise RoomError(409, "stale_phase", "Refresh the room before submitting")
             if kind not in {"answer", "chat"} or source not in {"typed", "speech"}:
                 raise RoomError(422, "invalid_contribution", "Choose an allowed contribution kind and source")
-            if not isinstance(text, str) or not text.strip() or len(text) > 4000:
+            if not isinstance(text, str) or not valid_unicode(text) or not text.strip() or len(text) > 4000:
                 raise RoomError(422, "invalid_contribution", "Submit 1 to 4000 characters of final text")
             if kind == "answer" and (state is None or not isinstance(state.phase, (sim.DecisionPhase, sim.SpeakingPhase, sim.DiscussionPhase)) or member.member_id not in game.electorate):
                 raise RoomError(403, "answer_not_allowed", "Answers require current round eligibility")
@@ -665,7 +702,8 @@ class Rooms:
                             for seat in room.members.values())
             return EvaluationEvidence(room.room_id, identity(state), state.started_at, state.ended_at,
                                       state.phase.ending_label, members, state.scenario.public_documents,
-                                      state.history, room.contributions, state.turns, state.ceo_changes)
+                                      state.history, room.contributions, state.turns, state.ceo_changes,
+                                      state.resolution if state.resolution is not None and state.resolution.status != "ready" else None)
 
     async def narration(self, session: str, room_id: UUID, narration_id: UUID) -> NarrationGrant:
         room = self.require_room(room_id)

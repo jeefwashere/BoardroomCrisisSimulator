@@ -1,0 +1,290 @@
+{
+  "mode": "three real browser pages and HTTP with controlled server clock",
+  "inputAudio": "explicitly synthetic spoken fixture through real browser MediaRecorder; physical microphone not tested",
+  "providers": "actual LFM3 and actual ElevenLabs STT/TTS",
+  "result": [
+    {
+      "phase": "ended",
+      "history": [
+        {
+          "kind": "custom",
+          "outcome": "targeted_containment",
+          "method": "ceo"
+        },
+        {
+          "kind": "prepared",
+          "outcome": "factual_update",
+          "method": "vote"
+        },
+        {
+          "kind": "prepared",
+          "outcome": "staged_recovery_plan",
+          "method": "vote"
+        }
+      ],
+      "members": 3,
+      "recordings": [
+        {
+          "status": "reviewed",
+          "member": "bb8ed47a-7051-414c-a490-28862a30cad7",
+          "round": 1,
+          "duration": 5.579,
+          "text": "We should preserve the evidence, restrict affected access, and communicate only verified facts"
+        },
+        {
+          "status": "reviewed",
+          "member": "8a853498-5b9e-4de6-bce9-5a43f2b86aed",
+          "round": 1,
+          "duration": 5.697,
+          "text": "We should preserve the evidence, restrict affected access, and communicate only verified facts."
+        },
+        {
+          "status": "reviewed",
+          "member": "54084108-a5c9-4ee6-b00f-d86365e07aa3",
+          "round": 1,
+          "duration": 5.697,
+          "text": "We should preserve the evidence, restrict affected access, and communicate only verified facts"
+        },
+        {
+          "status": "reviewed",
+          "member": "bb8ed47a-7051-414c-a490-28862a30cad7",
+          "round": 2,
+          "duration": 5.697,
+          "text": "We should preserve the evidence, restrict affected access, and communicate only verified facts."
+        },
+        {
+          "status": "reviewed",
+          "member": "8a853498-5b9e-4de6-bce9-5a43f2b86aed",
+          "round": 2,
+          "duration": 5.697,
+          "text": "We should preserve the evidence, restrict affected access, and communicate only verified facts"
+        },
+        {
+          "status": "reviewed",
+          "member": "54084108-a5c9-4ee6-b00f-d86365e07aa3",
+          "round": 2,
+          "duration": 5.697,
+          "text": "We should preserve the evidence, restrict affected access, and communicate only verified facts."
+        },
+        {
+          "status": "reviewed",
+          "member": "bb8ed47a-7051-414c-a490-28862a30cad7",
+          "round": 3,
+          "duration": 5.697,
+          "text": "We should preserve the evidence, restrict affected access, and communicate only verified facts."
+        },
+        {
+          "status": "reviewed",
+          "member": "8a853498-5b9e-4de6-bce9-5a43f2b86aed",
+          "round": 3,
+          "duration": 5.697,
+          "text": "We should preserve the evidence, restrict affected access, and communicate only verified facts."
+        },
+        {
+          "status": "reviewed",
+          "member": "54084108-a5c9-4ee6-b00f-d86365e07aa3",
+          "round": 3,
+          "duration": 5.697,
+          "text": "We should preserve the evidence, restrict affected access, and communicate only verified facts"
+        }
+      ],
+      "feedback": {
+        "status": "ready",
+        "text": "Committed decisions: 3. Ending: controlled_recovery_plan.\nRound 1: Isolate affected finance devices, suspend the suspicious account, preserve available logs, and appoint an incident lead while keeping separate services monitored.. The investigation boundary narrows. At least 160 customer records were exported before access was suspended. The incident is still under investigation.\nRound 2: Publish a limited factual notice about service disruption and the data investigation, commit to another update in 30 simulated minutes, and assign privacy coordination.. Customers receive an accurate limited update with accountable follow through. The verified export count does not change.\nRound 3: Begin staged recovery in a validated environment, address compromised access, use the limited manual process, and move the promotion with an owned recovery plan.. A controlled recovery plan is authorized with reduced near term capacity. Recovery is still in progress, not proven complete.\n\nAI identified strengths, with quoted evidence:\nFactual accuracy and visible uncertainty: \"Publish a limited factual notice about service disrupti\" [Team, round 2 decision]\nProportionate containment based on stated dependencies: \"Isolate affected finance devices, suspend the suspiciou\" [Alice, round 1 answer]\nProportionate containment based on stated dependencies: \"Round 1: preserve available evidence, name an accountab\" [Bob, round 1 answer]\nProportionate containment based on stated dependencies: \"Round 1: preserve available evidence, name an accountab\" [Casey, round 1 answer]\nFactual accuracy and visible uncertainty: \"Round 2: preserve available evidence, name an accountab\" [Alice, round 2 answer]\nFactual accuracy and visible uncertainty: \"Round 2: preserve available evidence, name an accountab\" [Bob, round 2 answer]\nValidation and access risk before restoration: \"Round 3: preserve available evidence, name an accountab\" [Alice, round 3 answer]\nValidation and access risk before restoration: \"Round 3: preserve available evidence, name an accountab\" [Bob, round 3 answer]\nValidation and access risk before restoration: \"Round 3: preserve available evidence, name an accountab\" [Casey, round 3 answer]\nFactual accuracy and visible uncertainty: \"We should preserve the evidence, restrict affected acce\" [Alice, round 2 reviewed speech]\nFactual accuracy and visible uncertainty: \"We should preserve the evidence, restrict affected acce\" [Bob, round 2 reviewed speech]\nFactual accuracy and visible uncertainty: \"We should preserve the evidence, restrict affected acce\" [Casey, round 2 reviewed speech]\nValidation and access risk before restoration: \"We should preserve the evidence, restrict affected acce\" [Alice, round 3 reviewed speech]\nValidation and access risk before restoration: \"We should preserve the evidence, restrict affected acce\" [Bob, round 3 reviewed speech]\nValidation and access risk before restoration: \"We should preserve the evidence, restrict affected acce\" [Casey, round 3 reviewed speech]\n\nRisks and suggested improvements:\nClarify proportionate containment based on stated dependencies. [Team, round 1 decision]\nClarify validation and access risk before restoration. [Team, round 3 decision]\nClarify proportionate containment based on stated dependencies. [Alice, round 1 answer]\nClarify factual accuracy and visible uncertainty. [Casey, round 2 answer]\nClarify proportionate containment based on stated dependencies. [Alice, round 1 reviewed speech]\nClarify proportionate containment based on stated dependencies. [Bob, round 1 reviewed speech]\nClarify proportionate containment based on stated dependencies. [Casey, round 1 reviewed speech]\n\nThese are qualitative rubric assessments linked to exact captured evidence, not numerical scores or verified personal traits.",
+        "error": null,
+        "completed_parts": 8,
+        "total_parts": 8,
+        "evidence_refs": [
+          {
+            "id": "decision:c9b7fdd8-caad-46bb-85e2-d63e4b9ca915",
+            "label": "Team, round 1 decision",
+            "assessment": "clarify",
+            "criterion": "Proportionate containment based on stated dependencies",
+            "quote": "",
+            "fragment": 1
+          },
+          {
+            "id": "decision:0c1f95e2-deb2-417c-bf48-76cbcc27455d",
+            "label": "Team, round 2 decision",
+            "assessment": "supported",
+            "criterion": "Factual accuracy and visible uncertainty",
+            "quote": "Publish a limited factual notice about service disrupti",
+            "fragment": 1
+          },
+          {
+            "id": "decision:98458d71-ca1e-473e-a39a-17ff1fc44e4f",
+            "label": "Team, round 3 decision",
+            "assessment": "clarify",
+            "criterion": "Validation and access risk before restoration",
+            "quote": "",
+            "fragment": 1
+          },
+          {
+            "id": "contribution:0997f770-05b5-4477-a910-7c6d7b07e4df",
+            "label": "Alice, round 1 answer",
+            "assessment": "clarify",
+            "criterion": "Proportionate containment based on stated dependencies",
+            "quote": "",
+            "fragment": 1
+          },
+          {
+            "id": "contribution:a0aaa7ae-462f-4cdb-9dd4-99bccc95eaf5",
+            "label": "Alice, round 1 answer",
+            "assessment": "supported",
+            "criterion": "Proportionate containment based on stated dependencies",
+            "quote": "Isolate affected finance devices, suspend the suspiciou",
+            "fragment": 1
+          },
+          {
+            "id": "contribution:5c32722f-4e46-46f8-992f-4252199ee6b0",
+            "label": "Bob, round 1 answer",
+            "assessment": "supported",
+            "criterion": "Proportionate containment based on stated dependencies",
+            "quote": "Round 1: preserve available evidence, name an accountab",
+            "fragment": 1
+          },
+          {
+            "id": "contribution:4a61ebea-502d-4c92-90fd-4bbfd42c7fb1",
+            "label": "Casey, round 1 answer",
+            "assessment": "supported",
+            "criterion": "Proportionate containment based on stated dependencies",
+            "quote": "Round 1: preserve available evidence, name an accountab",
+            "fragment": 1
+          },
+          {
+            "id": "contribution:cd73e2dc-ca0f-41d0-ad38-cc1005c1d3a5",
+            "label": "Alice, round 2 answer",
+            "assessment": "supported",
+            "criterion": "Factual accuracy and visible uncertainty",
+            "quote": "Round 2: preserve available evidence, name an accountab",
+            "fragment": 1
+          },
+          {
+            "id": "contribution:e91ec9ae-b48d-459f-bf0e-cd75ca37ba63",
+            "label": "Bob, round 2 answer",
+            "assessment": "supported",
+            "criterion": "Factual accuracy and visible uncertainty",
+            "quote": "Round 2: preserve available evidence, name an accountab",
+            "fragment": 1
+          },
+          {
+            "id": "contribution:fef8cef9-7510-44d6-82b7-34a8cac24c9b",
+            "label": "Casey, round 2 answer",
+            "assessment": "clarify",
+            "criterion": "Factual accuracy and visible uncertainty",
+            "quote": "",
+            "fragment": 1
+          },
+          {
+            "id": "contribution:97322a16-73b2-4570-89fb-1fe868c394f3",
+            "label": "Alice, round 3 answer",
+            "assessment": "supported",
+            "criterion": "Validation and access risk before restoration",
+            "quote": "Round 3: preserve available evidence, name an accountab",
+            "fragment": 1
+          },
+          {
+            "id": "contribution:4a913d87-36f4-47ee-a931-f168bb16d812",
+            "label": "Bob, round 3 answer",
+            "assessment": "supported",
+            "criterion": "Validation and access risk before restoration",
+            "quote": "Round 3: preserve available evidence, name an accountab",
+            "fragment": 1
+          },
+          {
+            "id": "contribution:954a4554-39a1-4f0a-a700-54b377332aab",
+            "label": "Casey, round 3 answer",
+            "assessment": "supported",
+            "criterion": "Validation and access risk before restoration",
+            "quote": "Round 3: preserve available evidence, name an accountab",
+            "fragment": 1
+          },
+          {
+            "id": "recording:13d69cae-8f8c-401a-8fe5-5b7c259ff307",
+            "label": "Alice, round 1 reviewed speech",
+            "assessment": "clarify",
+            "criterion": "Proportionate containment based on stated dependencies",
+            "quote": "",
+            "fragment": 1
+          },
+          {
+            "id": "recording:06bfcc4c-9e18-4ecd-8bc3-b1bec38eabb4",
+            "label": "Bob, round 1 reviewed speech",
+            "assessment": "clarify",
+            "criterion": "Proportionate containment based on stated dependencies",
+            "quote": "",
+            "fragment": 1
+          },
+          {
+            "id": "recording:a1a46abc-d4f4-411d-9fe3-3ed2a19857db",
+            "label": "Casey, round 1 reviewed speech",
+            "assessment": "clarify",
+            "criterion": "Proportionate containment based on stated dependencies",
+            "quote": "",
+            "fragment": 1
+          },
+          {
+            "id": "recording:2d98676b-f8f8-424c-8aa2-6e3da8a747cb",
+            "label": "Alice, round 2 reviewed speech",
+            "assessment": "supported",
+            "criterion": "Factual accuracy and visible uncertainty",
+            "quote": "We should preserve the evidence, restrict affected acce",
+            "fragment": 1
+          },
+          {
+            "id": "recording:3847253a-3ec2-4687-b292-a941a764983e",
+            "label": "Bob, round 2 reviewed speech",
+            "assessment": "supported",
+            "criterion": "Factual accuracy and visible uncertainty",
+            "quote": "We should preserve the evidence, restrict affected acce",
+            "fragment": 1
+          },
+          {
+            "id": "recording:4e3593f9-82fa-4b93-8af2-33c8616ff3ad",
+            "label": "Casey, round 2 reviewed speech",
+            "assessment": "supported",
+            "criterion": "Factual accuracy and visible uncertainty",
+            "quote": "We should preserve the evidence, restrict affected acce",
+            "fragment": 1
+          },
+          {
+            "id": "recording:9bf42655-73ab-4197-9ea7-2ca97d6a966e",
+            "label": "Alice, round 3 reviewed speech",
+            "assessment": "supported",
+            "criterion": "Validation and access risk before restoration",
+            "quote": "We should preserve the evidence, restrict affected acce",
+            "fragment": 1
+          },
+          {
+            "id": "recording:09c36cd0-e1fa-45b0-b2fb-c06c8f6beae2",
+            "label": "Bob, round 3 reviewed speech",
+            "assessment": "supported",
+            "criterion": "Validation and access risk before restoration",
+            "quote": "We should preserve the evidence, restrict affected acce",
+            "fragment": 1
+          },
+          {
+            "id": "recording:f20ec0b2-1631-4fce-8085-5d01fb463f42",
+            "label": "Casey, round 3 reviewed speech",
+            "assessment": "supported",
+            "criterion": "Validation and access risk before restoration",
+            "quote": "We should preserve the evidence, restrict affected acce",
+            "fragment": 1
+          }
+        ]
+      },
+      "narration_deliveries": {
+        "c9b7fdd8-caad-46bb-85e2-d63e4b9ca915": [
+          {
+            "member": "bb8ed47a-7051-414c-a490-28862a30cad7",
+            "event": "started"
+          },
+          {
+            "member": "bb8ed47a-7051-414c-a490-28862a30cad7",
+            "event": "completed"
+          }
+        ]
+      }
+    }
+  ]
+}

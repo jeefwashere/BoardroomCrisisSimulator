@@ -17,8 +17,9 @@ class Provider:
     def __init__(self): self.prompts = []
     async def run(self, prompt, request_id, timeout):
         self.prompts.append(prompt)
-        identity = re.findall(r'"id": "([^\"]+)"', prompt)[0]
-        return json.dumps({'observations': [{'evidence_ids': [identity], 'text': 'Which evidence would verify this action?' }]})
+        rows = json.loads(prompt.split('\nEVIDENCE\n')[1])
+        return '\n'.join(f"{row['id']}|{next(iter(row['rubric']))}|supported" for row in rows)
+
 
 
 class FeedbackTests(unittest.IsolatedAsyncioTestCase):
@@ -118,6 +119,42 @@ class FeedbackTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result[0]['evidence_ids'], ['E1'])
         with self.assertRaises(ValueError):
             parse_observations('{"observations":[{"evidence_ids":["E1"],"text":"truncated', {'E1'})
+
+    async def test_assessment_cites_the_entire_classified_excerpt_not_an_unselected_prefix(self):
+        text = 'The opening only describes timing. Later, preserve all available logs and name an incident owner.'
+        session = await self.ended(text)
+        await self.feedback.start(session, self.room_id)
+        result = await self.wait()
+        self.assertEqual(result['status'], 'ready')
+        self.assertEqual(result['evidence_refs'][0]['quote'], text)
+        self.assertIn('Later, preserve', result['evidence_refs'][0]['quote'])
+
+    async def test_result_chat_uses_released_facts_and_lobby_uses_initial_context(self):
+        from uuid import UUID
+        clients = [await self.client() for _ in range(3)]
+        made = await clients[0].post('/api/rooms', json=fixture.command(room_code='CTX001', display_name='Host'))
+        room = made.json(); self.path = '/api/rooms/' + room['room_id']; self.room_id = UUID(room['room_id'])
+        ids = [room['self_member_id']]
+        for index in (1,2):
+            joined = await clients[index].post('/api/rooms/join', json=fixture.command(room_code='CTX001', display_name=f'Guest {index}'))
+            ids.append(joined.json()['self_member_id'])
+        self.clients, self.ids = clients, ids
+        await clients[0].post(self.path + '/contributions', json=fixture.command(phase_id=None, kind='chat', source='typed', text='LOBBY_CONTEXT'))
+        started = await clients[0].post(self.path + '/start', json=fixture.command(room_code='CTX001', scenario_id='maplecart_cybersecurity', scenario_version=3, timing_profile='standard_18', players=[{'member_id': value, 'role_id': 'ceo' if index==1 else 'security'} for index,value in enumerate(ids)]))
+        self.assertEqual(started.status_code, 200, started.text)
+        voting = await self.reach('voting')
+        await self.action(0,voting,'vote',option_id='contain_targeted')
+        result = await self.advance(60)
+        await clients[0].post(self.path + '/contributions',json=fixture.command(phase_id=result['game']['phase_id'],kind='chat',source='typed',text='RESULT_CONTEXT:160 records exported'))
+        await clients[0].post(self.path + '/end',json=fixture.command(phase_id=result['game']['phase_id']))
+        await self.feedback.start(clients[0].headers['X-Boardroom-Session'],self.room_id)
+        complete = await self.wait()
+        self.assertEqual(complete['status'],'ready')
+        rows = [row for prompt in self.provider.prompts for row in json.loads(prompt.split('\nEVIDENCE\n')[1])]
+        lobby = next(row for row in rows if row['text']=='LOBBY_CONTEXT')
+        after = next(row for row in rows if row['text'].startswith('RESULT_CONTEXT'))
+        self.assertEqual(lobby['facts_known']['verified_export_records'],0)
+        self.assertEqual(after['facts_known']['verified_export_records'],160)
 
 
 if __name__ == '__main__': unittest.main()

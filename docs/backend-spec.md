@@ -10,7 +10,7 @@ Confirmed: a multiplayer crisis simulation with entry by room code and display n
 
 Proposed architecture: one FastAPI service maintains authoritative room state, accepts actions over HTTP, and synchronizes screens through WebSocket connections. Scenarios, choices, and prepared consequences use versioned scenario data. AI evaluates the winning custom action and returns an allowed outcome. Basic refresh and reconnect recovery are included; database recovery and server restart recovery remain later options.
 
-Remaining custom action and scoring policies are marked Proposed. Speaking allocation, scenario timing, replaceable hidden ballots, CEO absence and total expiry precedence are accepted for the current prepared backend delivery in the gameplay contract. The AI and speech provider choices are now selected in [ai-architecture.md](ai-architecture.md). The team can select its delivery scope from this document's function catalog.
+Custom policies are now selected in the current gameplay contract; historical Proposed descriptions below are superseded by that contract. Speaking allocation, scenario timing, replaceable hidden ballots, CEO absence and total expiry precedence are accepted for the current prepared backend delivery in the gameplay contract. The AI and speech provider choices are now selected in [ai-architecture.md](ai-architecture.md). The team can select its delivery scope from this document's function catalog.
 
 ## 2. Evidence and decision status
 
@@ -39,7 +39,7 @@ Confirmed means selected in the user's latest discussion. Proposed means an arch
 21. Confirmed update: this unit implements the internally verified narrative engine first. Nonterminal consequences use a 30 second presentation guard; terminal consequences end immediately. Display what happened as text, then narrate that same committed text. Real media calls remain subject to the existing speech budget rule.
 22. Confirmed update: record every participant during their own speaking turn and transcribe through backend ElevenLabs integration while the game is ongoing. Store both the original recording and its transcript, linked to the authenticated member, room, round, speaking turn, and timestamps. The end screen shows the accumulated records and supplies them to the later AI evaluator. This is a recorded requirement; microphone capture, production transcription, original audio storage, and the end screen are not implemented in the narrative foundation.
 
-The implemented registration contract is documented in [room-api.md](room-api.md), with scenario admission, batch roles, Start, and next round eligibility in [start-api.md](start-api.md). The prepared backend game flow is implemented in the gameplay update. The complete custom action, media and AI experience remains unfinished.
+The implemented registration contract is documented in [room-api.md](room-api.md), with scenario admission, batch roles, Start, and next round eligibility in [start-api.md](start-api.md). The prepared backend game flow is implemented in the gameplay update. The custom action, media and qualitative final assessment software is implemented and verified as described in full-game-integration.md; shared deployment remains separate.
 
 At the initial design review, remote `main` contained only the initial README and `.gitignore`. Existing story scripts had not been located in the repository. This specification defines their required shape without inventing their contents.
 
@@ -50,7 +50,7 @@ At the initial design review, remote `main` contained only the initial README an
 3. Players choose roles in Jeff's lobby. The host submits the final selections together when clicking Start. The initial implementation requires exactly one CEO before start. The host and CEO are separate permissions, even if one person holds both.
 4. Starting validates the scenario, CEO, settings, and 3 to 30 connected members. The scenario version is fixed for this session. New participants may join after start; their speaking and voting eligibility begins with the next round. A selected scenario may begin with a timed public briefing.
 5. Each round presents the current situation and public materials with its own reading period before timed discussion. The backend then announces one speaker at a time and the speaker deadline, within the selected discussion budget.
-6. Players can submit a custom action during speaking. Prepared choices remain available. Proposed: one editable custom proposal per player, with a maximum of 1,000 characters. At most 30 custom proposals therefore enter a round.
+6. Players can submit a custom action during speaking. Prepared choices remain available. Confirmed: one editable custom proposal per eligible player during speaking or discussion, with no product character limit and freezing at voting. At most 30 custom proposals therefore enter a round.
 7. When speaking finishes, the backend freezes the choices and opens a 60 second vote.
 8. At the deadline, the backend resolves the most voted option, or requests a CEO decision among the tied leaders.
 9. A prepared winner applies its authored consequence. A custom winner goes to the AI deciding operation, which evaluates it against the scenario and maps it to an allowed authored outcome.
@@ -134,7 +134,7 @@ The deciding agent is a bounded backend operation, not an independent process wi
 
 1. Collect custom proposals during speaking. Validate author membership, phase, length, and proposal limit on the server. Freeze the text before voting begins.
 2. Keep prepared and custom options distinguishable in the public contract. A custom option has no authored consequence until it has been evaluated.
-3. Proposed: evaluate only the winning custom action. This avoids one AI call for every submitted idea. Prepared actions use their predefined consequence and can receive an explanation in the final debrief.
+3. Confirmed: evaluate only the winning custom action. This avoids one AI call for every submitted idea. Prepared actions use their predefined consequence and can receive an explanation in the final debrief.
 4. Input includes the pinned scenario version, current node, committed narrative facts, selected text, relevant decision history, and authored rubric.
 5. Proposed output: `outcome_id`, rubric assessments, explanation, and narrative text. The chosen outcome must belong to the current node's allowed outcome set.
 6. The backend applies the fact updates and next node belonging to that outcome. AI cannot rewrite unrelated facts, invent a next node, alter votes, assign roles, or modify session deadlines.
@@ -143,7 +143,7 @@ The deciding agent is a bounded backend operation, not an independent process wi
 9. If output is invalid or unavailable, preserve the voted action as unresolved. Do not silently turn it into a prepared answer or award invented scores. The team may retry within the remaining time or end with an incomplete evaluation.
 10. The final feedback operation receives all individual answers, chats, reviewed speech transcripts, committed decisions, and explicitly unresolved actions, with member and round attribution. Unselected answers are retained. It returns a summary, strengths, risks, and suggested improvements. A deterministic history summary is the fallback.
 
-Mapping custom actions into a finite authored outcome set is a recommendation. It makes the existing prepared paths consistent, but limits novel consequences. Fully dynamic story generation is a larger alternative the team may choose separately.
+Mapping custom actions into a finite authored outcome set is the accepted implementation policy. It makes the existing prepared paths consistent, but limits novel consequences. Fully dynamic story generation is a larger alternative the team may choose separately.
 
 ## 9. End conditions and deadline precedence
 
@@ -215,3 +215,7 @@ The team still chooses the actual scenario content and document topics, complete
 The product requirements come from the user's written answers and latest voice discussion, with the earlier [shared ChatGPT conversation](https://chatgpt.com/share/6aef6dba-c374-83ea-84ab-a9f4de9925ed) providing project context. Recommendations are the architect's proposals. Framework facts are supported beside their relevant claims by official documentation.
 
 The current internal narrative engine, evidence export, and narration integration are documented in [narrative-engine.md](narrative-engine.md). Its trusted integration driver is not a public substitute for normal voting.
+
+## Current selected runtime contract
+
+The user accepted winner only custom mapping to authored outcomes, a 15 second whole operation timeout, visible failure and one host retry. All custom text is retained; provider partitioning does not truncate it. Qualitative rubric feedback assesses all captured decisions, contributions and reviewed speech with exact evidence excerpts. The user authorized USD 100 for paid voice tests. Actual real provider acceptance used synthetic spoken MediaStream input, without claiming physical microphone verification. Historical unverified descriptions above describe earlier milestones; the current evidence and remaining deployment boundary are in [full game integration](full-game-integration.md).

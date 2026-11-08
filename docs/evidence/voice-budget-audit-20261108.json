@@ -1,0 +1,22 @@
+{
+  "authorized_cap_usd": 100,
+  "local_estimated_reserved_usd": 0.07650666666666667,
+  "within_authorized_estimate": true,
+  "operations": [
+    {
+      "operation": "stt",
+      "reservations": 10,
+      "estimated_reserved_usd": 0.06666666666666667
+    },
+    {
+      "operation": "tts",
+      "reservations": 2,
+      "estimated_reserved_usd": 0.009840000000000002
+    }
+  ],
+  "provider_credit_count_after": 736,
+  "provider_credit_limit": 133917,
+  "overage_extension_enabled": false,
+  "exact_billed_usd": "Not exposed by per request API; estimates are not a billing receipt",
+  "synthetic_fixture_only": true
+}

@@ -18,6 +18,7 @@ from uuid import UUID, uuid4
 from .rooms import RoomError, Rooms, StartedGame
 from . import simulation as sim
 from . import gameplay
+from .rules import valid_unicode
 
 MAX_BYTES = 10_000_000
 MIMES = {'audio/webm', 'audio/ogg', 'audio/mp4', 'audio/wav', 'audio/x-wav'}
@@ -215,7 +216,7 @@ class Recordings:
     async def _transcribe(self, item, raw):
         try:
             text = await asyncio.to_thread(self.transcriber, raw, item.mime_type)
-            if not isinstance(text, str) or not text.strip() or len(text) > 12000:
+            if not isinstance(text, str) or not valid_unicode(text) or not text.strip() or len(text) > 12000:
                 raise ValueError('Invalid transcript')
             item.transcript, item.status = text, 'review_required'
         except Exception:
@@ -223,7 +224,7 @@ class Recordings:
 
     async def review(self, session, room_id, recording_id, text):
         item = self.require(session, room_id, recording_id, own=True)
-        if not isinstance(text, str) or not 0 < len(text.strip()) <= 12000:
+        if not isinstance(text, str) or not valid_unicode(text) or not 0 < len(text.strip()) <= 12000:
             raise RoomError(422, 'invalid_transcript', 'Review 1 to 12000 characters')
         if item.reviewed_text is not None:
             if item.reviewed_text != text:

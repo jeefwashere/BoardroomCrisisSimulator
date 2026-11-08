@@ -26,7 +26,7 @@ def command(**fields):
     return {'command_id': str(uuid4()), **fields}
 
 
-def run(output: Path, model_env: Path | None = None):
+def run(output: Path, model_env: Path | None = None, custom_first: bool = False):
     if model_env is not None:
         from rehearsal.adapters import load_env
         load_env(model_env)
@@ -113,6 +113,10 @@ def run(output: Path, model_env: Path | None = None):
                 checked(value.post(path + '/contributions', json=command(
                     phase_id=speaking['game']['phase_id'], kind='answer', source='typed',
                     text=f'Round {round_number} participant {index} evidence.')), 201)
+            if round_number == 1 and custom_first:
+                proposed = checked(clients[0].post(path + '/rounds/' + speaking['game']['round_id'] + '/proposal',
+                    json=command(phase_id=speaking['game']['phase_id'], text='Isolate affected finance devices and suspend the suspicious account while preserving available logs and appointing an incident lead.')))
+                custom_id = proposed['game']['proposals'][0]['option_id']
             if round_number == 1:
                 # Late admission remains outside the first electorate.
                 newcomer = client()
@@ -123,17 +127,32 @@ def run(output: Path, model_env: Path | None = None):
             voting = reach('voting')
             options = voting['game']['current_node']['options']
             if round_number == 1:
-                first = action(clients[0], voting, 'vote', option_id=options[0]['option_id'])
+                first = action(clients[0], voting, 'vote', option_id=custom_id if custom_first else options[0]['option_id'])
                 action(clients[1], voting, 'vote', option_id=options[1]['option_id'])
                 assert first['game']['vote_counts'] is None
                 resumed = client(clients[0].headers[SESSION_HEADER])
                 recovered = checked(resumed.get(path))
                 assert recovered['self_member_id'] == ids[0]
-                assert recovered['game']['self_vote'] == options[0]['option_id']
+                assert recovered['game']['self_vote'] == (custom_id if custom_first else options[0]['option_id'])
                 assert len(recovered['members']) == 4
                 tied = advance(60)
                 assert tied['phase'] == 'tie_break'
-                result = action(clients[1], tied, 'tie-decision', option_id=options[0]['option_id'])
+                result = action(clients[1], tied, 'tie-decision', option_id=custom_id if custom_first else options[0]['option_id'])
+                if custom_first:
+                    for _ in range(200):
+                        result = view()
+                        if result['phase'] != 'resolving': break
+                        time.sleep(.1)
+                    if result['phase'] == 'resolution_failed' and result['game']['resolution']['attempt'] == 1:
+                        action(clients[0], result, 'resolution/retry')
+                        for _ in range(200):
+                            result = view()
+                            if result['phase'] != 'resolving': break
+                            time.sleep(.1)
+                    if result['phase'] != 'result':
+                        Path('artifacts/failed-custom-resolution.json').write_text(json.dumps({str(key): value for key, value in app.state.resolver.traces.items()}, indent=2))
+                    assert result['phase'] == 'result', result
+                    assert result['game']['last_result']['resolution_kind'] == 'custom'
             else:
                 assert late_id in voting['game']['eligible_member_ids']
                 # First client and its resumed connection remain one voter.
@@ -148,7 +167,7 @@ def run(output: Path, model_env: Path | None = None):
         final = view()
         evidence = checked(clients[0].get(path + '/evaluation-evidence'))
         assert len(evidence['decisions']) == 3
-        assert len(evidence['contributions']) == 9
+        assert len(evidence['contributions']) == (10 if custom_first else 9)
         assert len(evidence['turns']) == 11
         assert versions == sorted(versions)
         original = evidence
@@ -158,7 +177,7 @@ def run(output: Path, model_env: Path | None = None):
             'mode': 'real_loopback_http_with_controlled_server_clock',
             'provider_calls': 0, 'distinct_members': 4, 'resumed_member_preserved': True,
             'phases': trace, 'decisions': len(evidence['decisions']),
-            'retained_contributions': len(evidence['contributions']),
+            'retained_contributions': len(evidence['contributions']), 'custom_winner': custom_first,
             'recorded_speaking_turns': len(evidence['turns']), 'ending': final['game']['ending_label'],
             'monotonic_snapshot_versions': True, 'final_evidence_frozen': True,
             'boundary': 'HTTP backend acceptance only. No browser UI, microphone, paid speech or live model.',
@@ -196,5 +215,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--output', type=Path, default=Path('artifacts/gameplay-http.json'))
     parser.add_argument('--model-env', type=Path, help='Explicit backend model environment file for a live LFM feedback check')
+    parser.add_argument('--custom-first', action='store_true', help='Include a real custom winning action and CEO tie')
     args = parser.parse_args()
-    run(args.output, args.model_env)
+    run(args.output, args.model_env, args.custom_first)

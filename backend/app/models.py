@@ -109,6 +109,8 @@ class ScenarioView(ScenarioRef):
 class VisibleOptionView(View):
     option_id: str
     label: str
+    kind: Literal["prepared", "custom"] = "prepared"
+    member_id: UUID | None = None
 
 
 class CurrentNodeView(View):
@@ -130,7 +132,7 @@ class DecisionView(View):
     question: str
     selected_option_id: str | None
     selected_option_label: str | None
-    resolution_kind: Literal["prepared", "no_decision"]
+    resolution_kind: Literal["prepared", "no_decision", "custom"]
     outcome_id: str
     text: str
     facts_before: dict[str, FactValue] = Field(validation_alias="facts_before_view")
@@ -139,6 +141,30 @@ class DecisionView(View):
     resolved_at: datetime
     vote_counts: dict[str, int] = Field(validation_alias="vote_counts_view")
     selection_method: str
+    ai_job_id: UUID | None = None
+    ai_attempt: int | None = None
+    proposer_id: UUID | None = None
+
+
+class ProposalView(View):
+    option_id: str
+    member_id: UUID
+    text: str
+    contribution_id: UUID
+
+
+class ResolutionView(View):
+    job_id: UUID
+    attempt: int
+    option_id: str
+    member_id: UUID
+    text: str
+    text_sha256: str
+    selection_method: str
+    status: str
+    error: str | None
+    processed_fragments: int
+    total_fragments: int
 
 
 class TurnView(View):
@@ -196,6 +222,8 @@ class GameView(View):
     ceo_changes: list[CeoChangeView]
     ended_at: datetime | None
     feedback: dict[str, Any] | None = None
+    proposals: list[ProposalView] = Field(default_factory=list)
+    resolution: ResolutionView | None = None
 
 
 class RoomFields(View):
@@ -215,7 +243,7 @@ class LobbyRoomView(RoomFields):
 
 
 class StartedRoomView(RoomFields):
-    phase: Literal["briefing", "reading", "speaking", "discussion", "voting", "tie_break", "decision", "result", "ended"]
+    phase: Literal["briefing", "reading", "speaking", "discussion", "voting", "tie_break", "resolving", "resolution_failed", "decision", "result", "ended"]
     game: GameView
 
 
@@ -305,6 +333,7 @@ class EvaluationEvidenceView(View):
     turns: list[TurnView]
     ceo_changes: list[CeoChangeView]
     recordings: list[RecordingView] = Field(default_factory=list)
+    unresolved_action: ResolutionView | None = None
 
 
 class PhaseCommand(BaseModel):
@@ -330,6 +359,10 @@ class SkipCommand(PhaseCommand):
 
 class CeoCommand(PhaseCommand):
     member_id: UUID
+
+
+class ProposalCommand(PhaseCommand):
+    text: str
 
 
 class BeginRecording(PhaseCommand):

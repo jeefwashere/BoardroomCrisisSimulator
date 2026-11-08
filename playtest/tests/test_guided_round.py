@@ -58,7 +58,12 @@ class GuidedRoundTests(unittest.TestCase):
                 self.assertTrue(call('decision-prompt/audio').content)
                 call('decision-prompt/stop',data={})
                 self.assertEqual(len(call('state').json()['transcript']),3)
+                out_of_turn=client.post('/api/roundtable/command/vote_option',headers={'Authorization':'Bearer '+seats[2]['token']},json={'command_id':uuid.uuid4().hex,'decision_id':decision['id'],'option_id':'controlled_continuity'})
+                self.assertEqual(out_of_turn.status_code,403)
+                self.assertEqual(call('state').json()['decisions'][0]['ballot_count'],0)
                 for who,option in enumerate(['controlled_continuity','controlled_continuity','technical_first']):
+                    before=call('state',who).json()
+                    self.assertEqual(before['decisions'][0]['next_voter'],before['me'])
                     command('vote_option',who,decision_id=decision['id'],option_id=option)
                 committed=command('commit_decision',decision_id=decision['id'])['decisions'][0]
                 self.assertEqual(committed['option_id'],'controlled_continuity')

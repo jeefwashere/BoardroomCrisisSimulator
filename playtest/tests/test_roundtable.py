@@ -97,12 +97,12 @@ class RoundtableTests(unittest.TestCase):
         with self.assertRaises(RuleError):
             self.command('vote_decision', {'decision_id': decision, 'choice': 'approve'})
         self.command('vote_option', {'decision_id': decision, 'option_id': 'wait_for_director',
-                                    'member': self.ids[2]}, 1)
+                                    'member': self.ids[2]}, 0)
         state = self.engine.snapshot(self.tokens[0])
-        self.assertEqual(state['decisions'][0]['voted_members'], [self.ids[1]])
+        self.assertEqual(state['decisions'][0]['voted_members'], [self.ids[0]])
         self.assertEqual(state['decisions'][0]['ballot_count'], 1)
         self.assertNotIn('votes', state['decisions'][0])
-        self.assertIsNone(state['decisions'][0]['my_vote'])
+        self.assertEqual(state['decisions'][0]['my_vote'], 'wait_for_director')
         with self.assertRaises(RuleError):
             self.command('commit_decision', {'decision_id': decision})
         self.option_ballots(decision, ['controlled_continuity', 'controlled_continuity', 'technical_first'])
@@ -126,6 +126,29 @@ class RoundtableTests(unittest.TestCase):
             self.command('commit_decision', {'decision_id': decision})
         self.assertEqual(self.command('end')['phase'], 'ended')
         self.assertEqual(len(self.engine.snapshot(self.tokens[0])['history']), 1)
+
+    def test_each_first_ballot_is_requested_in_order_without_skipping(self):
+        decision=self.fixed_decision()
+        snapshot=lambda:self.engine.snapshot(self.tokens[0])['decisions'][0]
+        self.assertEqual(snapshot()['next_voter'],self.ids[0])
+        self.assertEqual(snapshot()['waiting_members'],self.ids)
+        for who in (1,2):
+            with self.assertRaises(RuleError) as error:
+                self.command('vote_option',{'decision_id':decision,'option_id':'controlled_continuity'},who)
+            self.assertEqual(error.exception.status,403)
+        self.assertEqual(snapshot()['ballot_count'],0)
+        self.command('vote_option',{'decision_id':decision,'option_id':'controlled_continuity'})
+        self.assertEqual(snapshot()['next_voter'],self.ids[1])
+        # An offline participant is still owed their own vote, never skipped or replaced.
+        self.command('leave',who=1)
+        self.assertEqual(snapshot()['next_voter'],self.ids[1])
+        self.command('vote_option',{'decision_id':decision,'option_id':'technical_first'},1)
+        self.assertEqual(snapshot()['next_voter'],self.ids[2])
+        self.command('vote_option',{'decision_id':decision,'option_id':'technical_first'},0)
+        self.assertEqual(snapshot()['next_voter'],self.ids[2])
+        self.command('vote_option',{'decision_id':decision,'option_id':'controlled_continuity'},2)
+        self.assertIsNone(snapshot()['next_voter'])
+        self.assertEqual(snapshot()['waiting_members'],[])
 
     def test_fixed_ballot_cannot_be_cancelled_or_replaced_with_custom_text(self):
         decision = self.fixed_decision()

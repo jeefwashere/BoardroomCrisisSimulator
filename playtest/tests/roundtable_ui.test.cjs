@@ -86,7 +86,8 @@ test('fixed ballot hides custom forms and sends explicit option votes with voter
  const {run,node,ctx}=harness();fixedFixture(run);ctx.commands=[];run(`command=async(action,data)=>commands.push({action,data});`);
  assert(node('customDecision').hidden);const decision=node('decisions').children[0],options=decision.children.find(c=>c.className==='fixed-options');assert.equal(options.children.length,3);
  assert(decision.children.find(c=>c.className==='voter-status').children[0].textContent.includes('voted'));
- await options.children[1].children.at(-1).onclick();assert.equal(ctx.commands[0].action,'vote_option');assert.equal(ctx.commands[0].data.option_id,'technical_first');
+ await options.children[1].children.at(-1).onclick();assert.equal(ctx.commands.length,0);
+ await node('decisions').children[0].children.find(c=>c.className==='vote-confirmation').children.at(-1).onclick();assert.equal(ctx.commands[0].action,'vote_option');assert.equal(ctx.commands[0].data.option_id,'technical_first');
  const buttons=decision.children.at(-1).children;assert(buttons[0].disabled);assert(!decision.children.some(c=>c.textContent==='approve'));
 });
 test('fixed option ties offer only tied leaders to the CEO',async()=>{
@@ -113,4 +114,44 @@ test('stopping a pending guide prevents stale playback and releases captured roo
 test('recorded guide replay is enabled only for the CEO seat',()=>{
  const {run,node}=harness();fixedFixture(run);assert(!node('playDecisionGuide').disabled);
  run(`states[0].me='b';render();`);assert(node('playDecisionGuide').disabled);
+});
+
+
+test('named voting prompts advance test seats only after explicit confirmation',async()=>{
+ const {run,node,ctx}=harness();fixedFixture(run);ctx.commands=[];
+ run(`states[0].decisions[0].ballot_count=0;states[0].decisions[0].voted_members=[];states[0].decisions[0].my_vote=null;states[0].decisions[0].next_voter='a';states=['a','b','c'].map(id=>({...states[0],me:id,decisions:[{...states[0].decisions[0]}]}));active=2;render();
+ command=async(action,data,owner)=>{commands.push({action,data,token:owner.token});const mid=states[owner.seat].me;for(const own of states){const d=own.decisions[0];d.voted_members=[...new Set([...d.voted_members,mid])];d.ballot_count=d.voted_members.length;d.next_voter=['a','b','c'].find(id=>!d.voted_members.includes(id))||null;if(own.me===mid)d.my_vote=data.option_id;}};`);
+ assert.equal(run('active'),0);assert(node('votePrompt').textContent.startsWith('A, which response'));assert.equal(ctx.commands.length,0);
+ for(const [seat,name,token] of [[0,'A','secret'],[1,'B','b'],[2,'C','c']]){
+  assert.equal(run('active'),seat);assert(node('votePrompt').textContent.startsWith(name+', which response'));
+  let card=node('decisions').children[0],confirm=card.children.find(c=>c.className==='vote-confirmation').children.at(-1);assert(confirm.disabled);
+  const options=card.children.find(c=>c.className==='fixed-options');await options.children[0].children.at(-1).onclick();
+  assert.equal(ctx.commands.length,seat);assert.equal(run('active'),seat);
+  confirm=node('decisions').children[0].children.find(c=>c.className==='vote-confirmation').children.at(-1);assert(!confirm.disabled);await confirm.onclick();
+  assert.equal(ctx.commands.length,seat+1);assert.equal(ctx.commands[seat].token,token);
+ }
+ assert.equal(run('active'),0);assert(node('votePrompt').textContent.includes('Every member has voted'));
+});
+
+test('other members cannot select or confirm a first ballot before their turn',()=>{
+ const {run,node}=harness();fixedFixture(run);run(`bundle.test=false;states[0].me='c';states[0].decisions[0].my_vote=null;states[0].decisions[0].next_voter='b';render();`);
+ const card=node('decisions').children[0];assert(node('votePrompt').textContent.startsWith('B, which response'));
+ assert(card.children.find(c=>c.className==='fixed-options').children.every(c=>c.children.at(-1).disabled));
+ assert(card.children.find(c=>c.className==='vote-confirmation').children.at(-1).disabled);
+});
+
+test('single member sessions never switch identities and stale selection does not cast a ballot',async()=>{
+ const {run,node,ctx}=harness();fixedFixture(run);ctx.commands=[];
+ run(`bundle.test=false;command=async(...args)=>commands.push(args);render();`);
+ const staleButton=node('decisions').children[0].children.find(c=>c.className==='fixed-options').children[0].children.at(-1);
+ run(`bundle={code:'NEW',seats:[{token:'new'}]};`);await staleButton.onclick();assert.equal(ctx.commands.length,0);assert(node('notice').textContent.includes('changed'));
+});
+
+
+test('a stale confirmation cannot submit a different selected member ballot',async()=>{
+ const {run,node,ctx}=harness();fixedFixture(run);ctx.commands=[];run(`command=async(...args)=>commands.push(args);`);
+ await node('decisions').children[0].children.find(c=>c.className==='fixed-options').children[0].children.at(-1).onclick();
+ const confirm=node('decisions').children[0].children.find(c=>c.className==='vote-confirmation').children.at(-1);
+ run(`states.push({...states[0],me:'b',decisions:[{...states[0].decisions[0],my_vote:null,next_voter:'b'}]});active=1;voteDrafts[voteDraftKey(states[1].decisions[0],states[1])]='technical_first';`);
+ await confirm.onclick();assert.equal(ctx.commands.length,0);assert(node('notice').textContent.includes('changed'));
 });

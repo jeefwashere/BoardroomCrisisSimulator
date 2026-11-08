@@ -76,10 +76,10 @@ The three authored responses are:
 
 Read the full wording on each choice card. These are proposed actions, not claims that recovery or a downstream consequence has occurred.
 
-1. Select Alex's seat and click **Vote for this response** on one option.
-2. Select Morgan and explicitly choose an option, then do the same for Sam. The page shows each member as voted or waiting. **Your current vote** identifies the selected seat's ballot.
-3. You may change your own vote before commitment. Pending choices remain private; every member must submit a ballot.
-4. Select the CEO. Once all ballots arrive, click **CEO: Record winning response**. The option with the most ballots wins. The CEO cannot replace a clear winner with another option.
+1. The page asks the next member by name: “Alex, which response do you choose?” Their card shows **DECIDE NOW**. In the single window test setup, that seat is selected automatically.
+2. Click **Choose this response** on one of the three choices, then click **Confirm my vote**. Selecting a choice alone sends no ballot. The next member is then asked and selected automatically. Repeat for Morgan and Sam.
+3. The server enforces the first vote order. Members waiting for their turn cannot submit early. Each person can change their own submitted choice before commitment by selecting an option and clicking **Confirm changed vote**. Pending choices remain private. Separate participant browsers keep their own identity and never switch seats automatically.
+4. After all three confirmations, the test view returns to the CEO. Once all ballots arrive, click **CEO: Record winning response**. The option with the most ballots wins. The CEO cannot replace a clear winner with another option.
 5. If leading options tie, the CEO sees **CEO tie:** buttons for those leaders and must explicitly choose one of them.
 6. A live Gemini evaluation, with ElevenLabs speech when enabled, interprets the committed result. It cannot revise votes or apply an unimplemented scenario outcome.
 7. Click **CEO: End meeting**, then **Export written record**. The export includes discussion and decisions without membership bearer tokens.

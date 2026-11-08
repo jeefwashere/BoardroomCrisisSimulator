@@ -1,7 +1,7 @@
 'use strict';
 const $=id=>document.getElementById(id),uid=()=>crypto.randomUUID(),el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
 let bundle=null;try{bundle=JSON.parse(sessionStorage.getItem('rehearsal_roundtable')||'null');}catch{}
-let states=[],active=0,busy=false,polling=false,memory=null,recording=null,clip=null,clipOwner=null,source='typed',documentKey='',transcriptKey='',rosterKey='',briefing=null,turnPlayback=null,completedPlayback=null,recordings=[],automaticRunning=false,decisionPlayback=null;
+let states=[],active=0,busy=false,polling=false,memory=null,recording=null,clip=null,clipOwner=null,source='typed',documentKey='',transcriptKey='',rosterKey='',briefing=null,turnPlayback=null,completedPlayback=null,recordings=[],automaticRunning=false,decisionPlayback=null,voteDrafts=Object.create(null),voteFocusKey='';
 const save=()=>sessionStorage.setItem('rehearsal_roundtable',JSON.stringify(bundle)),state=()=>states[active],say=t=>{$('notice').textContent=t;};
 const context=()=>({code:bundle?.code,token:bundle?.seats[active]?.token,seat:active});
 const same=c=>bundle?.code===c.code&&bundle?.seats[c.seat]?.token===c.token;
@@ -12,23 +12,45 @@ function button(text,fn,disabled=false){const b=el('button',text,'secondary');b.
 async function refresh(){if(polling||!bundle)return;polling=true;const b=bundle;try{const results=await Promise.all(b.seats.map((s,seat)=>api('/api/roundtable/state',undefined,{code:b.code,token:s.token,seat})));if(bundle!==b)return;states=results.map((s,i)=>states[i]?.server_time>s.server_time?states[i]:({...s,received:Date.now()}));if(briefing&&(!same(briefing.owner)||state()?.phase!==briefing.phase))await stopBriefing();if((turnPlayback&&!sameTurn(turnPlayback))||(completedPlayback&&!sameTurn(completedPlayback)))await stopTurnPlayback();if(decisionPlayback&&(!same(decisionPlayback.owner)||state()?.phase!=='decision'))await stopDecisionGuide();if(recording&&(state()?.phase!=='discussion'||state()?.speaker!==state()?.me))await stopRecording();render();void automaticAgents();}catch(e){say(e.message);}finally{polling=false;}}
 async function loadMemory(){const c=context();const m=await api('/api/roundtable/memory',undefined,c);if(same(c)){memory=m;documentKey='';render();}}
 async function health(){try{const h=await api('/api/health',undefined,{});$('health').textContent=(h.models?.model||'Vertex Flash')+' · '+(h.models?.thinking_level||'LOW');$('budget').textContent=h.speech?.unlimited&&h.models?.budget?.unlimited?'Usage tracking only · no app spending cap':'Usage tracking enabled. Live agent replies use Gemini and ElevenLabs.';}catch{$('health').textContent='Local server unavailable';}}
-async function join(test){if(recording)throw new Error('Stop recording first.');const names=test?['Alex · test CEO','Morgan · test member','Sam · test member']:[$('name').value.trim()];if(!names[0])throw new Error('Enter a name.');const first=await api('/api/roundtable/join',{name:names[0],...(test||!$('code').value.trim()?{}:{code:$('code').value.trim().toUpperCase()})},{});bundle={code:first.code,seats:[{name:names[0],token:first.token}],test,autoEvents:[]};recordings=[];completedPlayback=null;active=0;states=[];memory=null;clip=null;clipOwner=null;source='typed';$('message').value='';save();for(const name of names.slice(1)){const r=await api('/api/roundtable/join',{name,code:bundle.code},{});bundle.seats.push({name,token:r.token});save();}documentKey=transcriptKey=rosterKey='';await refresh();await loadMemory();await loadRecordings();}
+async function join(test){if(recording)throw new Error('Stop recording first.');const names=test?['Alex · test CEO','Morgan · test member','Sam · test member']:[$('name').value.trim()];if(!names[0])throw new Error('Enter a name.');const first=await api('/api/roundtable/join',{name:names[0],...(test||!$('code').value.trim()?{}:{code:$('code').value.trim().toUpperCase()})},{});bundle={code:first.code,seats:[{name:names[0],token:first.token}],test,autoEvents:[]};voteDrafts=Object.create(null);voteFocusKey='';recordings=[];completedPlayback=null;active=0;states=[];memory=null;clip=null;clipOwner=null;source='typed';$('message').value='';save();for(const name of names.slice(1)){const r=await api('/api/roundtable/join',{name,code:bundle.code},{});bundle.seats.push({name,token:r.token});save();}documentKey=transcriptKey=rosterKey='';await refresh();await loadMemory();await loadRecordings();}
 const phaseNames={lobby:'Prepare together',preparation:'Your 30 second introduction',discussion:'Five minute discussion',consultation:'One minute with live advisers',decision:'Make your decisions',ended:'Meeting complete'};
 const phaseHints={lobby:'Load your test participants, then the CEO starts the introduction.',preparation:'The preparation agent sets the scene. Discussion opens after 30 seconds.',discussion:'Each participant speaks in turn. Finish early to consult the advisers.',consultation:'Ask the live facilitator, IT character or journalist. The CEO can continue to voting early.',decision:'Review the recorded guide, choose a response for each participant, then the CEO records the result.',ended:'Review the evaluation and export your written record.'};
-function render(){const s=state(),phase=s?.phase,ceo=s&&s.me===s.ceo,host=s&&s.me===s.host,fac=['discussion','consultation','decision'].includes(phase)&&ceo,turn=phase==='discussion'&&s?.speaker===s?.me,locked=busy||!!recording||!!turnPlayback||!!decisionPlayback;
+function nextVoter(d,s){return d.next_voter!==undefined?d.next_voter:(s.electorate||s.members.map(m=>m.id)).find(id=>!(d.voted_members||[]).includes(id))||null;}
+function followVoteTurn(){
+ if(!bundle?.test||briefing||decisionPlayback||recording||turnPlayback)return;
+ const s=state(),d=s?.decisions?.find(d=>d.mode==='fixed_choice'&&d.status==='pending');if(s?.phase!=='decision'||!d)return;
+ const target=nextVoter(d,s)||s.ceo,key=s.code+':'+d.id+':'+target;
+ if(voteFocusKey===key)return;
+ const seat=states.findIndex(own=>own.me===target);if(seat<0)return;
+ active=seat;voteFocusKey=key;
+ $('decisions').scrollIntoView?.({behavior:'smooth',block:'nearest'});
+}
+function voteDraftKey(d,s){return s.code+':'+d.id+':'+s.me;}
+async function confirmVote(decisionId,owner,expectedOption){
+ if(!owner||!same(owner)||context().token!==owner.token)throw new Error('The selected participant changed. Review and confirm again.');
+ const s=state(),d=s?.decisions?.find(d=>d.id===decisionId),key=d&&voteDraftKey(d,s),option=voteDrafts[key];
+ if(s?.phase!=='decision'||d?.status!=='pending'||option!==expectedOption||!d.options?.some(o=>o.id===option))throw new Error('Choose one response before confirming your vote.');
+ if(nextVoter(d,s)!==s.me&&!(d.voted_members||[]).includes(s.me))throw new Error('Wait until you are asked for your decision.');
+ await command('vote_option',{decision_id:d.id,option_id:option},owner);
+ delete voteDrafts[key];say('Vote received for '+s.members.find(m=>m.id===s.me)?.name+'.');
+ followVoteTurn();render();
+}
+function render(){followVoteTurn();const s=state(),phase=s?.phase,ceo=s&&s.me===s.ceo,host=s&&s.me===s.host,fac=['discussion','consultation','decision'].includes(phase)&&ceo,turn=phase==='discussion'&&s?.speaker===s?.me,locked=busy||!!recording||!!turnPlayback||!!decisionPlayback;
  $('stopDecisionGuide').disabled=!decisionPlayback;$('playDecisionGuide').disabled=locked||!!briefing||!ceo||phase!=='decision'||!s?.decisions?.some(d=>d.mode==='fixed_choice');$('consultationNotice').hidden=phase!=='consultation';
  $('stopBriefing').disabled=!briefing;$('intro').disabled=busy||!s?.documents_ready||phase!=='lobby';$('intro').hidden=phase!=='lobby';
  $('playTurn').disabled=locked||!!briefing||!turn||!recordings.length||!!completedPlayback;$('stopTurn').disabled=!turnPlayback&&!completedPlayback;$('commitRecorded').disabled=locked||!completedPlayback||!sameTurn(completedPlayback);$('nextTurn').disabled=locked||!!briefing||phase!=='discussion'||!(turn||ceo)||!!completedPlayback;
  const disabled={join:locked,testSeats:locked,ready:busy||phase!=='lobby',allReady:busy||phase!=='lobby'||!bundle?.test,start:busy||!ceo||!s?.can_start,finishDiscussion:locked||!ceo||phase!=='discussion',skipConsultation:locked||!ceo||phase!=='consultation',end:busy||!ceo||phase!=='decision'||s?.decisions?.some(d=>d.status==='pending'),export:!s,assignCeo:busy||!host||phase!=='lobby',upload:busy||phase!=='lobby'||!(ceo||host),prepare:locked||!!briefing||!s||!s.documents_ready||!['lobby','preparation'].includes(phase),facilitate:locked||!!briefing||!fac,commit:locked||!!briefing||!turn,record:locked||!!briefing||!turn,stopRecord:!recording,transcribe:locked||!turn||!clip||clipOwner?.token!==context().token,propose:busy||phase!=='decision',minutes:busy||!s?.transcript?.length};for(const[id,v]of Object.entries(disabled))$(id).disabled=!!v;
  $('agentKind').disabled=locked||!!briefing||!fac;
- $('roleControls').hidden=!host||phase!=='lobby';const fixed=s?.fixed_scenario==='T01'||s?.decisions?.some(d=>d.mode==='fixed_choice');$('customDecision').hidden=!!fixed;$('decisionGuide').hidden=!fixed;$('decisionHint').textContent=fixed?'Each participant chooses one of the three responses. Every ballot is required; the CEO records the winner or resolves a tie.':'Draft a proposal for each problem, then collect ballots and record the result.';if(!s)return;
+ $('roleControls').hidden=!host||phase!=='lobby';const fixed=s?.fixed_scenario==='T01'||s?.decisions?.some(d=>d.mode==='fixed_choice');$('customDecision').hidden=!!fixed;$('decisionGuide').hidden=!fixed;$('decisionHint').textContent=fixed?'Each participant is asked in turn. Choose a response and click Confirm my vote. Every ballot is required before the CEO records the result.':'Draft a proposal for each problem, then collect ballots and record the result.';if(!s)return;
+ const ballot=(s.decisions||[]).find(d=>d.mode==='fixed_choice'&&d.status==='pending'),voter=ballot&&nextVoter(ballot,s),voterName=s.members.find(m=>m.id===voter)?.name;
+ $('votePrompt').hidden=phase!=='decision'||!ballot;const promptText=voterName?voterName+', which response do you choose? Select an option below, then confirm your vote.':'Every member has voted. The CEO must review and record the result.';if($('votePrompt').textContent!==promptText)$('votePrompt').textContent=promptText;
  const speaker=s.members.find(m=>m.id===s.speaker);$('turnSpeaker').textContent=speaker?'Turn '+s.turn_number+' · '+speaker.name:'Waiting for discussion';$('contributionHint').textContent=speaker?'Current speaker: '+speaker.name+'. Only that participant can commit a contribution.':'Discussion contributions open after the introduction.';const recordingForSeat=recordings.find(r=>r.seat_index===((s.speaking||[]).indexOf(s.speaker)%3));$('recordedCaption').textContent=recordingForSeat?.text||'Each participant has a fixed saved clip. You choose when to play and commit it.';
  $('roomCode').textContent='ROOM '+s.code;$('phase').textContent=phaseNames[phase]||phase;$('phaseHint').textContent=phaseHints[phase]||'';const left=s.deadline?Math.max(0,Math.ceil(s.deadline-s.server_time-(Date.now()-s.received)/1000)):0;$('timer').textContent=s.deadline?String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0'):phase==='ended'?'Done':'Ready';$('memberCount').textContent=s.members.length;$('activeSeat').textContent=s.members.find(m=>m.id===s.me)?.name||'Participant';$('ready').textContent=s.members.find(m=>m.id===s.me)?.ready?'Mark not ready':'I am ready';$('allReady').hidden=!bundle.test;$('blockers').textContent=(s.start_blockers||[]).join(' · ');
  $('seats').replaceChildren(...bundle.seats.map((seat,i)=>{
   const member=s.members.find(m=>m.id===states[i]?.me),speaking=phase==='discussion'&&member?.id===s.speaker;
   const saved=recordings.find(r=>r.seat_index===((s.speaking||[]).indexOf(member?.id)%3)),card=el('article',undefined,'participant-card'+(i===active?' selected':'')+(speaking?' speaking':''));
   const select=button(seat.name,async()=>{if(recording||turnPlayback)throw new Error('Stop recording or playback before switching seats.');active=i;source='typed';$('message').value='';await refresh();},!!recording||!!turnPlayback);
-  select.className='participant-select';card.append(select,el('span',speaking?'SPEAKING NOW':phase==='discussion'?'Waiting for turn':phase==='lobby'?'Ready for the meeting':phase==='preparation'?'Listening to introduction':'Discussion finished','turn-badge'));
+  select.className='participant-select';card.append(select,el('span',phase==='decision'&&ballot?(member?.id===voter?'DECIDE NOW':(ballot.voted_members||[]).includes(member?.id)?'VOTE RECEIVED':'WAITING TO VOTE'):speaking?'SPEAKING NOW':phase==='discussion'?'Waiting for turn':phase==='lobby'?'Ready for the meeting':phase==='preparation'?'Listening to introduction':'Discussion finished','turn-badge'));
   card.append(el('small',(member?.role||'participant')+' · '+(i===active?'You control this seat':'Select to control')));
   const controls=el('div',undefined,'actions');
   controls.append(button("Play this participant’s saved clip",async()=>{active=i;source='typed';$('message').value='';await playRecordedTurn();},!speaking||!saved?.available||locked||!!briefing||!!completedPlayback));
@@ -57,8 +79,23 @@ function renderDecision(d,s){
  for(const m of s.members)voters.append(el('span',m.name+': '+(voted.has(m.id)?'voted':'waiting'),voted.has(m.id)?'voted':'waiting'));
  n.append(voters);
  if(d.mode==='fixed_choice'){
+  const key=voteDraftKey(d,s),draft=voteDrafts[key],canVote=nextVoter(d,s)===s.me||voted.has(s.me),owner=context();
   const options=el('div',undefined,'fixed-options');
-  for(const option of d.options||[]){const card=el('section',undefined,'fixed-option'+(d.my_vote===option.id?' selected':'')+(d.option_id===option.id?' winner':''));card.append(el('b',option.label),el('p',option.proposal));if(d.tally)card.append(el('small',(d.tally[option.id]||0)+' votes'));if(pending)card.append(button(d.my_vote===option.id?'Your current vote':'Vote for this response',()=>command('vote_option',{decision_id:d.id,option_id:option.id}),phase!=='decision'));options.append(card);}n.append(options);
+  for(const option of d.options||[]){
+   const selected=draft===option.id,card=el('section',undefined,'fixed-option'+(selected?' selected':'')+(d.option_id===option.id?' winner':''));
+   card.append(el('b',option.label),el('p',option.proposal));if(d.tally)card.append(el('small',(d.tally[option.id]||0)+' votes'));
+   if(d.my_vote===option.id)card.append(el('small','Your submitted vote'));
+   if(pending)card.append(button(selected?'Selected — confirm below':'Choose this response',async()=>{
+    if(!same(owner)||context().token!==owner.token)throw new Error('The selected participant changed. Choose again.');
+    voteDrafts[key]=option.id;render();
+   },phase!=='decision'||!canVote));options.append(card);
+  }
+  n.append(options);
+  if(pending){const confirmation=el('div',undefined,'vote-confirmation');
+   const label=(d.options||[]).find(o=>o.id===draft)?.label;
+   confirmation.append(el('p',label?'Your selection: '+label+'. This is not submitted yet.':canVote?'Choose one response, then confirm your vote.':'Waiting for '+(s.members.find(m=>m.id===nextVoter(d,s))?.name||'the other members')+'.'));
+   confirmation.append(button(d.my_vote?'Confirm changed vote':'Confirm my vote',()=>confirmVote(d.id,owner,draft),phase!=='decision'||!canVote||!label));n.append(confirmation);
+  }
   if(pending&&ceo){const controls=el('div',undefined,'actions'),all=d.ballot_count===s.members.length,maximum=d.tally?Math.max(...Object.values(d.tally)):0,tied=(d.options||[]).filter(o=>maximum>0&&d.tally?.[o.id]===maximum);
    if(all&&tied.length>1){controls.append(el('p','The leading choices are tied. The CEO must choose one of them.','muted'));for(const option of tied)controls.append(button('CEO tie: '+option.label,()=>command('commit_decision',{decision_id:d.id,option_id:option.id}),phase!=='decision'));}
    else controls.append(button('CEO: Record winning response',()=>command('commit_decision',{decision_id:d.id}),!all||phase!=='decision'));

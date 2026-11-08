@@ -83,3 +83,8 @@ X12 restores a visible 60 second consultation phase between participant discussi
 For the default exact T01 PDF selection, the server creates one authored ballot with Controlled continuity, Technical checks first and Wait for the director. Every participant explicitly chooses an option. The CEO commits the winning option after every ballot, or selects among tied leaders. Do not fabricate votes, silently change a selected choice or let a model override the result. Other document selections retain the custom proposal flow. The fixed choices are potential board actions based on the public pack, not hidden event outcomes.
 
 The three new manual participant recordings are T01 leadership, recovery checks and communications. Their exact captions become contributions only after explicit completion and commit. The decision guide has its own authenticated read only playback route and cannot be submitted as a participant recording. Keep replay free of provider calls, preserve all usage ledger rows and retain unlimited app spending authorization. See `playtest/GUIDED_ROUND_REPORT.md` for the current check and `playtest/ROUNDTABLE_GUIDE.md` for controls.
+
+
+## Individual UI voting
+
+X14 makes the fixed T01 voting UI ask each eligible member by name. First ballots follow the server electorate order; no unvoted member may skip ahead, and no absent member receives an automatic ballot. Selecting a response is a local draft until Confirm my vote. Revisions remain explicit until CEO commitment. Advance between identities automatically only for the authorized single window test bundle, never for independent participant browsers. Preserve the all ballots required result lock and reject stale UI confirmation against a different selected identity.

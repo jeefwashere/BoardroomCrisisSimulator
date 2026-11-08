@@ -172,6 +172,10 @@ The user assigned Jeff the pages before game start and Ricardo the backend. Keep
 
   Owner: Arjun Codex agent. Status: `done`. Branch: `experiment/ai-voice-playtest`. User scope: write what has been implemented, push the changes and identify the working branch. Existing X12 implementation and verification are already published. Added `playtest/IMPLEMENTATION_SUMMARY.md` and linked it from the README. The summary identifies the branch, implemented flow, agents, recordings, authority, existing verification and remaining limits. Local links and staged whitespace passed; no code or paid calls changed. Publication: `7751345fbd99ce42c82487ff414f42b4589a8a79` pushed and verified on the named side branch, not merged. Completion record 23. Next action: user review and continued testing.
 
+* [ ] X14 Enforce individual voting turns and ask each member for a decision.
+
+  Owner: Arjun Codex agent. Status: `in_progress`. Branch: `experiment/ai-voice-playtest`. User scope: require each participant's decision and clearly ask each member. Implement a server ordered first ballot, named UI prompts, explicit selection and confirmation, automatic seat progression only in the single window test setup, and existing all votes required CEO commitment. Implemented named UI prompts, server ordered first ballots, local option drafts and explicit confirmation. The test view advances after each vote and returns to the CEO once all ballots arrive; separate browser identities stay unchanged. Verification: 135 playtest tests, 31 existing tests, 27 Node UI checks, the authored demo, current documentation links, guide copies, DOM references, credential scan and whitespace passed. The restarted local server rejected out of turn voting with 403 and premature commitment with 409, then accepted all three ballots and committed the correct two to one winner without provider calls. Evidence: `playtest/evaluations/voting-ui.json`. Browser visual QA remains manual. Next action: publish and verify the implementation commit before marking complete.
+
 ## Integration and verification
 
 * [ ] I01 Publish the frontend API and snapshot contract with examples.

@@ -25,7 +25,7 @@ The three participant clips total 46.02 seconds. All four files were generated w
 
 Participant clips require the active speaking turn and a separate caption commit. The decision guide has its own authenticated playback route, labelled as recorded, and cannot enter the participant transcript or ballot. Its playback uses no provider call. It can be stopped or replayed by the CEO. Other advisers and evaluation remain live Gemini plus ElevenLabs; no prerecorded reply replaces them. Both spending ledgers retain unlimited application authorization and prior usage history.
 
-## Validation
+## X12 validation
 
 Automated verification passed 134 playtest tests, 31 existing tests and 23 Node UI checks. The authored demo, syntax, credential scan, current documentation links, unchanged old recording entries and four new audio hashes also passed.
 
@@ -40,3 +40,12 @@ The first live facilitator phrased proposed paper continuity as immediate restor
 The live tests use three authenticated HTTP clients and check actual audio bytes and elapsed durations. They do not control a browser or prove that a human heard recordings. Browser speaker playback, microphone permissions and visual layout remain manual checks.
 
 The app remains a localhost prototype on the experimental branch, not a production deployment. Rooms are kept in process memory and restarting the server starts fresh rooms. No Velocity service or teammate production module was changed.
+
+
+## Current UI voting enforcement
+
+X14 adds named prompts and an explicit confirmation step. Each member's first ballot follows the frozen electorate order. The current card says DECIDE NOW, the page asks that member which response they choose, and selecting an option remains a local draft until Confirm my vote. In the single window test setup, the next member is selected after submission and the CEO is selected after all ballots. Independent member browsers retain their own identity.
+
+The backend rejects first votes out of order and cannot commit while a member is missing. Previously submitted votes remain explicitly revisable until commitment. A stale selection or confirmation cannot silently act as a different selected member. The existing CEO winner and tie rules remain intact. This change adds no speech or model calls.
+
+Verification: 135 playtest tests, 31 existing tests and 27 Node UI checks passed, including all three confirmation handlers, member token selection, draft isolation, next member prompts, stale controls and premature commitment. The authored demo, DOM references, current links, guide copies and whitespace also passed. [The local HTTP evidence](evaluations/voting-ui.json) records the restarted server check. Browser visual and audible review remain manual.

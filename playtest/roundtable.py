@@ -305,6 +305,8 @@ class Roundtable:
             if action == 'vote_option':
                 require(fixed, 'Use approve, reject or abstain for this proposal', 422)
                 require(mid in room['electorate'], 'Only eligible members can vote', 403)
+                require(mid in decision['votes'] or mid == self.next_voter(room, decision),
+                        'Wait until you are asked for your decision', 403)
                 option = data.get('option_id')
                 require(isinstance(option, str) and option in {item['id'] for item in DECISION['options']},
                         'Choose an authored option', 422)
@@ -346,6 +348,12 @@ class Roundtable:
             self._transition(room, 'ended')
         else:
             raise RuleError('Unknown roundtable command', 422)
+
+    @staticmethod
+    def next_voter(room, decision):
+        if decision.get('mode') != 'fixed_choice' or decision['status'] != 'pending':
+            return None
+        return next((mid for mid in room['electorate'] if mid not in decision['votes']), None)
 
     def _commit_fixed(self, room, decision, mid, data):
         options = {option['id']: option for option in DECISION['options']}
@@ -404,6 +412,8 @@ class Roundtable:
             decision['my_vote'] = item['votes'].get(mid)
             decision['ballot_count'] = len(item['votes'])
             decision['voted_members'] = list(item['votes'])
+            decision['next_voter'] = self.next_voter(room, item)
+            decision['waiting_members'] = [person for person in room['electorate'] if person not in item['votes']]
             if item['status'] == 'pending':
                 decision.pop('votes')
                 if mid == self._ceo(room) and set(item['votes']) == set(room['electorate']):

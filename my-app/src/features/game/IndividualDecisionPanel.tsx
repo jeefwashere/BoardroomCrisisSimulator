@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { RoomSnapshot } from '../../services/rooms'
-import { DECISION_LIMIT, DECISION_PROMPT, boardRows, canSubmitDecision, submittedCount } from './individualDecisionModel'
+import { DECISION_LIMIT, DECISION_PROMPT, boardRows, canSubmitDecision, submittedCount, waitingSummary } from './individualDecisionModel'
 import type { BoardRow } from './individualDecisionModel'
 import { appendTranscript } from './dictationModel'
 import type { useDictation } from './useDictation'
@@ -13,7 +13,7 @@ export type AttachDictation = (sink: ((words: string) => void) | null) => void
 /** Board members with their submission status only; other members' texts are never shown. */
 export function BoardStatusList({ rows, missingLabel }: { rows: readonly BoardRow[]; missingLabel: string }) {
     return <ul className="decision-board-list" aria-label="Board members">
-        {rows.map((row) => <li key={row.member_id} className={row.submitted ? 'is-submitted' : missingLabel === 'Writing…' ? 'is-writing' : 'is-missing'}>
+        {rows.map((row) => <li key={row.member_id} className={row.submitted ? 'is-submitted' : missingLabel === 'Writing…' || missingLabel === 'Deciding…' ? 'is-writing' : 'is-missing'}>
             <span className="decision-board-name">{row.self ? `${row.name} (you)` : row.name}{row.role && <small>{row.role}</small>}</span>
             <span className={`vote-badge ${row.submitted ? 'vote-badge--voted' : 'decision-badge--waiting'}`}>{row.submitted ? 'Submitted' : missingLabel}</span>
         </li>)}
@@ -91,6 +91,46 @@ export default function IndividualDecisionPanel({ room, pending, act, notice, di
         {rows.length > 0 && <div className="decision-board">
             <p className="vote-eyebrow">{progress.done} of {progress.total} decisions submitted</p>
             <BoardStatusList rows={rows} missingLabel="Writing…" />
+        </div>}
+    </section>
+}
+
+/**
+ * Round 1 decision status, without a separate text box: the member gives their decision with AI reply (spoken in their
+ * role voice, heard only in their own window) or types it in Chat. Shows their recorded decision and who the round is
+ * still waiting for, themselves included.
+ */
+export function DecisionStatusPanel({ room, speaking, caption, saving }: { room: RoomSnapshot; speaking: boolean; caption: string; saving: boolean }) {
+    const game = room.game
+    if (!game || room.phase !== 'individual_decision') return null
+    const recorded = game.individual_decisions?.self ?? null
+    const canSubmit = (game.allowed_actions ?? []).includes('submit_decision')
+    const rows = boardRows(game.individual_decisions, room.self_member_id)
+    const progress = submittedCount(rows)
+    const roleName = game.individual_decisions?.submitted.find((row) => row.member_id === room.self_member_id)?.role_name
+    return <section className="vote-panel decision-panel" aria-labelledby="decision-status-title">
+        <header className="vote-panel-header">
+            <div>
+                <p className="vote-eyebrow">Round 1</p>
+                <h3 id="decision-status-title">Your individual decision{roleName ? ` as ${roleName}` : ''}</h3>
+            </div>
+        </header>
+        {canSubmit ? <p className="vote-note">Give your decision with <strong>AI reply</strong> in the control bar (spoken in your voice; only you hear it) or type it in <strong>Chat</strong>. Only you see your decision.</p>
+            : !recorded && <p className="vote-note">You are observing this round. Only members taking part in this round give a decision.</p>}
+        {(speaking || saving) && caption && <div className="decision-recorded">
+            <p><span className="vote-badge decision-badge--waiting">{saving ? 'Saving…' : 'Speaking'}</span> {saving ? 'Saving your decision…' : 'Your AI decision is playing; it is saved when it finishes.'}</p>
+            <p className="decision-text">{caption}</p>
+        </div>}
+        {recorded && !speaking && !saving && <div className="decision-recorded">
+            <div className="vote-confirmed">
+                <p><span className="vote-badge vote-badge--voted">Submitted</span> Your decision is recorded.{canSubmit ? ' To replace it before decisions close, use AI reply again or send a new one in Chat.' : ''}</p>
+            </div>
+            <p className="decision-text">{recorded.text}</p>
+        </div>}
+        {rows.length > 0 && <div className="decision-board">
+            <p className="vote-eyebrow">{progress.done} of {progress.total} decisions submitted</p>
+            <p className="decision-waiting" role="status">{waitingSummary(rows)}</p>
+            <BoardStatusList rows={rows} missingLabel="Deciding…" />
         </div>}
     </section>
 }

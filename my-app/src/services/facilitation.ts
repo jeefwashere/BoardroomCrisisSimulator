@@ -142,7 +142,7 @@ export type PrivateSession = {
 }
 
 /** A Vertex written draft reply; nothing is submitted until the member's own client commits it. */
-export type AiReply = { reply_id: string; speech_id: string; mode: 'turn' | 'private'; text: string; source: string }
+export type AiReply = { reply_id: string; speech_id: string; mode: 'turn' | 'private' | 'decision'; text: string; source: string }
 
 export type SpeechStatus = { status: 'ready' | 'disabled' | 'failed' | 'pending'; error?: string | null }
 
@@ -173,7 +173,7 @@ export function createFacilitationApi(api: RoomApi) {
             body: JSON.stringify({ command_id: crypto.randomUUID(), kind, question }),
         })),
         /** An AI written reply for the caller to use as their own (speaking turn, or an answer to the coach); spoken in their role's voice. */
-        reply: async (roomId: string, input: { mode: 'turn' | 'private'; question?: string }) => json<AiReply>(await api.authorized(`${room(roomId)}/reply`, {
+        reply: async (roomId: string, input: { mode: 'turn' | 'private' | 'decision'; question?: string }) => json<AiReply>(await api.authorized(`${room(roomId)}/reply`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ command_id: crypto.randomUUID(), ...input }),
         })),

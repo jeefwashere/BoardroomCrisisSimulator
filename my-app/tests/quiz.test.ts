@@ -272,3 +272,12 @@ test('Round 3 lines are silent: quiz questions and results never queue for voice
     assert.equal(nextToSpeak(messages, withSilentQuiz(none, messages, true, true)), null, 'a Round 3 test start voices nothing')
     assert.equal(withSilentQuiz(none, messages, false, false), none)
 })
+
+test('decision waiting line names who is still deciding, the caller as "you"', async () => {
+    const { waitingSummary } = await import('../src/features/game/individualDecisionModel.ts')
+    const row = (name: string, submitted: boolean, self = false) => ({ member_id: name, name, role: '', submitted, self })
+    assert.equal(waitingSummary([row('Alex', false, true), row('Morgan', false), row('Sam', true)]), 'Waiting for you and Morgan · Sam has submitted')
+    assert.equal(waitingSummary([row('Alex', true, true), row('Morgan', false), row('Sam', false)]), 'Your decision is in. Waiting for Morgan and Sam')
+    assert.equal(waitingSummary([row('Alex', true, true), row('Morgan', true), row('Sam', true)]), 'All decisions are in. Waiting for decisions to close.')
+    assert.equal(waitingSummary([]), '')
+})

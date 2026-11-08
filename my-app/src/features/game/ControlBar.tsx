@@ -57,13 +57,15 @@ export type ControlBarProps = {
     report?: { open: boolean; onToggle: () => void }
     autoResponse?: { label: string; live: boolean; disabled: boolean; title?: string; onClick: () => void }
     finishTurn?: () => void
+    /** Open floor rooms: the CEO closes the meeting. */
+    endMeeting?: () => void
     skip?: { label: string; onClick: () => void }
     skipSpeaker?: () => void
     end?: () => void
 }
 
 /** Zoom style call toolbar fixed to the bottom of the game screen. Host controls only render when the server allows them. */
-export default function ControlBar({ caption, round, phaseId, deadline, serverTime, showCountdown, pending, mic, chat, captions, stage, mute, report, autoResponse, finishTurn, skip, skipSpeaker, end }: ControlBarProps) {
+export default function ControlBar({ caption, round, phaseId, deadline, serverTime, showCountdown, pending, mic, chat, captions, stage, mute, report, autoResponse, finishTurn, endMeeting, skip, skipSpeaker, end }: ControlBarProps) {
     const [armedEnd, setArmedEnd] = useState(false)
     useEffect(() => {
         if (!armedEnd) return
@@ -88,7 +90,8 @@ export default function ControlBar({ caption, round, phaseId, deadline, serverTi
             {mute && <ControlButton icon={mute.on ? 'speaker-off' : 'speaker'} label={mute.on ? 'Unmute' : 'Mute'} title={mute.on ? 'Turn this window\'s sound back on' : 'Mute all sound in this window only'} pressed={mute.on} onClick={mute.onToggle} />}
             {report && <ControlButton icon="doc" label="Report" title={report.open ? 'Close the incident report' : 'Open the incident report'} pressed={report.open} onClick={report.onToggle} />}
             {autoResponse && <ControlButton icon={autoResponse.live ? 'stop' : 'play'} label={autoResponse.label} title={autoResponse.title ?? 'Let the AI write and speak your reply'} tone={autoResponse.live ? 'live' : 'accent'} pressed={autoResponse.live} disabled={autoResponse.disabled} onClick={autoResponse.onClick} />}
-            {finishTurn && <ControlButton icon="check" label="Finish my turn" title="Pass the floor to the next participant" tone="accent" disabled={pending} onClick={finishTurn} />}
+            {finishTurn && <ControlButton icon="check" label="Finish my turn" title="Give up the floor so the next person can speak" tone="accent" disabled={pending} onClick={finishTurn} />}
+            {endMeeting && <ControlButton icon="skip" label="End meeting" title="Close the meeting and move on to the next step (CEO only)" disabled={pending} onClick={endMeeting} />}
             {skip && <ControlButton icon="skip" label={skip.label} title={`${skip.label} (host)`} disabled={pending} onClick={skip.onClick} />}
             {skipSpeaker && <ControlButton icon="skip-speaker" label="Skip speaker" title="Move the floor to the next participant (host)" disabled={pending} onClick={skipSpeaker} />}
         </div>

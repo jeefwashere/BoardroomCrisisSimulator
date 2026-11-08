@@ -193,6 +193,16 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     async def finish_speaking(room_id: UUID, round_id: UUID, body: PhaseCommand, member_session: authenticated):
         return await rooms.play(member_session, room_id, body.command_id, body.phase_id, round_id, "finish")
 
+    @app.post("/api/rooms/{room_id}/rounds/{round_id}/speaker/claim", response_model=RoomView, responses=errors)
+    async def take_floor(room_id: UUID, round_id: UUID, body: PhaseCommand, member_session: authenticated):
+        """Open floor rooms: take the open floor (409 floor_taken if someone else got it first)."""
+        return await rooms.play(member_session, room_id, body.command_id, body.phase_id, round_id, "take_floor")
+
+    @app.post("/api/rooms/{room_id}/rounds/{round_id}/meeting/end", response_model=RoomView, responses=errors)
+    async def end_meeting(room_id: UUID, round_id: UUID, body: PhaseCommand, member_session: authenticated):
+        """Open floor rooms: the CEO closes the meeting and the round moves on."""
+        return await rooms.play(member_session, room_id, body.command_id, body.phase_id, round_id, "end_meeting")
+
     @app.post("/api/rooms/{room_id}/rounds/{round_id}/speaker/clip", response_model=RoomView, responses=errors)
     async def speaker_clip(room_id: UUID, round_id: UUID, body: ClipCommand, member_session: authenticated):
         return await rooms.play(member_session, room_id, body.command_id, body.phase_id, round_id, "speaker_clip",

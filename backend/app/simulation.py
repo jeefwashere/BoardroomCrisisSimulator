@@ -61,6 +61,8 @@ class SpeakingPhase:
     kind: Literal["speaking"] = "speaking"
     # The clip or AI reply the speaker started for everyone to hear: (clip_id, start instant, caption), or None.
     clip: tuple[str, float, str | None] | None = None
+    # Open floor (untimed rooms): nobody holds the floor and any member may take it; `index` is then meaningless.
+    floor_open: bool = False
 
 
 @dataclass(frozen=True)
@@ -261,7 +263,8 @@ class Game:
     # Private session progress per electorate member, in electorate order, from the private_session phase on.
     # Stages: "not_started", "coaching", "card", "assessment", "complete". Contents live in PrivateSessions.
     private_stages: tuple[tuple[UUID, str], ...] = ()
-    # Untimed speaking turns (three window demo): a turn lasts until the speaker finishes or the host skips.
+    # Open floor meeting (three window demo): the CEO speaks first; after each turn anyone may take the floor, one at
+    # a time, until the CEO ends the meeting. Turns are untimed.
     manual_turns: bool = False
 
 

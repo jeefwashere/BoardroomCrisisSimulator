@@ -31,6 +31,10 @@ export function useAutoResponse(room: RoomSnapshot, execute: Execute, onError: (
     const game = room.game
     const finishPath = `rounds/${game?.round_id ?? ''}/speaker/finish`
     const clipPath = `rounds/${game?.round_id ?? ''}/speaker/clip`
+    const claimPath = `rounds/${game?.round_id ?? ''}/speaker/claim`
+    // Open floor rooms: pressing AI reply while the floor is free takes it first, then writes the reply.
+    const canClaim = room.phase === 'speaking' && Boolean(game?.allowed_actions?.includes('take_floor'))
+    const claiming = useRef(false)
     const manual = Boolean(game?.manual_turns)
     async function act(path: string, fields?: Record<string, unknown>) {
         try { await execute(path, fields); return true } catch (failure) { onError(failure); return false }
@@ -65,7 +69,7 @@ export function useAutoResponse(room: RoomSnapshot, execute: Execute, onError: (
         return release
     }, [turn])
 
-    const status: AutoResponseState = !ownTurn ? 'unavailable' : state.turn === turn ? state.status : 'ready'
+    const status: AutoResponseState = !ownTurn ? (canClaim ? 'ready' : 'unavailable') : state.turn === turn ? state.status : 'ready'
 
     async function commit(forTurn: string, caption: string) {
         if (latestTurn.current !== forTurn) return
@@ -76,6 +80,13 @@ export function useAutoResponse(room: RoomSnapshot, execute: Execute, onError: (
     }
 
     async function start() {
+        if (!ownTurn && canClaim) {
+            // The reply starts once the room shows the caller holding the floor (effect below).
+            if (claiming.current) return
+            claiming.current = true
+            if (!(await act(claimPath))) claiming.current = false
+            return
+        }
         if (!turn || status !== 'ready') return
         const forTurn = turn
         setState({ turn: forTurn, status: 'writing' })
@@ -99,6 +110,11 @@ export function useAutoResponse(room: RoomSnapshot, execute: Execute, onError: (
         // If the browser refuses playback, still commit the caption so the turn can move on.
         player.play().catch(() => { if (audio.current === player) { release(); void commit(forTurn, drafted.text) } })
     }
+
+    useEffect(() => {
+        if (claiming.current && ownTurn) { claiming.current = false; void start() }
+        else if (claiming.current && room.phase !== 'speaking') claiming.current = false
+    })
 
     function stop() {
         release()

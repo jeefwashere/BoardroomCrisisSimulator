@@ -98,6 +98,12 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const speechRef = useRef<HTMLAudioElement>(null)
     const [ownDecision, setOwnDecision] = useState<string | null>(null)
     const recorder = useTurnRecorder(room)
+    // Open floor: after Mic takes the floor, start recording as soon as the room shows the caller holding it.
+    const claimMic = useRef(false)
+    useEffect(() => {
+        if (claimMic.current && recorder.ownTurn) { claimMic.current = false; void recorder.capture.start() }
+        else if (claimMic.current && room.phase !== 'speaking') claimMic.current = false
+    })
     // Dictation is owned here so the control bar's Mic can drive it; the decision panel attaches its text box as the sink.
     const dictationSink = useRef<((words: string) => void) | null>(null)
     const [dictationReady, setDictationReady] = useState(false)
@@ -245,11 +251,13 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     talking, stageAgent) : null
 
     const mic = micControl({
-        phase: room.phase, phaseId: game.phase_id, ownTurn: recorder.ownTurn, recording: recorder.state,
+        phase: room.phase, phaseId: game.phase_id, ownTurn: recorder.ownTurn, canClaim: actions.includes('take_floor'), recording: recorder.state,
         dictation: { supported: dictation.supported, listening: dictation.listening, blocked: dictation.note === DICTATION_UNAVAILABLE, ready: dictationReady },
     })
     function pressMic() {
-        if (mic.action === 'start') void recorder.capture.start()
+        // Open floor: take the floor first; recording starts once the room shows it is yours (effect below).
+        if (mic.action === 'claim') void act(rounds + 'speaker/claim').then((ok) => { claimMic.current = ok })
+        else if (mic.action === 'start') void recorder.capture.start()
         else if (mic.action === 'stop' || mic.action === 'cancel') recorder.capture.stop()
         else if (mic.action === 'retry') void recorder.capture.retryUpload()
         else if (mic.action === 'dictate') dictation.start()
@@ -319,7 +327,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
             </section>}
         </main>
         <ControlBar
-            caption={phaseCaption(room.phase, speaker ? { name: speaker.display_name, self: speaker.member_id === room.self_member_id } : null, ownRound)}
+            caption={phaseCaption(room.phase, speaker ? { name: speaker.display_name, self: speaker.member_id === room.self_member_id } : null, ownRound, Boolean(game.floor_open))}
             round={`Round ${ownRound ?? game.round_number}`} phaseId={game.phase_id} deadline={game.phase_deadline} serverTime={game.server_time}
             showCountdown={!fullStage} pending={pending}
             mic={{ ...mic, onClick: pressMic }}
@@ -330,6 +338,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
             report={report && reportAvailable ? { open: reportOpen, onToggle: () => setReportOpen((open) => !open) } : undefined}
             autoResponse={autoControl}
             finishTurn={actions.includes('finish_speaking') ? () => void act(rounds + 'speaker/finish') : undefined}
+            endMeeting={actions.includes('end_meeting') ? () => void act(rounds + 'meeting/end') : undefined}
             skip={actions.includes('skip_phase') ? { label: skipLabel(room.phase), onClick: () => void act(rounds + 'skip-phase') } : undefined}
             skipSpeaker={actions.includes('skip_speaker') ? () => void act(rounds + 'speaker/skip', { reason: 'Skipped by the host' }) : undefined}
             end={actions.includes('end') ? () => void act('end') : undefined}

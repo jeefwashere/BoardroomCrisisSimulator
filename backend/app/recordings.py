@@ -106,7 +106,7 @@ class Recordings:
             phase = state.phase
             if not isinstance(phase, sim.SpeakingPhase) or phase.phase_id != phase_id or state.round_id != round_id:
                 raise RoomError(409, 'stale_turn', 'Recording requires the current speaking turn')
-            if phase.order[phase.index] != member.member_id:
+            if gameplay.speaker_of(phase) != member.member_id:
                 raise RoomError(403, 'speaker_required', 'Only the current speaker may record')
             existing = next((item for item in self.entries.values() if item.phase_id == phase_id and item.member_id == member.member_id), None)
             if existing:

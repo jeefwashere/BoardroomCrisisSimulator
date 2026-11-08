@@ -109,6 +109,8 @@ export type RoomGame = {
     manual_turns?: boolean
     /** The saved clip the active speaker started, so every window plays it from the same moment. */
     speaker_clip?: { clip_id: string; started_at: string; text?: string | null } | null
+    /** Open floor rooms: nobody holds the floor, and any member may take it (`take_floor` in allowed_actions). */
+    floor_open?: boolean
     self_vote?: string | null
     vote_counts?: Record<string, number> | null
     tied_option_ids?: string[]

@@ -19,6 +19,11 @@ from . import gameplay
 SKIPPABLE = (sim.BriefingPhase, sim.ReadingPhase, sim.SpeakingPhase, sim.DiscussionPhase,
              sim.VotingPhase, sim.TiePhase, sim.ResultPhase, sim.IndividualDecisionPhase,
              sim.PrivateSessionPhase)
+def ceo_of(assignments) -> UUID | None:
+    """The member currently holding the CEO role, if any."""
+    return next((item.member_id for item in assignments if item.role_id == "ceo"), None)
+
+
 # Written individual decisions stay private to their author until the game ends.
 PRIVATE_CONTRIBUTION_PHASES = frozenset({"individual_decision"})
 MAX_DECISION_CHARACTERS = 1200
@@ -170,6 +175,8 @@ class GameSnapshot:
     speaker_index: int | None = None
     manual_turns: bool = False
     speaker_clip: dict | None = None
+    # Open floor rooms: nobody holds the floor and any member may take it.
+    floor_open: bool = False
 
     @property
     def facts(self) -> dict:
@@ -343,17 +350,26 @@ class Room:
                                                                            option.description, option.rationale)
                                                              for option in gameplay.options(state)))
             actions = []
+            open_meeting = state.manual_turns and isinstance(state.phase, sim.SpeakingPhase)
+            is_ceo = caller.member_id in assignments and assignments[caller.member_id].role_id == "ceo"
             if not isinstance(state.phase, sim.EndedPhase):
-                if caller.member_id == self.host_member_id:
+                # Open floor rooms: only the CEO ends the meeting.
+                if (is_ceo if state.manual_turns else caller.member_id == self.host_member_id):
                     actions.append("end")
                 if isinstance(state.phase, sim.BriefingPhase) and caller.member_id == self.host_member_id:
                     actions.append("finish_briefing")
-                if caller.member_id == self.host_member_id and isinstance(state.phase, SKIPPABLE):
+                # Open floor rooms have no skipping during the meeting.
+                if caller.member_id == self.host_member_id and isinstance(state.phase, SKIPPABLE) and not open_meeting:
                     actions.append("skip_phase")
                 if isinstance(state.phase, sim.SpeakingPhase):
-                    if caller.member_id == state.phase.order[state.phase.index]:
+                    if caller.member_id == gameplay.speaker_of(state.phase):
                         actions.append("finish_speaking")
-                    if caller.member_id == self.host_member_id:
+                    if open_meeting:
+                        if state.phase.floor_open and caller.member_id in electorate:
+                            actions.append("take_floor")
+                        if is_ceo:
+                            actions.append("end_meeting")
+                    elif caller.member_id == self.host_member_id:
                         actions.append("skip_speaker")
                 if isinstance(state.phase, sim.VotingPhase) and caller.member_id in electorate:
                     actions.append("vote")
@@ -384,7 +400,7 @@ class Room:
                 state.phase.ending_label if isinstance(state.phase, sim.EndedPhase) else None, self.narration(now),
                 gameplay.at(state, now), gameplay.at(state, due) if due is not None else None,
                 gameplay.at(state, state.session_deadline) if state.session_deadline is not None else None,
-                state.phase.order[state.phase.index] if isinstance(state.phase, sim.SpeakingPhase) else None,
+                gameplay.speaker_of(state.phase) if isinstance(state.phase, sim.SpeakingPhase) else None,
                 state.phase.order if isinstance(state.phase, sim.SpeakingPhase) else (),
                 dict(state.ballots).get(caller.member_id),
                 None if isinstance(state.phase, sim.VotingPhase) else state.last_tally,
@@ -396,8 +412,9 @@ class Room:
                 gameplay.ENDING_TITLES.get(state.phase.ending_label)
                 if isinstance(state.phase, sim.EndedPhase) else None,
                 state.timing.private_rounds, self.private_progress(state, assignments),
-                state.phase.index if isinstance(state.phase, sim.SpeakingPhase) else None,
+                state.phase.index if isinstance(state.phase, sim.SpeakingPhase) and not state.phase.floor_open else None,
                 manual_turns=state.manual_turns,
+                floor_open=isinstance(state.phase, sim.SpeakingPhase) and state.phase.floor_open,
                 speaker_clip={"clip_id": state.phase.clip[0], "started_at": gameplay.at(state, state.phase.clip[1]),
                               "text": state.phase.clip[2]}
                 if isinstance(state.phase, sim.SpeakingPhase) and state.phase.clip is not None else None,
@@ -436,7 +453,7 @@ class Rooms:
         roster = tuple((item.member_id, item.eligible_from_round, seen[item.member_id])
                        for item in phase.assignments)
         evidence = tuple((item.contribution_id, item.round_id) for item in room.contributions)
-        state = gameplay.reconcile(phase.state, now, roster, evidence)
+        state = gameplay.reconcile(phase.state, now, roster, evidence, ceo_of(phase.assignments))
         if state is not phase.state:
             electorate = tuple(item.member_id for item in phase.assignments
                                if item.eligible_from_round <= state.round_number)
@@ -465,13 +482,22 @@ class Rooms:
             phase = state.phase
             if isinstance(phase, sim.EndedPhase):
                 raise RoomError(409, "game_ended", "Gameplay is already complete")
+            if (action == "take_floor" and isinstance(phase, sim.SpeakingPhase) and state.manual_turns
+                    and not phase.floor_open):
+                holder = next((seat.display_name for seat in room.members.values()
+                               if seat.member_id == gameplay.speaker_of(phase)), "Someone")
+                raise RoomError(409, "floor_taken", f"{holder} has the floor. Wait until they finish their turn.")
             if phase.phase_id != phase_id or (round_id is not None and round_id != state.round_id):
                 raise RoomError(409, "stale_phase", "Refresh the room before submitting")
             if not self.automatic:
                 raise RoomError(409, "internal_fixture", "This fixture does not run timed gameplay")
             assignments = group.assignments
+            is_ceo = caller.member_id == ceo_of(assignments)
+            open_meeting = state.manual_turns and isinstance(phase, sim.SpeakingPhase)
             if action == "end":
-                if caller.member_id != room.host_member_id:
+                if state.manual_turns and not is_ceo:
+                    raise RoomError(403, "ceo_required", "Only the CEO can end the meeting")
+                if not state.manual_turns and caller.member_id != room.host_member_id:
                     raise RoomError(403, "host_required", "Only the host can end the meeting")
                 state = gameplay.end(state, now, "host_ended")
             elif action == "finish_briefing":
@@ -482,16 +508,31 @@ class Rooms:
                     raise RoomError(409, "not_briefing", "The briefing has already finished")
                 # The spoken briefing already covered the situation, so speaking turns begin at once.
                 seen = {seat.member_id: seat.last_seen for seat in room.members.values()}
-                state = gameplay.begin_speaking(state, now, group.electorate, seen)
+                state = gameplay.begin_speaking(state, now, group.electorate, seen, ceo_of(assignments))
+            elif action == "take_floor":
+                if not open_meeting:
+                    raise RoomError(409, "not_open_floor", "Turns in this room follow the speaking order")
+                if caller.member_id not in group.electorate:
+                    raise RoomError(403, "not_eligible", "Only board members in this round can take the floor")
+                state = gameplay.take_floor(state, now, caller.member_id)
+            elif action == "end_meeting":
+                if not open_meeting:
+                    raise RoomError(409, "not_open_floor", "There is no open meeting to end")
+                if not is_ceo:
+                    raise RoomError(403, "ceo_required", "Only the CEO can end the meeting")
+                seen = {seat.member_id: seat.last_seen for seat in room.members.values()}
+                state = gameplay.end_meeting(state, now, seen, caller.member_id)
             elif action == "skip_phase":
                 if caller.member_id != room.host_member_id:
                     raise RoomError(403, "host_required", "Only the host can skip a phase")
+                if open_meeting:
+                    raise RoomError(409, "not_skippable", "Only the CEO can end the meeting")
                 if isinstance(phase, sim.SpeakingPhase):
                     state = gameplay.finish_record(state, now, "host_skip_phase", caller.member_id)
                     state = replace(state, phase=sim.DiscussionPhase(uuid4(), now))
                 elif isinstance(phase, sim.BriefingPhase):
                     seen = {seat.member_id: seat.last_seen for seat in room.members.values()}
-                    state = gameplay.begin_speaking(state, now, group.electorate, seen)
+                    state = gameplay.begin_speaking(state, now, group.electorate, seen, ceo_of(assignments))
                 elif isinstance(phase, sim.ResultPhase):
                     state = replace(state, phase=replace(phase, not_before=now))
                 elif isinstance(phase, SKIPPABLE):
@@ -502,21 +543,27 @@ class Rooms:
                 # The speaker started (or stopped) a saved clip; the other windows play it from the same moment.
                 if not isinstance(phase, sim.SpeakingPhase):
                     raise RoomError(409, "not_speaking", "There is no active speaker")
-                if caller.member_id != phase.order[phase.index]:
+                if caller.member_id != gameplay.speaker_of(phase):
                     raise RoomError(403, "speaker_required", "Only the active speaker can share a clip")
                 state = replace(state, phase=replace(phase, clip=(value[0], now, value[1]) if value else None))
             elif action in {"finish", "skip"}:
                 if not isinstance(phase, sim.SpeakingPhase):
                     raise RoomError(409, "not_speaking", "There is no active speaker")
-                speaker = phase.order[phase.index]
+                speaker = gameplay.speaker_of(phase)
                 if action == "finish" and caller.member_id != speaker:
                     raise RoomError(403, "speaker_required", "Only the active speaker can finish")
+                if action == "skip" and state.manual_turns:
+                    raise RoomError(409, "not_skippable", "Turns cannot be skipped in an open floor meeting")
                 if action == "skip" and caller.member_id != room.host_member_id:
                     raise RoomError(403, "host_required", "Only the host can skip a speaker")
                 seen = {seat.member_id: seat.last_seen for seat in room.members.values()}
-                state = gameplay.next_speaker(state, now, seen,
-                                              f"host_skip: {value}" if action == "skip" else "finished",
-                                              caller.member_id)
+                if state.manual_turns:
+                    # Open floor: giving up the floor lets anyone take it next.
+                    state = gameplay.open_floor(state, now, "finished", caller.member_id)
+                else:
+                    state = gameplay.next_speaker(state, now, seen,
+                                                  f"host_skip: {value}" if action == "skip" else "finished",
+                                                  caller.member_id)
             elif action == "vote":
                 if not isinstance(phase, sim.VotingPhase):
                     raise RoomError(409, "not_voting", "Voting is not open")
@@ -626,7 +673,7 @@ class Rooms:
             room.phase = replace(group, state=state, assignments=assignments)
             room.version += 1
             room.touch(session, now)
-            if action in {"skip_phase", "finish", "skip"}:
+            if action in {"skip_phase", "finish", "skip", "take_floor", "end_meeting"}:
                 # Apply the transition this command made due right away instead of on the next poll.
                 self.reconcile(room, now)
             view = room.snapshot(session, now)

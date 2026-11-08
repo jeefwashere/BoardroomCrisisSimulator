@@ -161,6 +161,34 @@ def finish_record(game: sim.Game, instant: float, reason: str, actor_id: UUID | 
     return replace(game, turns=game.turns + (record,))
 
 
+def speaker_of(phase) -> UUID | None:
+    """Who holds the floor in a speaking phase (None while the floor is open)."""
+    return None if phase.floor_open else phase.order[phase.index]
+
+
+def open_floor(game: sim.Game, instant: float, reason: str, actor_id: UUID | None = None) -> sim.Game:
+    """Open floor rooms: the speaker gives up the floor (or dropped out) and anyone may take it next."""
+    if not game.phase.floor_open:
+        game = finish_record(game, instant, reason, actor_id)
+    return replace(game, phase=replace(game.phase, phase_id=uuid4(), floor_open=True, clip=None, started_at=instant))
+
+
+def take_floor(game: sim.Game, instant: float, member_id: UUID) -> sim.Game:
+    """Open floor rooms: a member takes the open floor; the caller checked that it is open."""
+    phase = game.phase
+    return replace(game, phase=replace(phase, phase_id=uuid4(), index=phase.order.index(member_id),
+                                       floor_open=False, clip=None, started_at=instant))
+
+
+def end_meeting(game: sim.Game, instant: float, last_seen: dict[UUID, float], actor_id: UUID | None) -> sim.Game:
+    """Open floor rooms: the CEO closes the meeting and the round moves on as if every turn had been taken."""
+    phase = game.phase
+    if not phase.floor_open:
+        game = finish_record(game, instant, "meeting_ended", actor_id)
+    return select_speaker(game, instant, last_seen, phase.order, len(phase.order),
+                          phase.slot_seconds, phase.discussion_deadline)
+
+
 def select_speaker(game: sim.Game, instant: float, last_seen: dict[UUID, float],
                    order: tuple[UUID, ...], index: int, slot: int, discussion_deadline: float):
     while index < len(order):
@@ -196,7 +224,13 @@ def next_speaker(game: sim.Game, instant: float, last_seen: dict[UUID, float],
 
 
 def begin_speaking(game: sim.Game, instant: float, electorate: tuple[UUID, ...],
-                   last_seen: dict[UUID, float]) -> sim.Game:
+                   last_seen: dict[UUID, float], lead: UUID | None = None) -> sim.Game:
+    if game.manual_turns:
+        # Open floor: the CEO (`lead`) holds the floor first; if they are away, the floor starts open.
+        present = lead in electorate and 0 <= instant - last_seen[lead] < PRESENCE_WINDOW_SECONDS
+        return replace(game, phase=sim.SpeakingPhase(
+            uuid4(), math.inf, math.inf, electorate, electorate.index(lead) if present else 0,
+            game.timing.speaker_max_seconds, instant, floor_open=not present))
     rounds = getattr(game.timing, "speaking_rounds", 1)
     if rounds > 1:
         # Several times round the table: each turn keeps the full speaker slot and the discussion lasts as long
@@ -253,7 +287,7 @@ def complete_custom(game: sim.Game, instant: float, outcome_id: str,
 
 
 def reconcile(game: sim.Game, now: float, roster: tuple[tuple[UUID, int, float], ...],
-              evidence: tuple[tuple[UUID, UUID], ...]) -> sim.Game:
+              evidence: tuple[tuple[UUID, UUID], ...], lead: UUID | None = None) -> sim.Game:
     """Total expiry wins; otherwise catch up elapsed phases in deadline order."""
     if game.session_deadline is not None and now >= game.session_deadline:
         if isinstance(game.phase, sim.PrivateSessionPhase) and game.phase.deadline <= game.session_deadline:
@@ -265,7 +299,7 @@ def reconcile(game: sim.Game, now: float, roster: tuple[tuple[UUID, int, float],
         phase = game.phase
         due = deadline(game)
         reason = "elapsed"
-        if isinstance(phase, sim.SpeakingPhase):
+        if isinstance(phase, sim.SpeakingPhase) and not phase.floor_open:
             disconnected_at = last_seen[phase.order[phase.index]] + PRESENCE_WINDOW_SECONDS
             if disconnected_at < (math.inf if due is None else due):
                 due, reason = max(phase.started_at, disconnected_at), "disconnected"
@@ -276,7 +310,9 @@ def reconcile(game: sim.Game, now: float, roster: tuple[tuple[UUID, int, float],
         if isinstance(phase, sim.BriefingPhase):
             game = replace(game, phase=sim.ReadingPhase(uuid4(), due + game.timing.reading_seconds))
         elif isinstance(phase, sim.ReadingPhase):
-            game = begin_speaking(game, due, electorate, last_seen)
+            game = begin_speaking(game, due, electorate, last_seen, lead)
+        elif isinstance(phase, sim.SpeakingPhase) and game.manual_turns:
+            game = open_floor(game, due, reason)
         elif isinstance(phase, sim.SpeakingPhase):
             game = next_speaker(game, due, last_seen, reason)
         elif isinstance(phase, sim.DiscussionPhase) and decision_mode(game) == "individual":

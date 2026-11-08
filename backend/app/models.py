@@ -292,6 +292,8 @@ class GameView(View):
     manual_turns: bool = False
     # The saved clip the active speaker started, so every window can play it in step.
     speaker_clip: SpeakerClipView | None = None
+    # Open floor rooms: nobody holds the floor and any member may take it.
+    floor_open: bool = False
 
 
 class RoomFields(View):

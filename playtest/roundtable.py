@@ -9,9 +9,11 @@ import uuid
 
 from .engine import RuleError, SCENARIO, bounded_text, require
 from .roundtable_scenario import DECISION
+from .round_one import RoundOne, EXPERTS
+from .four_rounds import FourRounds
 
 
-class Roundtable:
+class Roundtable(RoundOne, FourRounds):
     """An ephemeral meeting whose membership tokens never enter public snapshots."""
 
     DURATIONS = {'preparation': 30, 'discussion': 300, 'consultation': 60}
@@ -64,8 +66,10 @@ class Roundtable:
         else:
             room['speaker'], room['turn_index'] = None, None
         room['deadline'] = at + self.DURATIONS[phase] if phase in self.DURATIONS else None
+        if self.is_round_one(room) and phase == 'consultation':
+            room['deadline'] = None
         self.event(room, 'phase', at=at, phase=phase, deadline=room['deadline'], reason=reason)
-        if phase == 'decision' and self._fixed_scenario(room):
+        if phase == 'decision' and self._fixed_scenario(room) and not self.is_round_one(room):
             self._open_fixed_decision(room, at)
 
     @staticmethod
@@ -77,7 +81,7 @@ class Roundtable:
             return
         decision = {**deepcopy(DECISION), 'mode': 'fixed_choice', 'proposal': '', 'option_id': None,
                     'source_ids': [entry['id'] for entry in room['transcript']], 'document_ids': ['T01'],
-                    'member': None, 'at': at, 'status': 'pending', 'votes': {}}
+                    'member': None, 'at': at, 'status': 'pending', 'votes': {}, 'ballot_version': 1}
         room['decisions'].append(decision)
         self.event(room, 'fixed_decision_opened', at=at, decision_id=decision['id'], document_ids=['T01'])
 
@@ -118,15 +122,20 @@ class Roundtable:
             blockers.append('All joined participants must be connected.')
         if any(not member['ready'] for member in room['members'].values()):
             blockers.append('All participants must mark themselves ready.')
+        if self.is_four_rounds(room) and len(room['members']) != 3:
+            blockers.append('This four round beta uses exactly three members.')
+        if self.is_four_rounds(room) and [d['id'] for d in room['documents']] != ['T01']:
+            blockers.append('This four round beta uses the included T01 incident report only.')
         if not room['documents_ready'] or not room['documents']:
             blockers.append('Selected documents must finish indexing.')
         if sum(member['role'] == 'ceo' for member in room['members'].values()) != 1:
             blockers.append('Exactly one participant must hold the CEO role.')
         return blockers
 
-    def join(self, name, code=None, token=None, role=None):
+    def join(self, name, code=None, token=None, role=None, flow=None):
         with self.lock:
             name = bounded_text(name, 40)
+            require(flow in (None, "legacy", "board_round1", "four_rounds"), "Unknown meeting flow", 422)
             if isinstance(token, str) and token in self.identities:
                 old_code, _ = self.identities[token]
                 require(code in (None, old_code), 'Membership belongs to another room', 403)
@@ -141,6 +150,7 @@ class Roundtable:
                     code = ''.join(secrets.choice('ABCDEFGHJKLMNPQRSTUVWXYZ23456789') for _ in range(6))
                 self.rooms[code] = {'code': code, 'members': {}, 'host': None, 'phase': 'lobby',
                     'version': 0, 'events': [], 'deadline': None, 'electorate': [],
+                    'flow': flow or 'legacy', 'expert_briefings': {}, 'individual_decisions': {},
                     'speaker': None, 'turn_index': None, 'turn_number': 0, 'active_audio': None, 'active_stream': None,
                     'documents': [], 'documents_ready': False, 'transcript': [], 'summary': {'items': []},
                     'decision_prompts': [], 'decisions': [], 'history': [], 'jobs': {}, 'suggestions': []}
@@ -238,6 +248,10 @@ class Roundtable:
                 room['members'][target].update(role=role, ready=False)
             self.event(room, 'roles_assigned', member=mid, roles=deepcopy(roles))
             return
+        if self.four_round_command(room, mid, action, data):
+            return
+        if self.round_one_command(room, mid, action, data):
+            return
         if action in {'start', 'finish_discussion', 'skip_consultation', 'commit_decision', 'cancel_decision', 'end'}:
             require(mid == self._ceo(room), 'Only the CEO can perform this action', 403)
         if action == 'start':
@@ -252,6 +266,10 @@ class Roundtable:
             self._transition(room, 'consultation', reason='ceo_finish')
         elif action == 'skip_consultation':
             require(phase == 'consultation', 'Consultation is not active')
+            if self.is_round_one(room):
+                require(all(kind in room['expert_briefings'] for kind in EXPERTS),
+                        'Hear all three expert perspectives before individual decisions', 409)
+                require(not room.get('active_stream'), 'Wait for the current expert to finish', 409)
             self.event(room, 'consultation_skipped', member=mid)
             self._transition(room, 'decision', reason='ceo_skip')
         elif action == 'next_turn':
@@ -279,9 +297,32 @@ class Roundtable:
             entry = self.event(room, 'contribution', member=mid, name=member['name'], text=text,
                                source=source, turn_number=room['turn_number'], **details)
             room['transcript'].append(deepcopy(entry))
+        elif action == 'add_custom_option':
+            require(phase == 'decision', 'Add a response during the decision stage')
+            require(mid == self._ceo(room), 'Only the CEO can add a custom response', 403)
+            decision = next((item for item in room['decisions'] if item['id'] == data.get('decision_id')), None)
+            require(decision is not None and decision.get('mode') == 'fixed_choice', 'Choice ballot not found', 404)
+            require(decision['status'] == 'pending', 'This decision is already final')
+            self._check_ballot_version(decision, data, required=True)
+            require(len(decision['options']) < 6, 'This ballot already has three custom responses', 422)
+            title, proposal = bounded_text(data.get('title'), 80), bounded_text(data.get('proposal'), 1500)
+            require(not any(o['proposal'].casefold() == proposal.casefold() for o in decision['options']),
+                    'That response is already on this ballot', 422)
+            require(type(data.get('acknowledge_reset', False)) is bool, 'acknowledge_reset must be a boolean', 422)
+            require(not decision['votes'] or data.get('acknowledge_reset') is True,
+                    'Adding a response clears existing votes. Confirm that everyone will vote again', 409)
+            option = {'id': 'custom_'+uuid.uuid4().hex, 'label': title, 'proposal': proposal,
+                      'custom': True, 'proposed_by': mid}
+            decision['options'].append(option)
+            cleared = len(decision['votes'])
+            decision['votes'] = {}
+            decision['ballot_version'] = decision.get('ballot_version', 1)+1
+            self.cancel_audio(room, 'ballot_changed')
+            self.event(room, 'custom_option_added', member=mid, decision_id=decision['id'],
+                       option=deepcopy(option), ballot_version=decision['ballot_version'], votes_cleared=cleared)
         elif action == 'propose_decision':
             require(phase == 'decision', 'Decisions follow the consultation minute')
-            require(not self._fixed_scenario(room), 'Use the authored choices for this T01 meeting')
+            require(not self._fixed_scenario(room), 'Use the current choice ballot or add a custom response for this T01 meeting')
             problem = bounded_text(data.get('problem'), 1000)
             proposal = bounded_text(data.get('proposal'), 2000)
             sources = data.get('source_ids')
@@ -302,18 +343,20 @@ class Roundtable:
             require(decision is not None, 'Decision not found in this room', 404)
             require(decision['status'] == 'pending', 'This decision is already final')
             fixed = decision.get('mode') == 'fixed_choice'
+            if fixed and action in {'vote_option', 'commit_decision'}:
+                self._check_ballot_version(decision, data)
             if action == 'vote_option':
                 require(fixed, 'Use approve, reject or abstain for this proposal', 422)
                 require(mid in room['electorate'], 'Only eligible members can vote', 403)
                 require(mid in decision['votes'] or mid == self.next_voter(room, decision),
                         'Wait until you are asked for your decision', 403)
                 option = data.get('option_id')
-                require(isinstance(option, str) and option in {item['id'] for item in DECISION['options']},
-                        'Choose an authored option', 422)
+                require(isinstance(option, str) and option in {item['id'] for item in decision['options']},
+                        'Choose a response on the current ballot', 422)
                 decision['votes'][mid] = option
                 self.event(room, 'ballot_received', member=mid, decision_id=decision['id'])
             elif action == 'vote_decision':
-                require(not fixed, 'Choose an authored option for this decision', 422)
+                require(not fixed, 'Choose a prepared or custom response for this decision', 422)
                 require(mid in room['electorate'], 'Only eligible members can vote', 403)
                 choice = data.get('choice')
                 require(isinstance(choice, str) and choice in {'approve', 'reject', 'abstain'}, 'Invalid vote', 422)
@@ -350,13 +393,19 @@ class Roundtable:
             raise RuleError('Unknown roundtable command', 422)
 
     @staticmethod
+    def _check_ballot_version(decision, data, required=False):
+        version = data.get('ballot_version', None if required else 1)
+        require(type(version) is int and version == decision.get('ballot_version', 1),
+                'The ballot changed. Review the current choices and vote again', 409)
+
+    @staticmethod
     def next_voter(room, decision):
         if decision.get('mode') != 'fixed_choice' or decision['status'] != 'pending':
             return None
         return next((mid for mid in room['electorate'] if mid not in decision['votes']), None)
 
     def _commit_fixed(self, room, decision, mid, data):
-        options = {option['id']: option for option in DECISION['options']}
+        options = {option['id']: option for option in decision['options']}
         require(all(vote in options for vote in decision['votes'].values()), 'Invalid stored option ballot')
         tally = self._tally(decision)
         most = max(tally.values(), default=0)
@@ -372,12 +421,14 @@ class Roundtable:
                     'The CEO cannot override the winning option', 422)
             selected, reason = leaders[0], 'plurality'
         require(data.get('tie_break') is None, 'Resolve a choice tie using option_id', 422)
-        decision.update(option_id=selected, proposal=options[selected]['proposal'])
+        decision.update(option_id=selected, proposal=options[selected]['proposal'],
+                        option_label=options[selected]['label'],
+                        option_kind='custom' if options[selected].get('custom') else 'prepared')
         self._finalize(room, decision, mid, 'approved', reason=reason)
 
     @staticmethod
     def _tally(decision):
-        choices = ([option['id'] for option in DECISION['options']] if decision.get('mode') == 'fixed_choice'
+        choices = ([option['id'] for option in decision['options']] if decision.get('mode') == 'fixed_choice'
                    else ('approve', 'reject', 'abstain'))
         return {choice: list(decision['votes'].values()).count(choice) for choice in choices}
 
@@ -395,7 +446,9 @@ class Roundtable:
     def _snapshot(self, room, mid):
         public = {key: deepcopy(room[key]) for key in ('code', 'host', 'phase', 'version', 'deadline',
             'electorate', 'documents', 'documents_ready', 'transcript', 'summary', 'decision_prompts',
-            'history', 'suggestions', 'speaker', 'turn_index', 'turn_number', 'active_stream')}
+            'history', 'suggestions', 'speaker', 'turn_index', 'turn_number', 'active_stream', 'flow')}
+        public.update(self.round_one_snapshot(room, mid))
+        public.update(self.four_round_snapshot(room, mid))
         public.update(me=mid, ceo=self._ceo(room), fixed_scenario=self._fixed_scenario(room), server_time=self.clock(), roles=deepcopy(self.roles),
                       recording_policy=self.RECORDING_POLICY, speaking=list(room['electorate']) if room['phase'] == 'discussion' else [])
         lease = room.get('active_audio')

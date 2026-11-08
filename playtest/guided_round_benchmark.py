@@ -72,7 +72,8 @@ def main():
     state=host.state();assert state['phase']=='discussion';assert 0<state['deadline']-state['server_time']<=300
     before_clips=host.request('/api/health')['speech']['reserved']
     catalog=host.request('/api/roundtable/recordings')
-    for member,clip_id in zip(members,catalog['default_clip_ids']):
+    for index,clip_id in enumerate(catalog['default_clip_ids']):
+        member=members[index%len(members)]
         state=member.state();assert state['speaker']==state['me']
         lease=member.request('/api/roundtable/recordings/play',{'command_id':uuid.uuid4().hex,'clip_id':clip_id})
         request=urllib.request.Request(args.url+'/api/roundtable/recordings/audio/'+lease['id'],headers={'Authorization':'Bearer '+member.token})
@@ -96,7 +97,7 @@ def main():
         while time.monotonic()<until and host.state()['phase']=='consultation':states();time.sleep(.2)
     while host.state()['phase']=='consultation':states();time.sleep(.2)
     report['consultation_seconds']=round(time.monotonic()-consultation_started,2)
-    state=host.state();assert state['phase']=='decision' and len(state['transcript'])==3
+    state=host.state();assert state['phase']=='decision' and len(state['transcript'])==9
     decision=state['decisions'][0]['id'];assert state['decisions'][0]['mode']=='fixed_choice'
     prompt=host.request('/api/roundtable/decision-prompt')
     before_prompt=host.request('/api/health')['speech']['reserved']
@@ -115,7 +116,7 @@ def main():
     host.command('end');state=host.state();assert state['phase']=='ended' and state['decisions'][0]['status']=='approved'
     report['record']={k:state[k] for k in ('phase','transcript','summary','decisions','history','jobs')}
     report['health_after']=host.request('/api/health')
-    report['checks']={'single_preloaded_pdf':True,'three_ready_members':True,'intro_before_discussion':True,'three_recorded_turns':True,'free_recorded_playback':True,'ceo_consultations':True,'early_finish':True,'one_minute_consultation':True,'recorded_decision_guidance_before_votes':True,'explicit_fixed_choice_ballots':True,'evaluation_after_commit':True}
+    report['checks']={'single_preloaded_pdf':True,'three_ready_members':True,'intro_before_discussion':True,'nine_recorded_turns':True,'free_recorded_playback':True,'ceo_consultations':True,'early_finish':True,'one_minute_consultation':True,'recorded_decision_guidance_before_votes':True,'explicit_fixed_choice_ballots':True,'evaluation_after_commit':True}
     save();print(json.dumps([{k:c[k] for k in ('kind','first_text_ms','first_audio_ms','text_complete_ms','audio_seconds','audio_before_text_finished')} for c in report['cases']]))
 
 

@@ -1,5 +1,7 @@
 # Guided T01 meeting
 
+Current update: [X16 extended conversation and custom responses](EXTENDED_CONVERSATION_REPORT.md) supersedes the three clip and prepared choices only limits below. The measurements in this earlier report remain historical.
+
 The current test runs at <http://127.0.0.1:8788/>. [The guide](ROUNDTABLE_GUIDE.md) gives the exact controls. One public T01 PDF is attached automatically. Load three test participants and let the CEO start.
 
 ## Sequence and authority

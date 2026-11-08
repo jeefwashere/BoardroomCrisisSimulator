@@ -1,0 +1,39 @@
+{
+  "clip": {
+    "id": "t01_ceo_voting_guide",
+    "title": "CEO proposal and member voting",
+    "role": "Decision guide",
+    "group": "decision",
+    "text": "The CEO may now add a custom response alongside the three prepared choices. Review every option, then each member chooses and confirms their own vote in the app. A new option resets voting for everyone. After all votes, the CEO confirms the winner, or chooses among tied leaders. Spoken agreement does not count as a vote.",
+    "suggested_agent": "decision",
+    "file": "t01_ceo_voting_guide.mp3",
+    "duration_seconds": 23.127,
+    "sha256": "bce2231ea08b5c83711eda6b52ef78c3460dbb3196c14b6b1f2f8db493c10841",
+    "text_sha256": "23cfcf621362ea63911e95a8de06f1eef901a619cb3011d42cb48eff528ac5f5",
+    "bytes": 371190,
+    "voice_label": "standard voice A",
+    "model": "eleven_flash_v2_5",
+    "cached_during_generation": false,
+    "generation_ms": 891.8
+  },
+  "generation": {
+    "selected_ids": [
+      "t01_ceo_voting_guide"
+    ],
+    "clip_count": 51,
+    "catalog_characters": 322,
+    "concurrency": 2,
+    "distinct_standard_voices": 3,
+    "elapsed_seconds": 0.89,
+    "failures": [],
+    "reserved_before": 19652,
+    "reserved_after": 19974,
+    "reserved_this_batch": 322,
+    "remaining_after": null,
+    "price_checked": "2026-11-07",
+    "pricing_source": "https://elevenlabs.io/pricing",
+    "reservation_rate": "1 credit per character",
+    "model": "eleven_flash_v2_5",
+    "note": "Fictional prerecorded fixtures, not live responses. No provider calls are needed for replay."
+  }
+}

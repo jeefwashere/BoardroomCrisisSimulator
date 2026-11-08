@@ -1,8 +1,32 @@
 # Rehearsal implementation progress
 
-Status snapshot: November 7, 2026, updated for task X14. The single window local model experiment is implemented and evaluated. The active test application now routes all text agents and extraction to Gemini 3.8 Flash with LOW reasoning through Google Vertex AI, with no local model fallback. The same fourteen case comparison has completed. The custom proposal round and Vertex speech integration check also passed.
+Latest X20: Round 1 now uses [one guided answer box](SINGLE_ANSWER_UPDATE.md), including saved audio drafts and reviewed microphone transcription.
+
+
+## Current X19 four round beta
+
+Working Rounds 2 through 4 now extend the preserved opening and group Round 1. The private coach, response card, same agent examiner, evidence based 100 point assessment, reunion corrections and winner gates are implemented. Beta questions align with 27 new human recordings; switching beta off before Start enables adaptive Gemini follow ups. The current exercise has 36 human clips in total. Read [the workflow](FOUR_ROUND_WORKFLOW.md), [controls](ROUNDTABLE_GUIDE.md) and [verification](FOUR_ROUND_REPORT.md).
+
+Earlier sections below describe historical checkpoints. X19 supersedes their private rounds deferred and legacy ballot default statements. The user approved unlimited ledgers remain intact.
+
+
+Status snapshot: November 7, 2026, updated for task X18. The single window local model experiment is implemented and evaluated. The active test application now routes all text agents and extraction to Gemini 3.8 Flash with LOW reasoning through Google Vertex AI, with no local model fallback. The same fourteen case comparison has completed. The custom proposal round and Vertex speech integration check also passed.
 
 The work is isolated on branch `experiment/ai-voice-playtest` in `/Users/arjunbehl/Developer/CommuniHacks/BoardroomCrisisSimulator-ai-playtest`. It has not been merged into the production application. Existing teammate modules and the shared GPU service are preserved.
+
+## Current X18 group first round
+
+The default browser flow now follows [the four round design](FOUR_ROUND_DESIGN.md) through Round 1 only. The preparation agent remains. Discussion leads to three live experts and separate member decisions with no points. Each member's frozen context supports future private coaching without exposing another member's individual decision. The earlier ballot flow is retained as legacy. [Current report](ROUND_ONE_REPORT.md).
+
+## Current X17 voting guide
+
+A new 23.13 second ElevenLabs guide explains CEO custom proposals, explicit member ballots, reset on a new option and CEO confirmation or selection among tied leaders. Only the CEO can add custom options through the UI or API. Existing nine participant recordings remain unchanged. See [the voting audio update](VOTING_AUDIO_UPDATE.md).
+
+## Current X16 conversation and custom ballot
+
+Nine new manual participant recordings provide 134.40 seconds of T01 discussion, three turns per participant, plus a 21.97 second recorded voting guide. The UI shows the current ordinal and does not loop after the ninth clip. The custom response form can add a choice beside the prepared responses. Adding one restarts the ballot, requires acknowledgement if votes exist, and rejects stale votes. A custom winner becomes the canonical decision used by live Gemini evaluation. See [the current report](EXTENDED_CONVERSATION_REPORT.md) for verification and limits.
+
+The X14 and X12 sections below describe earlier checkpoints; X16 replaces their three recording and prepared choices only limits.
 
 ## Current X14 UI voting
 

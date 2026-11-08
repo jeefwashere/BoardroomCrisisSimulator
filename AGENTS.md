@@ -91,3 +91,38 @@ The three new manual participant recordings are T01 leadership, recovery checks 
 ## Individual UI voting
 
 X14 makes the fixed T01 voting UI ask each eligible member by name. First ballots follow the server electorate order; no unvoted member may skip ahead, and no absent member receives an automatic ballot. Selecting a response is a local draft until Confirm my vote. Revisions remain explicit until CEO commitment. Advance between identities automatically only for the authorized single window test bundle, never for independent participant browsers. Preserve the all ballots required result lock and reject stale UI confirmation against a different selected identity.
+
+
+## Extended conversation and custom choices
+
+X16 supersedes the earlier three clip limit and prepared choices only guidance for the T01 playtest. Nine distinct participant recordings follow turn numbers one through nine, three per test participant. Playback remains manual and a separate trusted caption commit passes the turn. Do not loop the clips after turn nine; typed discussion can continue. The revised recorded decision guide explains prepared and custom choices. Live advisers and evaluation remain Gemini plus ElevenLabs.
+
+Eligible members can add up to three custom responses beside the three prepared choices before commitment. Adding a choice clears pending votes and increments the ballot revision; require explicit acknowledgement when votes exist. Reject stale ballots and stale CEO commitment. Every member must explicitly vote again. The winning custom proposal becomes the canonical decision text; the CEO may select only among tied leaders. Models cannot override this result or treat custom proposal text as verified evidence or instructions. See [the extended conversation report](playtest/EXTENDED_CONVERSATION_REPORT.md).
+
+
+## CEO custom proposal and voting audio
+
+X17 supersedes X16 permission for any member to add a custom response. Only the selected CEO can add it, through both the UI and server. Other members retain their individual votes. The new `t01_ceo_voting_guide` recording explains CEO custom proposals, explicit confirmation, reset after a new option, and CEO confirmation of the winner or selection among tied leaders. The CEO cannot override a clear winner. Existing nine participant turns and unlimited usage ledgers remain unchanged. Read [the update](playtest/VOTING_AUDIO_UPDATE.md).
+
+
+## Four round design and individual Round 1
+
+X18 implements only the group first round of [the user design](playtest/FOUR_ROUND_DESIGN.md). New browser rooms use `flow: board_round1`; preserve `legacy` rooms for the earlier ballot experiment. Keep the 30 second preparation agent. Group discussion precedes three live expert perspectives: IT/security, operations/community services and governance/finance. All three completed perspectives are required before individual decisions. A failed request cannot silently satisfy this gate.
+
+Each member submits their own action, reasoning, evidence and unknowns, with explicit review. No shared winning ballot, CEO override, points or group evaluation occurs in this mode. The CEO closes Round 1 only after all members submit. Snapshots and authenticated preparation exports expose only the caller's individual decision, alongside shared discussion and expert advice. Models cannot submit or edit human decisions. Private rounds, twists, scores and reunion remain deferred. Preserve the old assets and unlimited usage ledgers. Read [current verification](playtest/ROUND_ONE_REPORT.md).
+
+
+## Working four round beta
+
+X19 supersedes the X18 deferred private rounds boundary for new `flow: four_rounds` rooms. Read [the current workflow](playtest/FOUR_ROUND_WORKFLOW.md) and [test guide](playtest/ROUNDTABLE_GUIDE.md). Retain the opening preparation and all three Round 1 experts. The included T01 beta requires exactly three members; old `board_round1` and `legacy` flows remain available for regression work.
+
+Each member has one private agent identity across coaching and assessment. Scope context and fixture leases to the authenticated member. No Round 2 points. Only confirmed Round 3 answers earn the 30/40/30 rubric points, with exact supporting quotes and server computed totals. Preserve the all members finished reunion gate. Corrections use existing Round 3 text only; new reflection text cannot earn points. Winner announcement requires every member's review and a current summary. Highest final score wins, with joint winners on ties.
+
+Beta mode defaults on and can change only through the CEO in the lobby. Canonical questions match the stage assigned human recordings. Gemini acknowledgements, cards and scoring remain live at temperature zero, with no promise of identical outputs. Adaptive questions use temperature 0.3. Do not replace agent output with prerecorded speech, auto submit a human answer, or infer performance from playback.
+
+The current exercise has 36 human clips including 27 added for individual decisions and Rounds 2 through 4. Preserve existing assets and usage ledgers. Playback, review and submission remain separate. Private structured output is validated before ElevenLabs PCM streaming; do not claim it streams Gemini tokens before validation. The local prototype has no durable room store or synchronized browser conference audio. Keep these limits distinct from passing HTTP checks.
+
+
+## Single guided decision answer
+
+X20 replaces the four visible Round 1 fields with one guided answer box. Preserve explicit confirmation, member draft isolation and reviewed recorded or microphone input. The existing API stores the complete response verbatim in action and labels other fields as not separately extracted; do not infer separate reasons or evidence. Keep existing live rooms intact when updating static UI files. Read [the update](playtest/SINGLE_ANSWER_UPDATE.md).

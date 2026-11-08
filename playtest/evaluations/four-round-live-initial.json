@@ -1,0 +1,143 @@
+{
+  "room": "GMFCGD",
+  "method": "Three HTTP memberships. Scripted typed fixture answers, real Gemma retrieval, Gemini replies and selected streamed ElevenLabs PCM. No browser or listening check. MP3 playback is covered separately with a controlled server clock.",
+  "streams": [
+    {
+      "member": 0,
+      "path": "briefing",
+      "request": {
+        "kind": "preparation",
+        "mode": "intro"
+      },
+      "voice": true,
+      "text": "Appointment software is down, and IT reported suspicious account activity. The executive director is unavailable, leaving the coordinator role open. No data disclosure is confirmed, and backup restorability remains unverified. The board must consider interim leadership and service contingency authorizations. How should the board prioritize coordinator coverage while operational facts and backups are being verified?",
+      "audio_bytes": 1226014,
+      "first_text_ms": 22493.9,
+      "first_audio_ms": 22872.0,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "timing": {
+          "retrieval_ms": 989.8,
+          "first_text_ms": 22458.4,
+          "first_audio_ms": 22844.1,
+          "text_complete_ms": 23218.1,
+          "total_ms": 25164.2
+        },
+        "speech_error": false,
+        "elapsed_ms": 25164.5
+      },
+      "total_ms": 25228.2,
+      "audio_seconds": 25.54
+    },
+    {
+      "member": 0,
+      "path": "briefing",
+      "request": {
+        "kind": "it",
+        "mode": "intro"
+      },
+      "voice": false,
+      "text": "The appointment software is currently unavailable, and IT reported suspicious account activity. No data disclosure has been confirmed yet. Pausing does not ensure data safety. While backup copies exist in inventory, their restorability has not been checked during this incident. We must verify backup usability, recovery dependencies, and a restoration estimate before promising any restoration timeline.",
+      "audio_bytes": 0,
+      "first_text_ms": 15638.3,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "timing": {
+          "retrieval_ms": 13904.5,
+          "first_text_ms": 15565.8,
+          "text_complete_ms": 15900.3,
+          "total_ms": 15900.3
+        },
+        "speech_error": false,
+        "elapsed_ms": 15901.1
+      },
+      "total_ms": 15996.1,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 0,
+      "path": "briefing",
+      "request": {
+        "kind": "operations",
+        "mode": "intro"
+      },
+      "voice": false,
+      "text": "Operations must protect service users immediately. Activating the paper appointment process offers a feasible fallback for essential appointments, but it requires board authorization. Morgan Ellis can run it once authorized. Staff availability remains unknown. Concurrently, IT support must verify backup usability and recovery dependencies before promising restoration times. These continuity steps work alongside interim leadership and communications rather than replacing them.",
+      "audio_bytes": 0,
+      "first_text_ms": 2566.4,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "timing": {
+          "retrieval_ms": 1233.2,
+          "first_text_ms": 2546.0,
+          "text_complete_ms": 3222.4,
+          "total_ms": 3222.5
+        },
+        "speech_error": false,
+        "elapsed_ms": 3222.7
+      },
+      "total_ms": 3239.7,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 0,
+      "path": "briefing",
+      "request": {
+        "kind": "governance",
+        "mode": "intro"
+      },
+      "voice": false,
+      "text": "Regarding authorization, only the board can appoint an interim incident coordinator and authorize the paper appointment process. External IT support cannot authorize spending. We must check what financial resources are required for recovery or continuity, since no budget limits or available funds are documented. Each member should ensure their proposed action respects these governance boundaries.",
+      "audio_bytes": 0,
+      "first_text_ms": 1546.1,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "timing": {
+          "retrieval_ms": 144.1,
+          "first_text_ms": 1521.2,
+          "text_complete_ms": 2364.2,
+          "total_ms": 2364.2
+        },
+        "speech_error": false,
+        "elapsed_ms": 2364.5
+      },
+      "total_ms": 2399.6,
+      "audio_seconds": 0.0
+    }
+  ],
+  "health_before": {
+    "ok": true,
+    "storage": "single process memory",
+    "models": {
+      "online": true,
+      "verified": false,
+      "provider": "Google Vertex AI",
+      "model": "gemini-3.8-flash",
+      "thinking_level": "LOW",
+      "name": "Gemini 3.8 Flash \u00b7 LOW",
+      "note": "Configured; live response not yet verified",
+      "budget": {
+        "cap_usd": null,
+        "reserved_usd": 3.75,
+        "remaining_usd": null,
+        "attempts": 75,
+        "unlimited": true,
+        "note": "Local test reservations, including failures; excludes other account spending."
+      }
+    },
+    "test_name_rejoin": true,
+    "speech": {
+      "cap": null,
+      "reserved": 31372,
+      "remaining": null,
+      "unlimited": true,
+      "unit": "credits",
+      "note": "Conservative reservations, not an exact provider invoice. Failed calls stay reserved."
+    },
+    "speech_configured": true
+  }
+}

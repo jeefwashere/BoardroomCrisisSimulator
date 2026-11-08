@@ -169,7 +169,7 @@ class VertexModels:
             if usage:
                 self.budget.record(ident, usage)
 
-    def run(self, prompt, model='text', timeout=120):
+    def run(self, prompt, model='text', timeout=120, temperature=None):
         if not self.key:
             raise VertexError('Set VERTEX_API_KEY or GOOGLE_API_KEY on the backend')
         if model not in ('text', 'extract'):
@@ -187,6 +187,10 @@ class VertexModels:
         payload = {'contents': [{'role': 'user', 'parts': [{'text': prompt}]}],
                    'generationConfig': {'thinkingConfig': {'thinkingLevel': THINKING},
                                         'responseMimeType': 'application/json', 'maxOutputTokens': 2048}}
+        if temperature is not None:
+            if type(temperature) not in (int, float) or not 0 <= temperature <= 2:
+                raise ValueError('Invalid sampling temperature')
+            payload['generationConfig']['temperature'] = temperature
         ident = self.budget.reserve()
         req = urllib.request.Request(ENDPOINT, data=json.dumps(payload).encode(),
                                      headers={'Content-Type': 'application/json', 'x-goog-api-key': self.key})

@@ -1,0 +1,619 @@
+{
+  "room": "Y94FX7",
+  "method": "Three HTTP memberships. Scripted typed fixture answers, real Gemma retrieval, Gemini replies and selected streamed ElevenLabs PCM. No browser or listening check. MP3 playback is covered separately with a controlled server clock.",
+  "streams": [
+    {
+      "member": 0,
+      "path": "briefing",
+      "request": {
+        "kind": "preparation",
+        "mode": "intro"
+      },
+      "voice": true,
+      "text": "Appointment software is currently unavailable, and IT reported suspicious account activity. The executive director is unavailable, leaving the coordinator role open without a named alternate. No data disclosure is confirmed, and backup restorability remains unverified. How should we coordinate our immediate response while verifying our system status?",
+      "audio_bytes": 1029850,
+      "first_text_ms": 1523.6,
+      "first_audio_ms": 2722.9,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "timing": {
+          "retrieval_ms": 264.9,
+          "first_text_ms": 1508.3,
+          "text_complete_ms": 2382.7,
+          "first_audio_ms": 2693.6,
+          "total_ms": 3959.4
+        },
+        "speech_error": false,
+        "elapsed_ms": 3959.5
+      },
+      "total_ms": 3976.5,
+      "audio_seconds": 21.46
+    },
+    {
+      "member": 0,
+      "path": "briefing",
+      "request": {
+        "kind": "it",
+        "mode": "intro"
+      },
+      "voice": false,
+      "text": "The appointment software is currently unavailable, and suspicious account activity was reported. No data disclosure is confirmed. While backups exist in the inventory, their restorability has not been checked during this incident. We must verify backup usability, recovery dependencies, and a restoration estimate before committing to any service-restoration time. Unknown technical factors remain unverified.",
+      "audio_bytes": 0,
+      "first_text_ms": 1613.3,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "timing": {
+          "retrieval_ms": 79.5,
+          "first_text_ms": 1590.9,
+          "text_complete_ms": 2528.4,
+          "total_ms": 2528.5
+        },
+        "speech_error": false,
+        "elapsed_ms": 2528.7
+      },
+      "total_ms": 2563.6,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 0,
+      "path": "briefing",
+      "request": {
+        "kind": "operations",
+        "mode": "intro"
+      },
+      "voice": false,
+      "text": "We must support staff and service users immediately. Operating the approved paper appointment process is our feasible fallback for essential appointments. Service manager Morgan Ellis can run it once the board authorizes activation. IT dependencies, backup usability, and restoration estimates remain unknown. Staff availability is also currently unknown. We should protect ongoing care without making unverified promises.",
+      "audio_bytes": 0,
+      "first_text_ms": 1160.6,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "timing": {
+          "retrieval_ms": 79.3,
+          "first_text_ms": 1118.2,
+          "text_complete_ms": 1661.3,
+          "total_ms": 1661.3
+        },
+        "speech_error": false,
+        "elapsed_ms": 1661.5
+      },
+      "total_ms": 1695.3,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 0,
+      "path": "briefing",
+      "request": {
+        "kind": "governance",
+        "mode": "intro"
+      },
+      "voice": false,
+      "text": "The board must formally authorize both appointing an interim incident coordinator and activating paper appointments. External IT support cannot authorize spending. We must check existing financial delegations, emergency spending authority, and any contracts covering supplier costs. Available funds and cost limits remain unconfirmed. Each member must consider these governance requirements when framing individual proposals.",
+      "audio_bytes": 0,
+      "first_text_ms": 1530.4,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "timing": {
+          "retrieval_ms": 82.1,
+          "first_text_ms": 1516.9,
+          "text_complete_ms": 1860.4,
+          "total_ms": 1860.4
+        },
+        "speech_error": false,
+        "elapsed_ms": 1860.6
+      },
+      "total_ms": 1902.4,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 2,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "I understand your focus on establishing an authorized continuity arrangement and issuing a factual update without making unsupported claims. The IT specialist is now unavailable. Given that the IT specialist is now unavailable and T01-BCP:BCP-4 restricts promising a restoration time until backups and dependencies are verified, how will you address service continuity and communications using the documented roles and the board-authorized paper appointment process?",
+      "audio_bytes": 0,
+      "first_text_ms": 1893.3,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "4bf7b1bafb1f4e37a04b79219e44c3c0",
+          "revision": 1,
+          "phase": "coaching",
+          "total_ms": 1884.8
+        }
+      },
+      "total_ms": 1893.4,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 1,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "I acknowledge your focus on appointing an interim coordinator and confirming recovery prerequisites before committing to restoration timelines. The IT specialist is now unavailable. With the IT specialist now unavailable, how will you address the plan's continuity fallback in T01-BCP:BCP-3 regarding board authorization for the paper appointment process while technical verification remains pending?",
+      "audio_bytes": 0,
+      "first_text_ms": 2945.3,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "a6e86a156226412491affea953b3b916",
+          "revision": 1,
+          "phase": "coaching",
+          "total_ms": 2937.6
+        }
+      },
+      "total_ms": 2945.3,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 2,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "I understand your focus on factual communications and seeking internal clarity on coordination and technical support. The alternate provider needs an authorized contact. With an alternate provider available to investigate if an authorized contact is named, what board authorization and technical access dependencies must you establish under documents T01-BCP:BCP-1 through BCP-4 to enable their work?",
+      "audio_bytes": 0,
+      "first_text_ms": 1727.4,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "4bf7b1bafb1f4e37a04b79219e44c3c0",
+          "revision": 2,
+          "phase": "coaching",
+          "total_ms": 1724.5
+        }
+      },
+      "total_ms": 1727.6,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 1,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "I acknowledge your decision to maintain caution and have a coordinator arrange qualified replacement support rather than rushing an unverified restoration. The alternate provider needs an authorized contact. With an alternate provider available to investigate if given an authorized contact, what board authorizations, IT access, and recovery dependencies from T01-BCP:BCP-1, BCP-2, and BCP-4 must you establish before they can proceed?",
+      "audio_bytes": 0,
+      "first_text_ms": 2148.6,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "a6e86a156226412491affea953b3b916",
+          "revision": 2,
+          "phase": "coaching",
+          "total_ms": 2145.3
+        }
+      },
+      "total_ms": 2148.7,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 2,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "I appreciate your careful approach to verifying authorized contacts, relying only on documented communication channels, and keeping unconfirmed disclosure separate from the verified outage. To finalize your response plan under BCP-3 and BCP-5, who should the board authorize to operate the fallback paper appointment process, and what specific elements must the communications lead include in the update to service users regarding timing and confirmed facts?",
+      "audio_bytes": 0,
+      "first_text_ms": 2448.5,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "4bf7b1bafb1f4e37a04b79219e44c3c0",
+          "revision": 3,
+          "phase": "coaching",
+          "total_ms": 2445.6
+        }
+      },
+      "total_ms": 2448.6,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 1,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "I acknowledge your recognition that continuity measures can proceed safely while technical verification remains pending. Looking at T01-BCP:BCP-1, BCP-2, BCP-3, and BCP-5, who should be authorized to act as coordinator, what specific fallback operation should the board authorize, and how will you structure updates and review progress?",
+      "audio_bytes": 0,
+      "first_text_ms": 2075.0,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "a6e86a156226412491affea953b3b916",
+          "revision": 3,
+          "phase": "coaching",
+          "total_ms": 2072.1
+        }
+      },
+      "total_ms": 2075.1,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 2,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Your preparation card is ready. Review every field, correct missing details, and confirm your response. Preparation earns no points. The scored challenge begins only after you confirm.",
+      "audio_bytes": 0,
+      "first_text_ms": 2286.7,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "4bf7b1bafb1f4e37a04b79219e44c3c0",
+          "revision": 4,
+          "phase": "card_review",
+          "total_ms": 2283.2
+        }
+      },
+      "total_ms": 2286.8,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 1,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Your preparation card is ready. Review every field, correct missing details, and confirm your response. Preparation earns no points. The scored challenge begins only after you confirm.",
+      "audio_bytes": 0,
+      "first_text_ms": 2390.7,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "a6e86a156226412491affea953b3b916",
+          "revision": 4,
+          "phase": "card_review",
+          "total_ms": 2387.7
+        }
+      },
+      "total_ms": 2390.8,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 2,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. I note your plan to issue a factual update, establish authorized contact via an interim coordinator, and track pending approvals. Briefing the board on your proposed response, what immediate priority action must occur first under the business continuity plan, and why?",
+      "audio_bytes": 0,
+      "first_text_ms": 1671.1,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "4bf7b1bafb1f4e37a04b79219e44c3c0",
+          "revision": 5,
+          "phase": "assessment",
+          "total_ms": 1668.2
+        }
+      },
+      "total_ms": 1671.2,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 2,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Stage 1: 20 of 30 points. I note your focus on establishing an interim coordinator, seeking an approved continuity plan, and issuing a factual update on disruptions and unverified recovery. The alternate provider cannot begin immediately; staff still need instructions. Given that the alternate provider cannot begin immediately and staff still need instructions, what specific changes will you make to your plan regarding operational continuity and communication responsibilities under the business continuity plan?",
+      "audio_bytes": 0,
+      "first_text_ms": 4187.4,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "4bf7b1bafb1f4e37a04b79219e44c3c0",
+          "revision": 7,
+          "phase": "assessment",
+          "total_ms": 4183.8
+        }
+      },
+      "total_ms": 4187.6,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 2,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Stage 2: 20 of 40 points. I acknowledge your plan to manage expectations by adhering strictly to verified information and authorized continuity arrangements. For your final instruction, who does what, under whose authority, what happens if it fails, and when will you review it?",
+      "audio_bytes": 0,
+      "first_text_ms": 5328.4,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "4bf7b1bafb1f4e37a04b79219e44c3c0",
+          "revision": 9,
+          "phase": "assessment",
+          "total_ms": 5325.2
+        }
+      },
+      "total_ms": 5328.4,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 2,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Stage 3: 20 of 30 points. Your assessment is complete. Detailed evidence is now available. You will rejoin the board when everyone finishes.",
+      "audio_bytes": 0,
+      "first_text_ms": 2586.8,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "4bf7b1bafb1f4e37a04b79219e44c3c0",
+          "revision": 11,
+          "phase": "assessment_done",
+          "total_ms": 2582.9
+        }
+      },
+      "total_ms": 2587.0,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 1,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. I acknowledge your plan to have an interim coordinator secure replacement technical support and manage paper continuity while verification is pending. Briefing the board on your response, what specific action should happen first, and what is your rationale for that sequence?",
+      "audio_bytes": 0,
+      "first_text_ms": 14213.1,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "a6e86a156226412491affea953b3b916",
+          "revision": 5,
+          "phase": "assessment",
+          "total_ms": 14209.7
+        }
+      },
+      "total_ms": 14213.4,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 0,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": true,
+      "text": "You have appropriately prioritized leadership and fallback service operations while recognizing key operational unknowns. The IT specialist is now unavailable. With the IT specialist now unavailable, how will you ensure backup usability, recovery dependencies, and restoration estimates are verified per BCP-4 before committing to any service-restoration timeline?",
+      "audio_bytes": 1083350,
+      "first_text_ms": 23080.1,
+      "first_audio_ms": 23379.6,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "75bfd1e868ef432f9d19d83fec9c703c",
+          "revision": 1,
+          "phase": "coaching",
+          "total_ms": 23072.5
+        }
+      },
+      "total_ms": 24380.3,
+      "audio_seconds": 22.57
+    },
+    {
+      "member": 0,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "You have rightly separated coordination duties from technical diagnosis while noting the need to check scope and authorization before granting access. The alternate provider needs an authorized contact. With an alternate provider available to investigate if given an authorized contact, what specific board authorizations, access boundaries, and verification checks under BCP-4 will you establish before sharing information or systems with them?",
+      "audio_bytes": 0,
+      "first_text_ms": 2021.9,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "75bfd1e868ef432f9d19d83fec9c703c",
+          "revision": 2,
+          "phase": "coaching",
+          "total_ms": 2018.8
+        }
+      },
+      "total_ms": 2022.0,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 0,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "You have carefully recognized the need to confirm spending limits, access boundaries, and authorized delegations before engaging an external provider. In reviewing your overall response, who will act as the interim coordinator, what fallback process will be activated under BCP-3, who will receive communications per BCP-5, and at what specific time will you review progress?",
+      "audio_bytes": 0,
+      "first_text_ms": 2127.3,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "75bfd1e868ef432f9d19d83fec9c703c",
+          "revision": 3,
+          "phase": "coaching",
+          "total_ms": 2124.1
+        }
+      },
+      "total_ms": 2127.4,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 1,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Stage 1: 23 of 30 points. I acknowledge your sequence prioritizing backup usability, authorized replacement technical support, and paper continuity while keeping technical uncertainty visible. The alternate provider cannot begin immediately; staff still need instructions. Given that the alternate provider cannot begin immediately and staff require instructions, how does your plan adapt to address staff guidance and appointment handling during this delay?",
+      "audio_bytes": 0,
+      "first_text_ms": 8149.7,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "a6e86a156226412491affea953b3b916",
+          "revision": 7,
+          "phase": "assessment",
+          "total_ms": 8146.3
+        }
+      },
+      "total_ms": 8149.8,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 0,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Your preparation card is ready. Review every field, correct missing details, and confirm your response. Preparation earns no points. The scored challenge begins only after you confirm.",
+      "audio_bytes": 0,
+      "first_text_ms": 3620.9,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "75bfd1e868ef432f9d19d83fec9c703c",
+          "revision": 4,
+          "phase": "card_review",
+          "total_ms": 3617.0
+        }
+      },
+      "total_ms": 3621.0,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 0,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": true,
+      "text": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. I note your briefing plan to seek board authorization for an interim coordinator, request approved technical help, and establish authority boundaries prior to granting access or spending. Briefing the rest of the board, what specific action must happen first, and why?",
+      "audio_bytes": 1168056,
+      "first_text_ms": 1718.6,
+      "first_audio_ms": 2008.6,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "75bfd1e868ef432f9d19d83fec9c703c",
+          "revision": 5,
+          "phase": "assessment",
+          "total_ms": 1715.1
+        }
+      },
+      "total_ms": 3333.1,
+      "audio_seconds": 24.33
+    },
+    {
+      "member": 1,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Stage 2: 28 of 40 points. I acknowledge your plan to seek approval for the paper alternative and communicate the delay to staff while accounting for manual coordination capacity. To give your final instruction, who does what, under whose authority, what happens if that fails, and when will you review it?",
+      "audio_bytes": 0,
+      "first_text_ms": 5343.2,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "a6e86a156226412491affea953b3b916",
+          "revision": 9,
+          "phase": "assessment",
+          "total_ms": 5339.8
+        }
+      },
+      "total_ms": 5343.3,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 1,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Stage 3: 15 of 30 points. Your assessment is complete. Detailed evidence is now available. You will rejoin the board when everyone finishes.",
+      "audio_bytes": 0,
+      "first_text_ms": 2237.6,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "a6e86a156226412491affea953b3b916",
+          "revision": 11,
+          "phase": "assessment_done",
+          "total_ms": 2234.3
+        }
+      },
+      "total_ms": 2237.8,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 0,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Stage 1: 28 of 30 points. I note your focus on establishing an authorized interim coordinator while pursuing approval for paper appointments and technical checks. The alternate provider cannot begin immediately; staff still need instructions. With the alternate provider unable to begin immediately and staff needing instructions, what specific changes will you make to your plan?",
+      "audio_bytes": 0,
+      "first_text_ms": 4951.4,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "75bfd1e868ef432f9d19d83fec9c703c",
+          "revision": 7,
+          "phase": "assessment",
+          "total_ms": 4947.8
+        }
+      },
+      "total_ms": 4951.7,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 0,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "",
+      "audio_bytes": 0,
+      "failure": "HTTPError",
+      "total_ms": 2933.6,
+      "audio_seconds": 0.0
+    }
+  ],
+  "beta_mode": false,
+  "health_before": {
+    "ok": true,
+    "storage": "single process memory",
+    "models": {
+      "online": true,
+      "verified": false,
+      "provider": "Google Vertex AI",
+      "model": "gemini-3.8-flash",
+      "thinking_level": "LOW",
+      "name": "Gemini 3.8 Flash \u00b7 LOW",
+      "note": "Configured; live response not yet verified",
+      "budget": {
+        "cap_usd": null,
+        "reserved_usd": 5.35,
+        "remaining_usd": null,
+        "attempts": 107,
+        "unlimited": true,
+        "note": "Local test reservations, including failures; excludes other account spending."
+      }
+    },
+    "test_name_rejoin": true,
+    "speech": {
+      "cap": null,
+      "reserved": 33858,
+      "remaining": null,
+      "unlimited": true,
+      "unit": "credits",
+      "note": "Conservative reservations, not an exact provider invoice. Failed calls stay reserved."
+    },
+    "speech_configured": true
+  }
+}

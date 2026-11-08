@@ -1,0 +1,2355 @@
+{
+  "room": "WKUZ4A",
+  "method": "Three HTTP memberships. Scripted typed fixture answers, real Gemma retrieval, Gemini replies and selected streamed ElevenLabs PCM. No browser or listening check. MP3 playback is covered separately with a controlled server clock.",
+  "streams": [
+    {
+      "member": 0,
+      "path": "briefing",
+      "request": {
+        "kind": "preparation",
+        "mode": "intro"
+      },
+      "voice": true,
+      "text": "Our appointment software is currently down, and IT has detected suspicious account activity. Our executive director is unavailable, leaving the incident coordinator role open. We do not know if data has been disclosed, and backup restorability remains unverified. How should we coordinate our immediate response while we confirm the status of our backups and systems?",
+      "audio_bytes": 1016478,
+      "first_text_ms": 5047.0,
+      "first_audio_ms": 5434.7,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "timing": {
+          "retrieval_ms": 3719.5,
+          "first_text_ms": 5011.1,
+          "first_audio_ms": 5401.9,
+          "text_complete_ms": 5686.9,
+          "total_ms": 7649.7
+        },
+        "speech_error": false,
+        "elapsed_ms": 7649.9
+      },
+      "total_ms": 7703.9,
+      "audio_seconds": 21.18
+    },
+    {
+      "member": 0,
+      "path": "briefing",
+      "request": {
+        "kind": "it",
+        "mode": "intro"
+      },
+      "voice": false,
+      "text": "Appointment software is unavailable, and IT reported suspicious account activity. No data disclosure is confirmed. Backup copies exist in the inventory, but their restorability is not verified for this incident. Before offering any recovery promises, IT support must verify backup usability, system recovery dependencies, and a restoration estimate. What caused the outage remains unknown.",
+      "audio_bytes": 0,
+      "first_text_ms": 1284.0,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "timing": {
+          "retrieval_ms": 214.7,
+          "first_text_ms": 1262.0,
+          "text_complete_ms": 1663.2,
+          "total_ms": 1663.2
+        },
+        "speech_error": false,
+        "elapsed_ms": 1663.3
+      },
+      "total_ms": 1696.8,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 0,
+      "path": "briefing",
+      "request": {
+        "kind": "operations",
+        "mode": "intro"
+      },
+      "voice": false,
+      "text": "We should support service users by preparing the approved paper appointment fallback. The service manager can run it once the board authorizes activation. Staff availability for essential appointments is still unknown. Our continuity dependencies remain unverified until IT checks backups and restoration estimates. A paper process gives us a viable interim fallback without promising premature digital restoration dates.",
+      "audio_bytes": 0,
+      "first_text_ms": 1287.2,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "timing": {
+          "retrieval_ms": 104.7,
+          "first_text_ms": 1264.3,
+          "text_complete_ms": 2024.3,
+          "total_ms": 2024.4
+        },
+        "speech_error": false,
+        "elapsed_ms": 2024.5
+      },
+      "total_ms": 2033.6,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 0,
+      "path": "briefing",
+      "request": {
+        "kind": "governance",
+        "mode": "intro"
+      },
+      "voice": false,
+      "text": "The board must authorize activating the paper process and appointing an interim coordinator. IT support is an external supplier and cannot authorize spending. Before committing resources or promises, check available financial delegations and vendor contracts. Verify who carries operational responsibility while the executive director is away. Costs, available funds, and specific spending limits remain unconfirmed and must be checked.",
+      "audio_bytes": 0,
+      "first_text_ms": 1772.2,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "timing": {
+          "retrieval_ms": 201.0,
+          "first_text_ms": 1763.4,
+          "text_complete_ms": 2659.4,
+          "total_ms": 2659.5
+        },
+        "speech_error": false,
+        "elapsed_ms": 2659.6
+      },
+      "total_ms": 2665.8,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 1,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "You rightly prioritized verifying backups and establishing operational continuity before making restoration commitments. The IT specialist is now unavailable. With the IT specialist now unavailable, how will you address the board authorization required in T01-BCP:BCP-3 to activate the service manager's paper appointment process while recovery checks are pending?",
+      "audio_bytes": 0,
+      "first_text_ms": 3616.3,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "128d8704b96e48069523a3c19d3b0ea1",
+          "revision": 1,
+          "phase": "coaching",
+          "total_ms": 3609.7
+        }
+      },
+      "total_ms": 3616.4,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 0,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": true,
+      "text": "You have appropriately identified the need for board authorization and fallback service continuity while navigating the leadership gap. The IT specialist is now unavailable. With the IT specialist now unavailable and backup restorability still unverified under T01-STATUS-3 and T01-BCP-4, how will you manage service expectations and operational decisions without confirmed technical recovery estimates?",
+      "audio_bytes": 1312948,
+      "first_text_ms": 2782.5,
+      "first_audio_ms": 3033.1,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "dfe4ed0bff5445748daf05e27118f03d",
+          "revision": 1,
+          "phase": "coaching",
+          "total_ms": 2772.4
+        }
+      },
+      "total_ms": 4414.1,
+      "audio_seconds": 27.35
+    },
+    {
+      "member": 2,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "I understand you are focusing on securing an authorized continuity process and communicating verified facts to service users. The IT specialist is now unavailable. With the IT specialist now unavailable and backup restorability still unverified under T01-BCP-4, how will you obtain board authorization to activate the paper appointment process outlined in T01-BCP-3?",
+      "audio_bytes": 0,
+      "first_text_ms": 4560.0,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "eb78788b9e9b471e9fe15abe1a3fc099",
+          "revision": 1,
+          "phase": "coaching",
+          "total_ms": 4550.7
+        }
+      },
+      "total_ms": 4560.1,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 2,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "I acknowledge your focus on communicating only confirmed facts to service users while clarifying who coordinates the response and technical support. The alternate provider needs an authorized contact. Scenario update: an alternate provider can investigate, but needs an authorized contact; given that board authorization is required for continuity and leadership roles under T01-BCP-1, T01-BCP-2, and T01-BCP-3, what specific authority, access, and verification dependencies will you establish before engaging them?",
+      "audio_bytes": 0,
+      "first_text_ms": 2274.4,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "eb78788b9e9b471e9fe15abe1a3fc099",
+          "revision": 2,
+          "phase": "coaching",
+          "total_ms": 2271.6
+        }
+      },
+      "total_ms": 2274.4,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 0,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "You have rightly prioritized separating leadership coordination from technical tasks while insisting on checking authority and scope before granting any system access. The alternate provider needs an authorized contact. With an alternate provider available to investigate under the scenario update, what specific board authorization and technical verification dependencies under T01-BCP-1, T01-BCP-2, and T01-BCP-4 must you establish to designate their authorized contact and define their access?",
+      "audio_bytes": 0,
+      "first_text_ms": 3159.1,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "dfe4ed0bff5445748daf05e27118f03d",
+          "revision": 2,
+          "phase": "coaching",
+          "total_ms": 3156.0
+        }
+      },
+      "total_ms": 3159.1,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 0,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "You have appropriately focused on verifying spending limits, delegations, and authorized contacts before granting provider access. Based on T01-BCP-3 and T01-BCP-5, who should act to implement the paper fallback, who needs a communications update, and when would you schedule the review of progress?",
+      "audio_bytes": 0,
+      "first_text_ms": 1718.8,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "dfe4ed0bff5445748daf05e27118f03d",
+          "revision": 3,
+          "phase": "coaching",
+          "total_ms": 1715.8
+        }
+      },
+      "total_ms": 1719.0,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 0,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Your preparation card is ready. Review every field, correct missing details, and confirm your response. Preparation earns no points. The scored challenge begins only after you confirm.",
+      "audio_bytes": 0,
+      "first_text_ms": 2833.2,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "dfe4ed0bff5445748daf05e27118f03d",
+          "revision": 4,
+          "phase": "card_review",
+          "total_ms": 2830.3
+        }
+      },
+      "total_ms": 2833.3,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 2,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "I acknowledge your emphasis on having an authorized interim coordinator establish contact and sticking to documented channels and verified facts. Reviewing your proposed response against the plan, who specifically should be appointed or authorized by the board to act, what approved fallback process will be operated, who needs the factual update, and at what specific time will you review progress?",
+      "audio_bytes": 0,
+      "first_text_ms": 6796.2,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "eb78788b9e9b471e9fe15abe1a3fc099",
+          "revision": 3,
+          "phase": "coaching",
+          "total_ms": 6792.7
+        }
+      },
+      "total_ms": 6796.4,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 0,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": true,
+      "text": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. You have clearly separated operational coordination from technical investigation while noting the need for board approvals. Briefing the board directly, what specific action must happen first according to the plan, and why does that take priority over other immediate steps?",
+      "audio_bytes": 1179204,
+      "first_text_ms": 2741.4,
+      "first_audio_ms": 3045.5,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "dfe4ed0bff5445748daf05e27118f03d",
+          "revision": 5,
+          "phase": "assessment",
+          "total_ms": 2738.3
+        }
+      },
+      "total_ms": 4322.0,
+      "audio_seconds": 24.57
+    },
+    {
+      "member": 2,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Your preparation card is ready. Review every field, correct missing details, and confirm your response. Preparation earns no points. The scored challenge begins only after you confirm.",
+      "audio_bytes": 0,
+      "first_text_ms": 4177.6,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "eb78788b9e9b471e9fe15abe1a3fc099",
+          "revision": 4,
+          "phase": "card_review",
+          "total_ms": 4174.5
+        }
+      },
+      "total_ms": 4177.6,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 2,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. I note your focus on coordinating factual communication and securing board authorization for interim leadership and external support. Briefing the board directly, what specific action must happen first, and why?",
+      "audio_bytes": 0,
+      "first_text_ms": 2078.5,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "eb78788b9e9b471e9fe15abe1a3fc099",
+          "revision": 5,
+          "phase": "assessment",
+          "total_ms": 2074.9
+        }
+      },
+      "total_ms": 2078.6,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 2,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Stage 1: 20 of 30 points. I note your plan to prioritize an authorized coordinator, communicate verified facts to service users, and establish an approved continuity process. The alternate provider cannot begin immediately; staff still need instructions. With the alternate provider unable to begin immediately and staff needing immediate instructions, what specific fallback process and operational steps will you direct while awaiting technical investigation and board authorizations?",
+      "audio_bytes": 0,
+      "first_text_ms": 4613.3,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "eb78788b9e9b471e9fe15abe1a3fc099",
+          "revision": 7,
+          "phase": "assessment",
+          "total_ms": 4595.5
+        }
+      },
+      "total_ms": 4614.4,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 0,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Stage 1: 28 of 30 points. You have clearly noted the need to establish an authorized interim coordinator while recognizing that backup restorability remains unverified. The alternate provider cannot begin immediately; staff still need instructions. Given that the alternate provider cannot begin immediately and staff still need instructions, what specific changes do you make to your plan?",
+      "audio_bytes": 0,
+      "first_text_ms": 8997.2,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "dfe4ed0bff5445748daf05e27118f03d",
+          "revision": 7,
+          "phase": "assessment",
+          "total_ms": 8992.2
+        }
+      },
+      "total_ms": 8998.2,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 1,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "You have clearly maintained that backup restorability must be verified rather than assumed while arranging qualified replacement support. The alternate provider needs an authorized contact. With an alternate provider available to investigate if given an authorized contact, what board authorizations under T01-BCP:BCP-2 and T01-BCP:BCP-3, vendor contract checks, and access dependencies must you establish before engaging them?",
+      "audio_bytes": 0,
+      "first_text_ms": 22333.4,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "128d8704b96e48069523a3c19d3b0ea1",
+          "revision": 2,
+          "phase": "coaching",
+          "total_ms": 22318.9
+        }
+      },
+      "total_ms": 22334.6,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 1,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "You have effectively recognized the need to advance interim continuity while ensuring proper authority and verified checks are in place. To finalize your response plan, who will you have the board authorize to act as interim coordinator under T01-BCP:BCP-2, how will you implement the paper fallback under T01-BCP:BCP-3, and what specific details will you include in the communications update required by T01-BCP:BCP-5?",
+      "audio_bytes": 0,
+      "first_text_ms": 2634.7,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "128d8704b96e48069523a3c19d3b0ea1",
+          "revision": 3,
+          "phase": "coaching",
+          "total_ms": 2627.7
+        }
+      },
+      "total_ms": 2634.8,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 2,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Stage 2: 17 of 40 points. I note your focus on managing expectations, avoiding unverified recovery claims, and clarifying fallback arrangements for staff. To give your final instruction: who does what, under whose authority, what happens if it fails, and when will you review it?",
+      "audio_bytes": 0,
+      "first_text_ms": 5784.7,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "eb78788b9e9b471e9fe15abe1a3fc099",
+          "revision": 9,
+          "phase": "assessment",
+          "total_ms": 5774.0
+        }
+      },
+      "total_ms": 5784.9,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 0,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Stage 2: 35 of 40 points. You have clearly identified the need to restrict recovery promises and seek authorization for the paper process while technical checks are delayed. To finalize your response, who does what, under whose authority, what happens if that fails, and when will you review it?",
+      "audio_bytes": 0,
+      "first_text_ms": 4998.8,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "dfe4ed0bff5445748daf05e27118f03d",
+          "revision": 9,
+          "phase": "assessment",
+          "total_ms": 4991.5
+        }
+      },
+      "total_ms": 4999.0,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 1,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Your preparation card is ready. Review every field, correct missing details, and confirm your response. Preparation earns no points. The scored challenge begins only after you confirm.",
+      "audio_bytes": 0,
+      "first_text_ms": 2250.6,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "128d8704b96e48069523a3c19d3b0ea1",
+          "revision": 4,
+          "phase": "card_review",
+          "total_ms": 2246.4
+        }
+      },
+      "total_ms": 2250.7,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 1,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. You have outlined the need for replacement technical support, board authorization, and an interim paper appointment fallback. Briefing the rest of the board, what specific action should happen first, and why?",
+      "audio_bytes": 0,
+      "first_text_ms": 1939.0,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "128d8704b96e48069523a3c19d3b0ea1",
+          "revision": 5,
+          "phase": "assessment",
+          "total_ms": 1935.6
+        }
+      },
+      "total_ms": 1939.0,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 0,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Stage 3: 20 of 30 points. Your assessment is complete. Detailed evidence is now available. You will rejoin the board when everyone finishes.",
+      "audio_bytes": 0,
+      "first_text_ms": 2986.5,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "dfe4ed0bff5445748daf05e27118f03d",
+          "revision": 11,
+          "phase": "assessment_done",
+          "total_ms": 2982.7
+        }
+      },
+      "total_ms": 2986.7,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 2,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Stage 3: 17 of 30 points. Your assessment is complete. Detailed evidence is now available. You will rejoin the board when everyone finishes.",
+      "audio_bytes": 0,
+      "first_text_ms": 3943.7,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "eb78788b9e9b471e9fe15abe1a3fc099",
+          "revision": 11,
+          "phase": "assessment_done",
+          "total_ms": 3939.4
+        }
+      },
+      "total_ms": 3943.9,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 1,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Stage 1: 23 of 30 points. You have noted the need to prioritize technical verification and arrange authorized continuity while the outcome remains unconfirmed. The alternate provider cannot begin immediately; staff still need instructions. Given that the alternate provider cannot begin immediately and staff still require instructions, what specific changes will you make to your plan?",
+      "audio_bytes": 0,
+      "first_text_ms": 6263.3,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "128d8704b96e48069523a3c19d3b0ea1",
+          "revision": 7,
+          "phase": "assessment",
+          "total_ms": 6260.1
+        }
+      },
+      "total_ms": 6263.4,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 1,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Stage 2: 28 of 40 points. You have detailed the interim operational adjustments needed while technical verification remains delayed. To finalize your plan, who specifically does what, under whose authority, what happens if that fails, and when will you review it?",
+      "audio_bytes": 0,
+      "first_text_ms": 6429.7,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "128d8704b96e48069523a3c19d3b0ea1",
+          "revision": 9,
+          "phase": "assessment",
+          "total_ms": 5603.7
+        }
+      },
+      "total_ms": 7013.8,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 1,
+      "path": "exercise/agent",
+      "request": {},
+      "voice": false,
+      "text": "Stage 3: 15 of 30 points. Your assessment is complete. Detailed evidence is now available. You will rejoin the board when everyone finishes.",
+      "audio_bytes": 0,
+      "first_text_ms": 6363.5,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {
+          "agent_id": "128d8704b96e48069523a3c19d3b0ea1",
+          "revision": 11,
+          "phase": "assessment_done",
+          "total_ms": 5871.8
+        }
+      },
+      "total_ms": 6364.6,
+      "audio_seconds": 0.0
+    },
+    {
+      "member": 0,
+      "path": "exercise/reunion",
+      "request": {},
+      "voice": true,
+      "text": "These are separate branches of the same crisis. Alex beta: 83 out of 100. Adjusted plan by conditioning paper appointments on approval, assigning factual comms, and setting a 30-minute review. Strength: Accurately separated confirmed outage facts from unverified disclosure and backup restorability. Improvement: Define specific operational details and owners for issuing outage instructions if paper continuity fails. Morgan beta: 66 out of 100. Revised plan for verification delays, preparing paper processes under authorization and setting review checkpoints. Strength: Identified trade-offs between manual client handling and increased coordination overhead. Improvement: Specify concrete review timestamps and designate clear authorities for activating paper processes. Sam beta: 54 out of 100. Removed immediate recovery expectations, proposed a thirty-minute review, and tracked pending approvals. Strength: Clearly distinguished confirmed appointment disruption from unverified recovery and disclosure. Improvement: Directly address constraints regarding alternate technical support and elaborate operational reasoning. Review your scoring evidence and flag an overlooked passage before the winner is announced. What should the board change in its actual plan?",
+      "audio_bytes": 3934386,
+      "first_text_ms": 2855.8,
+      "first_audio_ms": 3397.0,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "agent": {}
+      },
+      "total_ms": 13299.0,
+      "audio_seconds": 81.97
+    }
+  ],
+  "beta_mode": false,
+  "health_before": {
+    "ok": true,
+    "storage": "single process memory",
+    "models": {
+      "online": true,
+      "verified": true,
+      "provider": "Google Vertex AI",
+      "model": "gemini-3.8-flash",
+      "thinking_level": "LOW",
+      "name": "Gemini 3.8 Flash \u00b7 LOW",
+      "note": "Live response verified",
+      "budget": {
+        "cap_usd": null,
+        "reserved_usd": 7.0,
+        "remaining_usd": null,
+        "attempts": 140,
+        "unlimited": true,
+        "note": "Local test reservations, including failures; excludes other account spending."
+      }
+    },
+    "test_name_rejoin": true,
+    "speech": {
+      "cap": null,
+      "reserved": 34967,
+      "remaining": null,
+      "unlimited": true,
+      "unit": "credits",
+      "note": "Conservative reservations, not an exact provider invoice. Failed calls stay reserved."
+    },
+    "speech_configured": true
+  },
+  "progress": {
+    "0": {
+      "phase": "reunion",
+      "private_session": {
+        "agent_id": "dfe4ed0bff5445748daf05e27118f03d",
+        "phase": "assessment_done",
+        "turn": 3,
+        "revision": 11,
+        "prompt": null,
+        "history": [
+          {
+            "phase": "coaching",
+            "turn": 1,
+            "question": "You have appropriately identified the need for board authorization and fallback service continuity while navigating the leadership gap. The IT specialist is now unavailable. With the IT specialist now unavailable and backup restorability still unverified under T01-STATUS-3 and T01-BCP-4, how will you manage service expectations and operational decisions without confirmed technical recovery estimates?",
+            "answer": "I would keep coordination separate from technical diagnosis. I would ask the board to appoint an interim coordinator, then request another approved provider. I would not grant access just because someone is available. First I need to check authority, scope, and the information they require.",
+            "scripted": false,
+            "at": 1794114777.991435
+          },
+          {
+            "phase": "coaching",
+            "turn": 2,
+            "question": "You have rightly prioritized separating leadership coordination from technical tasks while insisting on checking authority and scope before granting any system access. The alternate provider needs an authorized contact. With an alternate provider available to investigate under the scenario update, what specific board authorization and technical verification dependencies under T01-BCP-1, T01-BCP-2, and T01-BCP-4 must you establish to designate their authorized contact and define their access?",
+            "answer": "I would establish availability, relevant capability, expected cost, and the access required. The alternate provider needs an authorized contact. I would check the documented delegation and seek the appropriate approval, because the current report does not establish a spending limit or permission to share credentials.",
+            "scripted": false,
+            "at": 1794114781.172145
+          },
+          {
+            "phase": "coaching",
+            "turn": 3,
+            "question": "You have appropriately focused on verifying spending limits, delegations, and authorized contacts before granting provider access. Based on T01-BCP-3 and T01-BCP-5, who should act to implement the paper fallback, who needs a communications update, and when would you schedule the review of progress?",
+            "answer": "My action is to establish coordination and request approved technical help. Authority must be checked before access or spending. The paper process is a possible fallback only after board authorization. I would ask the coordinator to arrange a review and a factual update, without promising restoration.",
+            "scripted": false,
+            "at": 1794114782.909564
+          },
+          {
+            "phase": "assessment",
+            "turn": 1,
+            "question": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. You have clearly separated operational coordination from technical investigation while noting the need for board approvals. Briefing the board directly, what specific action must happen first according to the plan, and why does that take priority over other immediate steps?",
+            "answer": "First I would establish an authorized interim coordinator because the director is unavailable and no alternate is named. In parallel, I would seek approval for limited paper appointments and qualified technical checks. The outage is confirmed; disclosure and backup restorability are not. Coordination does not remove those uncertainties.",
+            "scripted": false,
+            "at": 1794114790.105105
+          },
+          {
+            "phase": "assessment",
+            "turn": 2,
+            "question": "Stage 1: 28 of 30 points. You have clearly noted the need to establish an authorized interim coordinator while recognizing that backup restorability remains unverified. The alternate provider cannot begin immediately; staff still need instructions. Given that the alternate provider cannot begin immediately and staff still need instructions, what specific changes do you make to your plan?",
+            "answer": "The delay means I cannot rely on immediate technical verification. I would tell staff not to promise recovery or start an unverified restoration. I would seek authorization for the paper process and explain its limits. This preserves some service, but creates manual work and does not establish system safety.",
+            "scripted": false,
+            "at": 1794114799.148839
+          },
+          {
+            "phase": "assessment",
+            "turn": 3,
+            "question": "Stage 2: 35 of 40 points. You have clearly identified the need to restrict recovery promises and seek authorization for the paper process while technical checks are delayed. To finalize your response, who does what, under whose authority, what happens if that fails, and when will you review it?",
+            "answer": "I would ask the authorized coordinator to arrange replacement support and keep an action record. The service manager should activate paper appointments only after approval. If that cannot proceed, provide clear outage instructions. Ask the communications lead for a factual update, and propose a review in thirty minutes without promising recovery.",
+            "scripted": false,
+            "at": 1794114804.1748512
+          }
+        ],
+        "answers": {
+          "coaching_1": {
+            "text": "I would keep coordination separate from technical diagnosis. I would ask the board to appoint an interim coordinator, then request another approved provider. I would not grant access just because someone is available. First I need to check authority, scope, and the information they require.",
+            "question": "You have appropriately identified the need for board authorization and fallback service continuity while navigating the leadership gap. The IT specialist is now unavailable. With the IT specialist now unavailable and backup restorability still unverified under T01-STATUS-3 and T01-BCP-4, how will you manage service expectations and operational decisions without confirmed technical recovery estimates?",
+            "scripted": false,
+            "at": 1794114777.991436
+          },
+          "coaching_2": {
+            "text": "I would establish availability, relevant capability, expected cost, and the access required. The alternate provider needs an authorized contact. I would check the documented delegation and seek the appropriate approval, because the current report does not establish a spending limit or permission to share credentials.",
+            "question": "You have rightly prioritized separating leadership coordination from technical tasks while insisting on checking authority and scope before granting any system access. The alternate provider needs an authorized contact. With an alternate provider available to investigate under the scenario update, what specific board authorization and technical verification dependencies under T01-BCP-1, T01-BCP-2, and T01-BCP-4 must you establish to designate their authorized contact and define their access?",
+            "scripted": false,
+            "at": 1794114781.172145
+          },
+          "coaching_3": {
+            "text": "My action is to establish coordination and request approved technical help. Authority must be checked before access or spending. The paper process is a possible fallback only after board authorization. I would ask the coordinator to arrange a review and a factual update, without promising restoration.",
+            "question": "You have appropriately focused on verifying spending limits, delegations, and authorized contacts before granting provider access. Based on T01-BCP-3 and T01-BCP-5, who should act to implement the paper fallback, who needs a communications update, and when would you schedule the review of progress?",
+            "scripted": false,
+            "at": 1794114782.909565
+          },
+          "assessment_1": {
+            "text": "First I would establish an authorized interim coordinator because the director is unavailable and no alternate is named. In parallel, I would seek approval for limited paper appointments and qualified technical checks. The outage is confirmed; disclosure and backup restorability are not. Coordination does not remove those uncertainties.",
+            "question": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. You have clearly separated operational coordination from technical investigation while noting the need for board approvals. Briefing the board directly, what specific action must happen first according to the plan, and why does that take priority over other immediate steps?",
+            "scripted": false,
+            "at": 1794114790.105105
+          },
+          "assessment_2": {
+            "text": "The delay means I cannot rely on immediate technical verification. I would tell staff not to promise recovery or start an unverified restoration. I would seek authorization for the paper process and explain its limits. This preserves some service, but creates manual work and does not establish system safety.",
+            "question": "Stage 1: 28 of 30 points. You have clearly noted the need to establish an authorized interim coordinator while recognizing that backup restorability remains unverified. The alternate provider cannot begin immediately; staff still need instructions. Given that the alternate provider cannot begin immediately and staff still need instructions, what specific changes do you make to your plan?",
+            "scripted": false,
+            "at": 1794114799.14884
+          },
+          "assessment_3": {
+            "text": "I would ask the authorized coordinator to arrange replacement support and keep an action record. The service manager should activate paper appointments only after approval. If that cannot proceed, provide clear outage instructions. Ask the communications lead for a factual update, and propose a review in thirty minutes without promising recovery.",
+            "question": "Stage 2: 35 of 40 points. You have clearly identified the need to restrict recovery promises and seek authorization for the paper process while technical checks are delayed. To finalize your response, who does what, under whose authority, what happens if that fails, and when will you review it?",
+            "scripted": false,
+            "at": 1794114804.1748521
+          }
+        },
+        "card": {
+          "action": "Keep coordination separate from technical diagnosis, ask board to appoint interim coordinator, and request approved technical help/alternate provider without promising restoration.",
+          "responsibility": "Interim coordinator (to be appointed by board), board for approvals, and an authorized contact for the alternate provider; exact names need confirmation.",
+          "evidence": "T01-BCP-1, T01-BCP-2, T01-BCP-4; report does not establish spending limits or permission to share credentials, and backup restorability remains unverified.",
+          "dependencies": "Board appointment of interim coordinator, documented delegations/approvals checked before access or spending, and establishing provider availability, capability, cost, and scope.",
+          "fallback": "Paper appointment process is a possible fallback, but only after board authorization is granted.",
+          "communication": "Ask the coordinator to arrange a factual update without promising restoration. Channels and audiences need confirmation.",
+          "review": "Ask the coordinator to arrange a review; exact timing and schedule need confirmation."
+        },
+        "scores": {
+          "1": {
+            "stage": 1,
+            "criteria": [
+              {
+                "id": "facts_uncertainty",
+                "points": 10,
+                "evidence": "The outage is confirmed; disclosure and backup restorability are not.",
+                "reason": "Accurately identifies confirmed outage versus unconfirmed disclosure and backup restorability, adhering directly to the facts in T01-STATUS:STATUS-1, STATUS-2, and STATUS-3."
+              },
+              {
+                "id": "reasoning",
+                "points": 9,
+                "evidence": "First I would establish an authorized interim coordinator because the director is unavailable and no alternate is named.",
+                "reason": "Clearly prioritizes establishing an authorized interim coordinator based on the director being unavailable and no alternate being named (T01-BCP:BCP-1/BCP-2), while organizing other parallel actions and dependencies."
+              },
+              {
+                "id": "communication",
+                "points": 9,
+                "evidence": "First I would establish an authorized interim coordinator because the director is unavailable and no alternate is named. In parallel, I would seek approval for limited paper appointments and qualified technical checks.",
+                "reason": "The response is clear, relevant, structured directly for the board briefing question, and articulates immediate priorities and rationale effectively."
+              }
+            ],
+            "total": 28,
+            "maximum": 30,
+            "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+          },
+          "2": {
+            "stage": 2,
+            "criteria": [
+              {
+                "id": "new_constraint",
+                "points": 8,
+                "evidence": "The delay means I cannot rely on immediate technical verification.",
+                "reason": "The participant recognizes the new constraint that the alternate provider cannot begin immediately, resulting in delayed technical verification."
+              },
+              {
+                "id": "feasible_adjustment",
+                "points": 9,
+                "evidence": "I would tell staff not to promise recovery or start an unverified restoration. I would seek authorization for the paper process and explain its limits.",
+                "reason": "The response outlines feasible operational adjustments aligned with BCP-3 and BCP-4, including instructing staff and seeking board authorization for the paper appointment process."
+              },
+              {
+                "id": "tradeoff",
+                "points": 9,
+                "evidence": "This preserves some service, but creates manual work and does not establish system safety.",
+                "reason": "The participant clearly identifies the operational tradeoffs: preserving service continuity versus creating manual overhead and leaving system safety unresolved."
+              },
+              {
+                "id": "responsive_answer",
+                "points": 9,
+                "evidence": "I would tell staff not to promise recovery or start an unverified restoration. I would seek authorization for the paper process and explain its limits. This preserves some service, but creates manual work and does not establish system safety.",
+                "reason": "The answer is directly responsive to the scenario update regarding the alternate provider delay and immediate staff instructions."
+              }
+            ],
+            "total": 35,
+            "maximum": 40,
+            "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+          },
+          "3": {
+            "stage": 3,
+            "criteria": [
+              {
+                "id": "action_owner_authority",
+                "points": 7,
+                "evidence": "I would ask the authorized coordinator to arrange replacement support and keep an action record. The service manager should activate paper appointments only after approval.",
+                "reason": "The participant identifies the coordinator and service manager, noting paper appointments require approval, but does not explicitly name the board as the authorizing authority."
+              },
+              {
+                "id": "fallback",
+                "points": 5,
+                "evidence": "If that cannot proceed, provide clear outage instructions.",
+                "reason": "A fallback action is identified if paper appointments cannot proceed, though specific details on what instructions entail or who issues them are minimal."
+              },
+              {
+                "id": "update_review",
+                "points": 8,
+                "evidence": "Ask the communications lead for a factual update, and propose a review in thirty minutes without promising recovery.",
+                "reason": "The response assigns factual communication to the communications lead, specifies a review timeline of thirty minutes, and correctly adheres to restricting recovery promises."
+              }
+            ],
+            "total": 20,
+            "maximum": 30,
+            "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+          }
+        },
+        "busy": false,
+        "error": null,
+        "appeals": {},
+        "total": 83
+      }
+    },
+    "1": {
+      "phase": "reunion",
+      "private_session": {
+        "agent_id": "128d8704b96e48069523a3c19d3b0ea1",
+        "phase": "assessment_done",
+        "turn": 3,
+        "revision": 11,
+        "prompt": null,
+        "history": [
+          {
+            "phase": "coaching",
+            "turn": 1,
+            "question": "You rightly prioritized verifying backups and establishing operational continuity before making restoration commitments. The IT specialist is now unavailable. With the IT specialist now unavailable, how will you address the board authorization required in T01-BCP:BCP-3 to activate the service manager's paper appointment process while recovery checks are pending?",
+            "answer": "My original plan relied on IT verifying the backups. With that specialist unavailable, I would preserve the uncertainty and ask the coordinator to arrange qualified replacement support. I would not tell staff to restore systems merely because backup files exist.",
+            "scripted": false,
+            "at": 1794114777.1976588
+          },
+          {
+            "phase": "coaching",
+            "turn": 2,
+            "question": "You have clearly maintained that backup restorability must be verified rather than assumed while arranging qualified replacement support. The alternate provider needs an authorized contact. With an alternate provider available to investigate if given an authorized contact, what board authorizations under T01-BCP:BCP-2 and T01-BCP:BCP-3, vendor contract checks, and access dependencies must you establish before engaging them?",
+            "answer": "I need someone to confirm the provider can investigate, identify required access, and obtain authorization. I also need to understand what appointments can continue under the approved paper process. Waiting for verification does not automatically mean every continuity action must stop.",
+            "scripted": false,
+            "at": 1794114799.625985
+          },
+          {
+            "phase": "coaching",
+            "turn": 3,
+            "question": "You have effectively recognized the need to advance interim continuity while ensuring proper authority and verified checks are in place. To finalize your response plan, who will you have the board authorize to act as interim coordinator under T01-BCP:BCP-2, how will you implement the paper fallback under T01-BCP:BCP-3, and what specific details will you include in the communications update required by T01-BCP:BCP-5?",
+            "answer": "The coordinator would arrange technical verification and report dependencies and an estimate. My fallback is authorized limited continuity while that work is pending. I have not yet specified who sends the next update or the review time. I would add those details before confirming the card.",
+            "scripted": false,
+            "at": 1794114802.303385
+          },
+          {
+            "phase": "assessment",
+            "turn": 1,
+            "question": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. You have outlined the need for replacement technical support, board authorization, and an interim paper appointment fallback. Briefing the rest of the board, what specific action should happen first, and why?",
+            "answer": "I would prioritize backup usability and recovery dependencies because the report gives no verified restoration result. An authorized coordinator should arrange qualified technical help. I would also consider approved paper appointments while checks are pending. Keeping the technical uncertainty visible prevents an estimate from being mistaken for a guarantee.",
+            "scripted": false,
+            "at": 1794114806.531063
+          },
+          {
+            "phase": "assessment",
+            "turn": 2,
+            "question": "Stage 1: 23 of 30 points. You have noted the need to prioritize technical verification and arrange authorized continuity while the outcome remains unconfirmed. The alternate provider cannot begin immediately; staff still need instructions. Given that the alternate provider cannot begin immediately and staff still require instructions, what specific changes will you make to your plan?",
+            "answer": "I would revise my plan because verification will take longer. Staff need clear instructions now, so I would ask the coordinator to seek approval for the paper alternative and communicate the delay. I am still uncertain about staffing capacity. Limited continuity may help clients but increases manual handling and coordination.",
+            "scripted": false,
+            "at": 1794114812.815043
+          },
+          {
+            "phase": "assessment",
+            "turn": 3,
+            "question": "Stage 2: 28 of 40 points. You have detailed the interim operational adjustments needed while technical verification remains delayed. To finalize your plan, who specifically does what, under whose authority, what happens if that fails, and when will you review it?",
+            "answer": "The coordinator should obtain approved technical support and request verification of backups, dependencies, and an estimate. The service manager can prepare the paper process, but activation needs authorization. If approval or staffing is unavailable, keep service users informed of the disruption. I would request an update when new evidence arrives and set a specific review time.",
+            "scripted": false,
+            "at": 1794114821.130986
+          }
+        ],
+        "answers": {
+          "coaching_1": {
+            "text": "My original plan relied on IT verifying the backups. With that specialist unavailable, I would preserve the uncertainty and ask the coordinator to arrange qualified replacement support. I would not tell staff to restore systems merely because backup files exist.",
+            "question": "You rightly prioritized verifying backups and establishing operational continuity before making restoration commitments. The IT specialist is now unavailable. With the IT specialist now unavailable, how will you address the board authorization required in T01-BCP:BCP-3 to activate the service manager's paper appointment process while recovery checks are pending?",
+            "scripted": false,
+            "at": 1794114777.19766
+          },
+          "coaching_2": {
+            "text": "I need someone to confirm the provider can investigate, identify required access, and obtain authorization. I also need to understand what appointments can continue under the approved paper process. Waiting for verification does not automatically mean every continuity action must stop.",
+            "question": "You have clearly maintained that backup restorability must be verified rather than assumed while arranging qualified replacement support. The alternate provider needs an authorized contact. With an alternate provider available to investigate if given an authorized contact, what board authorizations under T01-BCP:BCP-2 and T01-BCP:BCP-3, vendor contract checks, and access dependencies must you establish before engaging them?",
+            "scripted": false,
+            "at": 1794114799.625986
+          },
+          "coaching_3": {
+            "text": "The coordinator would arrange technical verification and report dependencies and an estimate. My fallback is authorized limited continuity while that work is pending. I have not yet specified who sends the next update or the review time. I would add those details before confirming the card.",
+            "question": "You have effectively recognized the need to advance interim continuity while ensuring proper authority and verified checks are in place. To finalize your response plan, who will you have the board authorize to act as interim coordinator under T01-BCP:BCP-2, how will you implement the paper fallback under T01-BCP:BCP-3, and what specific details will you include in the communications update required by T01-BCP:BCP-5?",
+            "scripted": false,
+            "at": 1794114802.303385
+          },
+          "assessment_1": {
+            "text": "I would prioritize backup usability and recovery dependencies because the report gives no verified restoration result. An authorized coordinator should arrange qualified technical help. I would also consider approved paper appointments while checks are pending. Keeping the technical uncertainty visible prevents an estimate from being mistaken for a guarantee.",
+            "question": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. You have outlined the need for replacement technical support, board authorization, and an interim paper appointment fallback. Briefing the rest of the board, what specific action should happen first, and why?",
+            "scripted": false,
+            "at": 1794114806.531064
+          },
+          "assessment_2": {
+            "text": "I would revise my plan because verification will take longer. Staff need clear instructions now, so I would ask the coordinator to seek approval for the paper alternative and communicate the delay. I am still uncertain about staffing capacity. Limited continuity may help clients but increases manual handling and coordination.",
+            "question": "Stage 1: 23 of 30 points. You have noted the need to prioritize technical verification and arrange authorized continuity while the outcome remains unconfirmed. The alternate provider cannot begin immediately; staff still need instructions. Given that the alternate provider cannot begin immediately and staff still require instructions, what specific changes will you make to your plan?",
+            "scripted": false,
+            "at": 1794114812.815045
+          },
+          "assessment_3": {
+            "text": "The coordinator should obtain approved technical support and request verification of backups, dependencies, and an estimate. The service manager can prepare the paper process, but activation needs authorization. If approval or staffing is unavailable, keep service users informed of the disruption. I would request an update when new evidence arrives and set a specific review time.",
+            "question": "Stage 2: 28 of 40 points. You have detailed the interim operational adjustments needed while technical verification remains delayed. To finalize your plan, who specifically does what, under whose authority, what happens if that fails, and when will you review it?",
+            "scripted": false,
+            "at": 1794114821.1310122
+          }
+        },
+        "card": {
+          "action": "Have coordinator arrange qualified replacement support to verify backups and report restoration estimate and dependencies, without restoring merely because files exist.",
+          "responsibility": "Coordinator to arrange replacement technical verification; specific identity needs confirmation.",
+          "evidence": "Backups exist in inventory but restorability has not been verified during this incident.",
+          "dependencies": "Board authorization, identifying required access, and confirming provider capability to investigate; understanding appointments eligible for paper process.",
+          "fallback": "Authorized limited continuity via approved paper appointment process while technical verification is pending.",
+          "communication": "Needs confirmation.",
+          "review": "Needs confirmation."
+        },
+        "scores": {
+          "1": {
+            "stage": 1,
+            "criteria": [
+              {
+                "id": "facts_uncertainty",
+                "points": 8,
+                "evidence": "I would prioritize backup usability and recovery dependencies because the report gives no verified restoration result.",
+                "reason": "Accurately notes the lack of verified restoration/restorability and references backup usability and recovery dependencies from BCP-4 and STATUS-3, while keeping technical uncertainty clear."
+              },
+              {
+                "id": "reasoning",
+                "points": 7,
+                "evidence": "I would prioritize backup usability and recovery dependencies because the report gives no verified restoration result. An authorized coordinator should arrange qualified technical help. I would also consider approved paper appointments while checks are pending.",
+                "reason": "Presents a logical sequence prioritizing verification and coordinator authorization while considering the paper process, aligned with BCP constraints."
+              },
+              {
+                "id": "communication",
+                "points": 8,
+                "evidence": "I would prioritize backup usability and recovery dependencies because the report gives no verified restoration result. An authorized coordinator should arrange qualified technical help. I would also consider approved paper appointments while checks are pending. Keeping the technical uncertainty visible prevents an estimate from being mistaken for a guarantee.",
+                "reason": "The response is clear, relevant, structured as a board briefing, and directly answers what should happen first and why."
+              }
+            ],
+            "total": 23,
+            "maximum": 30,
+            "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+          },
+          "2": {
+            "stage": 2,
+            "criteria": [
+              {
+                "id": "new_constraint",
+                "points": 7,
+                "evidence": "verification will take longer",
+                "reason": "The participant recognizes that delays/verification constraints impact the timeline and that staff need instructions now, though does not explicitly name the alternate provider constraint directly."
+              },
+              {
+                "id": "feasible_adjustment",
+                "points": 6,
+                "evidence": "ask the coordinator to seek approval for the paper alternative and communicate the delay",
+                "reason": "The participant suggests seeking approval for the paper alternative process (authorized by the board per BCP-3) and communicating the delay, though authority under BCP-3 rests with board authorization for the service manager."
+              },
+              {
+                "id": "tradeoff",
+                "points": 8,
+                "evidence": "Limited continuity may help clients but increases manual handling and coordination.",
+                "reason": "The participant clearly identifies the operational trade-off of using manual paper processes: helping clients versus increased manual handling and coordination demands."
+              },
+              {
+                "id": "responsive_answer",
+                "points": 7,
+                "evidence": "I would revise my plan because verification will take longer. Staff need clear instructions now, so I would ask the coordinator to seek approval for the paper alternative and communicate the delay.",
+                "reason": "The answer directly addresses what changes in the plan given the delays and staff need for instructions, providing relevant adjustments."
+              }
+            ],
+            "total": 28,
+            "maximum": 40,
+            "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+          },
+          "3": {
+            "stage": 3,
+            "criteria": [
+              {
+                "id": "action_owner_authority",
+                "points": 6,
+                "evidence": "The coordinator should obtain approved technical support and request verification of backups, dependencies, and an estimate. The service manager can prepare the paper process, but activation needs authorization.",
+                "reason": "Identifies roles (coordinator, service manager) and tasks aligned with BCP-3 and BCP-4, noting activation needs authorization, but lacks clarity on who specifically holds the authority to authorize (e.g., the board for activation or appointing an interim coordinator)."
+              },
+              {
+                "id": "fallback",
+                "points": 5,
+                "evidence": "If approval or staffing is unavailable, keep service users informed of the disruption.",
+                "reason": "Provides a basic fallback option if authorization or staffing is unavailable, but details are vague regarding specific alternative service handling or communications protocols."
+              },
+              {
+                "id": "update_review",
+                "points": 4,
+                "evidence": "I would request an update when new evidence arrives and set a specific review time.",
+                "reason": "Mentions requesting updates upon new evidence and setting a review time, but omits specifying when that review will actually take place or defining the next update cadence."
+              }
+            ],
+            "total": 15,
+            "maximum": 30,
+            "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+          }
+        },
+        "busy": false,
+        "error": null,
+        "appeals": {},
+        "total": 66
+      }
+    },
+    "2": {
+      "phase": "private",
+      "private_session": {
+        "agent_id": "eb78788b9e9b471e9fe15abe1a3fc099",
+        "phase": "assessment_done",
+        "turn": 3,
+        "revision": 11,
+        "prompt": null,
+        "history": [
+          {
+            "phase": "coaching",
+            "turn": 1,
+            "question": "I understand you are focusing on securing an authorized continuity process and communicating verified facts to service users. The IT specialist is now unavailable. With the IT specialist now unavailable and backup restorability still unverified under T01-BCP-4, how will you obtain board authorization to activate the paper appointment process outlined in T01-BCP-3?",
+            "answer": "I would tell service users what is confirmed and avoid guessing about recovery. Internally, I would ask who is coordinating the incident and who can arrange alternate technical support. I would not describe the absence of a specialist as proof that data was disclosed.",
+            "scripted": false,
+            "at": 1794114778.147465
+          },
+          {
+            "phase": "coaching",
+            "turn": 2,
+            "question": "I acknowledge your focus on communicating only confirmed facts to service users while clarifying who coordinates the response and technical support. The alternate provider needs an authorized contact. Scenario update: an alternate provider can investigate, but needs an authorized contact; given that board authorization is required for continuity and leadership roles under T01-BCP-1, T01-BCP-2, and T01-BCP-3, what specific authority, access, and verification dependencies will you establish before engaging them?",
+            "answer": "The alternate provider needs an authorized contact, so I would ask the interim coordinator to establish that through the proper approval process. My update would distinguish the outage from the unresolved disclosure question. I would check the communication channel rather than assume an undocumented alternative exists.",
+            "scripted": false,
+            "at": 1794114780.4408698
+          },
+          {
+            "phase": "coaching",
+            "turn": 3,
+            "question": "I acknowledge your emphasis on having an authorized interim coordinator establish contact and sticking to documented channels and verified facts. Reviewing your proposed response against the plan, who specifically should be appointed or authorized by the board to act, what approved fallback process will be operated, who needs the factual update, and at what specific time will you review progress?",
+            "answer": "I would propose that the communications lead prepare a factual update, with the coordinator checking operational details. If no recovery estimate is verified, say so and give the next update time. I would request a review point and record any missing approval instead of treating the proposal as completed.",
+            "scripted": false,
+            "at": 1794114787.256094
+          },
+          {
+            "phase": "assessment",
+            "turn": 1,
+            "question": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. I note your focus on coordinating factual communication and securing board authorization for interim leadership and external support. Briefing the board directly, what specific action must happen first, and why?",
+            "answer": "My priority is an accountable response that staff and service users can understand. I would confirm the coordinator and seek an approved continuity plan. The first update should state that appointments are disrupted, disclosure is not confirmed, and recovery remains unverified. I would explain what information the team is checking next.",
+            "scripted": false,
+            "at": 1794114793.551511
+          },
+          {
+            "phase": "assessment",
+            "turn": 2,
+            "question": "Stage 1: 20 of 30 points. I note your plan to prioritize an authorized coordinator, communicate verified facts to service users, and establish an approved continuity process. The alternate provider cannot begin immediately; staff still need instructions. With the alternate provider unable to begin immediately and staff needing immediate instructions, what specific fallback process and operational steps will you direct while awaiting technical investigation and board authorizations?",
+            "answer": "I would remove any expectation of immediate technical answers and revise the public update accordingly. Staff should use only the authorized continuity arrangements and avoid sharing unverified recovery estimates. I would ask the coordinator to clarify the fallback. Clear updates reduce confusion, but communication alone cannot restore the service.",
+            "scripted": false,
+            "at": 1794114798.221987
+          },
+          {
+            "phase": "assessment",
+            "turn": 3,
+            "question": "Stage 2: 17 of 40 points. I note your focus on managing expectations, avoiding unverified recovery claims, and clarifying fallback arrangements for staff. To give your final instruction: who does what, under whose authority, what happens if it fails, and when will you review it?",
+            "answer": "I would ask the coordinator to confirm authorized operational instructions and the communications lead to publish the known facts, unknowns, and next update time through an approved channel. If continuity cannot be activated, explain the disruption without promising recovery. I would propose a thirty minute review with named owners and record any approval still outstanding.",
+            "scripted": false,
+            "at": 1794114804.035908
+          }
+        ],
+        "answers": {
+          "coaching_1": {
+            "text": "I would tell service users what is confirmed and avoid guessing about recovery. Internally, I would ask who is coordinating the incident and who can arrange alternate technical support. I would not describe the absence of a specialist as proof that data was disclosed.",
+            "question": "I understand you are focusing on securing an authorized continuity process and communicating verified facts to service users. The IT specialist is now unavailable. With the IT specialist now unavailable and backup restorability still unverified under T01-BCP-4, how will you obtain board authorization to activate the paper appointment process outlined in T01-BCP-3?",
+            "scripted": false,
+            "at": 1794114778.147466
+          },
+          "coaching_2": {
+            "text": "The alternate provider needs an authorized contact, so I would ask the interim coordinator to establish that through the proper approval process. My update would distinguish the outage from the unresolved disclosure question. I would check the communication channel rather than assume an undocumented alternative exists.",
+            "question": "I acknowledge your focus on communicating only confirmed facts to service users while clarifying who coordinates the response and technical support. The alternate provider needs an authorized contact. Scenario update: an alternate provider can investigate, but needs an authorized contact; given that board authorization is required for continuity and leadership roles under T01-BCP-1, T01-BCP-2, and T01-BCP-3, what specific authority, access, and verification dependencies will you establish before engaging them?",
+            "scripted": false,
+            "at": 1794114780.440871
+          },
+          "coaching_3": {
+            "text": "I would propose that the communications lead prepare a factual update, with the coordinator checking operational details. If no recovery estimate is verified, say so and give the next update time. I would request a review point and record any missing approval instead of treating the proposal as completed.",
+            "question": "I acknowledge your emphasis on having an authorized interim coordinator establish contact and sticking to documented channels and verified facts. Reviewing your proposed response against the plan, who specifically should be appointed or authorized by the board to act, what approved fallback process will be operated, who needs the factual update, and at what specific time will you review progress?",
+            "scripted": false,
+            "at": 1794114787.256094
+          },
+          "assessment_1": {
+            "text": "My priority is an accountable response that staff and service users can understand. I would confirm the coordinator and seek an approved continuity plan. The first update should state that appointments are disrupted, disclosure is not confirmed, and recovery remains unverified. I would explain what information the team is checking next.",
+            "question": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. I note your focus on coordinating factual communication and securing board authorization for interim leadership and external support. Briefing the board directly, what specific action must happen first, and why?",
+            "scripted": false,
+            "at": 1794114793.551511
+          },
+          "assessment_2": {
+            "text": "I would remove any expectation of immediate technical answers and revise the public update accordingly. Staff should use only the authorized continuity arrangements and avoid sharing unverified recovery estimates. I would ask the coordinator to clarify the fallback. Clear updates reduce confusion, but communication alone cannot restore the service.",
+            "question": "Stage 1: 20 of 30 points. I note your plan to prioritize an authorized coordinator, communicate verified facts to service users, and establish an approved continuity process. The alternate provider cannot begin immediately; staff still need instructions. With the alternate provider unable to begin immediately and staff needing immediate instructions, what specific fallback process and operational steps will you direct while awaiting technical investigation and board authorizations?",
+            "scripted": false,
+            "at": 1794114798.2219899
+          },
+          "assessment_3": {
+            "text": "I would ask the coordinator to confirm authorized operational instructions and the communications lead to publish the known facts, unknowns, and next update time through an approved channel. If continuity cannot be activated, explain the disruption without promising recovery. I would propose a thirty minute review with named owners and record any approval still outstanding.",
+            "question": "Stage 2: 17 of 40 points. I note your focus on managing expectations, avoiding unverified recovery claims, and clarifying fallback arrangements for staff. To give your final instruction: who does what, under whose authority, what happens if it fails, and when will you review it?",
+            "scripted": false,
+            "at": 1794114804.035908
+          }
+        },
+        "card": {
+          "action": "Deliver a factual service user update distinguishing outage from unconfirmed disclosure, state no recovery estimate is verified, establish authorized contact for alternate provider, and record missing approvals.",
+          "responsibility": "Communications lead to prepare factual update; coordinator to check operational details; interim coordinator to establish authorized contact through proper approval process.",
+          "evidence": "Outage is confirmed; data disclosure is unconfirmed; recovery estimate is not verified.",
+          "dependencies": "Board authorization/proper approval process for interim coordinator and authorized contact for alternate provider; check communication channel rather than assuming an undocumented alternative exists.",
+          "fallback": "Needs confirmation",
+          "communication": "Communications lead to provide factual update to service users on confirmed facts, avoid guessing on recovery, state no estimate is verified, and provide the next update time via checked documented channel.",
+          "review": "Request a review point and record any missing approval instead of treating the proposal as completed; exact review time Needs confirmation."
+        },
+        "scores": {
+          "1": {
+            "stage": 1,
+            "criteria": [
+              {
+                "id": "facts_uncertainty",
+                "points": 8,
+                "evidence": "The first update should state that appointments are disrupted, disclosure is not confirmed, and recovery remains unverified.",
+                "reason": "The participant accurately distinguishes confirmed facts and unknowns based on the status document (disrupted appointments, unconfirmed disclosure, unverified recovery), but omits the timing of the next public update required by T01-BCP:BCP-5."
+              },
+              {
+                "id": "reasoning",
+                "points": 5,
+                "evidence": "I would confirm the coordinator and seek an approved continuity plan.",
+                "reason": "The response partially identifies key operational dependencies (coordinator, continuity plan), but provides limited explanation of 'why' or which specific action must occur first relative to board authority constraints."
+              },
+              {
+                "id": "communication",
+                "points": 7,
+                "evidence": "My priority is an accountable response that staff and service users can understand. I would confirm the coordinator and seek an approved continuity plan.",
+                "reason": "The communication is clear, understandable, relevant, and directly addresses briefing the board on initial priorities, though it remains brief."
+              }
+            ],
+            "total": 20,
+            "maximum": 30,
+            "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+          },
+          "2": {
+            "stage": 2,
+            "criteria": [
+              {
+                "id": "new_constraint",
+                "points": 4,
+                "evidence": "I would remove any expectation of immediate technical answers and revise the public update accordingly.",
+                "reason": "The participant acknowledges the delay in technical resolution, but does not explicitly address the specific new constraint that the alternate provider cannot begin immediately."
+              },
+              {
+                "id": "feasible_adjustment",
+                "points": 4,
+                "evidence": "Staff should use only the authorized continuity arrangements and avoid sharing unverified recovery estimates. I would ask the coordinator to clarify the fallback.",
+                "reason": "The participant mentions using authorized continuity arrangements and asking the coordinator, but does not specify the concrete fallback process (e.g., the approved paper appointment process requiring board authorization) or operational steps directed to staff."
+              },
+              {
+                "id": "tradeoff",
+                "points": 5,
+                "evidence": "Clear updates reduce confusion, but communication alone cannot restore the service.",
+                "reason": "The response partially identifies a tradeoff between clear communication reducing confusion and the reality that communication cannot restore the service."
+              },
+              {
+                "id": "responsive_answer",
+                "points": 4,
+                "evidence": "Staff should use only the authorized continuity arrangements and avoid sharing unverified recovery estimates. I would ask the coordinator to clarify the fallback.",
+                "reason": "The answer addresses staff instructions at a high level, but defers defining the fallback back to the coordinator rather than directing specific fallback processes while awaiting authorization and investigation."
+              }
+            ],
+            "total": 17,
+            "maximum": 40,
+            "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+          },
+          "3": {
+            "stage": 3,
+            "criteria": [
+              {
+                "id": "action_owner_authority",
+                "points": 5,
+                "evidence": "I would ask the coordinator to confirm authorized operational instructions and the communications lead to publish the known facts, unknowns, and next update time through an approved channel.",
+                "reason": "The participant identifies roles (coordinator, communications lead) and duties, but does not specify whose authority authorizes the coordinator or service continuity actions (such as the board's role per BCP-2/BCP-3 when the executive director is unavailable)."
+              },
+              {
+                "id": "fallback",
+                "points": 5,
+                "evidence": "If continuity cannot be activated, explain the disruption without promising recovery.",
+                "reason": "The answer provides a basic contingency action (explain disruption without promising recovery if continuity cannot be activated), aligning partially with BCP-4, but lacks concrete operational fallback detail such as paper processes."
+              },
+              {
+                "id": "update_review",
+                "points": 7,
+                "evidence": "I would propose a thirty minute review with named owners and record any approval still outstanding.",
+                "reason": "The participant clearly specifies a review timeframe of thirty minutes with named owners and tracking outstanding approvals, though it omits details on specific operational metrics or restoration criteria."
+              }
+            ],
+            "total": 17,
+            "maximum": 30,
+            "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+          }
+        },
+        "busy": false,
+        "error": null,
+        "appeals": {},
+        "total": 54
+      }
+    }
+  },
+  "private_sessions": [
+    {
+      "agent_id": "dfe4ed0bff5445748daf05e27118f03d",
+      "phase": "assessment_done",
+      "turn": 3,
+      "revision": 11,
+      "prompt": null,
+      "history": [
+        {
+          "phase": "coaching",
+          "turn": 1,
+          "question": "You have appropriately identified the need for board authorization and fallback service continuity while navigating the leadership gap. The IT specialist is now unavailable. With the IT specialist now unavailable and backup restorability still unverified under T01-STATUS-3 and T01-BCP-4, how will you manage service expectations and operational decisions without confirmed technical recovery estimates?",
+          "answer": "I would keep coordination separate from technical diagnosis. I would ask the board to appoint an interim coordinator, then request another approved provider. I would not grant access just because someone is available. First I need to check authority, scope, and the information they require.",
+          "scripted": false,
+          "at": 1794114777.991435
+        },
+        {
+          "phase": "coaching",
+          "turn": 2,
+          "question": "You have rightly prioritized separating leadership coordination from technical tasks while insisting on checking authority and scope before granting any system access. The alternate provider needs an authorized contact. With an alternate provider available to investigate under the scenario update, what specific board authorization and technical verification dependencies under T01-BCP-1, T01-BCP-2, and T01-BCP-4 must you establish to designate their authorized contact and define their access?",
+          "answer": "I would establish availability, relevant capability, expected cost, and the access required. The alternate provider needs an authorized contact. I would check the documented delegation and seek the appropriate approval, because the current report does not establish a spending limit or permission to share credentials.",
+          "scripted": false,
+          "at": 1794114781.172145
+        },
+        {
+          "phase": "coaching",
+          "turn": 3,
+          "question": "You have appropriately focused on verifying spending limits, delegations, and authorized contacts before granting provider access. Based on T01-BCP-3 and T01-BCP-5, who should act to implement the paper fallback, who needs a communications update, and when would you schedule the review of progress?",
+          "answer": "My action is to establish coordination and request approved technical help. Authority must be checked before access or spending. The paper process is a possible fallback only after board authorization. I would ask the coordinator to arrange a review and a factual update, without promising restoration.",
+          "scripted": false,
+          "at": 1794114782.909564
+        },
+        {
+          "phase": "assessment",
+          "turn": 1,
+          "question": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. You have clearly separated operational coordination from technical investigation while noting the need for board approvals. Briefing the board directly, what specific action must happen first according to the plan, and why does that take priority over other immediate steps?",
+          "answer": "First I would establish an authorized interim coordinator because the director is unavailable and no alternate is named. In parallel, I would seek approval for limited paper appointments and qualified technical checks. The outage is confirmed; disclosure and backup restorability are not. Coordination does not remove those uncertainties.",
+          "scripted": false,
+          "at": 1794114790.105105
+        },
+        {
+          "phase": "assessment",
+          "turn": 2,
+          "question": "Stage 1: 28 of 30 points. You have clearly noted the need to establish an authorized interim coordinator while recognizing that backup restorability remains unverified. The alternate provider cannot begin immediately; staff still need instructions. Given that the alternate provider cannot begin immediately and staff still need instructions, what specific changes do you make to your plan?",
+          "answer": "The delay means I cannot rely on immediate technical verification. I would tell staff not to promise recovery or start an unverified restoration. I would seek authorization for the paper process and explain its limits. This preserves some service, but creates manual work and does not establish system safety.",
+          "scripted": false,
+          "at": 1794114799.148839
+        },
+        {
+          "phase": "assessment",
+          "turn": 3,
+          "question": "Stage 2: 35 of 40 points. You have clearly identified the need to restrict recovery promises and seek authorization for the paper process while technical checks are delayed. To finalize your response, who does what, under whose authority, what happens if that fails, and when will you review it?",
+          "answer": "I would ask the authorized coordinator to arrange replacement support and keep an action record. The service manager should activate paper appointments only after approval. If that cannot proceed, provide clear outage instructions. Ask the communications lead for a factual update, and propose a review in thirty minutes without promising recovery.",
+          "scripted": false,
+          "at": 1794114804.1748512
+        }
+      ],
+      "answers": {
+        "coaching_1": {
+          "text": "I would keep coordination separate from technical diagnosis. I would ask the board to appoint an interim coordinator, then request another approved provider. I would not grant access just because someone is available. First I need to check authority, scope, and the information they require.",
+          "question": "You have appropriately identified the need for board authorization and fallback service continuity while navigating the leadership gap. The IT specialist is now unavailable. With the IT specialist now unavailable and backup restorability still unverified under T01-STATUS-3 and T01-BCP-4, how will you manage service expectations and operational decisions without confirmed technical recovery estimates?",
+          "scripted": false,
+          "at": 1794114777.991436
+        },
+        "coaching_2": {
+          "text": "I would establish availability, relevant capability, expected cost, and the access required. The alternate provider needs an authorized contact. I would check the documented delegation and seek the appropriate approval, because the current report does not establish a spending limit or permission to share credentials.",
+          "question": "You have rightly prioritized separating leadership coordination from technical tasks while insisting on checking authority and scope before granting any system access. The alternate provider needs an authorized contact. With an alternate provider available to investigate under the scenario update, what specific board authorization and technical verification dependencies under T01-BCP-1, T01-BCP-2, and T01-BCP-4 must you establish to designate their authorized contact and define their access?",
+          "scripted": false,
+          "at": 1794114781.172145
+        },
+        "coaching_3": {
+          "text": "My action is to establish coordination and request approved technical help. Authority must be checked before access or spending. The paper process is a possible fallback only after board authorization. I would ask the coordinator to arrange a review and a factual update, without promising restoration.",
+          "question": "You have appropriately focused on verifying spending limits, delegations, and authorized contacts before granting provider access. Based on T01-BCP-3 and T01-BCP-5, who should act to implement the paper fallback, who needs a communications update, and when would you schedule the review of progress?",
+          "scripted": false,
+          "at": 1794114782.909565
+        },
+        "assessment_1": {
+          "text": "First I would establish an authorized interim coordinator because the director is unavailable and no alternate is named. In parallel, I would seek approval for limited paper appointments and qualified technical checks. The outage is confirmed; disclosure and backup restorability are not. Coordination does not remove those uncertainties.",
+          "question": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. You have clearly separated operational coordination from technical investigation while noting the need for board approvals. Briefing the board directly, what specific action must happen first according to the plan, and why does that take priority over other immediate steps?",
+          "scripted": false,
+          "at": 1794114790.105105
+        },
+        "assessment_2": {
+          "text": "The delay means I cannot rely on immediate technical verification. I would tell staff not to promise recovery or start an unverified restoration. I would seek authorization for the paper process and explain its limits. This preserves some service, but creates manual work and does not establish system safety.",
+          "question": "Stage 1: 28 of 30 points. You have clearly noted the need to establish an authorized interim coordinator while recognizing that backup restorability remains unverified. The alternate provider cannot begin immediately; staff still need instructions. Given that the alternate provider cannot begin immediately and staff still need instructions, what specific changes do you make to your plan?",
+          "scripted": false,
+          "at": 1794114799.14884
+        },
+        "assessment_3": {
+          "text": "I would ask the authorized coordinator to arrange replacement support and keep an action record. The service manager should activate paper appointments only after approval. If that cannot proceed, provide clear outage instructions. Ask the communications lead for a factual update, and propose a review in thirty minutes without promising recovery.",
+          "question": "Stage 2: 35 of 40 points. You have clearly identified the need to restrict recovery promises and seek authorization for the paper process while technical checks are delayed. To finalize your response, who does what, under whose authority, what happens if that fails, and when will you review it?",
+          "scripted": false,
+          "at": 1794114804.1748521
+        }
+      },
+      "card": {
+        "action": "Keep coordination separate from technical diagnosis, ask board to appoint interim coordinator, and request approved technical help/alternate provider without promising restoration.",
+        "responsibility": "Interim coordinator (to be appointed by board), board for approvals, and an authorized contact for the alternate provider; exact names need confirmation.",
+        "evidence": "T01-BCP-1, T01-BCP-2, T01-BCP-4; report does not establish spending limits or permission to share credentials, and backup restorability remains unverified.",
+        "dependencies": "Board appointment of interim coordinator, documented delegations/approvals checked before access or spending, and establishing provider availability, capability, cost, and scope.",
+        "fallback": "Paper appointment process is a possible fallback, but only after board authorization is granted.",
+        "communication": "Ask the coordinator to arrange a factual update without promising restoration. Channels and audiences need confirmation.",
+        "review": "Ask the coordinator to arrange a review; exact timing and schedule need confirmation."
+      },
+      "scores": {
+        "1": {
+          "stage": 1,
+          "criteria": [
+            {
+              "id": "facts_uncertainty",
+              "points": 10,
+              "evidence": "The outage is confirmed; disclosure and backup restorability are not.",
+              "reason": "Accurately identifies confirmed outage versus unconfirmed disclosure and backup restorability, adhering directly to the facts in T01-STATUS:STATUS-1, STATUS-2, and STATUS-3."
+            },
+            {
+              "id": "reasoning",
+              "points": 9,
+              "evidence": "First I would establish an authorized interim coordinator because the director is unavailable and no alternate is named.",
+              "reason": "Clearly prioritizes establishing an authorized interim coordinator based on the director being unavailable and no alternate being named (T01-BCP:BCP-1/BCP-2), while organizing other parallel actions and dependencies."
+            },
+            {
+              "id": "communication",
+              "points": 9,
+              "evidence": "First I would establish an authorized interim coordinator because the director is unavailable and no alternate is named. In parallel, I would seek approval for limited paper appointments and qualified technical checks.",
+              "reason": "The response is clear, relevant, structured directly for the board briefing question, and articulates immediate priorities and rationale effectively."
+            }
+          ],
+          "total": 28,
+          "maximum": 30,
+          "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+        },
+        "2": {
+          "stage": 2,
+          "criteria": [
+            {
+              "id": "new_constraint",
+              "points": 8,
+              "evidence": "The delay means I cannot rely on immediate technical verification.",
+              "reason": "The participant recognizes the new constraint that the alternate provider cannot begin immediately, resulting in delayed technical verification."
+            },
+            {
+              "id": "feasible_adjustment",
+              "points": 9,
+              "evidence": "I would tell staff not to promise recovery or start an unverified restoration. I would seek authorization for the paper process and explain its limits.",
+              "reason": "The response outlines feasible operational adjustments aligned with BCP-3 and BCP-4, including instructing staff and seeking board authorization for the paper appointment process."
+            },
+            {
+              "id": "tradeoff",
+              "points": 9,
+              "evidence": "This preserves some service, but creates manual work and does not establish system safety.",
+              "reason": "The participant clearly identifies the operational tradeoffs: preserving service continuity versus creating manual overhead and leaving system safety unresolved."
+            },
+            {
+              "id": "responsive_answer",
+              "points": 9,
+              "evidence": "I would tell staff not to promise recovery or start an unverified restoration. I would seek authorization for the paper process and explain its limits. This preserves some service, but creates manual work and does not establish system safety.",
+              "reason": "The answer is directly responsive to the scenario update regarding the alternate provider delay and immediate staff instructions."
+            }
+          ],
+          "total": 35,
+          "maximum": 40,
+          "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+        },
+        "3": {
+          "stage": 3,
+          "criteria": [
+            {
+              "id": "action_owner_authority",
+              "points": 7,
+              "evidence": "I would ask the authorized coordinator to arrange replacement support and keep an action record. The service manager should activate paper appointments only after approval.",
+              "reason": "The participant identifies the coordinator and service manager, noting paper appointments require approval, but does not explicitly name the board as the authorizing authority."
+            },
+            {
+              "id": "fallback",
+              "points": 5,
+              "evidence": "If that cannot proceed, provide clear outage instructions.",
+              "reason": "A fallback action is identified if paper appointments cannot proceed, though specific details on what instructions entail or who issues them are minimal."
+            },
+            {
+              "id": "update_review",
+              "points": 8,
+              "evidence": "Ask the communications lead for a factual update, and propose a review in thirty minutes without promising recovery.",
+              "reason": "The response assigns factual communication to the communications lead, specifies a review timeline of thirty minutes, and correctly adheres to restricting recovery promises."
+            }
+          ],
+          "total": 20,
+          "maximum": 30,
+          "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+        }
+      },
+      "busy": false,
+      "error": null,
+      "appeals": {},
+      "total": 83
+    },
+    {
+      "agent_id": "128d8704b96e48069523a3c19d3b0ea1",
+      "phase": "assessment_done",
+      "turn": 3,
+      "revision": 11,
+      "prompt": null,
+      "history": [
+        {
+          "phase": "coaching",
+          "turn": 1,
+          "question": "You rightly prioritized verifying backups and establishing operational continuity before making restoration commitments. The IT specialist is now unavailable. With the IT specialist now unavailable, how will you address the board authorization required in T01-BCP:BCP-3 to activate the service manager's paper appointment process while recovery checks are pending?",
+          "answer": "My original plan relied on IT verifying the backups. With that specialist unavailable, I would preserve the uncertainty and ask the coordinator to arrange qualified replacement support. I would not tell staff to restore systems merely because backup files exist.",
+          "scripted": false,
+          "at": 1794114777.1976588
+        },
+        {
+          "phase": "coaching",
+          "turn": 2,
+          "question": "You have clearly maintained that backup restorability must be verified rather than assumed while arranging qualified replacement support. The alternate provider needs an authorized contact. With an alternate provider available to investigate if given an authorized contact, what board authorizations under T01-BCP:BCP-2 and T01-BCP:BCP-3, vendor contract checks, and access dependencies must you establish before engaging them?",
+          "answer": "I need someone to confirm the provider can investigate, identify required access, and obtain authorization. I also need to understand what appointments can continue under the approved paper process. Waiting for verification does not automatically mean every continuity action must stop.",
+          "scripted": false,
+          "at": 1794114799.625985
+        },
+        {
+          "phase": "coaching",
+          "turn": 3,
+          "question": "You have effectively recognized the need to advance interim continuity while ensuring proper authority and verified checks are in place. To finalize your response plan, who will you have the board authorize to act as interim coordinator under T01-BCP:BCP-2, how will you implement the paper fallback under T01-BCP:BCP-3, and what specific details will you include in the communications update required by T01-BCP:BCP-5?",
+          "answer": "The coordinator would arrange technical verification and report dependencies and an estimate. My fallback is authorized limited continuity while that work is pending. I have not yet specified who sends the next update or the review time. I would add those details before confirming the card.",
+          "scripted": false,
+          "at": 1794114802.303385
+        },
+        {
+          "phase": "assessment",
+          "turn": 1,
+          "question": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. You have outlined the need for replacement technical support, board authorization, and an interim paper appointment fallback. Briefing the rest of the board, what specific action should happen first, and why?",
+          "answer": "I would prioritize backup usability and recovery dependencies because the report gives no verified restoration result. An authorized coordinator should arrange qualified technical help. I would also consider approved paper appointments while checks are pending. Keeping the technical uncertainty visible prevents an estimate from being mistaken for a guarantee.",
+          "scripted": false,
+          "at": 1794114806.531063
+        },
+        {
+          "phase": "assessment",
+          "turn": 2,
+          "question": "Stage 1: 23 of 30 points. You have noted the need to prioritize technical verification and arrange authorized continuity while the outcome remains unconfirmed. The alternate provider cannot begin immediately; staff still need instructions. Given that the alternate provider cannot begin immediately and staff still require instructions, what specific changes will you make to your plan?",
+          "answer": "I would revise my plan because verification will take longer. Staff need clear instructions now, so I would ask the coordinator to seek approval for the paper alternative and communicate the delay. I am still uncertain about staffing capacity. Limited continuity may help clients but increases manual handling and coordination.",
+          "scripted": false,
+          "at": 1794114812.815043
+        },
+        {
+          "phase": "assessment",
+          "turn": 3,
+          "question": "Stage 2: 28 of 40 points. You have detailed the interim operational adjustments needed while technical verification remains delayed. To finalize your plan, who specifically does what, under whose authority, what happens if that fails, and when will you review it?",
+          "answer": "The coordinator should obtain approved technical support and request verification of backups, dependencies, and an estimate. The service manager can prepare the paper process, but activation needs authorization. If approval or staffing is unavailable, keep service users informed of the disruption. I would request an update when new evidence arrives and set a specific review time.",
+          "scripted": false,
+          "at": 1794114821.130986
+        }
+      ],
+      "answers": {
+        "coaching_1": {
+          "text": "My original plan relied on IT verifying the backups. With that specialist unavailable, I would preserve the uncertainty and ask the coordinator to arrange qualified replacement support. I would not tell staff to restore systems merely because backup files exist.",
+          "question": "You rightly prioritized verifying backups and establishing operational continuity before making restoration commitments. The IT specialist is now unavailable. With the IT specialist now unavailable, how will you address the board authorization required in T01-BCP:BCP-3 to activate the service manager's paper appointment process while recovery checks are pending?",
+          "scripted": false,
+          "at": 1794114777.19766
+        },
+        "coaching_2": {
+          "text": "I need someone to confirm the provider can investigate, identify required access, and obtain authorization. I also need to understand what appointments can continue under the approved paper process. Waiting for verification does not automatically mean every continuity action must stop.",
+          "question": "You have clearly maintained that backup restorability must be verified rather than assumed while arranging qualified replacement support. The alternate provider needs an authorized contact. With an alternate provider available to investigate if given an authorized contact, what board authorizations under T01-BCP:BCP-2 and T01-BCP:BCP-3, vendor contract checks, and access dependencies must you establish before engaging them?",
+          "scripted": false,
+          "at": 1794114799.625986
+        },
+        "coaching_3": {
+          "text": "The coordinator would arrange technical verification and report dependencies and an estimate. My fallback is authorized limited continuity while that work is pending. I have not yet specified who sends the next update or the review time. I would add those details before confirming the card.",
+          "question": "You have effectively recognized the need to advance interim continuity while ensuring proper authority and verified checks are in place. To finalize your response plan, who will you have the board authorize to act as interim coordinator under T01-BCP:BCP-2, how will you implement the paper fallback under T01-BCP:BCP-3, and what specific details will you include in the communications update required by T01-BCP:BCP-5?",
+          "scripted": false,
+          "at": 1794114802.303385
+        },
+        "assessment_1": {
+          "text": "I would prioritize backup usability and recovery dependencies because the report gives no verified restoration result. An authorized coordinator should arrange qualified technical help. I would also consider approved paper appointments while checks are pending. Keeping the technical uncertainty visible prevents an estimate from being mistaken for a guarantee.",
+          "question": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. You have outlined the need for replacement technical support, board authorization, and an interim paper appointment fallback. Briefing the rest of the board, what specific action should happen first, and why?",
+          "scripted": false,
+          "at": 1794114806.531064
+        },
+        "assessment_2": {
+          "text": "I would revise my plan because verification will take longer. Staff need clear instructions now, so I would ask the coordinator to seek approval for the paper alternative and communicate the delay. I am still uncertain about staffing capacity. Limited continuity may help clients but increases manual handling and coordination.",
+          "question": "Stage 1: 23 of 30 points. You have noted the need to prioritize technical verification and arrange authorized continuity while the outcome remains unconfirmed. The alternate provider cannot begin immediately; staff still need instructions. Given that the alternate provider cannot begin immediately and staff still require instructions, what specific changes will you make to your plan?",
+          "scripted": false,
+          "at": 1794114812.815045
+        },
+        "assessment_3": {
+          "text": "The coordinator should obtain approved technical support and request verification of backups, dependencies, and an estimate. The service manager can prepare the paper process, but activation needs authorization. If approval or staffing is unavailable, keep service users informed of the disruption. I would request an update when new evidence arrives and set a specific review time.",
+          "question": "Stage 2: 28 of 40 points. You have detailed the interim operational adjustments needed while technical verification remains delayed. To finalize your plan, who specifically does what, under whose authority, what happens if that fails, and when will you review it?",
+          "scripted": false,
+          "at": 1794114821.1310122
+        }
+      },
+      "card": {
+        "action": "Have coordinator arrange qualified replacement support to verify backups and report restoration estimate and dependencies, without restoring merely because files exist.",
+        "responsibility": "Coordinator to arrange replacement technical verification; specific identity needs confirmation.",
+        "evidence": "Backups exist in inventory but restorability has not been verified during this incident.",
+        "dependencies": "Board authorization, identifying required access, and confirming provider capability to investigate; understanding appointments eligible for paper process.",
+        "fallback": "Authorized limited continuity via approved paper appointment process while technical verification is pending.",
+        "communication": "Needs confirmation.",
+        "review": "Needs confirmation."
+      },
+      "scores": {
+        "1": {
+          "stage": 1,
+          "criteria": [
+            {
+              "id": "facts_uncertainty",
+              "points": 8,
+              "evidence": "I would prioritize backup usability and recovery dependencies because the report gives no verified restoration result.",
+              "reason": "Accurately notes the lack of verified restoration/restorability and references backup usability and recovery dependencies from BCP-4 and STATUS-3, while keeping technical uncertainty clear."
+            },
+            {
+              "id": "reasoning",
+              "points": 7,
+              "evidence": "I would prioritize backup usability and recovery dependencies because the report gives no verified restoration result. An authorized coordinator should arrange qualified technical help. I would also consider approved paper appointments while checks are pending.",
+              "reason": "Presents a logical sequence prioritizing verification and coordinator authorization while considering the paper process, aligned with BCP constraints."
+            },
+            {
+              "id": "communication",
+              "points": 8,
+              "evidence": "I would prioritize backup usability and recovery dependencies because the report gives no verified restoration result. An authorized coordinator should arrange qualified technical help. I would also consider approved paper appointments while checks are pending. Keeping the technical uncertainty visible prevents an estimate from being mistaken for a guarantee.",
+              "reason": "The response is clear, relevant, structured as a board briefing, and directly answers what should happen first and why."
+            }
+          ],
+          "total": 23,
+          "maximum": 30,
+          "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+        },
+        "2": {
+          "stage": 2,
+          "criteria": [
+            {
+              "id": "new_constraint",
+              "points": 7,
+              "evidence": "verification will take longer",
+              "reason": "The participant recognizes that delays/verification constraints impact the timeline and that staff need instructions now, though does not explicitly name the alternate provider constraint directly."
+            },
+            {
+              "id": "feasible_adjustment",
+              "points": 6,
+              "evidence": "ask the coordinator to seek approval for the paper alternative and communicate the delay",
+              "reason": "The participant suggests seeking approval for the paper alternative process (authorized by the board per BCP-3) and communicating the delay, though authority under BCP-3 rests with board authorization for the service manager."
+            },
+            {
+              "id": "tradeoff",
+              "points": 8,
+              "evidence": "Limited continuity may help clients but increases manual handling and coordination.",
+              "reason": "The participant clearly identifies the operational trade-off of using manual paper processes: helping clients versus increased manual handling and coordination demands."
+            },
+            {
+              "id": "responsive_answer",
+              "points": 7,
+              "evidence": "I would revise my plan because verification will take longer. Staff need clear instructions now, so I would ask the coordinator to seek approval for the paper alternative and communicate the delay.",
+              "reason": "The answer directly addresses what changes in the plan given the delays and staff need for instructions, providing relevant adjustments."
+            }
+          ],
+          "total": 28,
+          "maximum": 40,
+          "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+        },
+        "3": {
+          "stage": 3,
+          "criteria": [
+            {
+              "id": "action_owner_authority",
+              "points": 6,
+              "evidence": "The coordinator should obtain approved technical support and request verification of backups, dependencies, and an estimate. The service manager can prepare the paper process, but activation needs authorization.",
+              "reason": "Identifies roles (coordinator, service manager) and tasks aligned with BCP-3 and BCP-4, noting activation needs authorization, but lacks clarity on who specifically holds the authority to authorize (e.g., the board for activation or appointing an interim coordinator)."
+            },
+            {
+              "id": "fallback",
+              "points": 5,
+              "evidence": "If approval or staffing is unavailable, keep service users informed of the disruption.",
+              "reason": "Provides a basic fallback option if authorization or staffing is unavailable, but details are vague regarding specific alternative service handling or communications protocols."
+            },
+            {
+              "id": "update_review",
+              "points": 4,
+              "evidence": "I would request an update when new evidence arrives and set a specific review time.",
+              "reason": "Mentions requesting updates upon new evidence and setting a review time, but omits specifying when that review will actually take place or defining the next update cadence."
+            }
+          ],
+          "total": 15,
+          "maximum": 30,
+          "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+        }
+      },
+      "busy": false,
+      "error": null,
+      "appeals": {},
+      "total": 66
+    },
+    {
+      "agent_id": "eb78788b9e9b471e9fe15abe1a3fc099",
+      "phase": "assessment_done",
+      "turn": 3,
+      "revision": 11,
+      "prompt": null,
+      "history": [
+        {
+          "phase": "coaching",
+          "turn": 1,
+          "question": "I understand you are focusing on securing an authorized continuity process and communicating verified facts to service users. The IT specialist is now unavailable. With the IT specialist now unavailable and backup restorability still unverified under T01-BCP-4, how will you obtain board authorization to activate the paper appointment process outlined in T01-BCP-3?",
+          "answer": "I would tell service users what is confirmed and avoid guessing about recovery. Internally, I would ask who is coordinating the incident and who can arrange alternate technical support. I would not describe the absence of a specialist as proof that data was disclosed.",
+          "scripted": false,
+          "at": 1794114778.147465
+        },
+        {
+          "phase": "coaching",
+          "turn": 2,
+          "question": "I acknowledge your focus on communicating only confirmed facts to service users while clarifying who coordinates the response and technical support. The alternate provider needs an authorized contact. Scenario update: an alternate provider can investigate, but needs an authorized contact; given that board authorization is required for continuity and leadership roles under T01-BCP-1, T01-BCP-2, and T01-BCP-3, what specific authority, access, and verification dependencies will you establish before engaging them?",
+          "answer": "The alternate provider needs an authorized contact, so I would ask the interim coordinator to establish that through the proper approval process. My update would distinguish the outage from the unresolved disclosure question. I would check the communication channel rather than assume an undocumented alternative exists.",
+          "scripted": false,
+          "at": 1794114780.4408698
+        },
+        {
+          "phase": "coaching",
+          "turn": 3,
+          "question": "I acknowledge your emphasis on having an authorized interim coordinator establish contact and sticking to documented channels and verified facts. Reviewing your proposed response against the plan, who specifically should be appointed or authorized by the board to act, what approved fallback process will be operated, who needs the factual update, and at what specific time will you review progress?",
+          "answer": "I would propose that the communications lead prepare a factual update, with the coordinator checking operational details. If no recovery estimate is verified, say so and give the next update time. I would request a review point and record any missing approval instead of treating the proposal as completed.",
+          "scripted": false,
+          "at": 1794114787.256094
+        },
+        {
+          "phase": "assessment",
+          "turn": 1,
+          "question": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. I note your focus on coordinating factual communication and securing board authorization for interim leadership and external support. Briefing the board directly, what specific action must happen first, and why?",
+          "answer": "My priority is an accountable response that staff and service users can understand. I would confirm the coordinator and seek an approved continuity plan. The first update should state that appointments are disrupted, disclosure is not confirmed, and recovery remains unverified. I would explain what information the team is checking next.",
+          "scripted": false,
+          "at": 1794114793.551511
+        },
+        {
+          "phase": "assessment",
+          "turn": 2,
+          "question": "Stage 1: 20 of 30 points. I note your plan to prioritize an authorized coordinator, communicate verified facts to service users, and establish an approved continuity process. The alternate provider cannot begin immediately; staff still need instructions. With the alternate provider unable to begin immediately and staff needing immediate instructions, what specific fallback process and operational steps will you direct while awaiting technical investigation and board authorizations?",
+          "answer": "I would remove any expectation of immediate technical answers and revise the public update accordingly. Staff should use only the authorized continuity arrangements and avoid sharing unverified recovery estimates. I would ask the coordinator to clarify the fallback. Clear updates reduce confusion, but communication alone cannot restore the service.",
+          "scripted": false,
+          "at": 1794114798.221987
+        },
+        {
+          "phase": "assessment",
+          "turn": 3,
+          "question": "Stage 2: 17 of 40 points. I note your focus on managing expectations, avoiding unverified recovery claims, and clarifying fallback arrangements for staff. To give your final instruction: who does what, under whose authority, what happens if it fails, and when will you review it?",
+          "answer": "I would ask the coordinator to confirm authorized operational instructions and the communications lead to publish the known facts, unknowns, and next update time through an approved channel. If continuity cannot be activated, explain the disruption without promising recovery. I would propose a thirty minute review with named owners and record any approval still outstanding.",
+          "scripted": false,
+          "at": 1794114804.035908
+        }
+      ],
+      "answers": {
+        "coaching_1": {
+          "text": "I would tell service users what is confirmed and avoid guessing about recovery. Internally, I would ask who is coordinating the incident and who can arrange alternate technical support. I would not describe the absence of a specialist as proof that data was disclosed.",
+          "question": "I understand you are focusing on securing an authorized continuity process and communicating verified facts to service users. The IT specialist is now unavailable. With the IT specialist now unavailable and backup restorability still unverified under T01-BCP-4, how will you obtain board authorization to activate the paper appointment process outlined in T01-BCP-3?",
+          "scripted": false,
+          "at": 1794114778.147466
+        },
+        "coaching_2": {
+          "text": "The alternate provider needs an authorized contact, so I would ask the interim coordinator to establish that through the proper approval process. My update would distinguish the outage from the unresolved disclosure question. I would check the communication channel rather than assume an undocumented alternative exists.",
+          "question": "I acknowledge your focus on communicating only confirmed facts to service users while clarifying who coordinates the response and technical support. The alternate provider needs an authorized contact. Scenario update: an alternate provider can investigate, but needs an authorized contact; given that board authorization is required for continuity and leadership roles under T01-BCP-1, T01-BCP-2, and T01-BCP-3, what specific authority, access, and verification dependencies will you establish before engaging them?",
+          "scripted": false,
+          "at": 1794114780.440871
+        },
+        "coaching_3": {
+          "text": "I would propose that the communications lead prepare a factual update, with the coordinator checking operational details. If no recovery estimate is verified, say so and give the next update time. I would request a review point and record any missing approval instead of treating the proposal as completed.",
+          "question": "I acknowledge your emphasis on having an authorized interim coordinator establish contact and sticking to documented channels and verified facts. Reviewing your proposed response against the plan, who specifically should be appointed or authorized by the board to act, what approved fallback process will be operated, who needs the factual update, and at what specific time will you review progress?",
+          "scripted": false,
+          "at": 1794114787.256094
+        },
+        "assessment_1": {
+          "text": "My priority is an accountable response that staff and service users can understand. I would confirm the coordinator and seek an approved continuity plan. The first update should state that appointments are disrupted, disclosure is not confirmed, and recovery remains unverified. I would explain what information the team is checking next.",
+          "question": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. I note your focus on coordinating factual communication and securing board authorization for interim leadership and external support. Briefing the board directly, what specific action must happen first, and why?",
+          "scripted": false,
+          "at": 1794114793.551511
+        },
+        "assessment_2": {
+          "text": "I would remove any expectation of immediate technical answers and revise the public update accordingly. Staff should use only the authorized continuity arrangements and avoid sharing unverified recovery estimates. I would ask the coordinator to clarify the fallback. Clear updates reduce confusion, but communication alone cannot restore the service.",
+          "question": "Stage 1: 20 of 30 points. I note your plan to prioritize an authorized coordinator, communicate verified facts to service users, and establish an approved continuity process. The alternate provider cannot begin immediately; staff still need instructions. With the alternate provider unable to begin immediately and staff needing immediate instructions, what specific fallback process and operational steps will you direct while awaiting technical investigation and board authorizations?",
+          "scripted": false,
+          "at": 1794114798.2219899
+        },
+        "assessment_3": {
+          "text": "I would ask the coordinator to confirm authorized operational instructions and the communications lead to publish the known facts, unknowns, and next update time through an approved channel. If continuity cannot be activated, explain the disruption without promising recovery. I would propose a thirty minute review with named owners and record any approval still outstanding.",
+          "question": "Stage 2: 17 of 40 points. I note your focus on managing expectations, avoiding unverified recovery claims, and clarifying fallback arrangements for staff. To give your final instruction: who does what, under whose authority, what happens if it fails, and when will you review it?",
+          "scripted": false,
+          "at": 1794114804.035908
+        }
+      },
+      "card": {
+        "action": "Deliver a factual service user update distinguishing outage from unconfirmed disclosure, state no recovery estimate is verified, establish authorized contact for alternate provider, and record missing approvals.",
+        "responsibility": "Communications lead to prepare factual update; coordinator to check operational details; interim coordinator to establish authorized contact through proper approval process.",
+        "evidence": "Outage is confirmed; data disclosure is unconfirmed; recovery estimate is not verified.",
+        "dependencies": "Board authorization/proper approval process for interim coordinator and authorized contact for alternate provider; check communication channel rather than assuming an undocumented alternative exists.",
+        "fallback": "Needs confirmation",
+        "communication": "Communications lead to provide factual update to service users on confirmed facts, avoid guessing on recovery, state no estimate is verified, and provide the next update time via checked documented channel.",
+        "review": "Request a review point and record any missing approval instead of treating the proposal as completed; exact review time Needs confirmation."
+      },
+      "scores": {
+        "1": {
+          "stage": 1,
+          "criteria": [
+            {
+              "id": "facts_uncertainty",
+              "points": 8,
+              "evidence": "The first update should state that appointments are disrupted, disclosure is not confirmed, and recovery remains unverified.",
+              "reason": "The participant accurately distinguishes confirmed facts and unknowns based on the status document (disrupted appointments, unconfirmed disclosure, unverified recovery), but omits the timing of the next public update required by T01-BCP:BCP-5."
+            },
+            {
+              "id": "reasoning",
+              "points": 5,
+              "evidence": "I would confirm the coordinator and seek an approved continuity plan.",
+              "reason": "The response partially identifies key operational dependencies (coordinator, continuity plan), but provides limited explanation of 'why' or which specific action must occur first relative to board authority constraints."
+            },
+            {
+              "id": "communication",
+              "points": 7,
+              "evidence": "My priority is an accountable response that staff and service users can understand. I would confirm the coordinator and seek an approved continuity plan.",
+              "reason": "The communication is clear, understandable, relevant, and directly addresses briefing the board on initial priorities, though it remains brief."
+            }
+          ],
+          "total": 20,
+          "maximum": 30,
+          "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+        },
+        "2": {
+          "stage": 2,
+          "criteria": [
+            {
+              "id": "new_constraint",
+              "points": 4,
+              "evidence": "I would remove any expectation of immediate technical answers and revise the public update accordingly.",
+              "reason": "The participant acknowledges the delay in technical resolution, but does not explicitly address the specific new constraint that the alternate provider cannot begin immediately."
+            },
+            {
+              "id": "feasible_adjustment",
+              "points": 4,
+              "evidence": "Staff should use only the authorized continuity arrangements and avoid sharing unverified recovery estimates. I would ask the coordinator to clarify the fallback.",
+              "reason": "The participant mentions using authorized continuity arrangements and asking the coordinator, but does not specify the concrete fallback process (e.g., the approved paper appointment process requiring board authorization) or operational steps directed to staff."
+            },
+            {
+              "id": "tradeoff",
+              "points": 5,
+              "evidence": "Clear updates reduce confusion, but communication alone cannot restore the service.",
+              "reason": "The response partially identifies a tradeoff between clear communication reducing confusion and the reality that communication cannot restore the service."
+            },
+            {
+              "id": "responsive_answer",
+              "points": 4,
+              "evidence": "Staff should use only the authorized continuity arrangements and avoid sharing unverified recovery estimates. I would ask the coordinator to clarify the fallback.",
+              "reason": "The answer addresses staff instructions at a high level, but defers defining the fallback back to the coordinator rather than directing specific fallback processes while awaiting authorization and investigation."
+            }
+          ],
+          "total": 17,
+          "maximum": 40,
+          "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+        },
+        "3": {
+          "stage": 3,
+          "criteria": [
+            {
+              "id": "action_owner_authority",
+              "points": 5,
+              "evidence": "I would ask the coordinator to confirm authorized operational instructions and the communications lead to publish the known facts, unknowns, and next update time through an approved channel.",
+              "reason": "The participant identifies roles (coordinator, communications lead) and duties, but does not specify whose authority authorizes the coordinator or service continuity actions (such as the board's role per BCP-2/BCP-3 when the executive director is unavailable)."
+            },
+            {
+              "id": "fallback",
+              "points": 5,
+              "evidence": "If continuity cannot be activated, explain the disruption without promising recovery.",
+              "reason": "The answer provides a basic contingency action (explain disruption without promising recovery if continuity cannot be activated), aligning partially with BCP-4, but lacks concrete operational fallback detail such as paper processes."
+            },
+            {
+              "id": "update_review",
+              "points": 7,
+              "evidence": "I would propose a thirty minute review with named owners and record any approval still outstanding.",
+              "reason": "The participant clearly specifies a review timeframe of thirty minutes with named owners and tracking outstanding approvals, though it omits details on specific operational metrics or restoration criteria."
+            }
+          ],
+          "total": 17,
+          "maximum": 30,
+          "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+        }
+      },
+      "busy": false,
+      "error": null,
+      "appeals": {},
+      "total": 54
+    }
+  ],
+  "reunion": {
+    "branches": [
+      {
+        "member": "ab3ce3bbd73947a780864bc0cf1a955a",
+        "name": "Alex beta",
+        "original_decision": {
+          "action": "Appoint an interim coordinator and seek board authorization for approved paper appointments.",
+          "reasoning": "This addresses the leadership gap while maintaining a limited service.",
+          "evidence": "The public plan permits an interim coordinator and an authorized paper process.",
+          "unknowns": "Backup usability, recovery dependencies and available staff still need checking.",
+          "member": "ab3ce3bbd73947a780864bc0cf1a955a",
+          "revision": 1,
+          "submitted_at": 1794114773.526561
+        },
+        "response_card": {
+          "action": "Keep coordination separate from technical diagnosis, ask board to appoint interim coordinator, and request approved technical help/alternate provider without promising restoration.",
+          "responsibility": "Interim coordinator (to be appointed by board), board for approvals, and an authorized contact for the alternate provider; exact names need confirmation.",
+          "evidence": "T01-BCP-1, T01-BCP-2, T01-BCP-4; report does not establish spending limits or permission to share credentials, and backup restorability remains unverified.",
+          "dependencies": "Board appointment of interim coordinator, documented delegations/approvals checked before access or spending, and establishing provider availability, capability, cost, and scope.",
+          "fallback": "Paper appointment process is a possible fallback, but only after board authorization is granted.",
+          "communication": "Ask the coordinator to arrange a factual update without promising restoration. Channels and audiences need confirmation.",
+          "review": "Ask the coordinator to arrange a review; exact timing and schedule need confirmation."
+        },
+        "assessment_answers": {
+          "assessment_1": {
+            "text": "First I would establish an authorized interim coordinator because the director is unavailable and no alternate is named. In parallel, I would seek approval for limited paper appointments and qualified technical checks. The outage is confirmed; disclosure and backup restorability are not. Coordination does not remove those uncertainties.",
+            "question": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. You have clearly separated operational coordination from technical investigation while noting the need for board approvals. Briefing the board directly, what specific action must happen first according to the plan, and why does that take priority over other immediate steps?",
+            "scripted": false,
+            "at": 1794114790.105105
+          },
+          "assessment_2": {
+            "text": "The delay means I cannot rely on immediate technical verification. I would tell staff not to promise recovery or start an unverified restoration. I would seek authorization for the paper process and explain its limits. This preserves some service, but creates manual work and does not establish system safety.",
+            "question": "Stage 1: 28 of 30 points. You have clearly noted the need to establish an authorized interim coordinator while recognizing that backup restorability remains unverified. The alternate provider cannot begin immediately; staff still need instructions. Given that the alternate provider cannot begin immediately and staff still need instructions, what specific changes do you make to your plan?",
+            "scripted": false,
+            "at": 1794114799.14884
+          },
+          "assessment_3": {
+            "text": "I would ask the authorized coordinator to arrange replacement support and keep an action record. The service manager should activate paper appointments only after approval. If that cannot proceed, provide clear outage instructions. Ask the communications lead for a factual update, and propose a review in thirty minutes without promising recovery.",
+            "question": "Stage 2: 35 of 40 points. You have clearly identified the need to restrict recovery promises and seek authorization for the paper process while technical checks are delayed. To finalize your response, who does what, under whose authority, what happens if that fails, and when will you review it?",
+            "scripted": false,
+            "at": 1794114804.1748521
+          }
+        },
+        "scores": {
+          "1": {
+            "stage": 1,
+            "criteria": [
+              {
+                "id": "facts_uncertainty",
+                "points": 10,
+                "evidence": "The outage is confirmed; disclosure and backup restorability are not.",
+                "reason": "Accurately identifies confirmed outage versus unconfirmed disclosure and backup restorability, adhering directly to the facts in T01-STATUS:STATUS-1, STATUS-2, and STATUS-3."
+              },
+              {
+                "id": "reasoning",
+                "points": 9,
+                "evidence": "First I would establish an authorized interim coordinator because the director is unavailable and no alternate is named.",
+                "reason": "Clearly prioritizes establishing an authorized interim coordinator based on the director being unavailable and no alternate being named (T01-BCP:BCP-1/BCP-2), while organizing other parallel actions and dependencies."
+              },
+              {
+                "id": "communication",
+                "points": 9,
+                "evidence": "First I would establish an authorized interim coordinator because the director is unavailable and no alternate is named. In parallel, I would seek approval for limited paper appointments and qualified technical checks.",
+                "reason": "The response is clear, relevant, structured directly for the board briefing question, and articulates immediate priorities and rationale effectively."
+              }
+            ],
+            "total": 28,
+            "maximum": 30,
+            "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+          },
+          "2": {
+            "stage": 2,
+            "criteria": [
+              {
+                "id": "new_constraint",
+                "points": 8,
+                "evidence": "The delay means I cannot rely on immediate technical verification.",
+                "reason": "The participant recognizes the new constraint that the alternate provider cannot begin immediately, resulting in delayed technical verification."
+              },
+              {
+                "id": "feasible_adjustment",
+                "points": 9,
+                "evidence": "I would tell staff not to promise recovery or start an unverified restoration. I would seek authorization for the paper process and explain its limits.",
+                "reason": "The response outlines feasible operational adjustments aligned with BCP-3 and BCP-4, including instructing staff and seeking board authorization for the paper appointment process."
+              },
+              {
+                "id": "tradeoff",
+                "points": 9,
+                "evidence": "This preserves some service, but creates manual work and does not establish system safety.",
+                "reason": "The participant clearly identifies the operational tradeoffs: preserving service continuity versus creating manual overhead and leaving system safety unresolved."
+              },
+              {
+                "id": "responsive_answer",
+                "points": 9,
+                "evidence": "I would tell staff not to promise recovery or start an unverified restoration. I would seek authorization for the paper process and explain its limits. This preserves some service, but creates manual work and does not establish system safety.",
+                "reason": "The answer is directly responsive to the scenario update regarding the alternate provider delay and immediate staff instructions."
+              }
+            ],
+            "total": 35,
+            "maximum": 40,
+            "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+          },
+          "3": {
+            "stage": 3,
+            "criteria": [
+              {
+                "id": "action_owner_authority",
+                "points": 7,
+                "evidence": "I would ask the authorized coordinator to arrange replacement support and keep an action record. The service manager should activate paper appointments only after approval.",
+                "reason": "The participant identifies the coordinator and service manager, noting paper appointments require approval, but does not explicitly name the board as the authorizing authority."
+              },
+              {
+                "id": "fallback",
+                "points": 5,
+                "evidence": "If that cannot proceed, provide clear outage instructions.",
+                "reason": "A fallback action is identified if paper appointments cannot proceed, though specific details on what instructions entail or who issues them are minimal."
+              },
+              {
+                "id": "update_review",
+                "points": 8,
+                "evidence": "Ask the communications lead for a factual update, and propose a review in thirty minutes without promising recovery.",
+                "reason": "The response assigns factual communication to the communications lead, specifies a review timeline of thirty minutes, and correctly adheres to restricting recovery promises."
+              }
+            ],
+            "total": 20,
+            "maximum": 30,
+            "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+          }
+        },
+        "total": 83,
+        "reviewed": true
+      },
+      {
+        "member": "b53ccb28cbde44b999db846f8276ded5",
+        "name": "Morgan beta",
+        "original_decision": {
+          "action": "Appoint a coordinator and prioritize verified recovery prerequisites before promising restoration.",
+          "reasoning": "An untested backup could make a rushed recovery fail.",
+          "evidence": "The incident report lists backups but does not verify that they can be restored.",
+          "unknowns": "I need a restoration estimate and clarity about continuity options while checks happen.",
+          "member": "b53ccb28cbde44b999db846f8276ded5",
+          "revision": 1,
+          "submitted_at": 1794114773.532139
+        },
+        "response_card": {
+          "action": "Have coordinator arrange qualified replacement support to verify backups and report restoration estimate and dependencies, without restoring merely because files exist.",
+          "responsibility": "Coordinator to arrange replacement technical verification; specific identity needs confirmation.",
+          "evidence": "Backups exist in inventory but restorability has not been verified during this incident.",
+          "dependencies": "Board authorization, identifying required access, and confirming provider capability to investigate; understanding appointments eligible for paper process.",
+          "fallback": "Authorized limited continuity via approved paper appointment process while technical verification is pending.",
+          "communication": "Needs confirmation.",
+          "review": "Needs confirmation."
+        },
+        "assessment_answers": {
+          "assessment_1": {
+            "text": "I would prioritize backup usability and recovery dependencies because the report gives no verified restoration result. An authorized coordinator should arrange qualified technical help. I would also consider approved paper appointments while checks are pending. Keeping the technical uncertainty visible prevents an estimate from being mistaken for a guarantee.",
+            "question": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. You have outlined the need for replacement technical support, board authorization, and an interim paper appointment fallback. Briefing the rest of the board, what specific action should happen first, and why?",
+            "scripted": false,
+            "at": 1794114806.531064
+          },
+          "assessment_2": {
+            "text": "I would revise my plan because verification will take longer. Staff need clear instructions now, so I would ask the coordinator to seek approval for the paper alternative and communicate the delay. I am still uncertain about staffing capacity. Limited continuity may help clients but increases manual handling and coordination.",
+            "question": "Stage 1: 23 of 30 points. You have noted the need to prioritize technical verification and arrange authorized continuity while the outcome remains unconfirmed. The alternate provider cannot begin immediately; staff still need instructions. Given that the alternate provider cannot begin immediately and staff still require instructions, what specific changes will you make to your plan?",
+            "scripted": false,
+            "at": 1794114812.815045
+          },
+          "assessment_3": {
+            "text": "The coordinator should obtain approved technical support and request verification of backups, dependencies, and an estimate. The service manager can prepare the paper process, but activation needs authorization. If approval or staffing is unavailable, keep service users informed of the disruption. I would request an update when new evidence arrives and set a specific review time.",
+            "question": "Stage 2: 28 of 40 points. You have detailed the interim operational adjustments needed while technical verification remains delayed. To finalize your plan, who specifically does what, under whose authority, what happens if that fails, and when will you review it?",
+            "scripted": false,
+            "at": 1794114821.1310122
+          }
+        },
+        "scores": {
+          "1": {
+            "stage": 1,
+            "criteria": [
+              {
+                "id": "facts_uncertainty",
+                "points": 8,
+                "evidence": "I would prioritize backup usability and recovery dependencies because the report gives no verified restoration result.",
+                "reason": "Accurately notes the lack of verified restoration/restorability and references backup usability and recovery dependencies from BCP-4 and STATUS-3, while keeping technical uncertainty clear."
+              },
+              {
+                "id": "reasoning",
+                "points": 7,
+                "evidence": "I would prioritize backup usability and recovery dependencies because the report gives no verified restoration result. An authorized coordinator should arrange qualified technical help. I would also consider approved paper appointments while checks are pending.",
+                "reason": "Presents a logical sequence prioritizing verification and coordinator authorization while considering the paper process, aligned with BCP constraints."
+              },
+              {
+                "id": "communication",
+                "points": 8,
+                "evidence": "I would prioritize backup usability and recovery dependencies because the report gives no verified restoration result. An authorized coordinator should arrange qualified technical help. I would also consider approved paper appointments while checks are pending. Keeping the technical uncertainty visible prevents an estimate from being mistaken for a guarantee.",
+                "reason": "The response is clear, relevant, structured as a board briefing, and directly answers what should happen first and why."
+              }
+            ],
+            "total": 23,
+            "maximum": 30,
+            "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+          },
+          "2": {
+            "stage": 2,
+            "criteria": [
+              {
+                "id": "new_constraint",
+                "points": 7,
+                "evidence": "verification will take longer",
+                "reason": "The participant recognizes that delays/verification constraints impact the timeline and that staff need instructions now, though does not explicitly name the alternate provider constraint directly."
+              },
+              {
+                "id": "feasible_adjustment",
+                "points": 6,
+                "evidence": "ask the coordinator to seek approval for the paper alternative and communicate the delay",
+                "reason": "The participant suggests seeking approval for the paper alternative process (authorized by the board per BCP-3) and communicating the delay, though authority under BCP-3 rests with board authorization for the service manager."
+              },
+              {
+                "id": "tradeoff",
+                "points": 8,
+                "evidence": "Limited continuity may help clients but increases manual handling and coordination.",
+                "reason": "The participant clearly identifies the operational trade-off of using manual paper processes: helping clients versus increased manual handling and coordination demands."
+              },
+              {
+                "id": "responsive_answer",
+                "points": 7,
+                "evidence": "I would revise my plan because verification will take longer. Staff need clear instructions now, so I would ask the coordinator to seek approval for the paper alternative and communicate the delay.",
+                "reason": "The answer directly addresses what changes in the plan given the delays and staff need for instructions, providing relevant adjustments."
+              }
+            ],
+            "total": 28,
+            "maximum": 40,
+            "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+          },
+          "3": {
+            "stage": 3,
+            "criteria": [
+              {
+                "id": "action_owner_authority",
+                "points": 6,
+                "evidence": "The coordinator should obtain approved technical support and request verification of backups, dependencies, and an estimate. The service manager can prepare the paper process, but activation needs authorization.",
+                "reason": "Identifies roles (coordinator, service manager) and tasks aligned with BCP-3 and BCP-4, noting activation needs authorization, but lacks clarity on who specifically holds the authority to authorize (e.g., the board for activation or appointing an interim coordinator)."
+              },
+              {
+                "id": "fallback",
+                "points": 5,
+                "evidence": "If approval or staffing is unavailable, keep service users informed of the disruption.",
+                "reason": "Provides a basic fallback option if authorization or staffing is unavailable, but details are vague regarding specific alternative service handling or communications protocols."
+              },
+              {
+                "id": "update_review",
+                "points": 4,
+                "evidence": "I would request an update when new evidence arrives and set a specific review time.",
+                "reason": "Mentions requesting updates upon new evidence and setting a review time, but omits specifying when that review will actually take place or defining the next update cadence."
+              }
+            ],
+            "total": 15,
+            "maximum": 30,
+            "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+          }
+        },
+        "total": 66,
+        "reviewed": true
+      },
+      {
+        "member": "83ed16b011c447638d316c5c3b11deaa",
+        "name": "Sam beta",
+        "original_decision": {
+          "action": "Ask for an authorized continuity arrangement and a factual update to service users.",
+          "reasoning": "People need practical instructions without unsupported reassurance.",
+          "evidence": "The report confirms the outage, while disclosure and backup restorability remain uncertain.",
+          "unknowns": "I still need an accountable update owner, an approved channel and a review time.",
+          "member": "83ed16b011c447638d316c5c3b11deaa",
+          "revision": 1,
+          "submitted_at": 1794114773.5384011
+        },
+        "response_card": {
+          "action": "Deliver a factual service user update distinguishing outage from unconfirmed disclosure, state no recovery estimate is verified, establish authorized contact for alternate provider, and record missing approvals.",
+          "responsibility": "Communications lead to prepare factual update; coordinator to check operational details; interim coordinator to establish authorized contact through proper approval process.",
+          "evidence": "Outage is confirmed; data disclosure is unconfirmed; recovery estimate is not verified.",
+          "dependencies": "Board authorization/proper approval process for interim coordinator and authorized contact for alternate provider; check communication channel rather than assuming an undocumented alternative exists.",
+          "fallback": "Needs confirmation",
+          "communication": "Communications lead to provide factual update to service users on confirmed facts, avoid guessing on recovery, state no estimate is verified, and provide the next update time via checked documented channel.",
+          "review": "Request a review point and record any missing approval instead of treating the proposal as completed; exact review time Needs confirmation."
+        },
+        "assessment_answers": {
+          "assessment_1": {
+            "text": "My priority is an accountable response that staff and service users can understand. I would confirm the coordinator and seek an approved continuity plan. The first update should state that appointments are disrupted, disclosure is not confirmed, and recovery remains unverified. I would explain what information the team is checking next.",
+            "question": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. I note your focus on coordinating factual communication and securing board authorization for interim leadership and external support. Briefing the board directly, what specific action must happen first, and why?",
+            "scripted": false,
+            "at": 1794114793.551511
+          },
+          "assessment_2": {
+            "text": "I would remove any expectation of immediate technical answers and revise the public update accordingly. Staff should use only the authorized continuity arrangements and avoid sharing unverified recovery estimates. I would ask the coordinator to clarify the fallback. Clear updates reduce confusion, but communication alone cannot restore the service.",
+            "question": "Stage 1: 20 of 30 points. I note your plan to prioritize an authorized coordinator, communicate verified facts to service users, and establish an approved continuity process. The alternate provider cannot begin immediately; staff still need instructions. With the alternate provider unable to begin immediately and staff needing immediate instructions, what specific fallback process and operational steps will you direct while awaiting technical investigation and board authorizations?",
+            "scripted": false,
+            "at": 1794114798.2219899
+          },
+          "assessment_3": {
+            "text": "I would ask the coordinator to confirm authorized operational instructions and the communications lead to publish the known facts, unknowns, and next update time through an approved channel. If continuity cannot be activated, explain the disruption without promising recovery. I would propose a thirty minute review with named owners and record any approval still outstanding.",
+            "question": "Stage 2: 17 of 40 points. I note your focus on managing expectations, avoiding unverified recovery claims, and clarifying fallback arrangements for staff. To give your final instruction: who does what, under whose authority, what happens if it fails, and when will you review it?",
+            "scripted": false,
+            "at": 1794114804.035908
+          }
+        },
+        "scores": {
+          "1": {
+            "stage": 1,
+            "criteria": [
+              {
+                "id": "facts_uncertainty",
+                "points": 8,
+                "evidence": "The first update should state that appointments are disrupted, disclosure is not confirmed, and recovery remains unverified.",
+                "reason": "The participant accurately distinguishes confirmed facts and unknowns based on the status document (disrupted appointments, unconfirmed disclosure, unverified recovery), but omits the timing of the next public update required by T01-BCP:BCP-5."
+              },
+              {
+                "id": "reasoning",
+                "points": 5,
+                "evidence": "I would confirm the coordinator and seek an approved continuity plan.",
+                "reason": "The response partially identifies key operational dependencies (coordinator, continuity plan), but provides limited explanation of 'why' or which specific action must occur first relative to board authority constraints."
+              },
+              {
+                "id": "communication",
+                "points": 7,
+                "evidence": "My priority is an accountable response that staff and service users can understand. I would confirm the coordinator and seek an approved continuity plan.",
+                "reason": "The communication is clear, understandable, relevant, and directly addresses briefing the board on initial priorities, though it remains brief."
+              }
+            ],
+            "total": 20,
+            "maximum": 30,
+            "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+          },
+          "2": {
+            "stage": 2,
+            "criteria": [
+              {
+                "id": "new_constraint",
+                "points": 4,
+                "evidence": "I would remove any expectation of immediate technical answers and revise the public update accordingly.",
+                "reason": "The participant acknowledges the delay in technical resolution, but does not explicitly address the specific new constraint that the alternate provider cannot begin immediately."
+              },
+              {
+                "id": "feasible_adjustment",
+                "points": 4,
+                "evidence": "Staff should use only the authorized continuity arrangements and avoid sharing unverified recovery estimates. I would ask the coordinator to clarify the fallback.",
+                "reason": "The participant mentions using authorized continuity arrangements and asking the coordinator, but does not specify the concrete fallback process (e.g., the approved paper appointment process requiring board authorization) or operational steps directed to staff."
+              },
+              {
+                "id": "tradeoff",
+                "points": 5,
+                "evidence": "Clear updates reduce confusion, but communication alone cannot restore the service.",
+                "reason": "The response partially identifies a tradeoff between clear communication reducing confusion and the reality that communication cannot restore the service."
+              },
+              {
+                "id": "responsive_answer",
+                "points": 4,
+                "evidence": "Staff should use only the authorized continuity arrangements and avoid sharing unverified recovery estimates. I would ask the coordinator to clarify the fallback.",
+                "reason": "The answer addresses staff instructions at a high level, but defers defining the fallback back to the coordinator rather than directing specific fallback processes while awaiting authorization and investigation."
+              }
+            ],
+            "total": 17,
+            "maximum": 40,
+            "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+          },
+          "3": {
+            "stage": 3,
+            "criteria": [
+              {
+                "id": "action_owner_authority",
+                "points": 5,
+                "evidence": "I would ask the coordinator to confirm authorized operational instructions and the communications lead to publish the known facts, unknowns, and next update time through an approved channel.",
+                "reason": "The participant identifies roles (coordinator, communications lead) and duties, but does not specify whose authority authorizes the coordinator or service continuity actions (such as the board's role per BCP-2/BCP-3 when the executive director is unavailable)."
+              },
+              {
+                "id": "fallback",
+                "points": 5,
+                "evidence": "If continuity cannot be activated, explain the disruption without promising recovery.",
+                "reason": "The answer provides a basic contingency action (explain disruption without promising recovery if continuity cannot be activated), aligning partially with BCP-4, but lacks concrete operational fallback detail such as paper processes."
+              },
+              {
+                "id": "update_review",
+                "points": 7,
+                "evidence": "I would propose a thirty minute review with named owners and record any approval still outstanding.",
+                "reason": "The participant clearly specifies a review timeframe of thirty minutes with named owners and tracking outstanding approvals, though it omits details on specific operational metrics or restoration criteria."
+              }
+            ],
+            "total": 17,
+            "maximum": 30,
+            "note": "AI assisted rubric assessment of this submitted answer; review evidence during reunion."
+          }
+        },
+        "total": 54,
+        "reviewed": true
+      }
+    ],
+    "discussion": [
+      {
+        "id": "264bb57a6dd34d618ec10c168cb53e73",
+        "member": "ab3ce3bbd73947a780864bc0cf1a955a",
+        "name": "Alex beta",
+        "text": "My starting point was coordination and limited continuity. The private challenge made me separate those actions from technical verification. I adapted by checking authority before access or spending and by treating the provider delay as a reason to revise instructions, not a reason to invent a recovery estimate.",
+        "scripted": false,
+        "at": 1794114828.6619241
+      },
+      {
+        "id": "e85d7857d5da4f3c83efdbf120057f88",
+        "member": "ab3ce3bbd73947a780864bc0cf1a955a",
+        "name": "Alex beta",
+        "text": "One strength was keeping coordination and technical work separate. I could improve by specifying review arrangements sooner. For the actual plan, I would propose naming an alternate coordinator, clarifying delegated authority, and testing the continuity process. Those changes would still need the appropriate organizational approval.",
+        "scripted": false,
+        "at": 1794114828.830428
+      },
+      {
+        "id": "cfb6f37b8cb94ef0b703cd68c2beeb7d",
+        "member": "b53ccb28cbde44b999db846f8276ded5",
+        "name": "Morgan beta",
+        "text": "I began by prioritizing recovery checks. During the private preparation, I recognized that verification and approved continuity could happen alongside each other. The delay challenged me to give staff useful instructions while preserving uncertainty. My final response still needed a more specific review time.",
+        "scripted": false,
+        "at": 1794114828.97804
+      },
+      {
+        "id": "1dc3249384d64ca1883e6dccd84a00d5",
+        "member": "b53ccb28cbde44b999db846f8276ded5",
+        "name": "Morgan beta",
+        "text": "My strength was avoiding an unsupported restoration promise. My improvement is to turn caution into a complete operational plan, with named owners and deadlines. I would ask the board to document replacement support arrangements and exercise the fallback, rather than assume an inventory entry proves recovery will work.",
+        "scripted": false,
+        "at": 1794114829.043275
+      },
+      {
+        "id": "3fdde43ecc9d42d899f78a1d3f0882d1",
+        "member": "83ed16b011c447638d316c5c3b11deaa",
+        "name": "Sam beta",
+        "text": "I initially focused on factual communication. The private challenge showed that an update must connect to authorized operational instructions. I adapted by asking for a coordinator, checking the channel, and distinguishing the next update time from a recovery promise. Communication cannot substitute for technical evidence.",
+        "scripted": false,
+        "at": 1794114829.191864
+      },
+      {
+        "id": "5f86157154684a9886485564a045c13d",
+        "member": "83ed16b011c447638d316c5c3b11deaa",
+        "name": "Sam beta",
+        "text": "My strength was separating confirmed facts from unknowns. I could improve by establishing authority and ownership earlier. After comparing the sample approaches, I would suggest reviewing the communication and continuity plans together, so staff know who approves instructions and what to say when technical answers are delayed.",
+        "scripted": false,
+        "at": 1794114829.305377
+      }
+    ],
+    "summary": {
+      "text": "These are separate branches of the same crisis. Alex beta: 83 out of 100. Adjusted plan by conditioning paper appointments on approval, assigning factual comms, and setting a 30-minute review. Strength: Accurately separated confirmed outage facts from unverified disclosure and backup restorability. Improvement: Define specific operational details and owners for issuing outage instructions if paper continuity fails. Morgan beta: 66 out of 100. Revised plan for verification delays, preparing paper processes under authorization and setting review checkpoints. Strength: Identified trade-offs between manual client handling and increased coordination overhead. Improvement: Specify concrete review timestamps and designate clear authorities for activating paper processes. Sam beta: 54 out of 100. Removed immediate recovery expectations, proposed a thirty-minute review, and tracked pending approvals. Strength: Clearly distinguished confirmed appointment disruption from unverified recovery and disclosure. Improvement: Directly address constraints regarding alternate technical support and elaborate operational reasoning. Review your scoring evidence and flag an overlooked passage before the winner is announced. What should the board change in its actual plan?",
+      "members": [
+        {
+          "member": "ab3ce3bbd73947a780864bc0cf1a955a",
+          "adaptation": "Adjusted plan by conditioning paper appointments on approval, assigning factual comms, and setting a 30-minute review.",
+          "strength": "Accurately separated confirmed outage facts from unverified disclosure and backup restorability.",
+          "improvement": "Define specific operational details and owners for issuing outage instructions if paper continuity fails."
+        },
+        {
+          "member": "b53ccb28cbde44b999db846f8276ded5",
+          "adaptation": "Revised plan for verification delays, preparing paper processes under authorization and setting review checkpoints.",
+          "strength": "Identified trade-offs between manual client handling and increased coordination overhead.",
+          "improvement": "Specify concrete review timestamps and designate clear authorities for activating paper processes."
+        },
+        {
+          "member": "83ed16b011c447638d316c5c3b11deaa",
+          "adaptation": "Removed immediate recovery expectations, proposed a thirty-minute review, and tracked pending approvals.",
+          "strength": "Clearly distinguished confirmed appointment disruption from unverified recovery and disclosure.",
+          "improvement": "Directly address constraints regarding alternate technical support and elaborate operational reasoning."
+        }
+      ],
+      "score_version": 1
+    },
+    "score_version": 1,
+    "winners": [
+      "ab3ce3bbd73947a780864bc0cf1a955a"
+    ]
+  },
+  "checks": {
+    "all_four_rounds_completed": true,
+    "three_independent_private_sessions": true,
+    "nine_assessment_stages_scored": true,
+    "six_reunion_reflections": true,
+    "winner_after_member_reviews": true,
+    "no_speech_stream_errors": true
+  },
+  "health_after": {
+    "ok": true,
+    "storage": "single process memory",
+    "models": {
+      "online": true,
+      "verified": true,
+      "provider": "Google Vertex AI",
+      "model": "gemini-3.8-flash",
+      "thinking_level": "LOW",
+      "name": "Gemini 3.8 Flash \u00b7 LOW",
+      "note": "Live response verified",
+      "budget": {
+        "cap_usd": null,
+        "reserved_usd": 8.8,
+        "remaining_usd": null,
+        "attempts": 176,
+        "unlimited": true,
+        "note": "Local test reservations, including failures; excludes other account spending."
+      }
+    },
+    "test_name_rejoin": true,
+    "speech": {
+      "cap": null,
+      "reserved": 37393,
+      "remaining": null,
+      "unlimited": true,
+      "unit": "credits",
+      "note": "Conservative reservations, not an exact provider invoice. Failed calls stay reserved."
+    },
+    "speech_configured": true
+  }
+}

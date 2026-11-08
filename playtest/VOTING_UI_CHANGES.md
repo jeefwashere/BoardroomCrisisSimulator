@@ -1,5 +1,7 @@
 # Voting UI changes
 
+Current update: [X16 extended conversation and custom responses](EXTENDED_CONVERSATION_REPORT.md) supersedes the three clip and prepared choices only limits below. The measurements in this earlier report remain historical.
+
 Working branch: **`experiment/ai-voice-playtest`**.
 
 Implementation: [4d113f6](https://github.com/jeefwashere/BoardroomCrisisSimulator/commit/4d113f64da2c273c91740a1b0f84851829c553bf). Published on the test branch; not merged into `main`.

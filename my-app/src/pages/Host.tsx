@@ -9,10 +9,11 @@ import type { RoleDraft } from '../features/rooms/roomState'
 import type { StartRoomInput } from '../services/rooms'
 import Game from './Game'
 import RoomNameEditor from '../features/rooms/RoomNameEditor'
+import RoomChat from '../features/rooms/RoomChat'
 import './Host.css'
 
 function Host({ roomId }: { roomId: string }) {
-    const { room, scenarios, error, starting, start, rename, execute } = useRoom(roomId)
+    const { room, scenarios, error, starting, start, rename, execute, refresh } = useRoom(roomId)
     const [draft, setDraft] = useState<RoleDraft>({})
     const [selectedScenario, setSelectedScenario] = useState('')
     const [selectedTiming, setSelectedTiming] = useState('')
@@ -40,11 +41,11 @@ function Host({ roomId }: { roomId: string }) {
     }
 
     if (!room) return <main className="room-loading"><h1>Opening boardroom</h1><p role={error ? 'alert' : 'status'}>{error || 'Connecting to the room server…'}</p><button onClick={() => { window.location.hash = '/' }}>Back home</button></main>
-    if (room.phase !== 'lobby') return <Game room={room} scenarios={scenarios} error={error} rename={rename} execute={execute} />
     const problem = startProblem(room, scenario, draft)
     const members = roomMembers(room, isHost ? draft : {})
 
-    return <MotionConfig reducedMotion="user">
+    return <>
+        {room.phase !== 'lobby' ? <Game room={room} scenarios={scenarios} error={error} rename={rename} execute={execute} /> : <MotionConfig reducedMotion="user">
         <div className="host-lobby">
             <header className="lobby-toolbar">
                 <div className="room-personal-controls"><button className="lobby-leave-button" type="button" title="Stop viewing. Your registered seat remains in this room." onClick={() => { window.location.hash = '/' }}>Leave</button><RoomNameEditor room={room} rename={rename} disabled={starting} /></div>
@@ -68,7 +69,9 @@ function Host({ roomId }: { roomId: string }) {
                 <p id="room-context" title={documentNotice}><span>Upload:</span> {documentNotice} The selected scenario supplies the briefing.</p>
             </footer>
         </div>
-    </MotionConfig>
+    </MotionConfig>}
+        <RoomChat key={room.room_id} room={room} scenarios={scenarios} refreshRoom={refresh} />
+    </>
 }
 
 export default Host

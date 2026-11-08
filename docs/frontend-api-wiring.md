@@ -13,6 +13,7 @@ This integration uses the implemented FastAPI room contract in [room-api.md](roo
 3. Create the host seat with the frontend generated six character room code and the chosen name. Join each other player tab separately.
 4. Poll `snapshot` after the previous request finishes. Presence can change at an equal `room_version`, so accept equal version snapshots. Reject lower versions to keep historical command receipts from replacing newer room membership.
 5. The host submits all registered member IDs and final role choices together on Start. A successful response enters `briefing`; continue polling the same room.
+6. The shared room chat reads every committed contribution and submits typed messages through the authenticated contribution endpoints. The panel stays mounted across Start so its draft and records survive that transition. See [room discussion records](room-chat.md) for full history, attribution and exact retry behavior.
 
 Room requests send `credentials: 'include'` and the private `X-Boardroom-Session` header. The interactive client keeps its server issued guest credential in session storage for that tab and in memory, never in URLs or local storage. Separate tabs initialize separate credentials; refresh resumes the same credential. The tab ownership helper detects a copied active tab identity before reuse so an opened copy becomes another player. Legacy cookie only API clients remain supported through `GET /api/session`. A supplied invalid tab header is rejected rather than falling back to a cookie.
 
@@ -32,7 +33,7 @@ Lobby role choices are host draft state until Start. There is no individual lobb
 
 The upload endpoint acknowledges a bounded local document payload. It does not store documents, run extraction, generate a scenario, or change the admitted scenario catalog. The real briefing must render the backend's released public documents and scenario reference. Upload success must not be presented as generated gameplay content.
 
-This unit connects room admission and initial briefing. It does not implement automatic phase timing, speaking, voting, microphone recording, production transcription, original audio storage, AI evaluation or a complete game. Readable public briefing material remains available without paid provider calls.
+The current integration connects room admission, initial briefing and typed room discussion records. It does not implement automatic phase timing, speaking, voting, microphone recording, production transcription, original audio storage, AI evaluation or a complete game. Readable public briefing material remains available without paid provider calls.
 
 ## Verification
 

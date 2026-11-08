@@ -1,0 +1,61 @@
+{
+  "date_utc": "2026-11-08",
+  "base_commit": "5b689c0b4ea19bafda41044096e0a4cf7fd23d12",
+  "mode": "Actual managed headless Chrome, three independent tabs in one browser context, disposable real FastAPI service and Vite frontend",
+  "checks": {
+    "independent_tab_members": 3,
+    "ordered_lobby_records_on_each_tab": 3,
+    "shared_real_briefing_after_start": true,
+    "open_panel_and_unsent_draft_survive_start": true,
+    "submission_role_and_phase_rendered": true,
+    "rename_preserves_member_and_history": true,
+    "refresh_recovers_same_seat_and_complete_history": true,
+    "html_looking_text_rendered_literally": true,
+    "lost_response_after_server_201": {
+      "injected_response_losses": 1,
+      "records_before_retry": 7,
+      "records_after_retry": 7,
+      "matching_committed_messages": 1,
+      "same_contribution_id": true,
+      "draft_cleared_after_recovery": true
+    },
+    "desktop_screenshot_reviewed": true,
+    "mobile_width": 390,
+    "mobile_horizontal_overflow": false,
+    "final_identical_ordered_records_on_initial_tabs": 8,
+    "late_observer_chat": {
+      "accepted": true,
+      "eligible_current_round": false,
+      "eligible_from_round": 2,
+      "initial_electorate_unchanged": true
+    },
+    "ended_ui_fixture": {
+      "history_records": 8,
+      "compose_present": false,
+      "actual_server_advanced": false
+    }
+  },
+  "offline_checks": {
+    "frontend_tests": 83,
+    "backend_tests": 96,
+    "existing_python_tests": 31,
+    "narration_player_tests": 7,
+    "build": "passed",
+    "lint": "passed",
+    "authored_prototype_demo": "passed",
+    "narrative_demo_without_audio": "passed",
+    "narrative_demo_with_fake_audio": "passed"
+  },
+  "boundaries": [
+    "Rooms and records remain in backend process memory; refresh recovery does not prove restart durability.",
+    "No full voting game, microphone, paid speech, production transcription, audio storage or AI evaluation is established by these checks.",
+    "Ended room rendering and stale phase correction require separate fixture and unit checks, not an actual completed public game."
+  ],
+  "paid_calls": 0,
+  "cleanup": {
+    "qa_targets_closed": 4,
+    "absence_verified": true,
+    "exact_managed_lease_released": true,
+    "disposable_servers_stopped": true
+  }
+}

@@ -50,6 +50,11 @@ export function useRoom(roomId: string) {
         }
     }, [roomId, receive])
 
+    const refresh = useCallback(async () => {
+        const incoming = await roomApi.snapshot(roomId)
+        if (activeRef.current) receive(incoming)
+    }, [roomId, receive])
+
     async function start(input: StartRoomInput) {
         if (commandRef.current) return
         const controller = new AbortController()
@@ -109,5 +114,5 @@ export function useRoom(roomId: string) {
         } finally { commandRef.current = null }
     }
 
-    return { room, scenarios, error: commandError || error, starting, start, rename, execute }
+    return { room, scenarios, error: commandError || error, starting, start, rename, execute, refresh }
 }

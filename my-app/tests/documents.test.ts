@@ -2,8 +2,8 @@ import { after, before, test } from 'node:test'
 import assert from 'node:assert/strict'
 import { createServer } from 'node:http'
 import { dummyDocumentProcessor } from '../dev/documentProcessor.ts'
-import { describeRoomContext, DOCUMENT_PROCESSOR_ENDPOINT, MAX_DOCUMENT_BYTES, isDocumentReceipt, validateLobbyDocument } from '../src/features/lobby/documentContract.ts'
-import { uploadLobbyDocument } from '../src/services/documents.ts'
+import { describeRoomContext, describeDocumentsContext, DOCUMENT_PROCESSOR_ENDPOINT, MAX_DOCUMENT_BYTES, MAX_DOCUMENT_FILES, isDocumentReceipt, validateLobbyDocument, validateLobbyDocuments } from '../src/features/lobby/documentContract.ts'
+import { uploadLobbyDocument, uploadLobbyDocuments } from '../src/services/documents.ts'
 
 const originalFetch = globalThis.fetch
 const server = createServer((request, response) => {
@@ -63,6 +63,41 @@ test('the frontend upload adapter posts the file and reads the acknowledgement',
     assert.equal(receipt.bytesReceived, file.size)
     assert.equal(receipt.mode, 'dummy')
     await assert.rejects(uploadLobbyDocument(new File(['not allowed'], 'notes.txt'), 'DEMO01'), /DOC, DOCX, or PDF/)
+})
+
+test('a batch accepts five files, preserves their names, and describes all uploaded documents', async () => {
+    const files = Array.from({ length: MAX_DOCUMENT_FILES }, (_, index) => new File([`Document ${index}`], `brief-${index}.pdf`))
+    const receipts = await uploadLobbyDocuments(files, 'DEMO01')
+    assert.equal(receipts.length, 5)
+    assert.deepEqual(receipts.map((receipt) => receipt.filename), files.map((file) => file.name))
+    assert.ok(receipts.every((receipt, index) => receipt.processed === false && receipt.bytesReceived === files[index].size))
+    const context = describeDocumentsContext(receipts)
+    for (const file of files) assert.ok(context.includes(file.name))
+    assert.match(context, /awaiting document processing/)
+})
+
+test('both the frontend and the endpoint reject more than five documents', async () => {
+    const files = Array.from({ length: MAX_DOCUMENT_FILES + 1 }, (_, index) => new File(['fixture'], `${index}.docx`))
+    assert.match(validateLobbyDocuments(files)!, /up to 5/)
+    await assert.rejects(uploadLobbyDocuments(files, 'DEMO01'), /up to 5/)
+    const body = multipart()
+    for (const file of files) body.append('document', file)
+    const response = await fetch(DOCUMENT_PROCESSOR_ENDPOINT, { method: 'POST', body })
+    assert.equal(response.status, 422)
+    assert.match((await response.json()).message, /up to 5/)
+})
+
+test('batch validation checks every file and rejects an empty selection', async () => {
+    const valid = new File(['fixture'], 'brief.pdf')
+    assert.match(validateLobbyDocuments([])!, /at least one/)
+    await assert.rejects(uploadLobbyDocuments([], 'DEMO01'), /at least one/)
+    for (const invalid of [new File(['x'], 'brief.exe'), new File([], 'empty.doc'), new File([new Uint8Array(MAX_DOCUMENT_BYTES + 1)], 'large.pdf')]) {
+        assert.notEqual(validateLobbyDocuments([valid, invalid]), null)
+        const body = multipart(valid)
+        body.append('document', invalid)
+        const response = await fetch(DOCUMENT_PROCESSOR_ENDPOINT, { method: 'POST', body })
+        assert.equal(response.status, invalid.size > MAX_DOCUMENT_BYTES ? 413 : 422)
+    }
 })
 
 test('the dummy endpoint validates the multipart document on the server too', async () => {

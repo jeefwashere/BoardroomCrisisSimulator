@@ -129,8 +129,10 @@
 }
 
 .game-host-indicator svg { width: 14px; height: 14px; }
-.game-call-footer { min-width: 0; padding-block: 15px max(20px, env(safe-area-inset-bottom)); text-align: center; }
+.game-call-footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-width: 0; padding-block: 15px max(20px, env(safe-area-inset-bottom)); }
 .game-call-footer p { margin: 0; overflow: hidden; color: #a6abb6; font-size: 11px; line-height: 1.7; text-overflow: ellipsis; white-space: nowrap; }
+.game-summary-button { display: inline-flex; align-items: center; gap: 10px; flex-shrink: 0; min-height: 44px; padding: 8px 12px; border: 0; background: transparent; color: #f2f3f5; font: inherit; font-size: 13px; cursor: pointer; }
+.game-summary-button:hover { color: #c6caff; }
 .game-call-footer p > span { color: #d0d3da; }
 .game-empty-grid { align-self: center; margin: 0; color: #a6abb6; font-size: 14px; }
 .game-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

@@ -167,6 +167,13 @@ class RoomSnapshot:
 
 
 @dataclass(frozen=True)
+class LeaveReceipt:
+    room_id: UUID
+    room_version: int
+    status: str
+
+
+@dataclass(frozen=True)
 class Contribution:
     contribution_id: UUID
     sequence: int
@@ -226,9 +233,15 @@ class Room:
     phase: Lobby | StartedGame = field(default_factory=Lobby)
     contributions: tuple[Contribution, ...] = ()
     version: int = 1
+    closed: bool = False
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
+    def ensure_open(self) -> None:
+        if self.closed:
+            raise RoomError(410, "room_closed", "The host has closed this lobby. Create or join another room.")
+
     def member(self, session: str) -> Seat:
+        self.ensure_open()
         if session not in self.members:
             raise RoomError(403, "not_a_member", "Join this room before reading it")
         return self.members[session]
@@ -322,12 +335,12 @@ class Rooms:
         self.sessions: set[str] = set()
         self.rooms: dict[UUID, Room] = {}
         self.codes: dict[str, UUID] = {}
-        self.receipts: dict[tuple[str, UUID], tuple[tuple, RoomSnapshot | Contribution]] = {}
+        self.receipts: dict[tuple[str, UUID], tuple[tuple, RoomSnapshot | Contribution | LeaveReceipt]] = {}
         self.internal_receipts: dict[tuple[UUID, UUID], tuple[tuple, sim.Game]] = {}
         self.creation_lock = asyncio.Lock()
 
     def reconcile(self, room: Room, now: float) -> None:
-        if not self.automatic or not isinstance(room.phase, StartedGame):
+        if room.closed or not self.automatic or not isinstance(room.phase, StartedGame):
             return
         phase = room.phase
         seen = {seat.member_id: seat.last_seen for seat in room.members.values()}
@@ -483,7 +496,28 @@ class Rooms:
     def require_room(self, room_id: UUID) -> Room:
         if room_id not in self.rooms:
             raise RoomError(404, "room_not_found", "Room was not found")
-        return self.rooms[room_id]
+        room = self.rooms[room_id]
+        room.ensure_open()
+        return room
+
+    async def leave(self, session: str, room_id: UUID, command_id: UUID) -> LeaveReceipt:
+        intent = ("leave", room_id)
+        # The acknowledgement remains retrievable after membership or the room closes.
+        if previous := self.retry(session, command_id, intent):
+            return previous
+        room = self.require_room(room_id)
+        async with room.lock:
+            if previous := self.retry(session, command_id, intent):
+                return previous
+            caller = room.member(session)
+            if not isinstance(room.phase, Lobby):
+                raise RoomError(409, "already_started", "Leaving a lobby is only available before the game starts")
+            room.closed = caller.member_id == room.host_member_id
+            del room.members[session]
+            room.version += 1
+            receipt = LeaveReceipt(room.room_id, room.version, "closed" if room.closed else "left")
+            self.receipts[(session, command_id)] = (intent, receipt)
+            return receipt
 
     async def create(self, session: str, command_id: UUID, room_code: str, display_name: str) -> RoomSnapshot:
         intent = ("create", room_code, display_name)
@@ -513,8 +547,11 @@ class Rooms:
             raise RoomError(404, "room_not_found", "Room code was not found")
         room = self.rooms[room_id]
         async with room.lock:
+            room.ensure_open()
             self.reconcile(room, self.clock())
             if previous := self.retry(session, command_id, intent):
+                if room.member(session).member_id != previous.self_member_id:
+                    raise RoomError(409, "membership_changed", "This join request belongs to a seat you left. Use a new command_id.")
                 room.touch(session, self.clock())
                 return previous
             existing, now, phase = room.members.get(session), self.clock(), room.phase

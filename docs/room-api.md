@@ -11,6 +11,7 @@ Updated product direction: Jeff generates the room code and owns lobby role sele
 3. Only the host and joined members can read full room and member details. Room codes locate rooms; display names do not authenticate members.
 4. Active rooms and membership credentials live in memory in one backend process. Each application tab retains its own server issued guest credential across refresh. Legacy clients may still use the browser cookie. Restart or development reload loses rooms and credentials; losing the tab credential loses access to that tab's seats.
 5. Lobby updates may use approximately two second frontend polling before WebSocket delivery is added.
+6. Explicitly leaving a lobby removes that participant's seat. The host's explicit departure closes the lobby for everyone and prevents rejoining. Reloading a page and temporarily disconnecting retain the existing refresh and rejoin behavior.
 
 ## Local setup
 
@@ -48,6 +49,9 @@ Distinct tab credentials create independent players, each counting toward the ca
 6. `GET /api/scenarios`: public admitted scenario references, roles, and timing profiles.
 7. `POST /api/rooms/{room_id}/start`: authenticated host submits the complete roster and selected roles. See [start-api.md](start-api.md).
 8. `POST /api/tab-sessions`: initialize or resume a private tab guest identity without setting a cookie.
+9. `POST /api/rooms/{room_id}/leave`: authenticated departure before Start. Send `{"command_id":"<UUID>"}`. The server removes only the caller's seat and returns `{"room_id":"<UUID>","room_version":3,"status":"left"}`. When the caller is the host, status is `closed`; all room reads and joins then return `410 room_closed`. Polling clients stop rendering the old lobby and display its closure. The frontend waits for acknowledgement before returning home.
+
+Leave retries retain the exact command ID and return the original acknowledgement, even after the caller's seat is removed or the host closes the room. Replaying an old join receipt cannot restore a departed seat. A player may explicitly join an open lobby again with a new command and receives a new member ID. An old join receipt for that previous seat is rejected with `409 membership_changed`. Leaving invalidates stale Start rosters and releases capacity and the display name. The endpoint rejects departure after Start with `409 already_started`; active gameplay evidence is preserved. Closed lobby codes stay reserved for the lifetime of this memory backend, so the host cannot recreate a lobby under its closed code. Restarting the backend clears both rooms and these reservations.
 
 Contribution ingestion, final evidence export, and consequence narration endpoints are also implemented. Their request bodies and phase rules are documented in [narrative-engine.md](narrative-engine.md).
 
@@ -117,7 +121,7 @@ Generate a UUID `command_id` once for each user intent. Retain that ID and body 
 
 Rejoining the same room with the same credential returns the existing seat even with a new command ID or when the room is full. Submit a new `display_name` through this same join endpoint to rename that seat. Names keep the existing trim, printable length, and Unicode case folding uniqueness rules. A successful spelling change increments `room_version` once while preserving the member ID, join time, host and CEO authority, role, round eligibility, electorate, contributions, and history. An unchanged name does not increment the version. Exact retries retain the original receipt and never reapply an earlier name over a later rename.
 
-Rename is allowed in the lobby and active phases. After ending, names are frozen and a change returns `409 game_ended`; an unchanged name can still rejoin. Existing seats omit `role_id`, or retain their assigned role after Start; a different role is rejected before any name or presence change. A new member joining after Start must supply an allowed non CEO `role_id`. Losing a credential does not release its old seat. Room capacity counts all registered seats until a later lifecycle capability provides removal.
+Rename is allowed in the lobby and active phases. After ending, names are frozen and a change returns `409 game_ended`; an unchanged name can still rejoin. Existing seats omit `role_id`, or retain their assigned role after Start; a different role is rejected before any name or presence change. A new member joining after Start must supply an allowed non CEO `role_id`. Losing a credential does not release its old seat. Explicit lobby departure releases the caller's seat; host departure closes the lobby. Capacity counts the seats remaining in the open room.
 
 After create or join, poll `GET /api/rooms/{room_id}` about every two seconds. Permit one outstanding poll at a time and stop polling when leaving the page. For the same room, discard a response with a lower `room_version` than the latest rendered snapshot. Exact command retries intentionally return their original version, which may now be older. A new join, rename, or successful Start increments the version once; reads and duplicate commands do not. Activity may change at the same version, so apply current GET responses even if the version is equal. Successful retries refresh their caller's activity but return the unchanged historical receipt.
 

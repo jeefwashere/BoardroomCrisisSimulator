@@ -17,7 +17,7 @@ function Countdown({ deadline, serverTime }: { deadline?: string | null; serverT
     return remaining === null ? null : <span className="game-countdown" aria-label="Seconds remaining">{remaining}s remaining</span>
 }
 
-function Game({ room, scenarios, error, rename, execute }: { room: RoomSnapshot; scenarios: Scenario[]; error: string; rename: (name: string) => Promise<void>; execute: (path: string, fields?: Record<string, unknown>) => Promise<void> }) {
+function Game({ room, scenarios, error, rename, execute, onViewSummary }: { room: RoomSnapshot; scenarios: Scenario[]; error: string; rename: (name: string) => Promise<void>; execute: (path: string, fields?: Record<string, unknown>) => Promise<void>; onViewSummary: () => void }) {
     const [notice, setNotice] = useState('')
     const [pending, setPending] = useState(false)
     const [text, setText] = useState('')
@@ -80,7 +80,7 @@ function Game({ room, scenarios, error, rename, execute }: { room: RoomSnapshot;
                 <details open={room.phase === 'briefing'}><summary>Public scenario documents</summary>{game.public_documents.map((document) => <article key={document.id} className="game-public-document"><h3>{document.id.replaceAll('_', ' ')}</h3><div>{document.text}</div></article>)}</details>
                 {actions.includes('end') && <button className="game-end" disabled={pending} onClick={() => { if (window.confirm('End this meeting and preserve its records?')) void act('end') }}>End meeting</button>}
             </section>
-        </main><footer className="game-call-footer"><p>Scenario {game.scenario.scenario_id}, version {game.scenario.version}. Room version {room.room_version}.</p></footer>
+        </main><footer className="game-call-footer"><p>Scenario {game.scenario.scenario_id}, version {game.scenario.version}. Room version {room.room_version}.</p><button className="game-summary-button" type="button" onClick={onViewSummary}>Summary demo preview <span aria-hidden="true">↗</span></button></footer>
     </div></MotionConfig>
 }
 export default Game

@@ -49,6 +49,11 @@ class JoinRoom(CreateRoom):
     role_id: RoleId | None = None
 
 
+class LeaveRoom(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    command_id: UUID
+
+
 class PlayerRole(BaseModel):
     model_config = ConfigDict(extra="forbid")
     member_id: UUID
@@ -67,6 +72,12 @@ class StartRoom(BaseModel):
 
 class View(BaseModel):
     model_config = ConfigDict(from_attributes=True)
+
+
+class LeaveView(View):
+    room_id: UUID
+    room_version: int
+    status: Literal["left", "closed"]
 
 
 class MemberView(View):

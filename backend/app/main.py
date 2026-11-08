@@ -14,7 +14,7 @@ from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyCookie, APIKeyHeader
 from fastapi.exceptions import RequestValidationError
 
-from .models import (ProposalCommand, RecordingView, AudioBody, BeginRecording, ReviewBody, CeoCommand, PhaseCommand, SkipCommand, VoteCommand,
+from .models import (LeaveRoom, LeaveView, ProposalCommand, RecordingView, AudioBody, BeginRecording, ReviewBody, CeoCommand, PhaseCommand, SkipCommand, VoteCommand,
                      ContributionBody, ContributionView, CreateRoom, DeliveryBody, ErrorResponse,
                      EvaluationEvidenceView, JoinRoom, MediaView, RoomView, ScenarioView, StartRoom,
                      TabSessionBody, TabSessionView, ValidationErrorResponse)
@@ -156,6 +156,10 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     @app.get("/api/rooms/{room_id}", response_model=RoomView, responses=errors)
     async def get_room(room_id: UUID, member_session: authenticated):
         return await rooms.snapshot(member_session, room_id)
+
+    @app.post("/api/rooms/{room_id}/leave", response_model=LeaveView, responses=errors)
+    async def leave_lobby(room_id: UUID, body: LeaveRoom, member_session: authenticated):
+        return await rooms.leave(member_session, room_id, body.command_id)
 
     @app.post("/api/rooms/{room_id}/rounds/{round_id}/speaker/finish", response_model=RoomView, responses=errors)
     async def finish_speaking(room_id: UUID, round_id: UUID, body: PhaseCommand, member_session: authenticated):

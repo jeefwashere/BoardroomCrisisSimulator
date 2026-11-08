@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
-import { describeRoomContext, DOCUMENT_ACCEPT, validateLobbyDocument } from './documentContract'
-import { uploadLobbyDocument } from '../../services/documents'
+import { useEffect, useId, useRef, useState } from 'react'
+import { describeDocumentsContext, DOCUMENT_ACCEPT, MAX_DOCUMENT_FILES, validateLobbyDocuments } from './documentContract'
+import { uploadLobbyDocuments } from '../../services/documents'
 import LobbyIcon from './LobbyIcon'
 
 type DocumentUploadProps = {
@@ -11,17 +11,20 @@ type DocumentUploadProps = {
 
 function DocumentUpload({ roomCode, onContextChange, onUploadingChange }: DocumentUploadProps) {
     const [status, setStatus] = useState<'idle' | 'uploading' | 'received' | 'error'>('idle')
+    const [uploadError, setUploadError] = useState('')
+    const errorId = useId()
     const inputRef = useRef<HTMLInputElement>(null)
     const requestRef = useRef<AbortController | null>(null)
     const isUploading = status === 'uploading'
 
-    useEffect(() => () => requestRef.current?.abort(), [])
+    useEffect(() => () => { requestRef.current?.abort(); onUploadingChange?.(false) }, [onUploadingChange])
 
-    async function upload(file: File) {
-        const validationError = validateLobbyDocument(file)
+    async function upload(files: File[]) {
+        setUploadError('')
+        const validationError = validateLobbyDocuments(files)
         if (validationError) {
             setStatus('error')
-            onContextChange(validationError)
+            setUploadError(validationError)
             return
         }
 
@@ -30,18 +33,17 @@ function DocumentUpload({ roomCode, onContextChange, onUploadingChange }: Docume
         requestRef.current = controller
         setStatus('uploading')
         onUploadingChange?.(true)
-        onContextChange(`Uploading ${file.name}…`)
 
         try {
-            const receipt = await uploadLobbyDocument(file, roomCode, controller.signal)
+            const receipts = await uploadLobbyDocuments(files, roomCode, controller.signal)
             if (!controller.signal.aborted) {
                 setStatus('received')
-                onContextChange(describeRoomContext(receipt))
+                onContextChange(describeDocumentsContext(receipts))
             }
         } catch (error) {
             if (!controller.signal.aborted) {
                 setStatus('error')
-                onContextChange(error instanceof Error ? error.message : 'Upload failed. Please try again.')
+                setUploadError(error instanceof Error ? error.message : 'Upload failed. Please try again.')
             }
         } finally {
             if (!controller.signal.aborted) onUploadingChange?.(false)
@@ -49,33 +51,36 @@ function DocumentUpload({ roomCode, onContextChange, onUploadingChange }: Docume
     }
 
     return (
-        <>
+        <div className="lobby-document-upload">
             <input
                 ref={inputRef}
                 className="lobby-file-input"
                 type="file"
+                multiple
+                disabled={isUploading}
                 accept={DOCUMENT_ACCEPT}
-                aria-label="Choose a DOC, DOCX, or PDF document"
+                aria-label={`Choose up to ${MAX_DOCUMENT_FILES} DOC, DOCX, or PDF documents`}
                 tabIndex={-1}
                 onChange={(event) => {
-                    const file = event.currentTarget.files?.[0]
+                    const files = Array.from(event.currentTarget.files ?? [])
                     event.currentTarget.value = ''
-                    if (file) void upload(file)
+                    if (files.length) void upload(files)
                 }}
             />
+            {uploadError && <span id={errorId} className="lobby-upload-error" role="alert">{uploadError}</span>}
             <button
                 className="lobby-upload-button"
                 type="button"
                 disabled={isUploading}
                 aria-busy={isUploading}
-                aria-describedby="room-context"
-                title="Upload a DOC, DOCX, or PDF document, up to 20 MB"
+                aria-describedby={uploadError ? errorId : 'room-context'}
+                title={`Upload up to ${MAX_DOCUMENT_FILES} DOC, DOCX, or PDF documents, up to 20 MB each`}
                 onClick={() => inputRef.current?.click()}
             >
                 {isUploading ? <span className="lobby-spinner" /> : <LobbyIcon name={status === 'received' ? 'check' : 'upload'} />}
-                <span>{isUploading ? 'Uploading…' : <>Upload<span className="lobby-upload-label-detail"> document</span></>}</span>
+                <span>{isUploading ? 'Uploading…' : <>Upload<span className="lobby-upload-label-detail"> documents</span></>}</span>
             </button>
-        </>
+        </div>
     )
 }
 

@@ -1,21 +1,24 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createRoomApi, RoomApiError } from '../../services/rooms'
-import type { JoinRoomInput, RoomSnapshot, Scenario, StartRoomInput } from '../../services/rooms'
+import type { JoinRoomInput, LeaveRoomInput, RoomSnapshot, Scenario, StartRoomInput } from '../../services/rooms'
 import { acceptSnapshot, pollRoom } from './roomState'
 
 export const roomApi = createRoomApi()
 export const errorMessage = (error: unknown) => error instanceof Error ? error.message : 'The room request failed. Please retry.'
 
-export function useRoom(roomId: string) {
-    const [room, setRoom] = useState<RoomSnapshot | null>(null)
+export function useRoom(roomId: string, initialRoom?: RoomSnapshot) {
+    const [room, setRoom] = useState<RoomSnapshot | null>(() => initialRoom?.room_id === roomId ? initialRoom : null)
     const [scenarios, setScenarios] = useState<Scenario[]>([])
     const [error, setError] = useState('')
     const [commandError, setCommandError] = useState('')
     const [starting, setStarting] = useState(false)
+    const [leaving, setLeaving] = useState(false)
+    const [accessError, setAccessError] = useState<RoomApiError | null>(null)
     const commandRef = useRef<AbortController | null>(null)
     const activeRef = useRef(false)
     const playIntentRef = useRef<{ key: string; body: object } | null>(null)
     const renameIntentRef = useRef<JoinRoomInput | null>(null)
+    const leaveIntentRef = useRef<LeaveRoomInput | null>(null)
     const receive = useCallback((incoming: RoomSnapshot) => {
         setRoom((current) => acceptSnapshot(current, incoming))
         setError('')
@@ -25,20 +28,27 @@ export function useRoom(roomId: string) {
         activeRef.current = true
         const controller = new AbortController()
         let stop: (() => void) | undefined
+        function failed(failure: unknown) {
+            if (controller.signal.aborted) return
+            if (failure instanceof RoomApiError && ['room_closed', 'not_a_member', 'room_not_found'].includes(failure.code)) {
+                setAccessError(failure)
+                stop?.()
+            } else setError(errorMessage(failure))
+        }
         async function connect() {
             try {
                 await roomApi.initializeSession(controller.signal)
                 const catalog = await roomApi.scenarios(controller.signal)
                 if (controller.signal.aborted) return
                 setScenarios(catalog)
-                stop = pollRoom((signal) => roomApi.snapshot(roomId, signal), receive, (failure) => setError(errorMessage(failure)), 2000, (resume) => {
+                stop = pollRoom((signal) => roomApi.snapshot(roomId, signal), receive, failed, 2000, (resume) => {
                     const visible = () => { if (document.visibilityState === 'visible') resume() }
                     window.addEventListener('focus', resume)
                     document.addEventListener('visibilitychange', visible)
                     return () => { window.removeEventListener('focus', resume); document.removeEventListener('visibilitychange', visible) }
                 })
             } catch (failure) {
-                if (!controller.signal.aborted) setError(errorMessage(failure))
+                failed(failure)
             }
         }
         void connect()
@@ -79,6 +89,25 @@ export function useRoom(roomId: string) {
         }
     }
 
+    async function leave() {
+        if (commandRef.current) throw new Error('Wait for the current room action to finish.')
+        const controller = new AbortController()
+        commandRef.current = controller
+        leaveIntentRef.current ??= { command_id: crypto.randomUUID() }
+        setLeaving(true)
+        setCommandError('')
+        try {
+            await roomApi.leave(roomId, leaveIntentRef.current, controller.signal)
+            if (!activeRef.current || controller.signal.aborted) throw new Error('The leave request was interrupted. Check the room before retrying.')
+        } catch (failure) {
+            if (activeRef.current && !controller.signal.aborted) setCommandError(errorMessage(failure))
+            throw failure
+        } finally {
+            commandRef.current = null
+            if (activeRef.current && !controller.signal.aborted) setLeaving(false)
+        }
+    }
+
     async function rename(name: string) {
         if (!room) throw new Error('Wait for the room to load.')
         if (commandRef.current) throw new Error('Wait for the current room action to finish.')
@@ -114,5 +143,5 @@ export function useRoom(roomId: string) {
         } finally { commandRef.current = null }
     }
 
-    return { room, scenarios, error: commandError || error, starting, start, rename, execute, refresh }
+    return { room, scenarios, error: commandError || error, accessError, starting, leaving, start, leave, rename, execute, refresh }
 }

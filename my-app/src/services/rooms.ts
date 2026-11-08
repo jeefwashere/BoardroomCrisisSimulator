@@ -9,6 +9,9 @@ export type CreateRoomInput = {
 
 export type JoinRoomInput = CreateRoomInput & { role_id?: string | null }
 
+export type LeaveRoomInput = { command_id: string }
+export type LeaveReceipt = { room_id: string; room_version: number; status: 'left' | 'closed' }
+
 export type ContributionInput = {
     command_id: string
     phase_id: string | null
@@ -131,6 +134,7 @@ export type RoomApi = {
     scenarios(signal?: AbortSignal): Promise<Scenario[]>
     create(input: CreateRoomInput, signal?: AbortSignal): Promise<RoomSnapshot>
     join(input: JoinRoomInput, signal?: AbortSignal): Promise<RoomSnapshot>
+    leave(roomId: string, input: LeaveRoomInput, signal?: AbortSignal): Promise<LeaveReceipt>
     snapshot(roomId: string, signal?: AbortSignal): Promise<RoomSnapshot>
     start(roomId: string, input: StartRoomInput, signal?: AbortSignal): Promise<RoomSnapshot>
     contributions(roomId: string, signal?: AbortSignal): Promise<Contribution[]>
@@ -315,6 +319,9 @@ export function createRoomApi(options: { baseUrl?: string; fetch?: typeof global
         scenarios: (signal) => request('/api/scenarios', (value): value is Scenario[] => Array.isArray(value) && value.every(scenario), signal, undefined, false),
         create: (input, signal) => request('/api/rooms', snapshot, signal, input),
         join: (input, signal) => request('/api/rooms/join', snapshot, signal, input),
+        leave: (roomId, input, signal) => request(`/api/rooms/${encodeURIComponent(roomId)}/leave`, (value): value is LeaveReceipt =>
+            record(value) && value.room_id === roomId && Number.isInteger(value.room_version)
+            && Number(value.room_version) >= 1 && (value.status === 'left' || value.status === 'closed'), signal, input),
         snapshot: (roomId, signal) => request(`/api/rooms/${encodeURIComponent(roomId)}`, snapshot, signal),
         start: (roomId, input, signal) => request(`/api/rooms/${encodeURIComponent(roomId)}/start`, snapshot, signal, input),
         contributions: (roomId, signal) => request(`/api/rooms/${encodeURIComponent(roomId)}/contributions`,

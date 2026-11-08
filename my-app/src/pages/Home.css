@@ -272,3 +272,10 @@
 .room-entry-form [role="alert"] { color: #8b362c; }
 .room-text-button { border: 0; background: transparent; font: inherit; cursor: pointer; color: #422820; padding: 12px; }
 .room-loading { display: grid; place-content: center; gap: 16px; min-height: 100dvh; padding: 24px; color: #422820; }
+
+.home-menu__entry-error, .home-menu__entry-status { max-width: 340px; margin: 12px 0 0; font-family: var(--font-heading); font-size: 13px; line-height: 1.6; }
+.home-menu__entry-error { color: #b52e25; }
+.home-menu__entry-status { min-height: 21px; color: #796655; }
+.home-menu__late-role { display: grid; gap: 8px; max-width: 340px; margin-top: 18px; color: #796655; font-family: var(--font-heading); font-size: 13px; line-height: 1.6; }
+.home-menu__late-role select { min-width: 0; min-height: 44px; padding: 8px 0; border: 0; border-bottom: 1px solid #42282055; border-radius: 0; background: transparent; color: #422820; font: inherit; }
+.home-menu__late-role select:focus-visible { outline: 2px solid var(--menu-red); outline-offset: 4px; }

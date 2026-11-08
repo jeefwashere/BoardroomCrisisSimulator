@@ -4,11 +4,17 @@ import type { Variants } from 'motion/react'
 import HoverWaveText from '../common/HoverWaveText'
 import EditableSessionName from '../features/identity/EditableSessionName'
 import { useSessionName } from '../features/identity/useSessionName'
+import { useRoomEntry } from '../features/rooms/useRoomEntry'
+import type { EntryMode } from '../features/rooms/directEntry'
+import type { RoomSnapshot } from '../services/rooms'
 import './Home.css'
 
-function Home() {
-    const [roomCode, setRoomCode] = useState('')
-    const { isMenuReady } = useSessionName()
+type HomeProps = { initialEntry?: EntryMode; initialCode?: string; onEnter: (room: RoomSnapshot) => void }
+
+function Home({ initialEntry, initialCode = '', onEnter }: HomeProps) {
+    const [roomCode, setRoomCode] = useState(initialCode.toUpperCase())
+    const { name, isMenuReady } = useSessionName()
+    const entry = useRoomEntry({ name, roomCode, ready: isMenuReady, initialEntry, onEnter })
     const reducedMotion = useReducedMotion() ?? false
     const optionVariants: Variants = {
         hidden: { opacity: 0, x: reducedMotion ? 0 : -48 },
@@ -32,7 +38,7 @@ function Home() {
                     variants={{ shown: { transition: { delayChildren: reducedMotion ? 0 : 0.45, staggerChildren: reducedMotion ? 0 : 0.12 } }, hidden: {} }}
                 >
                     <motion.div variants={optionVariants}>
-                        <button className="home-menu__button" type="button" onClick={() => { window.location.hash = '/host' }}>
+                        <button className="home-menu__button" type="button" disabled={Boolean(entry.busy) || !name} aria-busy={entry.busy === 'host'} onClick={() => void entry.submit('host')}>
                             Host
                             <span className="home-menu__arrow" aria-hidden="true">›</span>
                         </button>
@@ -52,21 +58,34 @@ function Home() {
                                 autoComplete="off"
                                 autoCapitalize="characters"
                                 spellCheck={false}
+                                maxLength={6}
+                                disabled={Boolean(entry.busy)}
                                 value={roomCode}
-                                onChange={(event) => setRoomCode(event.target.value.toUpperCase())}
+                                onChange={(event) => { setRoomCode(event.target.value.toUpperCase()); entry.clearError() }}
+                                onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); void entry.submit('join') } }}
                             />
                         </span>
                         <button
                             className="home-menu__button"
                             type="button"
-                            disabled={!roomCode.trim()}
-                            onClick={() => { window.location.hash = `/join?code=${encodeURIComponent(roomCode.trim())}` }}
+                            disabled={!roomCode.trim() || Boolean(entry.busy) || !name}
+                            aria-busy={entry.busy === 'join'}
+                            onClick={() => void entry.submit('join')}
                         >
                             Join
                             <span className="home-menu__arrow" aria-hidden="true">›</span>
                         </button>
                     </motion.div>
                 </motion.div>
+                {entry.needsRole && <div className="home-menu__late-role">
+                    <label htmlFor="join-role">This game has started. Choose a role to join.</label>
+                    <select id="join-role" value={entry.role} disabled={Boolean(entry.busy)} onChange={(event) => entry.setRole(event.target.value)}>
+                        <option value="">Choose a role</option>
+                        {entry.roles.map((option) => <option key={option.role_id} value={option.role_id}>{option.name}</option>)}
+                    </select>
+                </div>}
+                {entry.error && <p className="home-menu__entry-error" role="alert">{entry.error}</p>}
+                <p className="home-menu__entry-status" role="status">{entry.busy === 'host' ? 'Creating your room…' : entry.busy === 'join' ? 'Joining the room…' : ''}</p>
             </section>
         </main>
     )

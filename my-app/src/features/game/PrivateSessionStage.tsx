@@ -12,7 +12,7 @@ import type { PrivateSessionHandle } from './usePrivateSession'
 import { PRIVATE_OBSERVER, PRIVATE_UNAVAILABLE } from './usePrivateSession'
 import { formatClock } from './controlBarModel'
 import { AssessmentResults, PrivateBoard } from './PrivateSessionReport'
-import { QuizPanel, QuizResults } from './PrivateQuiz'
+import { QuizResults, QuizStage } from './PrivateQuiz'
 import { currentQuestion, quizChips, quizScoreText } from './quizModel'
 import Countdown from './Countdown'
 import { useReportAgent } from '../boardroom3d/agentPresence'
@@ -244,9 +244,9 @@ export default function PrivateSessionStage({ room, handle, auto, selfName, self
         setSpoken(new Set(messages.filter((item) => item.author === 'agent').map((item) => item.message_id)))
     }
 
-    // Round 3 is multiple choice: no answer box, the question card lives in the dock instead.
+    // Round 3 is multiple choice on the main stage (no answer box in the dock); choices show as soon as a question arrives.
     const quiz = session?.stage === 'assessment' ? session.quiz : null
-    const choosing = Boolean(quiz && caughtUp && currentQuestion(quiz))
+    const choosing = Boolean(quiz && currentQuestion(quiz))
 
     const coachTalking = playing || Boolean(current && current.status === 'ready' && !voiceDriven)
     const selfTalking = auto.playing || dictation.listening
@@ -265,17 +265,18 @@ export default function PrivateSessionStage({ room, handle, auto, selfName, self
         : 'Listening'
     const selfState = auto.playing ? 'Saved answer' : dictation.listening ? 'Dictating' : showComposer || choosing ? 'Your turn' : undefined
     const complete = session?.stage === 'complete' && caughtUp
+    // The quiz keeps the stage until the review takes over (including the last result while the examiner reads it).
+    const stageQuiz = session && !complete && (session.stage === 'assessment' || session.stage === 'complete') ? session.quiz : null
     const problem = error || notice
 
-    const dockContent = session && !complete && <div className="private-dock">
+    const dockContent = session && !complete && !stageQuiz && <div className="private-dock">
         {showComposer && session.expecting && <AnswerComposer question={questionText(session)} draft={draftText} setDraft={setDraft} disabled={sending || session.busy}
             onSubmit={() => void submit()} dictation={dictation} />}
         {auto.playing && <p className="private-note" role="status">Playing your saved answer. It is submitted when the clip ends.</p>}
         {!showComposer && !auto.playing && session.expecting && !caughtUp && <p className="private-note">The answer box opens when {agentName} finishes speaking.</p>}
-        {quiz && <QuizPanel quiz={quiz} caughtUp={caughtUp} blocked={sending || session.busy} agentName={agentName} onChoose={handle.choose} />}
-        {session.busy && !session.retryable && session.stage !== 'card' && !quiz && <p className="private-note" role="status">{session.stage === 'assessment' ? `${agentName} is scoring your answer…` : `${agentName} is thinking…`}</p>}
+        {session.busy && !session.retryable && session.stage !== 'card' && <p className="private-note" role="status">{session.stage === 'assessment' ? `${agentName} is scoring your answer…` : `${agentName} is thinking…`}</p>}
         {session.retryable && <div className="private-retry" role="alert">
-            <p>{quiz?.status === 'failed' ? `${agentName} could not prepare your assessment questions. Your coaching and response card are kept.` : `${agentName} could not respond. Your answers are kept.`}</p>
+            <p>{agentName} could not respond. Your answers are kept.</p>
             <button type="button" className="opening-play" disabled={sending || session.busy} onClick={() => void handle.retry()}>Retry</button>
         </div>}
         {session.stage === 'card' && caughtUp && (session.card?.status === 'draft'
@@ -316,7 +317,9 @@ export default function PrivateSessionStage({ room, handle, auto, selfName, self
         {complete && session ? <div className="private-complete">
             {session.quiz ? <QuizResults quiz={session.quiz} /> : <AssessmentResults assessment={session.assessment} />}
             <PrivateBoard progress={room.game?.private_progress} selfId={room.self_member_id} />
-        </div> : !handle.notEligible && <div className="call-duo">
+        </div> : stageQuiz && session ? <QuizStage quiz={stageQuiz} blocked={sending || session.busy} agentName={agentName} retryable={session.retryable}
+            onChoose={handle.choose} onRetry={handle.retry} />
+        : !handle.notEligible && <div className="call-duo">
             <CallTile name={`${selfName} (you)`} role={selfRole} size="main" talking={selfTalking} status={selfState}
                 avatar={{ kind: 'initials', text: playerInitials(selfName), color: playerAvatarColor(room.self_member_id) }} />
             <CallTile name={examiner ? `${agentName} · examiner` : agentName} role={examiner ? 'AI examiner · scored assessment' : 'AI crisis coach · private'} size="main"

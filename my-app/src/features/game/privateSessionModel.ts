@@ -4,7 +4,7 @@ import type {
     ResponseCard, ResponseCardFields, StageFeedback,
 } from '../../services/facilitation.ts'
 import type { PrivateProgress, PrivateProgressStage } from '../../services/rooms.ts'
-import { botChoice, currentQuestion, normalizeQuiz, quizStatusText } from './quizModel.ts'
+import { botChoice, currentQuestion, normalizeQuiz, quizFinished, quizStatusText } from './quizModel.ts'
 
 export const PRIVATE_POLL_MS = 1200
 export const ANSWER_LIMIT = 1200
@@ -69,6 +69,7 @@ function message(value: unknown, index: number): PrivateMessage | null {
         source: SOURCES.includes(value.source as never) ? value.source as PrivateMessage['source'] : null,
         speech_id: typeof value.speech_id === 'string' && value.speech_id ? value.speech_id : null,
         at: text(value.at),
+        ...(author === 'member' && value.used_clip === true ? { used_clip: true } : {}),
     }
 }
 
@@ -130,11 +131,15 @@ export function normalizePrivateSession(value: unknown): PrivateSession | null {
     }
 }
 
-/** Keep polling while the coach is working: busy, a reply still pending, a card being drafted, a stage being scored or questions being written. */
+/**
+ * Keep polling while the coach is working: busy, a reply still pending, a card being drafted, a stage being scored or
+ * questions being written; and while a timed question is open, so a server side expiry (and the next question) shows up.
+ */
 export function shouldPollPrivate(session: PrivateSession | null): boolean {
     if (!session) return true
     return session.busy || session.messages.some((item) => item.status === 'pending') || session.card?.status === 'drafting'
         || session.assessment.stages.some((stage) => stage.status === 'scoring') || session.quiz?.status === 'generating'
+        || (session.stage === 'assessment' && currentQuestion(session.quiz) !== null)
 }
 
 /** The member's own round: from the session when loaded, else from the room's progress list. */
@@ -191,7 +196,7 @@ export function initiallySpoken(messages: readonly PrivateMessage[], quiz: Priva
         const current = currentQuestion(quiz)
         const asked = current ? messages.findLastIndex((item) => item.author === 'agent' && item.kind === 'question' && item.round === 3 && item.step === current.step) : -1
         if (asked >= 0) lastAnswer = Math.max(lastAnswer, asked - 1)
-        else if (!current && quiz.questions.length > 0 && quiz.questions.every((item) => item.chosen !== null)) lastAnswer = messages.length - 1
+        else if (quizFinished(quiz)) lastAnswer = messages.length - 1
     }
     return new Set(messages.slice(0, lastAnswer + 1).filter((item) => item.author === 'agent').map((item) => item.message_id))
 }
@@ -295,13 +300,14 @@ export function botPrivateStep(session: PrivateSession, handled: ReadonlySet<str
         const key = `retry:${session.messages.length}:${session.stage}`
         return handled.has(key) ? { kind: 'wait' } : { kind: 'retry', key }
     }
-    if (shouldPollPrivate(session)) return { kind: 'wait' }
+    // An open quiz question keeps the branch polling (its clock runs), so it is handled before the polling check.
     const question = session.stage === 'assessment' ? currentQuestion(session.quiz) : null
     if (question) {
         const key = `choice:${question.step}`
         const choiceId = botChoice(question, seed)
         return handled.has(key) || !choiceId ? { kind: 'wait' } : { kind: 'choose', key, step: question.step, choiceId }
     }
+    if (shouldPollPrivate(session)) return { kind: 'wait' }
     if (session.expecting) {
         const key = `answer:${session.expecting.round}:${session.expecting.step}`
         if (handled.has(key)) return { kind: 'wait' }

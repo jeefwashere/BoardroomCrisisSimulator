@@ -126,7 +126,7 @@
 .game-call-screen .private-chip--current { border-color: #b58c2899; }
 .game-call-screen .private-quiz-choice { border-color: #d9ccb8; background: #fffdf8; color: var(--call-ink); }
 .game-call-screen .private-quiz-choice:hover:not(:disabled) { border-color: var(--call-red); background: var(--call-red-soft); }
-.game-call-screen .private-quiz-choice:focus-visible, .game-call-screen .private-quiz-head .private-question:focus-visible { outline: 2px solid var(--call-red); outline-offset: 2px; }
+.game-call-screen .private-quiz-choice:focus-visible { outline: 2px solid var(--call-red); outline-offset: 2px; }
 .game-call-screen .private-quiz-choice.is-chosen, .game-call-screen .private-quiz-choice.is-sending { border-color: #b58c28; background: #fbf1d6; }
 .game-call-screen .private-quiz-letter { background: var(--call-card-deep); color: var(--call-ink); }
 .game-call-screen .private-quiz-choice.is-chosen .private-quiz-letter { background: #b58c28; color: #fffaf1; }
@@ -135,6 +135,16 @@
 .game-call-screen .private-quiz-result span { color: var(--call-muted); }
 .game-call-screen .private-review-choice.is-best { border-color: #9cbf9f; }
 .game-call-screen .private-review-choice.is-chosen { border-color: #b58c28; }
+.game-call-screen .game-live-main--3d .private-quiz-stage > .private-quiz { background: #fffaf1f2; box-shadow: 0 14px 40px var(--call-shadow); }
+.game-call-screen .private-quiz-previous { background: var(--call-card-deep); color: var(--call-body); }
+.game-call-screen .private-quiz-result.is-timed-out strong { color: #9a3030; }
+.game-call-screen .private-quiz-timer-head { color: var(--call-muted); }
+.game-call-screen .private-quiz-timer-head strong { color: var(--call-ink); }
+.game-call-screen .private-quiz-timer-track { background: var(--call-card-deep); }
+.game-call-screen .private-quiz-timer-track > span { background: #b58c28; }
+.game-call-screen .private-quiz-timer.is-urgent .private-quiz-timer-head, .game-call-screen .private-quiz-timer.is-urgent .private-quiz-timer-head strong { color: #9a3030; }
+.game-call-screen .private-quiz-timer.is-urgent .private-quiz-timer-track > span { background: var(--call-red); }
+.game-call-screen .private-quiz-question:focus-visible { outline: 2px solid var(--call-red); outline-offset: 2px; }
 
 /* Live transcript card. */
 .game-call-screen .transcript-panel { border-color: var(--call-line); background: #fffaf1f7; color: var(--call-ink); box-shadow: 0 14px 36px var(--call-shadow); }

@@ -31,18 +31,32 @@ test('the phase sets the held expression', () => {
 test('listeners look attentive and the speaker does not frown while talking', () => {
     assert.ok(moodExpression(context({ memberTalking: true })).BrowRaise > 0)
     assert.ok(moodExpression(context({ agentTalking: true })).BrowRaise >= moodExpression(context({ memberTalking: true })).BrowRaise)
-    assert.ok(moodExpression(context({ phase: 'individual_decision', talking: true })).Frown <= 0.1)
+    assert.ok(moodExpression(context({ phase: 'individual_decision', talking: true })).Frown <= 0.12)
 })
 
-test('speaking keeps the expression minimal', () => {
-    for (const phase of ['lobby', 'briefing', 'speaking', 'individual_decision', 'voting', 'ended']) {
+test('a speaker shows a warm, moderate expression in every phase', () => {
+    for (const phase of ['lobby', 'briefing', 'speaking', 'individual_decision', 'private_session', 'voting', 'ended']) {
         const face = moodExpression(context({ phase, talking: true }))
-        assert.ok(face.Smile <= 0.12 && face.Frown <= 0.05 && face.BrowRaise <= 0.08, phase)
+        assert.ok(face.Smile >= 0.15 && face.Smile <= 0.3, `${phase} smile ${face.Smile}`)
+        assert.ok(face.Frown <= 0.12 && face.BrowRaise >= 0.08, phase)
     }
 })
 
-test('the speech mouth only parts a little, and still opens and closes', () => {
-    assert.ok(SPEECH_MOUTH_MAX <= 0.25, 'never a wide open mouth')
+test('the speaking face keeps moving: smile and brows vary while talking', () => {
+    const state = neutralFace()
+    let smileMin = 1, smileMax = 0, browMax = 0
+    for (let i = 0; i < 600; i++) {
+        const frame = faceFrame(state, context({ talking: true }), 0, i / 60, 2, 1 / 60)
+        if (i > 120) { smileMin = Math.min(smileMin, frame.Smile); smileMax = Math.max(smileMax, frame.Smile) }
+        browMax = Math.max(browMax, frame.BrowRaise)
+    }
+    assert.ok(smileMax - smileMin > 0.1, `smile varies (${smileMin} to ${smileMax})`)
+    assert.ok(smileMax <= 0.35, 'never a grin while speaking')
+    assert.ok(browMax > 0.15, `brows lift (${browMax})`)
+})
+
+test('the speech mouth opens moderately, never wide, and opens and closes', () => {
+    assert.ok(SPEECH_MOUTH_MAX <= 0.35, 'never a wide open mouth')
     let min = 1, max = 0
     for (let t = 0; t < 20; t += 1 / 60) {
         const open = speechMouth(t, 3.3)
@@ -51,7 +65,7 @@ test('the speech mouth only parts a little, and still opens and closes', () => {
         assert.ok(speechBrow(t, 3.3) >= 0 && speechBrow(t, 3.3) <= SPEECH_BROW_MAX)
     }
     assert.ok(min < 0.03, `mouth closes between syllables and phrases (min ${min})`)
-    assert.ok(max > 0.15, `lips part on syllables (max ${max})`)
+    assert.ok(max > 0.25, `the mouth visibly opens on syllables (max ${max})`)
     // Different seeds keep characters out of step.
     let difference = 0
     for (let t = 0; t < 5; t += 0.1) difference += Math.abs(speechMouth(t, 1) - speechMouth(t, 50))
@@ -81,7 +95,7 @@ test('a frame eases the expression, adds the blink and moves the mouth only whil
     assert.equal(frame.Blink_R, 0.7)
     let opened = 0
     for (let i = 0; i < 300; i++) opened = Math.max(opened, faceFrame(state, context({ talking: true }), 0, i / 60, 1, 1 / 60).MouthOpen)
-    assert.ok(opened > 0.1 && opened <= SPEECH_MOUTH_MAX)
+    assert.ok(opened > 0.2 && opened <= SPEECH_MOUTH_MAX)
     for (let i = 0; i < 120; i++) frame = faceFrame(state, context({ talking: false }), 0, i / 60, 1, 1 / 60)
     assert.ok(frame.MouthOpen < 0.01, 'the mouth closes when speech stops')
     assert.equal(approach(1, 0, 5, 0), 1)

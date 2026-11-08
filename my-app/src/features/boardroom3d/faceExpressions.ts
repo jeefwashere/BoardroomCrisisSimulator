@@ -54,10 +54,11 @@ export function moodExpression(context: FaceContext): FaceWeights {
             break
     }
     if (context.talking) {
-        // Calm while speaking: the held expression softens and no frown sits on top of the moving mouth.
-        face.Smile = Math.min(face.Smile, 0.12)
-        face.Frown = Math.min(face.Frown, 0.05)
-        face.BrowRaise = Math.min(face.BrowRaise, 0.08)
+        // Engaged while speaking: a warm base expression (faceFrame animates smile and brows on top), with the
+        // phase's concern softened so no deep frown sits on the moving mouth.
+        face.Smile = Math.max(Math.min(face.Smile, 0.3), 0.15)
+        face.Frown = Math.min(face.Frown, 0.12)
+        face.BrowRaise = Math.max(face.BrowRaise, 0.08)
     } else if (context.agentTalking) {
         // Listening to an expert or the coach: attentive and concentrating.
         face.BrowRaise = Math.max(face.BrowRaise, 0.2)
@@ -75,10 +76,10 @@ const smoothstep = (edge0: number, edge1: number, x: number) => {
     return t * t * (3 - 2 * t)
 }
 
-/** The most the mouth opens while speaking: a small, conversational opening, never a wide one. */
-export const SPEECH_MOUTH_MAX = 0.22
+/** The most the mouth opens while speaking: a moderate, conversational opening, never a wide one. */
+export const SPEECH_MOUTH_MAX = 0.32
 /** The most a brow accent adds while speaking. */
-export const SPEECH_BROW_MAX = 0.06
+export const SPEECH_BROW_MAX = 0.2
 
 /**
  * Procedural speech mouth: syllables at about 4 to 5 per second, louder and quieter stretches,
@@ -94,9 +95,14 @@ export function speechMouth(time: number, seed: number): number {
     return Math.min(SPEECH_MOUTH_MAX, 0.01 + (SPEECH_MOUTH_MAX - 0.01) * syllable * loudness * phrase)
 }
 
-/** Rare, slight brow lifts that accent speech. Returns 0 to SPEECH_BROW_MAX. */
+/** Brow lifts that accent speech every couple of seconds. Returns 0 to SPEECH_BROW_MAX. */
 export function speechBrow(time: number, seed: number): number {
-    return SPEECH_BROW_MAX * Math.max(0, Math.sin(time * 1.7 + seed * 1.3)) ** 6
+    return SPEECH_BROW_MAX * Math.max(0, Math.sin(time * 1.7 + seed * 1.3)) ** 3
+}
+
+/** How much the smile swells and settles while speaking, so the face stays alive: -0.1 to 0.12. */
+export function speechSmile(time: number, seed: number): number {
+    return 0.11 * Math.sin(time * 0.9 + seed * 0.7) + 0.01 * Math.sin(time * 2.3 + seed)
 }
 
 /** A short reaction to a Round 3 answer: a frown for a wrong answer, a smile for the best one. */
@@ -209,7 +215,10 @@ export function faceFrame(state: FaceWeights, context: FaceContext, blink: numbe
     // The mouth follows syllables smoothly and closes gently when speech stops.
     state.MouthOpen = approach(state.MouthOpen, mouthTarget, context.talking ? 16 : 8, dt)
     const out: FaceWeights = { ...state }
-    if (context.talking) out.BrowRaise = clamp01(out.BrowRaise + speechBrow(time, seed))
+    if (context.talking) {
+        out.BrowRaise = clamp01(out.BrowRaise + speechBrow(time, seed))
+        out.Smile = clamp01(out.Smile + speechSmile(time, seed))
+    }
     const strength = reaction ? reactionStrength(reaction.age) : 0
     if (reaction && strength > 0) {
         const face = reactionFace(reaction.reaction)

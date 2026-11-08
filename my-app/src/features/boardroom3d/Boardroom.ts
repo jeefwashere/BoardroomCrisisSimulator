@@ -91,6 +91,10 @@ class Avatar {
   hips: THREE.Bone | null = null
   mood: Mood | null = null
   yaw = 0
+  /** Eased up or down head correction (radians, positive lifts the face). */
+  pitch = 0
+  /** The face's forward direction in the head bone's local space, measured in the bind pose. */
+  private faceAxis: THREE.Vector3 | null = null
   /** Every mesh slot for each face morph: the face mesh, and the mouth interior for MouthOpen. */
   private morphs = new Map<FaceMorph, { influences: number[]; index: number }[]>()
   private face = neutralFace()
@@ -133,6 +137,13 @@ class Avatar {
       if (bone.isBone && /Hips$/.test(bone.name)) this.hips = bone
     })
     this.group.add(this.model)
+    // In the bind pose the face looks along the character's +Z; keep that direction in head space so
+    // lookAt can tell how far the animation tips the head up or down.
+    if (this.head) {
+      this.group.updateMatrixWorld(true)
+      const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(this.group.getWorldQuaternion(new THREE.Quaternion()))
+      this.faceAxis = forward.applyQuaternion(this.head.getWorldQuaternion(new THREE.Quaternion()).invert()).normalize()
+    }
     this.mixer = new THREE.AnimationMixer(this.model)
     for (const clip of clips) {
       const action = this.mixer.clipAction(clip)
@@ -177,14 +188,31 @@ class Avatar {
   lookAt(target: THREE.Vector3 | null, dt: number) {
     if (!this.head || !this.head.parent) return
     let desired = 0
+    let elevation: number | null = null
     if (target) {
       const local = this.group.worldToLocal(target.clone())
       const headLocal = this.group.worldToLocal(this.head.getWorldPosition(new THREE.Vector3()))
       desired = THREE.MathUtils.clamp(Math.atan2(local.x - headLocal.x, local.z - headLocal.z), -1.1, 1.1)
+      elevation = Math.atan2(local.y - headLocal.y, Math.hypot(local.x - headLocal.x, local.z - headLocal.z))
     }
     this.yaw = THREE.MathUtils.damp(this.yaw, desired, 4, dt)
     const world = this.head.getWorldQuaternion(new THREE.Quaternion())
     world.premultiply(new THREE.Quaternion().setFromAxisAngle(UP, this.yaw))
+    // Lift (or lower) the face toward the target: the seated clips tip the head down toward the
+    // laptop, which hid the speaker's mouth and brows from the presenter camera. Most of the gap is
+    // closed, so the clip's small nods still show.
+    let correction = 0
+    if (this.faceAxis && elevation !== null) {
+      const facing = this.faceAxis.clone().applyQuaternion(world)
+      const current = Math.asin(THREE.MathUtils.clamp(facing.y, -1, 1))
+      correction = THREE.MathUtils.clamp((elevation - current) * 0.8, -0.25, 0.5)
+    }
+    this.pitch = THREE.MathUtils.damp(this.pitch, correction, 4, dt)
+    if (this.faceAxis && Math.abs(this.pitch) > 1e-4) {
+      const facing = this.faceAxis.clone().applyQuaternion(world)
+      const axis = new THREE.Vector3().crossVectors(facing, UP)
+      if (axis.lengthSq() > 1e-6) world.premultiply(new THREE.Quaternion().setFromAxisAngle(axis.normalize(), this.pitch))
+    }
     const parent = this.head.parent.getWorldQuaternion(new THREE.Quaternion())
     this.head.quaternion.copy(parent.invert().multiply(world))
   }

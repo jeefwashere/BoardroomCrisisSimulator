@@ -246,6 +246,8 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     if (dictation.listening) talking.add(room.self_member_id)
     // In a private session your saved answer is spoken by your own character.
     if (privatePhase && privateAuto.status === 'playing') talking.add(room.self_member_id)
+    // Round 1: your decision, spoken in your role voice by AI reply, is said by your own character too.
+    if (room.phase === 'individual_decision' && decisionAuto.status === 'playing') talking.add(room.self_member_id)
     const stageSwitch = offersStageSwitch(members.length)
     const show3d = view3d && stageSwitch
     if (show3d && !mounted3d) setMounted3d(true)

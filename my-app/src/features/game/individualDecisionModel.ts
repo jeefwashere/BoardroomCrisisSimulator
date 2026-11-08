@@ -2,7 +2,7 @@
 import type { IndividualDecisions, RoomGame } from '../../services/rooms.ts'
 
 export const DECISION_PROMPT = 'I would… because… using… I still need to establish…'
-export const DECISION_LIMIT = 1200
+export const DECISION_LIMIT = 2000
 
 export function isIndividualMode(game: Pick<RoomGame, 'decision_mode'> | null | undefined): boolean {
     return game?.decision_mode === 'individual'

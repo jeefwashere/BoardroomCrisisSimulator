@@ -7,7 +7,7 @@ import type { RoomSnapshot, Scenario, StartRoomInput } from '../src/services/roo
 const createRoomApi = (options: Parameters<typeof makeRoomApi>[0] = {}) => makeRoomApi({ session: { token: async () => 'test-tab-token' }, ...options })
 
 const lobby: RoomSnapshot = {
-    room_id: 'room-1', room_code: 'ABC123', room_version: 1, capacity: 30,
+    room_id: 'room-1', room_code: 'ABC123', room_version: 1, capacity: 10,
     presence_window_seconds: 30, host_member_id: 'host-1', self_member_id: 'host-1',
     phase: 'lobby', game: null,
     members: [{

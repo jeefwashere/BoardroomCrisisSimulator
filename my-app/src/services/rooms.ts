@@ -36,13 +36,6 @@ export type Contribution = {
     at: string
 }
 
-export type DiscussionSummary = {
-    room_id: string; round_id: string; member_id: string
-    status: 'empty' | 'pending' | 'ready' | 'failed'
-    evidence_revision: string; text: string | null; source: string | null
-    evidence_count: number; provisional_recording_count?: number; error: string | null
-}
-
 export type StartRoomInput = {
     command_id: string
     room_code: string
@@ -86,7 +79,7 @@ type RoomFields = {
     room_id: string
     room_code: string
     room_version: number
-    capacity: 30
+    capacity: 10
     presence_window_seconds: 30
     host_member_id: string
     self_member_id: string
@@ -171,11 +164,12 @@ export type RoomSnapshot = RoomFields & (
 )
 
 export type RoomApi = {
-    discussionSummary(roomId: string, input: { command_id: string; round_id: string; retry?: boolean }, signal?: AbortSignal): Promise<DiscussionSummary>
     command(roomId: string, path: string, input: object, signal?: AbortSignal): Promise<RoomSnapshot>
     extras(roomId: string, signal?: AbortSignal): Promise<Extras>
     recordings(roomId: string, signal?: AbortSignal): Promise<Recording[]>
     mediaPost(roomId: string, path: string, input: object, signal?: AbortSignal): Promise<Recording>
+    /** Dictation: one short clip transcribed by the server (ElevenLabs Scribe); nothing is stored. */
+    dictate(roomId: string, clip: { audio_base64: string; mime_type: string }, signal?: AbortSignal): Promise<string>
     audio(roomId: string, recordingId: string, signal?: AbortSignal): Promise<Blob>
     prepareNarration(roomId: string, narrationId: string): Promise<{ status: string; error?: string }>
     narrationEvent(roomId: string, narrationId: string, event: string): Promise<{ status: string }>
@@ -278,7 +272,7 @@ function game(value: unknown): value is RoomGame {
 
 function snapshot(value: unknown): value is RoomSnapshot {
     return record(value) && typeof value.room_id === 'string' && typeof value.room_code === 'string'
-        && Number.isInteger(value.room_version) && value.capacity === 30 && value.presence_window_seconds === 30
+        && Number.isInteger(value.room_version) && value.capacity === 10 && value.presence_window_seconds === 30
         && typeof value.host_member_id === 'string' && typeof value.self_member_id === 'string'
         && Array.isArray(value.members) && value.members.every(member)
         && (value.phase === 'lobby' ? value.game === null
@@ -364,14 +358,6 @@ export function createRoomApi(options: { baseUrl?: string; fetch?: typeof global
         return response.blob()
     }
     return {
-        discussionSummary: (roomId, input, signal) => request(`/api/rooms/${encodeURIComponent(roomId)}/discussion-summary`,
-            (value): value is DiscussionSummary => record(value) && value.room_id === roomId && value.round_id === input.round_id
-                && typeof value.member_id === 'string' && ['empty', 'pending', 'ready', 'failed'].includes(String(value.status))
-                && typeof value.evidence_revision === 'string' && Number.isInteger(value.evidence_count) && Number(value.evidence_count) >= 0
-                && (value.provisional_recording_count === undefined || (Number.isInteger(value.provisional_recording_count) && Number(value.provisional_recording_count) >= 0))
-                && (value.text === null || (typeof value.text === 'string' && value.text.length <= 1200))
-                && (value.source === null || typeof value.source === 'string') && (value.error === null || typeof value.error === 'string')
-                && (value.status !== 'ready' || (typeof value.text === 'string' && Boolean(value.text.trim()))), signal, input),
         command: async (roomId, path, input, signal) => {
             if (path === 'contributions') {
                 await request(`/api/rooms/${encodeURIComponent(roomId)}/${path}`, (value): value is { contribution_id: string } => record(value) && typeof value.contribution_id === 'string', signal, input)
@@ -382,6 +368,7 @@ export function createRoomApi(options: { baseUrl?: string; fetch?: typeof global
         extras: (roomId, signal) => request(`/api/rooms/${encodeURIComponent(roomId)}/extras`, (value): value is Extras => record(value) && Array.isArray(value.recordings) && Array.isArray(value.contributions), signal),
         recordings: (roomId, signal) => request(`/api/rooms/${encodeURIComponent(roomId)}/recordings`, (value): value is Recording[] => Array.isArray(value) && value.every(recording), signal),
         mediaPost: (roomId, path, input, signal) => request(`/api/rooms/${encodeURIComponent(roomId)}/${path}`, (value): value is Recording => record(value) && typeof value.recording_id === 'string' && typeof value.status === 'string', signal, input),
+        dictate: async (roomId, clip, signal) => (await request(`/api/rooms/${encodeURIComponent(roomId)}/dictation`, (value): value is { text: string } => record(value) && typeof value.text === 'string', signal, clip)).text,
         audio: (roomId, recordingId, signal) => bytes(`/api/rooms/${encodeURIComponent(roomId)}/recordings/${encodeURIComponent(recordingId)}/audio`, signal),
         prepareNarration: (roomId, id) => request(`/api/rooms/${encodeURIComponent(roomId)}/narration/${encodeURIComponent(id)}/prepare`, (value): value is { status: string; error?: string } => record(value) && typeof value.status === 'string', undefined, {}),
         narrationEvent: (roomId, id, event) => request(`/api/rooms/${encodeURIComponent(roomId)}/narration/${encodeURIComponent(id)}/delivery`, (value): value is { status: string } => record(value) && typeof value.status === 'string', undefined, { event }),

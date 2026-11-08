@@ -12,8 +12,6 @@ import ExpertPanelStage from '../features/game/ExpertPanelStage'
 import { showsExpertStage } from '../features/game/expertPanelModel'
 import VotingPanel from '../features/game/VotingPanel'
 import { DecisionStatusPanel } from '../features/game/IndividualDecisionPanel'
-import DiscussionDraftPanel from '../features/game/DiscussionDraftPanel'
-import { useDiscussionDraft } from '../features/game/useDiscussionDraft'
 import { useDecisionAutoResponse } from '../features/game/useDecisionAutoResponse'
 import type { AttachDictation } from '../features/game/IndividualDecisionPanel'
 import IndividualDecisionReport from '../features/game/IndividualDecisionReport'
@@ -24,7 +22,7 @@ import PrivateSessionStage from '../features/game/PrivateSessionStage'
 import PrivateSessionReport from '../features/game/PrivateSessionReport'
 import { usePrivateSession } from '../features/game/usePrivateSession'
 import { usePrivateAutoResponse } from '../features/game/usePrivateAutoResponse'
-import { ownPrivateRound } from '../features/game/privateSessionModel'
+import { ANSWER_LIMIT, canSubmitAnswer, ownPrivateRound } from '../features/game/privateSessionModel'
 import ControlBar from '../features/game/ControlBar'
 import ChatDrawer from '../features/game/ChatDrawer'
 import { chatUnread, micControl, offersReport, othersCount, phaseCaption, skipLabel } from '../features/game/controlBarModel'
@@ -49,6 +47,8 @@ import { DEMO_STORAGE_KEY, readStoredDemo } from '../features/demo/demoModel'
 import { seatFromSearch } from '../services/tabSession'
 import './Game.css'
 import './GameTheme.css'
+import { preloadBoardroomAssets } from '../features/boardroom3d/assets'
+import { hangUpSound, resumeSound } from '../features/game/windowMute'
 
 const CONTEXT_PHASES = ['reading', 'speaking', 'discussion']
 
@@ -90,8 +90,18 @@ function drivesSoloBots(): boolean {
     try { return readStoredDemo(tabStorage()?.getItem(DEMO_STORAGE_KEY) ?? null)?.mode === 'solo' } catch { return false }
 }
 
-function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: { room: RoomSnapshot; scenarios: Scenario[]; error: string; rename: (name: string) => Promise<void>; execute: (path: string, fields?: Record<string, unknown>) => Promise<void>; onViewSummary: () => void; chat: RoomChatHandle }) {
+const PRIVATE_ANSWER_COPY = {
+    target: 'Answer your coach', label: 'Your private answer', placeholder: 'Answer your coach (Enter to submit; only your coach sees it)',
+    note: 'Only your crisis coach sees this answer', submit: 'Submit answer', failed: 'Your answer could not be sent. Please try again.',
+    limit: ANSWER_LIMIT, canSubmit: canSubmitAnswer,
+}
+
+function Game({ room, scenarios, error, rename, execute, onViewSummary, chat, leave }: { leave?: () => Promise<void>; room: RoomSnapshot; scenarios: Scenario[]; error: string; rename: (name: string) => Promise<void>; execute: (path: string, fields?: Record<string, unknown>) => Promise<void>; onViewSummary: () => void; chat: RoomChatHandle }) {
     const [notice, setNotice] = useState('')
+    // Fetch the 3D boardroom models while players are still in the lobby or setup.
+    // Characters for every seated member (one per member, up to 10), fetched while the game screen opens.
+    const seatCount = room.members.length
+    useEffect(() => preloadBoardroomAssets(seatCount), [seatCount])
     const [pending, setPending] = useState(false)
     const [text, setText] = useState('')
     const [dismissedOpening, setDismissedOpening] = useState('')
@@ -101,7 +111,6 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const speechRef = useRef<HTMLAudioElement>(null)
     const [ownDecision, setOwnDecision] = useState<string | null>(null)
     const recorder = useTurnRecorder(room)
-    const answerDraft = useDiscussionDraft(room)
     // Open floor: after Mic takes the floor, start recording as soon as the room shows the caller holding it.
     const claimMic = useRef(false)
     useEffect(() => {
@@ -111,8 +120,28 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     // Dictation is owned here so the control bar's Mic can drive it; the decision panel attaches its text box as the sink.
     const dictationSink = useRef<((words: string) => void) | null>(null)
     const [dictationReady, setDictationReady] = useState(false)
-    const dictation = useDictation((words) => dictationSink.current?.(words))
+    const dictation = useDictation((words) => dictationSink.current?.(words), (clip) => roomApi.dictate(room.room_id, clip))
     const { stop: stopDictation } = dictation
+    // Leave room tells the server. The CEO leaving during Round 1 ends the game and deletes the room for everyone,
+    // so that needs a second click; anyone else leaving is one member fewer.
+    const leaverRole = room.members.find((member) => member.member_id === room.self_member_id)?.role_id
+    const leaveEndsGame = leaverRole === 'ceo' && room.phase !== 'ended' && (room.game?.round_number ?? 1) === 1
+    const [leaveArmed, setLeaveArmed] = useState(false)
+    const [leavingRoom, setLeavingRoom] = useState(false)
+    async function leaveRoom() {
+        if (leaveEndsGame && !leaveArmed) { setLeaveArmed(true); window.setTimeout(() => setLeaveArmed(false), 4000); return }
+        setLeavingRoom(true)
+        try { await leave?.() } catch { /* The room may already be gone; going home is still right. */ }
+        window.location.hash = '/'
+    }
+    // Ending the call stops everything in this window: voices, clips, speech streams and dictation. Leaving the room does too.
+    const callEnded = room.phase === 'ended'
+    useEffect(() => {
+        if (!callEnded) { resumeSound(); return }
+        stopDictation()
+        hangUpSound()
+    }, [callEnded, stopDictation])
+    useEffect(() => () => hangUpSound(), [])
     const attachDictation = useCallback<AttachDictation>((sink) => {
         dictationSink.current = sink
         setDictationReady(Boolean(sink))
@@ -155,7 +184,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const privateRecord = privatePhase || (room.phase === 'ended' && Boolean(game?.private_rounds))
     const privateSession = usePrivateSession(room.room_id, privateRecord, room.phase)
     // Round 1 individual decision: AI reply writes and speaks the caller's decision (heard only here), then saves it.
-    const decisionAuto = useDecisionAutoResponse(room, submitDecision, (failure) => setNotice(errorMessage(failure)))
+    const decisionAuto = useDecisionAutoResponse(room, (text) => act(`rounds/${room.game?.round_id}/decision`, { text }), (failure) => setNotice(errorMessage(failure)))
     const privateAuto = usePrivateAutoResponse(room.room_id, privatePhase ? privateSession.session : null, privateSession.sending, privateSession.answer, (failure) => setNotice(errorMessage(failure)))
     // Keep the caller's last recorded decision so the ended report can show it even if that projection omits it.
     const seenDecision = game?.individual_decisions?.self?.text
@@ -214,12 +243,6 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const centered = individual || Boolean(game.private_rounds)
     const ownRound = privatePhase ? ownPrivateRound(privateSession.session, game.private_progress, room.self_member_id) : null
     const reportAvailable = offersReport(room.phase)
-    async function submitDecision(text: string) {
-        dictation.stop()
-        const saved = await act(`rounds/${room.game?.round_id}/decision`, { text })
-        if (saved) answerDraft.submitted(text)
-        return saved
-    }
     async function act(path: string, fields: Record<string, unknown> = {}) {
         if (pending) return false
         setPending(true); setNotice('')
@@ -289,6 +312,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     // In a private session the button stays (disabled) between questions so the bar does not jump.
     const decisionPhase = room.phase === 'individual_decision'
     const activeAuto = privatePhase ? privateAuto : decisionPhase ? decisionAuto : auto
+    const privateChatAnswer = privatePhase && privateSession.session?.stage === 'coaching' && Boolean(privateSession.session.expecting) && privateAuto.status !== 'playing'
     const privateAnswering = privatePhase && (privateSession.session?.stage === 'coaching' || privateSession.session?.stage === 'assessment')
     const privateQuiz = privatePhase && privateSession.session?.stage === 'assessment' && Boolean(privateSession.session.quiz)
     const autoControl = activeAuto.status === 'unavailable'
@@ -307,7 +331,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
 
     return <AgentPresenceContext.Provider value={setStageAgent}><MotionConfig reducedMotion="user"><div className={`game-call-screen game-live-screen${chatOpen ? ' has-side-panel' : ''}${transcriptOpen ? ' has-transcript' : ''}`}>
         <header className="game-call-header">
-            <div className="room-personal-controls"><button className="game-back-button" type="button" onClick={() => { window.location.hash = '/' }}><LobbyIcon name="back" /><span>Leave room</span></button><RoomNameEditor room={room} rename={rename} /></div>
+            <div className="room-personal-controls"><button className={`game-back-button${leaveArmed ? ' is-armed' : ''}`} type="button" disabled={leavingRoom} title={leaveEndsGame ? 'You are the CEO: leaving during Round 1 ends the game and deletes the room for everyone.' : 'Leave this game'} onClick={() => void leaveRoom()}><LobbyIcon name="back" /><span>{leavingRoom ? 'Leaving…' : leaveArmed ? 'Click again: ends the game for everyone' : 'Leave room'}</span></button><RoomNameEditor room={room} rename={rename} /></div>
             <div className="game-call-heading"><h1>Boardroom</h1><span>Room {room.room_code}</span></div>
             <div className="game-header-end"><button className="game-summary-button" type="button" onClick={onViewSummary}>Summary preview <span aria-hidden="true">↗</span></button><span className="game-player-count">{room.members.length} / {room.capacity}</span></div>
         </header>
@@ -337,7 +361,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
             {sidePanel && <section className="game-briefing" aria-labelledby="briefing-title">
                 <h2 id="briefing-title">{game.scenario.title}</h2>
                 {(error || notice) && <p className="game-alert" role="alert">{error || notice}</p>}
-                {individual && <DecisionStatusPanel room={room} speaking={decisionAuto.status === 'playing'} saving={decisionAuto.status === 'saving'} caption={decisionAuto.caption} draft={answerDraft} />}
+                {individual && <DecisionStatusPanel room={room} speaking={decisionAuto.status === 'playing'} saving={decisionAuto.status === 'saving'} caption={decisionAuto.caption} />}
                 {nodeArticle && (CONTEXT_PHASES.includes(room.phase) ? nodeArticle : room.phase !== 'ended' && <details className="game-situation-toggle"><summary>Situation: {node?.title}</summary>{nodeArticle}</details>)}
                 {actions.includes('reassign_ceo') && <div className="game-actions"><label>Replacement CEO<select value={ceo} onChange={(event) => setCeo(event.target.value)}><option value="">Choose a participant</option>{room.members.filter((member) => member.connected && member.eligible_current_round && member.role_id !== 'ceo').map((member) => <option key={member.member_id} value={member.member_id}>{member.display_name}</option>)}</select></label><button disabled={pending || !ceo} onClick={() => void act(rounds + 'ceo-reassignment', { member_id: ceo })}>Assign CEO</button></div>}
                 {!individual && <VotingPanel key={game.round_id} room={room} pending={pending} act={act} notice={notice} />}
@@ -372,8 +396,12 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
         <ReportDialog report={report} open={reportOpen && reportAvailable} onClose={closeReport} />
         <TranscriptPanel entries={transcriptEntries} open={transcriptOpen} onClose={hideCaptions} dockRef={setDock} minimized={transcriptMinimized} onToggleMinimized={toggleTranscriptMinimized} />
         <ChatDrawer room={room} scenarios={scenarios} chat={chat} open={chatOpen} onClose={closeChat}
-            pinned={individual && room.phase === 'individual_decision' ? <div className="game-briefing chat-decision"><p className="chat-decision-from">Facilitator · Round 1</p><DecisionStatusPanel room={room} speaking={decisionAuto.status === 'playing'} saving={decisionAuto.status === 'saving'} caption={decisionAuto.caption} draft={answerDraft} /><TurnMedia room={room} recorder={recorder} /></div> : individual && answerDraft.active ? <><DiscussionDraftPanel draft={answerDraft} /><TurnMedia room={room} recorder={recorder} /></> : individual ? <DiscussionDraftPanel draft={answerDraft} closed /> : undefined}
-            decision={individual && room.phase === 'individual_decision' && actions.includes('submit_decision') ? { submit: submitDecision, pending, recorded: game.individual_decisions?.self?.text ?? null, attachDictation, draft: answerDraft } : undefined} />
+            beforeSend={room.phase === 'speaking' && actions.includes('take_floor') ? () => act(rounds + 'speaker/claim') : undefined}
+            pinned={individual && room.phase === 'individual_decision' ? <div className="game-briefing chat-decision"><p className="chat-decision-from">Facilitator · Round 1</p><DecisionStatusPanel room={room} speaking={decisionAuto.status === 'playing'} saving={decisionAuto.status === 'saving'} caption={decisionAuto.caption} /></div> : undefined}
+            decision={individual && room.phase === 'individual_decision' && actions.includes('submit_decision') ? { submit: (text) => act(`rounds/${game.round_id}/decision`, { text }), pending, recorded: game.individual_decisions?.self?.text ?? null, attachDictation }
+                // Private coaching: typed answers go through Chat (the stage keeps only the coach's question; Dictate and AI reply answer by voice).
+                : privateChatAnswer ? { submit: (text) => privateSession.answer(text, false), pending: privateSession.sending || Boolean(privateSession.session?.busy), recorded: null, copy: PRIVATE_ANSWER_COPY }
+                : undefined} />
     </div></MotionConfig></AgentPresenceContext.Provider>
 }
 export default Game

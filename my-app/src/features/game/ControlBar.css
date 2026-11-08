@@ -88,7 +88,7 @@
   position: fixed;
   top: 0;
   right: 0;
-  bottom: var(--control-bar-occupied-height, var(--control-bar-height));
+  bottom: var(--control-bar-height);
   z-index: 85;
   display: flex;
   flex-direction: column;
@@ -104,7 +104,7 @@
   transition: transform 260ms ease, visibility 0s linear 260ms;
 }
 .chat-drawer.is-open { transform: none; visibility: visible; transition: transform 260ms ease; }
-.chat-drawer-header { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid #ffffff12; }
+.chat-drawer-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid #ffffff12; }
 .chat-drawer-header h2 { margin: 0; font-size: 15px; font-weight: 650; }
 .chat-drawer-close { width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: #c4c6ce; font-size: 22px; line-height: 1; cursor: pointer; }
 .chat-drawer-close:hover { background: #ffffff12; color: #fff; }
@@ -113,7 +113,7 @@
 .chat-drawer .room-chat-record { border-bottom-color: #ffffff10; }
 .chat-drawer .room-chat-record.is-self .room-chat-text { color: #dfe2ff; }
 .chat-drawer .room-chat-meta time, .chat-drawer .room-chat-context, .chat-drawer .room-chat-empty, .chat-drawer .room-chat-note, .chat-drawer .room-chat-compose-actions span { color: #9a9fab; }
-.chat-drawer .room-chat-compose { flex: 0 0 auto; padding: 12px 16px 14px; border-top: 1px solid #ffffff12; }
+.chat-drawer .room-chat-compose { padding: 12px 16px 14px; border-top: 1px solid #ffffff12; }
 .chat-drawer .room-chat-compose textarea { min-height: 48px; border-color: #ffffff24; background: #2b2d31; color: #f2f3f5; }
 .chat-drawer .room-chat-compose textarea:focus { outline-color: #9da4ff; }
 .chat-drawer .room-chat-compose button, .chat-drawer .room-chat-retry button { background: #5865bd; }

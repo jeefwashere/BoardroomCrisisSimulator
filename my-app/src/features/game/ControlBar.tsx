@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import Countdown from './Countdown'
 import { badgeText, formatClock } from './controlBarModel'
@@ -67,44 +67,13 @@ export type ControlBarProps = {
 /** Zoom style call toolbar fixed to the bottom of the game screen. Host controls only render when the server allows them. */
 export default function ControlBar({ caption, round, phaseId, deadline, serverTime, showCountdown, pending, mic, chat, captions, stage, mute, report, autoResponse, finishTurn, endMeeting, skip, skipSpeaker, end }: ControlBarProps) {
     const [armedEnd, setArmedEnd] = useState(false)
-    const barRef = useRef<HTMLElement>(null)
-    useLayoutEffect(() => {
-        const bar = barRef.current
-        if (!bar) return
-        const screen = bar.closest<HTMLElement>('.game-call-screen') ?? bar.ownerDocument.documentElement
-        const property = '--control-bar-occupied-height'
-        const previous = screen.style.getPropertyValue(property)
-        let measuredHeight = 0
-        let frame: number | null = null
-        const measure = () => {
-            frame = null
-            const height = Math.ceil(bar.getBoundingClientRect().height)
-            if (height > 0 && height !== measuredHeight) {
-                measuredHeight = height
-                screen.style.setProperty(property, `${height}px`)
-            }
-        }
-        // Defer observer driven style changes beyond its delivery cycle and merge repeated notifications.
-        const scheduleMeasure = () => { if (frame === null) frame = requestAnimationFrame(measure) }
-        measure()
-        const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(scheduleMeasure)
-        observer?.observe(bar)
-        window.addEventListener('resize', scheduleMeasure)
-        return () => {
-            observer?.disconnect()
-            window.removeEventListener('resize', scheduleMeasure)
-            if (frame !== null) cancelAnimationFrame(frame)
-            if (previous) screen.style.setProperty(property, previous)
-            else screen.style.removeProperty(property)
-        }
-    }, [])
     useEffect(() => {
         if (!armedEnd) return
         const timer = setTimeout(() => setArmedEnd(false), 4000)
         return () => clearTimeout(timer)
     }, [armedEnd])
     const micIcon: IconName = mic.live ? 'stop' : mic.muted ? 'mic-off' : 'mic'
-    return <nav ref={barRef} className="control-bar" aria-label="Call controls">
+    return <nav className="control-bar" aria-label="Call controls">
         <div className="control-bar-status">
             <span className="control-phase" role="status">
                 <span className="control-phase-dot" aria-hidden="true" />
@@ -122,7 +91,7 @@ export default function ControlBar({ caption, round, phaseId, deadline, serverTi
             {report && <ControlButton icon="doc" label="Report" title={report.open ? 'Close the incident report' : 'Open the incident report'} pressed={report.open} onClick={report.onToggle} />}
             {autoResponse && <ControlButton icon={autoResponse.live ? 'stop' : 'play'} label={autoResponse.label} title={autoResponse.title ?? 'Let the AI write and speak your reply'} tone={autoResponse.live ? 'live' : 'accent'} pressed={autoResponse.live} disabled={autoResponse.disabled} onClick={autoResponse.onClick} />}
             {finishTurn && <ControlButton icon="check" label="Finish my turn" title="Give up the floor so the next person can speak" tone="accent" disabled={pending} onClick={finishTurn} />}
-            {endMeeting && <ControlButton icon="skip" label="Next stage" title="Move to the next stage (CEO only)" disabled={pending} onClick={endMeeting} />}
+            {endMeeting && <ControlButton icon="skip" label="End meeting" title="Close the meeting and move on to the next step (CEO only)" disabled={pending} onClick={endMeeting} />}
             {skip && <ControlButton icon="skip" label={skip.label} title={`${skip.label} (host)`} disabled={pending} onClick={skip.onClick} />}
             {skipSpeaker && <ControlButton icon="skip-speaker" label="Skip speaker" title="Move the floor to the next participant (host)" disabled={pending} onClick={skipSpeaker} />}
         </div>

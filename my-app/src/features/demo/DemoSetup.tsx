@@ -7,8 +7,6 @@ type Choice<Value extends string> = { value: Value; label: string; icon: IconNam
 
 const MODES: Choice<DemoMode>[] = [
     { value: 'solo', label: 'Solo', icon: 'solo', description: 'Play as Alex with two automated board members.' },
-    { value: 'seats', label: 'Split Screen', icon: 'split', description: 'Control all three participants in one window.' },
-    { value: 'windows', label: 'Independent', icon: 'independent', description: 'Each participant joins from their own window or device.' },
 ]
 const STAGES: Choice<DemoView>[] = [
     { value: '3d', label: '3D Boardroom', icon: 'cube', description: 'Take a seat at the boardroom table.' },
@@ -68,7 +66,7 @@ type Props = {
 
 export default function DemoSetup({ mode, onMode, view, onView, ballotSource, onBallot, startAt, onStartAt, busy, progress, error, onStart, onLobby }: Props) {
     return <main className="demo-setup demo-setup--choices">
-        <header className="demo-setup-header"><button className="demo-link" type="button" onClick={() => { window.location.hash = '/' }}><span aria-hidden="true">←</span> Back home</button><h1 id="demo-title">Demo</h1></header>
+        <header className="demo-setup-header"><button className="demo-link" type="button" onClick={() => { window.location.hash = '/' }}><span aria-hidden="true">←</span> Back home</button><h1 id="demo-title">Judge demo</h1></header>
         <section className="demo-setup-content" aria-labelledby="demo-title">
             <details className="demo-description">
                 <summary><span>About the demo</span><span className="demo-description-chevron" aria-hidden="true">⌄</span></summary>
@@ -83,7 +81,8 @@ export default function DemoSetup({ mode, onMode, view, onView, ballotSource, on
                 </div>
             </details>
             <div className="demo-selection-groups">
-                <ChoiceGroup name="demo-mode" title="Mode" value={mode} choices={MODES} onChange={onMode} disabled={Boolean(busy)} />
+                {/* Two ways in only: this judge demo (solo, automated members) and Host / Join from the home menu. */}
+                {MODES.length > 1 && <ChoiceGroup name="demo-mode" title="Mode" value={mode} choices={MODES} onChange={onMode} disabled={Boolean(busy)} />}
                 {(mode === 'solo' || mode === 'windows') && <ChoiceGroup name="demo-view" title="Stage" value={view} choices={STAGES} onChange={onView} disabled={Boolean(busy)} />}
                 <ChoiceGroup name="ballot-source" title="Voting options" value={ballotSource} choices={BALLOTS} onChange={onBallot} disabled={Boolean(busy)} />
                 {mode !== 'windows' && <ChoiceGroup name="start-at" title="Start at" value={startAt} choices={STARTS} onChange={onStartAt} disabled={Boolean(busy)} />}

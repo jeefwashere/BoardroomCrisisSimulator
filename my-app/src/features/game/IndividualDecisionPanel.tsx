@@ -1,9 +1,12 @@
+import { useEffect, useState } from 'react'
 import type { RoomSnapshot } from '../../services/rooms'
-import { boardRows, submittedCount, waitingSummary } from './individualDecisionModel'
+import { DECISION_LIMIT, DECISION_PROMPT, boardRows, canSubmitDecision, submittedCount, waitingSummary } from './individualDecisionModel'
 import type { BoardRow } from './individualDecisionModel'
-import { DraftStatus } from './DiscussionDraftPanel'
-import type { DiscussionDraftHandle } from './useDiscussionDraft'
+import { appendTranscript } from './dictationModel'
+import type { useDictation } from './useDictation'
 
+type Act = (path: string, fields?: Record<string, unknown>) => Promise<boolean>
+type Dictation = ReturnType<typeof useDictation>
 /** Connects the control bar's dictation to this panel's text box; null detaches it. */
 export type AttachDictation = (sink: ((words: string) => void) | null) => void
 
@@ -17,12 +20,87 @@ export function BoardStatusList({ rows, missingLabel }: { rows: readonly BoardRo
     </ul>
 }
 
+/** Round 1 individual decision: replaces the board vote when `game.decision_mode === 'individual'`. */
+export default function IndividualDecisionPanel({ room, pending, act, notice, dictation, attachDictation }: { room: RoomSnapshot; pending: boolean; act: Act; notice?: string; dictation: Dictation; attachDictation: AttachDictation }) {
+    const game = room.game
+    const recorded = game?.individual_decisions?.self ?? null
+    const [editing, setEditing] = useState(false)
+    const [draft, setDraft] = useState(() => recorded?.text ?? '')
+    const [failed, setFailed] = useState(false)
+    const active = room.phase === 'individual_decision'
+    const canSubmit = (game?.allowed_actions ?? []).includes('submit_decision')
+    const showForm = Boolean(game) && active && canSubmit && (!recorded || editing)
+    // Voice or text: the control bar's Dictate button appends final words to whatever is already typed; they stay editable.
+    useEffect(() => {
+        if (!showForm) return
+        attachDictation((words) => setDraft((current) => appendTranscript(current, words)))
+        return () => attachDictation(null)
+    }, [showForm, attachDictation])
+    if (!game || !active) return null
+
+    const rows = boardRows(game.individual_decisions, room.self_member_id)
+    const progress = submittedCount(rows)
+    const roleName = game.individual_decisions?.submitted.find((row) => row.member_id === room.self_member_id)?.role_name
+
+    async function submit() {
+        if (!canSubmitDecision(draft, recorded?.text)) return
+        dictation.stop()
+        setFailed(false)
+        const ok = await act(`rounds/${game!.round_id}/decision`, { text: draft.trim() })
+        if (ok) setEditing(false)
+        else setFailed(true)
+    }
+
+    return <section className="vote-panel decision-panel" aria-labelledby="decision-panel-title">
+        <header className="vote-panel-header">
+            <div>
+                <p className="vote-eyebrow">Round 1</p>
+                <h3 id="decision-panel-title">Your individual decision</h3>
+            </div>
+        </header>
+
+        {!canSubmit && !recorded && <p className="vote-note">You are observing this round. Only members taking part in this round write a decision.</p>}
+
+        {showForm && <form className="decision-form" onSubmit={(event) => { event.preventDefault(); void submit() }}>
+            <label className="decision-field">
+                <span className="decision-label">Your decision{roleName ? ` as ${roleName}` : ''}</span>
+                <textarea rows={6} maxLength={DECISION_LIMIT} required autoFocus={editing} aria-describedby="decision-help" placeholder={DECISION_PROMPT}
+                    value={draft} onChange={(event) => setDraft(event.target.value)} />
+                <span className="decision-helper" id="decision-help">Only you see your text. Use Dictate below to speak it.</span>
+            </label>
+            {(dictation.listening || dictation.note) && <div className="decision-voice">
+                {dictation.listening && <span className="decision-listening" role="status"><span className="vote-waiting-dot" aria-hidden="true" />Listening…</span>}
+                {dictation.listening && dictation.interim && <span className="decision-interim" aria-live="polite">{dictation.interim}</span>}
+                {dictation.note && <p className="decision-voice-note" role="status">{dictation.note}</p>}
+            </div>}
+            {failed && <p className="vote-custom-error" role="alert">{notice || 'Your decision could not be saved. Please try again.'}</p>}
+            <div className="vote-confirm-actions">
+                {recorded && <button type="button" className="vote-secondary" disabled={pending} onClick={() => { dictation.stop(); setEditing(false); setFailed(false); setDraft(recorded.text) }}>Cancel</button>}
+                <button type="submit" className="vote-primary" disabled={pending || !canSubmitDecision(draft, recorded?.text)}>{recorded ? 'Save changes' : 'Submit my decision'}</button>
+            </div>
+        </form>}
+
+        {recorded && !editing && <div className="decision-recorded">
+            <div className="vote-confirmed">
+                <p><span className="vote-badge vote-badge--voted">Submitted</span> Your decision is recorded. You can edit it until decisions close.</p>
+                {canSubmit && <button type="button" className="vote-secondary" disabled={pending} onClick={() => { setDraft(recorded.text); setFailed(false); setEditing(true) }}>Edit</button>}
+            </div>
+            <p className="decision-text">{recorded.text}</p>
+        </div>}
+
+        {rows.length > 0 && <div className="decision-board">
+            <p className="vote-eyebrow">{progress.done} of {progress.total} decisions submitted</p>
+            <BoardStatusList rows={rows} missingLabel="Writing…" />
+        </div>}
+    </section>
+}
+
 /**
  * Round 1 decision status, without a separate text box: the member gives their decision with AI reply (spoken in their
  * role voice, heard only in their own window) or types it in Chat. Shows their recorded decision and who the round is
  * still waiting for, themselves included.
  */
-export function DecisionStatusPanel({ room, speaking, caption, saving, draft }: { room: RoomSnapshot; speaking: boolean; caption: string; saving: boolean; draft: DiscussionDraftHandle }) {
+export function DecisionStatusPanel({ room, speaking, caption, saving }: { room: RoomSnapshot; speaking: boolean; caption: string; saving: boolean }) {
     const game = room.game
     if (!game || room.phase !== 'individual_decision') return null
     const recorded = game.individual_decisions?.self ?? null
@@ -37,9 +115,8 @@ export function DecisionStatusPanel({ room, speaking, caption, saving, draft }: 
                 <h3 id="decision-status-title">Your individual decision{roleName ? ` as ${roleName}` : ''}</h3>
             </div>
         </header>
-        {canSubmit ? <p className="vote-note">Give your decision with <strong>AI reply</strong> in the control bar (spoken in your voice; only you hear it) or review and edit your summary in <strong>Your decision</strong> below, then confirm it. Only you see your decision. Decisions close when everyone confirms.</p>
+        {canSubmit ? <p className="vote-note">Give your decision with <strong>AI reply</strong> in the control bar (spoken in your voice; only you hear it) or type it in <strong>Chat</strong>. Only you see your decision.</p>
             : !recorded && <p className="vote-note">You are observing this round. Only members taking part in this round give a decision.</p>}
-        {canSubmit && <DraftStatus draft={draft} />}
         {(speaking || saving) && caption && <p className="decision-compact"><span className="vote-badge decision-badge--waiting">{saving ? 'Saving…' : 'Speaking'}</span> {saving ? 'Saving your decision…' : 'Speaking your decision; it is saved when it finishes.'}</p>}
         {recorded && !speaking && !saving && <div className="decision-compact">
             <p><span className="vote-badge vote-badge--voted">Submitted</span> Your decision is recorded.{canSubmit ? ' AI reply or Chat replaces it.' : ''}</p>

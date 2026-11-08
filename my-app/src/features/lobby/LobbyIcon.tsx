@@ -7,6 +7,7 @@ const paths = {
     back: 'm10 5-7 7 7 7M3 12h18',
     check: 'm5 12 4 4L19 6',
     play: 'm8 4 12 8-12 8V4Z',
+    invite: 'M15 19a6 6 0 0 0-12 0M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm10-3v6m3-3h-6',
 } as const
 
 function LobbyIcon({ name, className }: { name: keyof typeof paths; className?: string }) {

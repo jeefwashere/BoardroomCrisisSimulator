@@ -51,7 +51,7 @@ class RoomApiTests(unittest.TestCase):
         self.assertEqual(room["host_member_id"], room["self_member_id"])
         self.assertEqual(room["members"][0]["display_name"], "Ricardo")
         self.assertTrue(room["members"][0]["is_host"])
-        self.assertEqual((room["phase"], room["capacity"], room["room_version"]), ("lobby", 30, 1))
+        self.assertEqual((room["phase"], room["capacity"], room["room_version"]), ("lobby", 10, 1))
         self.assertNotIn(self.host.cookies[COOKIE_NAME], str(room))
 
     def test_cookie_bootstrap_is_stable_and_private(self):
@@ -149,12 +149,12 @@ class RoomApiTests(unittest.TestCase):
         room = self.create()
         player = self.new_client()
         self.join(player, room, "Player 1")
-        for number in range(2, 30):
+        for number in range(2, 10):
             self.assertEqual(self.join(self.new_client(), room, f"Player {number}").status_code, 200)
         response = self.join(self.new_client(), room, "Overflow")
         self.assertEqual(response.status_code, 409)
         self.assertEqual(response.json()["detail"]["code"], "room_full")
-        self.assertEqual(len(self.join(player, room, "Player 1").json()["members"]), 30)
+        self.assertEqual(len(self.join(player, room, "Player 1").json()["members"]), 10)
 
     def test_names_and_codes_and_commands_are_validated(self):
         for name in ("   ", "x" * 41, "A\x00B", 123):
@@ -206,7 +206,7 @@ class ConcurrentRoomTests(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(all(response.json() == responses[0].json() for response in responses))
             self.assertEqual(len(responses[0].json()["members"]), 1)
 
-    async def test_simultaneous_joins_stop_at_thirty(self):
+    async def test_simultaneous_joins_stop_at_ten(self):
         app = create_app()
         transport = httpx.ASGITransport(app=app)
         async with httpx.AsyncClient(transport=transport, base_url="http://test") as host:
@@ -218,12 +218,12 @@ class ConcurrentRoomTests(unittest.IsolatedAsyncioTestCase):
                     await player.get("/api/session")
                     return await player.post("/api/rooms/join", json=command(f"Player {number}", room_code=room["room_code"]))
 
-            responses = await asyncio.gather(*(join(i) for i in range(35)))
-            self.assertEqual(sum(response.status_code == 200 for response in responses), 29)
+            responses = await asyncio.gather(*(join(i) for i in range(15)))
+            self.assertEqual(sum(response.status_code == 200 for response in responses), 9)
             self.assertEqual(sum(response.status_code == 409 for response in responses), 6)
             snapshot = (await host.get(f'/api/rooms/{room["room_id"]}')).json()
-            self.assertEqual(len(snapshot["members"]), 30)
-            self.assertEqual(snapshot["room_version"], 30)
+            self.assertEqual(len(snapshot["members"]), 10)
+            self.assertEqual(snapshot["room_version"], 10)
 
     async def test_simultaneous_same_browser_commands_only_add_one_member(self):
         transport = httpx.ASGITransport(app=create_app())

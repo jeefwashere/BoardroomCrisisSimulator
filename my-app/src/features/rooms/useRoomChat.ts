@@ -3,7 +3,7 @@ import { roomApi } from './useRoom'
 import { createChatStore } from './chatState'
 
 /** One shared chat store per room: polls committed history and owns the draft, used by the lobby pill and the game drawer. */
-export function useRoomChat(roomId: string, refreshRoom: () => Promise<void>) {
+export function useRoomChat(roomId: string, refreshRoom: () => Promise<void>, ended = false) {
     const store = useMemo(() => createChatStore({ api: roomApi, roomId, refreshRoom }), [roomId, refreshRoom])
     const state = useSyncExternalStore(store.subscribe, store.getSnapshot)
     useEffect(() => store.start((resume) => {
@@ -11,7 +11,7 @@ export function useRoomChat(roomId: string, refreshRoom: () => Promise<void>) {
         window.addEventListener('focus', resume)
         document.addEventListener('visibilitychange', visible)
         return () => { window.removeEventListener('focus', resume); document.removeEventListener('visibilitychange', visible) }
-    }), [store])
+    }, ended), [store, ended])
     return { store, state }
 }
 

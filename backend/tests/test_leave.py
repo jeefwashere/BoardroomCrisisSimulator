@@ -105,15 +105,34 @@ class LobbyLeaveTests(unittest.TestCase):
         self.assertEqual(stale.json()["detail"]["code"], "roster_changed")
         self.assertEqual(self.snapshot()["phase"], "lobby")
 
-    def test_lobby_leave_does_not_remove_players_from_an_active_game(self):
-        self.client.post("/api/rooms/join", headers=self.identity(), json=command(room_code="LEAVE1", display_name="Third"))
+    def start_game(self):
+        third = self.identity()
+        self.client.post("/api/rooms/join", headers=third, json=command(room_code="LEAVE1", display_name="Third"))
         started = self.client.post(self.path + "/start", headers=self.host, json=self.start_body(self.snapshot()))
-        self.assertEqual(started.status_code, 200)
+        self.assertEqual(started.status_code, 200, started.text)
+        return third
+
+    def test_a_player_leaving_a_game_is_one_member_fewer(self):
+        third = self.start_game()
+        response = self.client.post(self.path + "/leave", headers=third, json=command())
+        self.assertEqual((response.status_code, response.json()["status"]), (200, "left"))
+        current = self.snapshot()
+        self.assertEqual([member["display_name"] for member in current["members"]], ["Host", "Guest"])
+        self.assertNotEqual(current["phase"], "ended")
+        self.assertEqual(self.client.get(self.path, headers=third).status_code, 403)
+        self.assertEqual(self.client.get(self.path, headers=self.guest).status_code, 200)
+
+    def test_ceo_leaving_in_round_one_ends_the_game_and_deletes_the_room(self):
+        self.start_game()
+        response = self.client.post(self.path + "/leave", headers=self.host, json=command())
+        self.assertEqual((response.status_code, response.json()["status"]), (200, "closed"))
         for headers in (self.host, self.guest):
-            response = self.client.post(self.path + "/leave", headers=headers, json=command())
-            self.assertEqual(response.status_code, 409)
-            self.assertEqual(response.json()["detail"]["code"], "already_started")
-        self.assertEqual(len(self.snapshot()["members"]), 3)
+            gone = self.client.get(self.path, headers=headers)
+            self.assertEqual(gone.status_code, 410)
+            self.assertEqual(gone.json()["detail"]["code"], "room_closed")
+            self.assertIn("CEO left", gone.json()["detail"]["message"])
+        rejoin = self.client.post("/api/rooms/join", headers=self.identity(), json=command(room_code="LEAVE1", display_name="Late"))
+        self.assertEqual(rejoin.status_code, 404)
 
     def test_leave_intent_conflicts_and_other_rooms_are_isolated(self):
         other = self.client.post("/api/rooms", headers=self.guest, json=command(room_code="OTHER1", display_name="Guest")).json()
@@ -125,7 +144,7 @@ class LobbyLeaveTests(unittest.TestCase):
         self.assertEqual(self.client.get(f'/api/rooms/{other["room_id"]}', headers=self.guest).status_code, 200)
 
     def test_leaving_a_full_lobby_frees_a_seat(self):
-        for index in range(28):
+        for index in range(8):  # host + guest + 8 = the 10 seat maximum
             response = self.client.post("/api/rooms/join", headers=self.identity(), json=command(room_code="LEAVE1", display_name=f"Player {index}"))
             self.assertEqual(response.status_code, 200)
         replacement = self.identity()
@@ -134,7 +153,7 @@ class LobbyLeaveTests(unittest.TestCase):
         self.client.post(self.path + "/leave", headers=self.guest, json=command())
         response = self.client.post("/api/rooms/join", headers=replacement, json=admission)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.json()["members"]), 30)
+        self.assertEqual(len(response.json()["members"]), 10)
 
 
 class ConcurrentLeaveTests(unittest.IsolatedAsyncioTestCase):

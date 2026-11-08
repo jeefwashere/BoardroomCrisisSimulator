@@ -7,7 +7,7 @@ from pathlib import Path, PurePosixPath, PureWindowsPath
 import re
 from types import MappingProxyType
 
-from .rules import MINIMUM_TO_START, ROOM_CAPACITY
+from .rules import MINIMUM_TO_START, SCENARIO_CAPACITY
 
 
 FactValue = str | int | bool | None
@@ -381,8 +381,8 @@ def _load(path):
         constraints = _object(data.get("room_constraints"), "room_constraints")
         if type(constraints.get("minimum_to_start")) is not int or type(constraints.get("capacity")) is not int:
             raise ValueError("Room constraints must be integers")
-        if constraints != {"minimum_to_start": MINIMUM_TO_START, "capacity": ROOM_CAPACITY}:
-            raise ValueError(f"Scenario requires minimum {MINIMUM_TO_START} and capacity {ROOM_CAPACITY}")
+        if constraints != {"minimum_to_start": MINIMUM_TO_START, "capacity": SCENARIO_CAPACITY}:
+            raise ValueError(f"Scenario requires minimum {MINIMUM_TO_START} and capacity {SCENARIO_CAPACITY}")
         roles = _unique_objects(data.get("roles"), "roles")
         if "ceo" not in roles:
             raise ValueError("Exactly one CEO role definition is required")

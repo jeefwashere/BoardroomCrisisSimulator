@@ -13,10 +13,12 @@ const input = (fields: Partial<BoardroomInput> = {}): BoardroomInput => ({
 })
 const coach: StageAgent = { kind: 'coach', name: 'Crisis coach', role: 'AI crisis coach · private', accent: null }
 
-test('seats follow the electorate order and stop at three', () => {
+test('seats follow the electorate order and stop at ten', () => {
     const extra = member('x', 'Extra')
-    assert.equal(BOARD_SEATS, 3)
-    assert.deepEqual(boardMembers([sam, extra, morgan, alex], ['a', 'm', 's']).map((seat) => seat.id), ['a', 'm', 's'])
+    assert.equal(BOARD_SEATS, 10)
+    assert.deepEqual(boardMembers([sam, extra, morgan, alex], ['a', 'm', 's']).map((seat) => seat.id), ['a', 'm', 's', 'x'])
+    const crowd = Array.from({ length: 12 }, (_, index) => member(`c${index}`, `Member ${index}`))
+    assert.equal(boardMembers(crowd, []).length, 10)
     assert.deepEqual(boardMembers([extra, morgan], ['a', 'm']).map((seat) => seat.id), ['m', 'x'])
 })
 
@@ -70,7 +72,7 @@ test('view and demo stage choices', () => {
     assert.equal(soloFrameSrc('/', id, 'call'), `/?seat=alex#/room/${id}`)
 })
 
-test('the stage switch remembers the tab choice over the URL and only offers 3D for three seats', () => {
+test('the stage switch remembers the tab choice over the URL and offers 3D for up to ten seats', () => {
     assert.equal(stagePreference(null, '?view=3d'), '3d')
     assert.equal(stagePreference(null, ''), 'call')
     assert.equal(stagePreference('call', '?view=3d'), 'call')
@@ -81,5 +83,6 @@ test('the stage switch remembers the tab choice over the URL and only offers 3D 
     assert.equal(offersStageSwitch(3), true)
     assert.equal(offersStageSwitch(1), true)
     assert.equal(offersStageSwitch(0), false)
-    assert.equal(offersStageSwitch(4), false)
+    assert.equal(offersStageSwitch(10), true)
+    assert.equal(offersStageSwitch(11), false)
 })

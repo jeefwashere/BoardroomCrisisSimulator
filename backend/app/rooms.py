@@ -1,6 +1,7 @@
 """Single process room authority for identity, narrative state and evidence."""
 
 import asyncio
+import math
 from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
@@ -43,6 +44,8 @@ class Seat:
     display_name: str
     last_seen: float
     joined_at: datetime
+    # Left a started game: the seat stays (game records refer to it) but is hidden, never present and cannot act.
+    left: bool = False
 
 
 @dataclass(frozen=True)
@@ -258,7 +261,7 @@ class EvaluationEvidence:
 
 
 def active(seat: Seat, now: float) -> bool:
-    return 0 <= now - seat.last_seen < PRESENCE_WINDOW_SECONDS
+    return not seat.left and 0 <= now - seat.last_seen < PRESENCE_WINDOW_SECONDS
 
 
 def identity(state: sim.Game) -> ScenarioIdentity:
@@ -284,7 +287,7 @@ class Room:
 
     def member(self, session: str) -> Seat:
         self.ensure_open()
-        if session not in self.members:
+        if session not in self.members or self.members[session].left:
             raise RoomError(403, "not_a_member", "Join this room before reading it")
         return self.members[session]
 
@@ -428,6 +431,8 @@ class Room:
             )
         members = []
         for seat in self.members.values():
+            if seat.left:
+                continue
             assignment = assignments.get(seat.member_id)
             members.append(MemberSnapshot(
                 seat.member_id, seat.display_name, seat.member_id == self.host_member_id, active(seat, now),
@@ -445,6 +450,10 @@ class Rooms:
         self.automatic = automatic
         self.sessions: set[str] = set()
         self.rooms: dict[UUID, Room] = {}
+        # When the server ends each room's opening briefing (see end_briefing_at).
+        self.briefing_ends: dict[UUID, float] = {}
+        # Rooms deleted mid game (the CEO left in Round 1): their members get this message instead of "not found".
+        self.deleted: dict[UUID, str] = {}
         self.codes: dict[str, UUID] = {}
         self.receipts: dict[tuple[str, UUID], tuple[tuple, RoomSnapshot | Contribution | LeaveReceipt]] = {}
         self.internal_receipts: dict[tuple[UUID, UUID], tuple[tuple, sim.Game]] = {}
@@ -471,6 +480,27 @@ class Rooms:
         for room in tuple(self.rooms.values()):
             async with room.lock:
                 self.reconcile(room, self.clock())
+                self._end_briefing_due(room, self.clock())
+
+    def end_briefing_at(self, room_id: UUID, at: float) -> None:
+        """Ends the opening briefing at `at` (this service's clock) if no window has reported its end by then: the
+        tick then starts speaking at once, exactly like the host's finish_briefing, so no room waits out the
+        briefing timer and the reading phase after it."""
+        self.briefing_ends[room_id] = at
+
+    def _end_briefing_due(self, room: Room, now: float) -> None:
+        at = self.briefing_ends.get(room.room_id)
+        if at is None or now < at:
+            return
+        del self.briefing_ends[room.room_id]
+        group = room.phase
+        if room.closed or not isinstance(group, StartedGame) or not isinstance(group.state.phase, sim.BriefingPhase):
+            return
+        seen = {seat.member_id: seat.last_seen for seat in room.members.values()}
+        state = gameplay.begin_speaking(group.state, now, group.electorate, seen, ceo_of(group.assignments))
+        room.phase = replace(group, state=state)
+        room.version += 1
+        self.reconcile(room, now)
 
     async def play(self, session: str, room_id: UUID, command_id: UUID, phase_id: UUID,
                    round_id: UUID | None, action: str, value: str | UUID | None = None) -> RoomSnapshot:
@@ -711,6 +741,8 @@ class Rooms:
         return value
 
     def require_room(self, room_id: UUID) -> Room:
+        if room_id in self.deleted:
+            raise RoomError(410, "room_closed", self.deleted[room_id])
         if room_id not in self.rooms:
             raise RoomError(404, "room_not_found", "Room was not found")
         room = self.rooms[room_id]
@@ -727,14 +759,36 @@ class Rooms:
             if previous := self.retry(session, command_id, intent):
                 return previous
             caller = room.member(session)
-            if not isinstance(room.phase, Lobby):
-                raise RoomError(409, "already_started", "Leaving a lobby is only available before the game starts")
+            if isinstance(room.phase, StartedGame):
+                return self._leave_game(room, session, caller, command_id, intent)
             room.closed = caller.member_id == room.host_member_id
             del room.members[session]
             room.version += 1
             receipt = LeaveReceipt(room.room_id, room.version, "closed" if room.closed else "left")
             self.receipts[(session, command_id)] = (intent, receipt)
             return receipt
+
+    def _leave_game(self, room: Room, session: str, caller: Seat, command_id: UUID, intent) -> LeaveReceipt:
+        """Leaving a started game. The CEO leaving during Round 1 ends the game and deletes the room for everyone;
+        anyone else (or the CEO later on) just leaves: one member fewer, their turns skip like a disconnect."""
+        phase = room.phase
+        assert isinstance(phase, StartedGame)
+        role = next((item.role_id for item in phase.assignments if item.member_id == caller.member_id), None)
+        ongoing = not isinstance(phase.state.phase, sim.EndedPhase)
+        if role == "ceo" and ongoing and phase.state.round_number == 1:
+            room.closed = True
+            room.version += 1
+            self.deleted[room.room_id] = "The CEO left during Round 1, so this game is over and the room was deleted."
+            self.rooms.pop(room.room_id, None)
+            if self.codes.get(room.code) == room.room_id:
+                del self.codes[room.code]
+            receipt = LeaveReceipt(room.room_id, room.version, "closed")
+        else:
+            room.members[session] = replace(caller, left=True, last_seen=-math.inf)
+            room.version += 1
+            receipt = LeaveReceipt(room.room_id, room.version, "left")
+        self.receipts[(session, command_id)] = (intent, receipt)
+        return receipt
 
     async def create(self, session: str, command_id: UUID, room_code: str, display_name: str) -> RoomSnapshot:
         intent = ("create", room_code, display_name)
@@ -784,7 +838,7 @@ class Rooms:
                     if any(seat.member_id != existing.member_id and seat.display_name.casefold() == display_name.casefold()
                            for seat in room.members.values()):
                         raise RoomError(409, "name_taken", "Choose another display name")
-                    room.members[session] = replace(existing, display_name=display_name, last_seen=now)
+                    room.members[session] = replace(existing, display_name=display_name, last_seen=now, left=False)
                     room.version += 1
                 else:
                     room.touch(session, now)
@@ -793,7 +847,7 @@ class Rooms:
                     raise RoomError(409, "game_ended", "New seats cannot join an ended game")
                 if any(seat.display_name.casefold() == display_name.casefold() for seat in room.members.values()):
                     raise RoomError(409, "name_taken", "Choose another display name")
-                if len(room.members) >= ROOM_CAPACITY:
+                if sum(not seat.left for seat in room.members.values()) >= ROOM_CAPACITY:
                     raise RoomError(409, "room_full", f"This room already has {ROOM_CAPACITY} members")
                 if isinstance(phase, StartedGame):
                     if role_id is None or role_id not in {role.role_id for role in phase.state.scenario.roles}:

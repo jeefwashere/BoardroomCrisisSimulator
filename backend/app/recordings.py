@@ -223,6 +223,30 @@ class Recordings:
         except Exception:
             item.status, item.error = 'transcription_failed', 'Transcription unavailable. Original audio remains saved.'
 
+    async def dictate(self, session, room_id, encoded, mime):
+        """Dictation: one short clip transcribed for the member and returned, nothing stored. The browser's own
+        speech recognition is missing or silently fails in many browsers, so Dictate records audio and sends it here."""
+        self.rooms.require_room(room_id).member(session)
+        if not self.transcriber:
+            raise RoomError(503, 'dictation_unavailable', 'Voice transcription is turned off on this server; type instead')
+        mime = mime.split(';')[0].lower()
+        if mime not in MIMES or len(encoded) > 13_333_336:
+            raise RoomError(422, 'invalid_audio', 'Use supported audio up to 10 MB')
+        try:
+            raw = base64.b64decode(encoded, validate=True)
+        except ValueError as error:
+            raise RoomError(422, 'invalid_audio', 'Invalid audio encoding') from error
+        if not 12 <= len(raw) <= MAX_BYTES:
+            raise RoomError(422, 'invalid_audio', 'Audio is empty or too large')
+        try:
+            text = await asyncio.to_thread(self.transcriber, raw, mime)
+        except Exception:
+            # Provider errors can contain keys or response bodies.
+            raise RoomError(502, 'transcription_failed', 'Transcription is unavailable right now; type instead or try again') from None
+        if not isinstance(text, str) or not valid_unicode(text) or len(text) > 12000:
+            raise RoomError(502, 'transcription_failed', 'Transcription returned no usable text')
+        return {'text': ' '.join(text.split())}
+
     async def review(self, session, room_id, recording_id, text):
         item = self.require(session, room_id, recording_id, own=True)
         if not isinstance(text, str) or not valid_unicode(text) or not 0 < len(text.strip()) <= 12000:

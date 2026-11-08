@@ -12,7 +12,7 @@ const roles: Record<string, string> = { a: 'ceo', b: 'security', c: 'finance' }
 
 function room(self: string, phase: RoomSnapshot['phase'], game: Partial<RoomGame> = {}): RoomSnapshot {
     const base = {
-        room_id: 'room', room_code: 'ABC123', room_version: 3, capacity: 30 as const, presence_window_seconds: 30 as const,
+        room_id: 'room', room_code: 'ABC123', room_version: 3, capacity: 10 as const, presence_window_seconds: 30 as const,
         host_member_id: 'a', self_member_id: self,
         members: ['a', 'b', 'c'].map((id) => ({ member_id: id, display_name: id, is_host: id === 'a', connected: true, role_id: phase === 'lobby' ? null : roles[id], eligible_from_round: 1, eligible_current_round: true })),
     }

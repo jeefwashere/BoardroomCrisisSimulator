@@ -21,6 +21,13 @@ export function roomMembers(room: RoomSnapshot, draft: RoleDraft = {}, scenario?
     }))
 }
 
+/** One CEO only: giving someone the CEO role takes it from whoever had it (they go back to choosing a role). */
+export function assignRole(draft: RoleDraft, memberId: string, role: string): RoleDraft {
+    const next: RoleDraft = { ...draft, [memberId]: role }
+    if (role === 'ceo') for (const [other, current] of Object.entries(next)) if (other !== memberId && current === 'ceo') next[other] = 'unassigned'
+    return next
+}
+
 export function startProblem(room: RoomSnapshot, scenario: Scenario | undefined, draft: RoleDraft): string | null {
     if (room.self_member_id !== room.host_member_id) return 'Only the host can start this room.'
     if (room.phase !== 'lobby') return 'This room has already started.'
@@ -52,6 +59,8 @@ export function pollRoom<T>(
     failed: (error: unknown) => void,
     interval = 2000,
     subscribeResume?: (resume: () => void) => () => void,
+    /** Stop polling once this holds for a received value (a game that has ended no longer changes). */
+    until?: (value: T) => boolean,
 ): () => void {
     const controller = new AbortController()
     let timer: ReturnType<typeof setTimeout> | undefined
@@ -62,7 +71,10 @@ export function pollRoom<T>(
         running = true
         try {
             const room = await read(controller.signal)
-            if (!controller.signal.aborted) receive(room)
+            if (!controller.signal.aborted) {
+                receive(room)
+                if (until?.(room)) { controller.abort(); unsubscribe?.() }
+            }
         } catch (error) {
             if (!controller.signal.aborted) failed(error)
         } finally {
@@ -74,6 +86,7 @@ export function pollRoom<T>(
             }
         }
     }
+    // Declared before the first tick runs, so `tick` can unsubscribe when `until` holds.
     const unsubscribe = subscribeResume?.(() => {
         if (controller.signal.aborted) return
         clearTimeout(timer)

@@ -304,7 +304,7 @@ class RoomFields(View):
     room_id: UUID
     room_code: str
     room_version: int
-    capacity: Literal[30] = ROOM_CAPACITY
+    capacity: Literal[10] = ROOM_CAPACITY
     presence_window_seconds: Literal[30] = PRESENCE_WINDOW_SECONDS
     host_member_id: UUID
     self_member_id: UUID
@@ -489,26 +489,6 @@ class ReplyBody(BaseModel):
     mode: Literal["turn", "private", "decision"]
     # Private answers only: the coach's current question, as shown to the member.
     question: str | None = Field(default=None, min_length=1, max_length=1200)
-
-
-class DiscussionSummaryBody(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    command_id: UUID
-    round_id: UUID
-    retry: StrictBool = False
-
-
-class DiscussionSummaryView(View):
-    room_id: UUID
-    round_id: UUID
-    member_id: UUID
-    status: Literal["empty", "pending", "ready", "failed"]
-    evidence_revision: str
-    text: str | None
-    source: str | None
-    evidence_count: int
-    provisional_recording_count: int = 0
-    error: str | None
 
 
 class ConsultBody(BaseModel):

@@ -22,6 +22,11 @@ from playtest.vertex import ENDPOINT, MODEL, THINKING, DollarBudget, NoRedirect,
 DEFAULT_LEDGER = ".local/vertex/ledger.sqlite"
 MAX_PROMPT_BYTES = 20000
 EMBEDDING_ENDPOINT = "https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-embedding-001:predict"
+# gemini-3.8-flash thinks before every answer even with a zero thinking budget (measured Nov 8 2026: 500 to 1970
+# thought tokens for an 80 word line). Thought tokens count against maxOutputTokens, so a 600 token cap ended most
+# spoken lines with MAX_TOKENS and the app fell back to the slow hosted model. The cap callers pass now bounds the
+# answer only; this headroom covers the thinking.
+THINKING_HEADROOM = 2048
 USAGE_KEYS = ("promptTokenCount", "candidatesTokenCount", "thoughtsTokenCount", "totalTokenCount")
 
 
@@ -47,6 +52,14 @@ def parse_json_object(text: str) -> dict:
     if not isinstance(value, dict):
         raise ValueError("Expected a JSON object")
     return value
+
+
+def complete_sentences(text: str) -> str:
+    """The text up to its last full sentence, or empty when that would leave less than a short sentence."""
+    end = max(text.rfind(mark) for mark in (". ", "! ", "? ", ".\n", "!\n", "?\n"))
+    if text.rstrip().endswith((".", "!", "?")):
+        return text.rstrip()
+    return text[:end + 1].strip() if end >= 40 else ""
 
 
 def _https_opener():
@@ -113,7 +126,8 @@ class VertexText:
         # Spoken lines skip thinking: measured on this model, LOW thinking spent 500+ tokens and 8 to 17 seconds on a
         # 60 word line (sometimes running out of tokens), while a zero thinking budget answered in about 3 seconds.
         thinking = {"thinkingLevel": THINKING} if think else {"thinkingBudget": 0}
-        config = {"thinkingConfig": thinking, "maxOutputTokens": max_output_tokens, "temperature": temperature}
+        config = {"thinkingConfig": thinking, "maxOutputTokens": max_output_tokens + THINKING_HEADROOM,
+                  "temperature": temperature}
         if json_output:
             config["responseMimeType"] = "application/json"
         payload = {"contents": [{"role": "user", "parts": [{"text": prompt}]}], "generationConfig": config}
@@ -128,10 +142,13 @@ class VertexText:
             if usage:
                 budget.record(ident, usage)
             candidate = (data.get("candidates") or [{}])[0]
-            if candidate.get("finishReason") != "STOP":
-                raise VertexError("Vertex did not return a complete response")
             text = "".join(part.get("text", "") for part in candidate.get("content", {}).get("parts", [])
                            if not part.get("thought")).strip()
+            if candidate.get("finishReason") != "STOP":
+                # A plain spoken line cut off mid answer is still usable up to its last full sentence; JSON is not.
+                text = "" if json_output else complete_sentences(text)
+                if not text:
+                    raise VertexError("Vertex did not return a complete response")
             if not text:
                 raise VertexError("Vertex returned empty text")
             self.last_error = None

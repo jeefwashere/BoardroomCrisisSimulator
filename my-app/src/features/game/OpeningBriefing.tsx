@@ -14,11 +14,16 @@ import { briefingEntry } from './transcriptModel'
 import { audioDurationMs, audioElapsedMs } from './useAutoResponse'
 import { useLiveSpeech } from './useTranscript'
 import type { TranscriptWriter } from './useTranscript'
+import { streamedSpeech } from './aiReply'
+import type { SpeechPlayer } from './aiReply'
 
 const facilitationApi = createFacilitationApi(roomApi)
 // In the one window demo only the first seat (the host) plays sound, so three frames never talk over each other.
 const SEAT = typeof window === 'undefined' ? null : seatFromSearch(window.location.search)
 const PLAYS_VOICE = SEAT === null || SEAT === 'alex'
+// The server starts writing the opening at Start (about 2 to 3 seconds); a short poll notices it promptly. Polling stops
+// as soon as the opening is ready, so this costs a handful of cheap in memory reads.
+const OPENING_POLL_MS = 400
 
 function useOpening(roomId: string) {
     const [opening, setOpening] = useState<Opening | null>(null)
@@ -27,9 +32,9 @@ function useOpening(roomId: string) {
         const stop: () => void = pollRoom((signal) => facilitationApi.state(roomId, signal), (state) => {
             setOpening(state.opening)
             setError('')
-            // Stop once the opening job has a terminal status; speech is prepared on demand.
+            // Stop once the opening job has a terminal status; its speech is already being synthesized on the server.
             if (state.opening && state.opening.status !== 'pending') stop()
-        }, (failure) => setError(errorMessage(failure)), 2000)
+        }, (failure) => setError(errorMessage(failure)), OPENING_POLL_MS)
         return stop
     }, [roomId])
     return { opening, error }
@@ -51,13 +56,18 @@ type Props = {
 export default function OpeningBriefing({ room, finishBriefing, onDismiss, members, transcript }: Props) {
     const game = room.game
     const { opening, error } = useOpening(room.room_id)
-    const [audio, setAudio] = useState<{ speechId: string; url: string } | null>(null)
+    // The speech ID whose streamed player exists; the player itself lives in `speech` (it is not a rendered element).
+    const [audio, setAudio] = useState<string | null>(null)
     const [playing, setPlaying] = useState(false)
     const [voice, setVoice] = useState<{ busy: boolean; notice: string }>({ busy: false, notice: '' })
     const [blocked, setBlocked] = useState(false)
     const autoStarted = useRef<string | null>(null)
-    const audioRef = useRef<HTMLAudioElement>(null)
-    useEffect(() => () => { if (audio) URL.revokeObjectURL(audio.url) }, [audio])
+    const speech = useRef<SpeechPlayer | null>(null)
+    const alive = useRef(true)
+    useEffect(() => {
+        alive.current = true
+        return () => { alive.current = false; speech.current?.dispose(); speech.current = null }
+    }, [])
     const autoSpeechId = opening?.status === 'ready' ? opening.speech_id : null
     // Live Gemini text is spoken through ElevenLabs as soon as it is ready; no click required.
     useEffect(() => {
@@ -65,16 +75,13 @@ export default function OpeningBriefing({ room, finishBriefing, onDismiss, membe
         autoStarted.current = autoSpeechId
         void playBriefing()
     })
-    useEffect(() => {
-        const element = audioRef.current
-        if (!element || !audio) return
-        element.play().then(() => setBlocked(false)).catch(() => setBlocked(true))
-    }, [audio])
     const live = useLiveSpeech(transcript)
     const readyText = opening?.status === 'ready' && opening.text ? opening : null
     // Without a voice on this screen (another seat, voice off or failed) the briefing goes to the transcript in full at once.
     const silent = Boolean(readyText && (!PLAYS_VOICE || !readyText.speech_id || (voice.notice && !voice.busy && !audio)))
     useEffect(() => { if (readyText && silent) transcript.upsert(briefingEntry(readyText)) }, [readyText, silent, transcript])
+    // Player events outlive the render that attached them, so they call the latest handlers.
+    const handlers = useRef<{ finished: () => Promise<void>; started: (element: HTMLAudioElement) => void } | null>(null)
     // The 3D boardroom lights the table hub while the preparation agent speaks.
     useReportAgent(playing ? { kind: 'agent', name: 'Preparation agent', role: 'AI agent · opening briefing', accent: null } : null)
     if (!game) return null
@@ -84,6 +91,8 @@ export default function OpeningBriefing({ room, finishBriefing, onDismiss, membe
     const speechId = opening?.speech_id ?? null
 
     async function finished() {
+        speech.current?.dispose()
+        speech.current = null
         setPlaying(false)
         // Skipped or ended: the whole briefing stays readable in the transcript.
         if (readyText) { transcript.upsert(briefingEntry(readyText)); live.end() }
@@ -91,25 +100,47 @@ export default function OpeningBriefing({ room, finishBriefing, onDismiss, membe
         onDismiss()
     }
 
-    async function playBriefing(attempt = 0): Promise<void> {
+    function started(element: HTMLAudioElement) {
+        setPlaying(true)
+        setBlocked(false)
+        if (readyText) live.start(briefingEntry(readyText), audioDurationMs(element), audioElapsedMs(element))
+    }
+    handlers.current = { finished, started }
+
+    /** Streams the briefing: playback starts with the first audio (the server began synthesizing when the text was ready). */
+    async function playBriefing(): Promise<void> {
         const speechId = opening?.speech_id
-        if (!speechId || (voice.busy && attempt === 0)) return
-        if (audio?.speechId === speechId) return
+        if (!speechId || voice.busy || audio === speechId) return
         setVoice({ busy: true, notice: '' })
-        try {
-            const prepared = await facilitationApi.prepareSpeech(room.room_id, speechId)
-            if (prepared.status === 'disabled') { setVoice({ busy: false, notice: 'Spoken briefing is turned off for this session. The briefing stays readable here.' }); return }
-            if (prepared.status === 'pending') {
-                if (attempt < 10) { await new Promise((resolve) => setTimeout(resolve, 1500)); return playBriefing(attempt + 1) }
-                setVoice({ busy: false, notice: 'The voice is still being prepared. Try again in a moment.' }); return
-            }
-            if (prepared.status !== 'ready') { setVoice({ busy: false, notice: prepared.error || 'The spoken briefing could not be prepared. The text remains available.' }); return }
-            const blob = await facilitationApi.speechAudio(room.room_id, speechId)
-            setAudio({ speechId, url: URL.createObjectURL(blob) })
-            setVoice({ busy: false, notice: '' })
-        } catch (failure) {
-            setVoice({ busy: false, notice: errorMessage(failure) })
+        const next = await streamedSpeech(room.room_id, speechId)
+        if (!alive.current) { next?.dispose(); return }
+        if (!next) {
+            // The stream refused: ask why, so a server with speech turned off says so.
+            const prepared = await facilitationApi.prepareSpeech(room.room_id, speechId).catch(() => null)
+            if (!alive.current) return
+            setVoice({ busy: false, notice: prepared?.status === 'disabled'
+                ? 'Spoken briefing is turned off for this session. The briefing stays readable here.'
+                : prepared?.error || 'The spoken briefing could not be prepared. The text remains available.' })
+            return
         }
+        speech.current?.dispose()
+        speech.current = next
+        const element = next.player
+        element.addEventListener('playing', () => { if (speech.current === next) handlers.current?.started(element) })
+        element.addEventListener('pause', () => { if (speech.current === next) setPlaying(false) })
+        element.addEventListener('ended', () => { if (speech.current === next) void handlers.current?.finished() })
+        // A broken stream: the full briefing goes to the transcript and the play button can retry.
+        element.addEventListener('error', () => {
+            if (speech.current !== next) return
+            next.dispose()
+            speech.current = null
+            setPlaying(false)
+            setAudio(null)
+            setVoice({ busy: false, notice: 'The spoken briefing stopped early. The full briefing is in the transcript.' })
+        })
+        setAudio(speechId)
+        setVoice({ busy: false, notice: '' })
+        element.play().then(() => setBlocked(false)).catch(() => { if (speech.current === next) setBlocked(true) })
     }
 
     const agentState = status === 'pending' ? 'Preparing' : status === 'ready' ? (speaking ? 'Speaking' : voice.busy ? 'Preparing voice' : 'Ready') : status === 'failed' ? 'Unavailable' : 'Offline'
@@ -134,7 +165,7 @@ export default function OpeningBriefing({ room, finishBriefing, onDismiss, membe
         <MemberStrip members={members} selfId={room.self_member_id} />
 
         <div className="opening-footer call-stage-footer">
-            {status === 'ready' && speechId && PLAYS_VOICE && (!audio || blocked) && <button type="button" className="opening-play" disabled={voice.busy} onClick={() => { if (blocked) { void audioRef.current?.play().then(() => setBlocked(false)) } else void playBriefing() }}>
+            {status === 'ready' && speechId && PLAYS_VOICE && (!audio || blocked) && <button type="button" className="opening-play" disabled={voice.busy} onClick={() => { if (blocked) { void speech.current?.player.play().then(() => setBlocked(false)).catch(() => undefined) } else void playBriefing() }}>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
                 {voice.busy ? 'Preparing live voice…' : blocked ? 'Tap to hear the briefing' : 'Play briefing'}
             </button>}
@@ -142,9 +173,6 @@ export default function OpeningBriefing({ room, finishBriefing, onDismiss, membe
             {!PLAYS_VOICE && status === 'ready' && <p className="opening-voice-notice" role="status">The live briefing is playing on the host's screen. This view closes when it ends.</p>}
             {status === 'failed' && <p className="opening-voice-notice" role="alert">The preparation agent could not prepare an opening briefing{opening?.error ? `: ${opening.error}` : '.'} The public scenario documents remain available.</p>}
             {status === 'unreachable' && <p className="opening-voice-notice" role="alert">The facilitator service is offline ({error}). Retrying automatically.</p>}
-            {audio && audio.speechId === speechId && <audio ref={audioRef} className="opening-audio" src={audio.url}
-                onPlaying={(event) => { setPlaying(true); if (readyText) live.start(briefingEntry(readyText), audioDurationMs(event.currentTarget), audioElapsedMs(event.currentTarget)) }}
-                onPause={() => setPlaying(false)} onEnded={() => void finished()} />}
             {voice.notice && <p className="opening-voice-notice" role="status">{voice.notice}</p>}
         </div>
     </motion.section>

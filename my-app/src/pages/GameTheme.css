@@ -226,3 +226,20 @@
 .game-call-screen .decision-peek { margin-top: 4px; font-size: 12px; }
 .game-call-screen .decision-peek > summary { color: var(--call-muted); cursor: pointer; }
 .game-call-screen .decision-peek > .decision-text { max-height: 140px; overflow-y: auto; margin-top: 6px; }
+
+/* Private coaching question: compact so the 3D boardroom (and your character while you dictate) stays in view. */
+.game-call-screen .private-question-card { gap: 6px; padding: 10px 14px; }
+.game-call-screen .private-question-card .private-question { margin: 0; font-size: 14px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.game-call-screen .private-question-card .private-hint { margin: 0; font-size: 12.5px; color: #7a6a5a; }
+.game-call-screen .private-dictated { display: grid; gap: 6px; }
+.game-call-screen .private-dictated-text { margin: 0; max-height: 4.4em; overflow-y: auto; font-size: 13.5px; line-height: 1.45; color: var(--call-ink); }
+.game-call-screen .private-dictated-text .private-listening { margin-right: 8px; }
+.game-call-screen .private-dictated-text .private-interim { color: #9a8a7a; }
+.game-call-screen .private-question-card .private-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.game-call-screen .private-discard { border: 1px solid #d9ccb8; border-radius: 999px; background: transparent; color: var(--call-ink); padding: 6px 14px; font: inherit; font-size: 13px; cursor: pointer; }
+.game-call-screen .private-discard:disabled { opacity: 0.5; cursor: default; }
+.game-call-screen .private-question-card.is-answering .private-question { -webkit-line-clamp: 1; }
+.game-call-screen .private-mic { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.game-call-screen .private-level { position: relative; width: 90px; height: 6px; border-radius: 999px; background: #eadfce; overflow: hidden; }
+.game-call-screen .private-level > span { position: absolute; inset: 0; background: var(--call-red); transform-origin: left center; transition: transform 90ms linear; }
+.game-call-screen .private-hint--problem { color: #a8321f; }

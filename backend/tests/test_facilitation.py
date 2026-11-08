@@ -63,8 +63,9 @@ class FacilitationTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(lobby['opening'])
         self.assertEqual([item['kind'] for item in lobby['advisers']], ['facilitator', 'it', 'journalist'])
 
-        before = await self.ready()
+        # Start begins the opening job, so hold the provider from before Start.
         self.provider.gate.clear()
+        before = await self.ready()
         first = await asyncio.gather(*(client.get(self.facilitation_path) for client in self.clients))
         self.assertTrue(all(response.json()['opening']['status'] == 'pending' for response in first))
         self.provider.gate.set()
@@ -75,6 +76,51 @@ class FacilitationTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNotNone(body['opening']['speech_id'])
         self.assertIn(before['game']['scenario']['title'], self.provider.prompts[0])
         self.assertEqual((await self.view())['game']['phase_id'], before['game']['phase_id'])
+
+    async def test_opening_starts_at_game_start_before_any_poll(self):
+        await self.ready()
+        for _ in range(100):
+            if self.provider.prompts and self.facilitation.openings.get(self.room_id, {}).get('status') == 'ready':
+                break
+            await asyncio.sleep(0.01)
+        self.assertEqual(len(self.provider.prompts), 1)
+        self.assertIn('55 to 70 words', self.provider.prompts[0])
+        body = (await self.clients[1].get(self.facilitation_path)).json()
+        self.assertEqual(body['opening']['status'], 'ready')
+        self.assertEqual(len(self.provider.prompts), 1)
+
+    async def test_opening_hedges_a_hung_vertex_request(self):
+        class Vertex:
+            configured = True
+
+            def __init__(self, plan):
+                self.plan, self.calls = list(plan), 0
+
+            async def text(self, prompt, timeout, cap):
+                kind = self.plan[self.calls]
+                self.calls += 1
+                if kind == 'hang':
+                    await asyncio.sleep(30)
+                if kind == 'fail':
+                    raise RuntimeError('private provider detail')
+                return f'Vertex answer {self.calls}.'
+
+        timing = {'HEDGE_STARTS': (0.0, 0.05, 0.1), 'HEDGE_DEADLINE': 0.3}
+        with mock.patch.multiple('backend.app.facilitation', **timing):
+            for plan, expected, calls in ((['hang', 'ok'], ('Vertex answer 2.', 'vertex'), 2),
+                                          (['fail', 'ok'], ('Vertex answer 2.', 'vertex'), 2),
+                                          (['hang', 'hang', 'ok'], ('Vertex answer 3.', 'vertex'), 3),
+                                          (['hang', 'hang', 'hang'], ('offline text', 'offline'), 3)):
+                with self.subTest(plan=plan):
+                    vertex = Vertex(plan)
+                    service = Facilitation(self.rooms, Provider(configured=False), NarrationService(), vertex=vertex)
+                    result = await asyncio.wait_for(service.generate('prompt', 'offline text', hedged=True), 2)
+                    self.assertEqual(result, expected)
+                    self.assertEqual(vertex.calls, calls)
+            # Other lines keep one plain request.
+            vertex = Vertex(['ok'])
+            service = Facilitation(self.rooms, Provider(configured=False), NarrationService(), vertex=vertex)
+            self.assertEqual(await service.generate('prompt', 'offline text'), ('Vertex answer 1.', 'vertex'))
 
     async def test_offline_fallback_when_unconfigured_or_failing(self):
         for code, provider in (('OFFLN1', Provider(configured=False)), ('OFFLN2', Provider(fail=True))):

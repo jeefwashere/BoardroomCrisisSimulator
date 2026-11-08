@@ -12,6 +12,7 @@
 import * as THREE from 'three/webgpu'
 import { mrt, normalView, output, pass, vec3, vec4 } from 'three/tsl'
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { CHARACTER_IDS, MODELS, fetchAsset, propManifest, propUrl, type PropWord } from './assets'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { ao } from 'three/examples/jsm/tsl/display/GTAONode.js'
@@ -20,14 +21,13 @@ import { SeatTags } from './SeatTags'
 import type { BoardMood, BoardroomView } from './boardroomModel'
 
 /** Alex (CEO), Morgan (IT recovery lead), Sam (communications lead), in seat order. */
-export const CHARACTER_IDS = ['01-coo', '03-cto', '06-head-of-communications']
+export { CHARACTER_IDS }
 
 type Mood = BoardMood | 'disbelief'
 
 /** Wall screen clock: the phase deadline and the server time it was read at. */
 export type SceneClock = { deadline: string | null; serverTime: string | null }
 
-const MODELS = `${import.meta.env.BASE_URL}models/`
 const TABLE = { length: 4.2, width: 1.4, height: 0.76 }
 const UP = new THREE.Vector3(0, 1, 0)
 /**
@@ -59,17 +59,21 @@ interface Seat {
 }
 
 /**
- * Three seats spread round the full size table. Alex sits at the head nearest the overview
- * camera; Morgan and Sam sit on opposite sides, offset along the table so they are about 2.5 m
- * apart (Alex is 2.1 m from Morgan and 3.5 m from Sam) and neither blocks the other's close up.
+ * Ten seats round the full size table: one at each end and four down each side, 1 m apart.
+ * They are listed in fill order, so small groups still spread out: the first member sits at the
+ * head nearest the overview camera, the next two on opposite sides offset along the table (so
+ * neither blocks the other's close up), then the far end, then the remaining side seats.
  */
 function makeSeats(): Seat[] {
   const side = TABLE.width / 2 + EDGE_GAP
   const end = TABLE.length / 2 + EDGE_GAP
+  const near = (x: number): Seat => ({ position: new THREE.Vector3(x, 0, side), yaw: Math.PI })
+  const far = (x: number): Seat => ({ position: new THREE.Vector3(x, 0, -side), yaw: 0 })
   return [
     { position: new THREE.Vector3(end, 0, 0), yaw: -Math.PI / 2 },
-    { position: new THREE.Vector3(0.5, 0, side), yaw: Math.PI },
-    { position: new THREE.Vector3(-1.0, 0, -side), yaw: 0 },
+    near(0.5), far(-0.5),
+    { position: new THREE.Vector3(-end, 0, 0), yaw: Math.PI / 2 },
+    near(-1.5), far(1.5), near(1.5), far(-1.5), near(-0.5), far(0.5),
   ]
 }
 
@@ -385,7 +389,8 @@ export class Boardroom {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
     // Neutral tone mapping keeps skin and fabric colours closer to their textures than ACES.
     this.renderer.toneMapping = THREE.NeutralToneMapping
-    this.renderer.toneMappingExposure = 1.0
+    // Slightly over 1: the walnut room read murky at 1.0 (Nov 8 2026 playtest feedback: hard to look at).
+    this.renderer.toneMappingExposure = 1.12
     container.appendChild(this.renderer.domElement)
     const vignette = document.createElement('div')
     vignette.className = 'board3d-vignette'
@@ -434,7 +439,7 @@ export class Boardroom {
     this.resizeObserver.observe(container)
     this.resize()
     void this.start()
-    void this.loadModels()
+    this.loadModels()
     void this.loadProps()
     void this.loadRoom()
   }
@@ -450,7 +455,8 @@ export class Boardroom {
     // Image based lighting: soft reflections and bounce light for every PBR material.
     const pmrem = new THREE.PMREMGenerator(this.renderer)
     this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-    this.scene.environmentIntensity = 0.5
+    // Soft even light on faces and suits, so characters are not lit only by the warm lamps.
+    this.scene.environmentIntensity = 0.8
     pmrem.dispose()
 
     this.buildPost()
@@ -529,7 +535,7 @@ export class Boardroom {
         speaking: seat.talking,
         away: !seat.connected,
       } : null)
-      if (seat) avatar.setMood(seat.mood)
+      if (seat) { this.loadCharacter(index); avatar.setMood(seat.mood) }
     })
     const agent = view.agent
     this.tags.set(CHARACTER_IDS.length, agent ? {
@@ -546,23 +552,53 @@ export class Boardroom {
 
   // ---- loading ----
 
-  private async loadModels() {
-    const total = CHARACTER_IDS.length + 1
-    let loaded = 0
-    const tick = () => this.onProgress(++loaded, total)
-    const library = await this.loader.loadAsync(`${MODELS}characters/animations.glb`)
-    tick()
-    const clips = library.animations
-    await Promise.all(
-      CHARACTER_IDS.map(async (id, index) => {
-        const gltf = await this.loader.loadAsync(`${MODELS}characters/${id}.glb`)
-        this.avatars[index].attach(gltf, clips)
-        if (index === 0) this.calibrateSeat(this.avatars[0])
-        tick()
-      }),
-    )
-    this.avatars.forEach((avatar, index) => this.chairs[index]?.position.copy(this.chairPosition(avatar)))
-    this.loadedAtFrame = this.frame
+  /** A model from the shared downloads (models embed their textures, so no resource path is needed). */
+  private async gltf(url: string): Promise<GLTF> {
+    return this.loader.parseAsync(await fetchAsset(url), '')
+  }
+
+  /** The shared animation clips; every character waits for them before it can sit. */
+  private library: Promise<GLTF> | null = null
+  /** Characters requested so far (by seat index) and how many have attached, for the loading counter. */
+  private characters = new Map<number, Promise<void>>()
+  private attached = 0
+  private libraryReady = false
+
+  private reportProgress() {
+    this.onProgress(this.attached + (this.libraryReady ? 1 : 0), Math.max(1, this.characters.size) + 1)
+  }
+
+  private loadModels() {
+    this.library = this.gltf(`${MODELS}characters/animations.glb`)
+    this.library.then(() => { this.libraryReady = true; this.reportProgress() }, () => undefined)
+    // Before the first snapshot arrives, start the first seat so the head of the table is never empty.
+    this.loadCharacter(0)
+  }
+
+  /**
+   * A seat's character, downloaded and attached the first time someone sits there (most bytes are already in memory
+   * from the lobby preload). Empty seats never download their model.
+   */
+  private loadCharacter(index: number) {
+    if (this.characters.has(index) || !this.library || index >= CHARACTER_IDS.length) return
+    const library = this.library
+    const job = (async () => {
+      const [gltf, { animations: clips }] = await Promise.all([this.gltf(`${MODELS}characters/${CHARACTER_IDS[index]}.glb`), library])
+      if (this.disposed) return
+      const avatar = this.avatars[index]
+      avatar.attach(gltf, clips)
+      if (this.view?.seats[index]) avatar.setMood(this.view.seats[index].mood)
+      if (this.attached === 0) {
+        this.calibrateSeat(avatar)
+        this.avatars.forEach((other, seat) => this.chairs[seat]?.position.copy(this.chairPosition(other)))
+      }
+      this.attached += 1
+      this.reportProgress()
+      this.loadedAtFrame = this.frame
+    })()
+    job.catch((error) => { this.characters.delete(index); console.warn('[boardroom] character failed to load', CHARACTER_IDS[index], error) })
+    this.characters.set(index, job)
+    this.reportProgress()
   }
 
   /** Measure where the seated pose puts the hips so chairs sit under every character. */
@@ -581,18 +617,14 @@ export class Boardroom {
 
   private async loadProps() {
     try {
-      const response = await fetch(`${MODELS}props/props.json`)
-      if (!response.ok || !response.headers.get('content-type')?.includes('json')) return
-      type Entry = { file: string }
       // props.json: { conventions: { front: "+Z", origin: base at Y=0 }, models: [{ id, file, ... }] }
-      const manifest = (await response.json()) as { models: Entry[] }
-      const entries = manifest.models
-      const find = (word: string) => entries.find((entry) => entry.file.toLowerCase().includes(word))
+      const manifest = await propManifest()
+      if (!manifest) return
       // Only large furniture casts shadows; small props add shadow pass cost for no visible gain.
-      const load = async (word: string, castShadow = false) => {
-        const entry = find(word)
-        if (!entry) return null
-        const gltf = await this.loader.loadAsync(`${MODELS}props/${entry.file.split('/').pop()}`)
+      const load = async (word: PropWord, castShadow = false) => {
+        const url = propUrl(manifest.models, word)
+        if (!url) return null
+        const gltf = await this.gltf(url)
         gltf.scene.traverse((o) => {
           if ((o as THREE.Mesh).isMesh) {
             o.castShadow = castShadow
@@ -604,8 +636,15 @@ export class Boardroom {
       }
       // Prop origins sit at the centre of their base. The back wall face is at z = -3.6.
       const WALL = -3.6
+      // Start every download before placing anything (an `await` inside the list below would load them one by one).
+      const loading = {
+        table: load('table', true), chair: load('chair', true), credenza: load('credenza', true),
+        water: load('water-service'), plant: load('plant'), clock: load('clock'), hub: load('holo-hub'),
+        display: load('display'), laptop: load('laptop'), console: load('console'),
+      }
+      for (const promise of Object.values(loading)) promise.catch(() => undefined)
       await Promise.all([
-        this.swapProp(await load('table', true), 'table', (model) => {
+        this.swapProp(await loading.table, 'table', (model) => {
           model.position.set(0, 0, 0)
           // The Tripo table texture reads grey and weathered; tint it toward the dark walnut concept.
           model.traverse((o) => {
@@ -613,17 +652,20 @@ export class Boardroom {
             if (material?.isMeshStandardMaterial) material.color.set('#9a7457')
           })
         }, true),
-        this.swapChairs(await load('chair', true)),
-        this.placeProp(await load('credenza', true), new THREE.Vector3(0, 0, WALL + 0.25), 0),
-        this.placeProp(await load('water-service'), new THREE.Vector3(0.62, 0.756, WALL + 0.25), 0),
-        this.placeProp(await load('plant'), new THREE.Vector3(-4.6, 0, -2.9), 0),
-        this.placeProp((await load('plant'))?.clone() ?? null, new THREE.Vector3(-4.6, 0, 2.9), 0),
+        loading.chair.then((model) => this.swapChairs(model)),
+        loading.credenza.then((model) => this.placeProp(model, new THREE.Vector3(0, 0, WALL + 0.25), 0)),
+        loading.water.then((model) => this.placeProp(model, new THREE.Vector3(0.62, 0.756, WALL + 0.25), 0)),
+        // One plant download, two plants.
+        loading.plant.then((model) => Promise.all([
+          this.placeProp(model?.clone() ?? null, new THREE.Vector3(-4.6, 0, 2.9), 0),
+          this.placeProp(model, new THREE.Vector3(-4.6, 0, -2.9), 0),
+        ])),
         // The clock is 0.5 m across; centre it at y = 1.95.
-        this.placeProp(await load('clock'), new THREE.Vector3(2.0, 1.7, WALL + 0.063), 0),
-        this.placeProp(await load('holo-hub'), new THREE.Vector3(0, TABLE.height, 0), 0),
-        this.mountDisplay(await load('display')),
-        this.swapLaptops(await load('laptop')),
-        this.placeConsoles(await load('console')),
+        loading.clock.then((model) => this.placeProp(model, new THREE.Vector3(2.0, 1.7, WALL + 0.063), 0)),
+        loading.hub.then((model) => this.placeProp(model, new THREE.Vector3(0, TABLE.height, 0), 0)),
+        loading.display.then((model) => this.mountDisplay(model)),
+        loading.laptop.then((model) => this.swapLaptops(model)),
+        loading.console.then((model) => this.placeConsoles(model)),
       ])
     } catch (error) {
       console.warn('[boardroom] props not loaded', error)
@@ -646,12 +688,15 @@ export class Boardroom {
    * skyline panorama, and `Emit_*` meshes are pushed above 1 so the bloom pass makes them glow.
    */
   private async loadRoom() {
+    // The room model downloads while its settings file is read.
+    const room = this.gltf(`${MODELS}room/room.glb`)
+    room.catch(() => undefined)
     try {
       const response = await fetch(`${MODELS}room/room.json`)
       if (!response.ok || !response.headers.get('content-type')?.includes('json')) return
       type Sky = { file: string; u_facing_minus_x?: number; three_background_rotation_y_rad_suggested?: number }
       const info = (await response.json()) as { sky?: string | Sky; emissive_boost?: number }
-      const gltf = await this.loader.loadAsync(`${MODELS}room/room.glb`)
+      const gltf = await room
       const boost = info.emissive_boost ?? 3
       gltf.scene.traverse((object) => {
         const mesh = object as THREE.Mesh
@@ -663,6 +708,8 @@ export class Boardroom {
         // table are culled: zooming out gives a cutaway view instead of the back of a wall.
         material.side = THREE.FrontSide
         if (material.map) material.map.anisotropy = 8
+        // The room is unlit with baked textures; lift it a little so the dark walnut walls do not swallow the scene.
+        if (!mesh.name.startsWith('Glass') && !mesh.name.startsWith('Emit_') && material.color) material.color.multiplyScalar(1.3)
         if (mesh.name.startsWith('Glass')) {
           mesh.material = new THREE.MeshPhysicalMaterial({
             color: '#c9d6dc', transparent: true, opacity: 0.1, roughness: 0.04, metalness: 0,
@@ -764,7 +811,7 @@ export class Boardroom {
     this.scene.background = new THREE.Color('#e9e5da')
     this.scene.fog = new THREE.Fog('#e9e5da', 14, 30)
 
-    const hemi = new THREE.HemisphereLight('#fffaf0', '#6b5a48', 0.55)
+    const hemi = new THREE.HemisphereLight('#fffaf0', '#7a6a58', 0.85)
     this.scene.add(hemi)
     // Cool window light from the far wall gives characters a rim and separates them from the room.
     const windowLight = new THREE.DirectionalLight('#dbe8f2', 1.1)
@@ -782,7 +829,8 @@ export class Boardroom {
     sun.shadow.bias = -0.0004
     sun.shadow.normalBias = 0.02
     this.scene.add(sun)
-    const fill = new THREE.PointLight('#ffd9b0', 4, 9, 1.6)
+    // Neutral and gentler than before: a strong orange point light over the table turned hands orange.
+    const fill = new THREE.PointLight('#fff0e2', 2.2, 9, 1.6)
     fill.position.set(0, 2.6, 0)
     this.scene.add(fill)
 
@@ -1102,8 +1150,9 @@ export class Boardroom {
     return {
       // Opposite seats are 1 m apart and directly across, so a 0.5 m side offset puts the camera
       // in the gap between two of them; the raised height clears the speaker's laptop lid.
-      position: head.clone().addScaledVector(toward, 2.0).addScaledVector(side, 0.5).add(new THREE.Vector3(0, 0.32, 0)),
-      target: head.clone().add(new THREE.Vector3(0, -0.22, 0)),
+      // Head and shoulders, close to eye level: the earlier higher, lower aimed shot filled half the frame with table.
+      position: head.clone().addScaledVector(toward, 1.75).addScaledVector(side, 0.45).add(new THREE.Vector3(0, 0.2, 0)),
+      target: head.clone().add(new THREE.Vector3(0, -0.12, 0)),
     }
   }
 }

@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { acceptSnapshot, pollRoom, roomMembers, startInput, startProblem } from '../src/features/rooms/roomState.ts'
+import { assignRole, acceptSnapshot, pollRoom, roomMembers, startInput, startProblem } from '../src/features/rooms/roomState.ts'
 import type { RoomSnapshot, Scenario } from '../src/services/rooms.ts'
 
 const scenario: Scenario = {
@@ -10,7 +10,7 @@ const scenario: Scenario = {
 }
 function lobby(): RoomSnapshot {
     return {
-        room_id: 'room', room_code: 'ABC123', room_version: 3, capacity: 30, presence_window_seconds: 30,
+        room_id: 'room', room_code: 'ABC123', room_version: 3, capacity: 10, presence_window_seconds: 30,
         phase: 'lobby', game: null, host_member_id: 'a', self_member_id: 'a',
         members: ['a', 'b', 'c'].map((id) => ({ member_id: id, display_name: `Server ${id}`, is_host: id === 'a', connected: true, role_id: null, eligible_from_round: null, eligible_current_round: false })),
     }
@@ -122,4 +122,10 @@ test('returning to a tab refreshes immediately without overlapping an outstandin
     stop()
     assert.equal(unsubscribed, true)
     finish!(lobby())
+})
+
+test('only one CEO: giving the role to someone takes it from whoever had it', () => {
+    const draft = assignRole({ a: 'ceo', b: 'technology' }, 'b', 'ceo')
+    assert.deepEqual(draft, { a: 'unassigned', b: 'ceo' })
+    assert.deepEqual(assignRole(draft, 'a', 'operations'), { a: 'operations', b: 'ceo' })
 })

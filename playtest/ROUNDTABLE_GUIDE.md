@@ -18,19 +18,27 @@ The server controls deadlines. A slow introduction does not extend preparation; 
 
 The current participant card shows **SPEAKING NOW**. Others show **Waiting for turn**. Nothing plays automatically for the participants.
 
-1. On the current speaker's card, click **Play this participant’s saved clip**. The page selects that membership and plays its saved ElevenLabs recording.
+1. On the current speaker's card, click **Play this participant’s saved clip**, or use **Play this turn’s recording** in Discussion. The page selects that membership and plays its saved ElevenLabs recording.
 2. After playback finishes, click **Commit caption and pass**. This commits the exact catalog caption and gives the next person the floor. Playback alone adds nothing to the transcript.
-3. Repeat for the next speaker. **Stop** cancels playback without committing a caption. An expired lease or changed turn also prevents commitment.
+3. Repeat for the next speaker. **Stop** on the card or **Stop recording playback** in Discussion cancels playback without committing a caption. An expired lease or changed turn also prevents commitment.
 
-The three new T01 recordings give useful points to discuss:
+The T01 script now has **nine different turns across three participants**, arranged as three cycles. It progresses through proposals, challenges, clarification and a summary rather than repeating the opening clips.
 
-| Participant topic | What the recording raises | Saved duration |
-| --- | --- | --- |
-| Leadership | Appointing an interim coordinator when the director is unavailable and no alternate is named. | 14.21 seconds |
-| Recovery | Checking backup usability, dependencies and a restoration estimate before promising recovery. | 17.18 seconds |
-| Communications | Considering approved paper appointments and separating facts, unknowns and the next update. | 14.63 seconds |
+| Turn | Participant topic | What the recording raises | Saved duration |
+| --- | --- | --- | --- |
+| 1 | Leadership | The missing coordinator and proposed interim authority. | 15.28 seconds |
+| 2 | Recovery | Suspicious activity, unconfirmed disclosure and unverified backups. | 16.81 seconds |
+| 3 | Communications | Considering approved paper appointments without promising normal service. | 14.16 seconds |
+| 4 | Leadership | Who would own coordination and the next review? | 12.96 seconds |
+| 5 | Recovery | A review time is not a restoration promise. | 15.19 seconds |
+| 6 | Communications | Separate facts from unknowns and identify the next update. | 14.58 seconds |
+| 7 | Leadership | Compare a combined continuity proposal with waiting for the director. | 16.95 seconds |
+| 8 | Recovery | Support remains conditional on technical verification; spoken support is not a vote. | 15.74 seconds |
+| 9 | Communications | Summarize the alternatives and invite a custom response before voting. | 12.73 seconds |
 
-They total about 46 seconds of saved speech. These are fictional participant contributions, not live model replies or proof that an action has happened. Check their claims against the PDF. Playback and trusted caption commitment make no new provider request.
+The recordings total **134.40 seconds**, about two minutes and fourteen seconds. Each participant has a consistent voice across the three cycles. The progress display identifies the current scripted turn. The server accepts only the recording assigned to that numbered turn, and the script does not repeat after turn nine. Passing a turn without recording advances the script position; it does not silently submit the skipped caption.
+
+These are fictional participant contributions, not live model replies or proof that an action has happened. Check their claims against the PDF. Playback and trusted caption commitment make no new provider request. After all nine turns, continue with typed discussion or let the CEO proceed to the advisers.
 
 Discussion remains open for five minutes unless the CEO finishes it early. You can type additional contributions during each person's turn. Use **Next participant** to pass the floor; only the current speaker or CEO can do that.
 
@@ -62,7 +70,7 @@ Wait for the minute to finish, or click **CEO: Finish adviser minute** to procee
 
 ## Hear the guide and choose a response
 
-For the default T01 report, the server opens one fixed ballot under **Choose the board’s response**. The CEO's page plays the separately labelled **RECORDED DECISION GUIDE** once when voting opens. It lasts 19.74 seconds. **CEO: Replay recorded guide** replays it; **Stop guide** stops it. With **Speak with ElevenLabs** unchecked, its text remains available without playback.
+For the default T01 report, the server opens one shared ballot under **Choose the board’s response**. The CEO's page plays the separately labelled **RECORDED DECISION GUIDE** once when voting opens. It lasts **21.97 seconds** and explains that the group may choose a prepared response or write a custom one. **CEO: Replay recorded guide** replays it; **Stop guide** stops it. With **Speak with ElevenLabs** unchecked, its text remains available without playback.
 
 This guide is a saved explanation of the choices. It does not generate live advice, add a contribution, vote, choose a winner or commit a result. Replaying it makes no provider request.
 
@@ -77,22 +85,46 @@ The three authored responses are:
 Read the full wording on each choice card. These are proposed actions, not claims that recovery or a downstream consequence has occurred.
 
 1. The page asks the next member by name: “Alex, which response do you choose?” Their card shows **DECIDE NOW**. In the single window test setup, that seat is selected automatically.
-2. Click **Choose this response** on one of the three choices, then click **Confirm my vote**. Selecting a choice alone sends no ballot. The next member is then asked and selected automatically. Repeat for Morgan and Sam.
+2. Click **Choose this response** on a prepared or custom choice, then click **Confirm my vote**. Selecting a choice alone sends no ballot. The next member is then asked and selected automatically. Repeat for Morgan and Sam.
 3. The server enforces the first vote order. Members waiting for their turn cannot submit early. Each person can change their own submitted choice before commitment by selecting an option and clicking **Confirm changed vote**. Pending choices remain private. Separate participant browsers keep their own identity and never switch seats automatically.
 4. After all three confirmations, the test view returns to the CEO. Once all ballots arrive, click **CEO: Record winning response**. The option with the most ballots wins. The CEO cannot replace a clear winner with another option.
 5. If leading options tie, the CEO sees **CEO tie:** buttons for those leaders and must explicitly choose one of them.
 6. A live Gemini evaluation, with ElevenLabs speech when enabled, interprets the committed result. It cannot revise votes or apply an unimplemented scenario outcome.
 7. Click **CEO: End meeting**, then **Export written record**. The export includes discussion and decisions without membership bearer tokens.
 
-The fixed T01 ballot cannot be cancelled or replaced with a custom proposal, and the meeting cannot end while it is unresolved. It applies only when T01 is the sole attached document. Other document selections retain the earlier custom proposal and approve, reject or abstain workflow; they do not inherit T01 choices.
+The T01 ballot cannot be cancelled, and the meeting cannot end while it is unresolved. It applies only when T01 is the sole attached document. Other document selections retain the earlier custom proposal and approve, reject or abstain workflow; they do not inherit T01 choices.
 
-## A concrete voting test
+## Add a custom response
 
-Use the default report and manually play all three participant clips, committing each caption. As CEO, finish discussion early if desired. Ask the IT character a question during the adviser minute, then continue to voting.
+During the decision phase, any participant can use **Write a custom response** below the recorded guide. Enter a **Short title** of up to 80 characters and **Your proposed response** of up to 1,500 characters, then click **Add custom option**. Up to three custom options can be added alongside the three prepared choices.
 
-Choose **Controlled continuity** as Alex, **Controlled continuity** as Morgan and **Technical checks first** as Sam. As CEO, record the winner. Expect Controlled continuity with two ballots, Technical checks first with one, and a committed result marked approved. Check that evaluation describes this selected plan and preserves the uncertainty about restoration; approval does not mean recovery has happened.
+A custom response is human supplied and unverified. Adding one does not accept it, remove the prepared choices or override another participant's vote. If it later wins and the CEO records it, its exact proposal becomes the final decision text, taking precedence over the prepared plans for that committed result. The live evaluator receives this winning custom text.
 
-For a tie test, start a new meeting and choose a different option for each of the three members. Before commitment, the CEO must choose among the three tied leaders. Do not expect the recording or AI to submit any ballot.
+Every added option changes the ballot version and clears all existing ballots. If someone has already voted, you must first check **I understand that existing votes will be cleared and everyone must vote again.** The page reports the reset and returns to the first voter. Everyone must repeat **Choose this response** and **Confirm my vote** against the updated options. Previous ballots never carry over silently.
+
+The CEO still cannot replace a clear winner with a preferred custom option. After a tie, only a tied leader may be chosen.
+
+## Test a custom response winning two votes to one
+
+1. Start a fresh default T01 meeting. Play and commit all nine turns manually. Confirm that the transcript has nine distinct recorded contributions and that no tenth prerecorded turn loops back to the beginning.
+2. Let the five minute discussion finish, or select the CEO and click **CEO: Finish discussion**. Consult an adviser if useful, then let the adviser minute finish or click **CEO: Finish adviser minute**.
+3. Hear or read the recorded decision guide. Under **Write a custom response**, use the title **Review before paper activation**. Enter: “Appoint an interim coordinator, ask IT to verify backup usability and recovery dependencies, and return to the board with a restoration estimate before activating paper appointments. Issue a factual update distinguishing confirmed facts from unknowns.”
+4. Click **Add custom option** before anyone votes. It should appear alongside the three prepared responses. Adding it must not create a committed decision.
+5. As Alex, choose **Review before paper activation** and confirm. As Morgan, choose the same custom response and confirm. As Sam, choose **Technical checks first** and confirm.
+6. Return to the CEO and click **CEO: Record winning response**. Expect the custom response to win two votes to one. The committed record must contain its exact proposal, not the text of Controlled continuity or another prepared plan.
+7. Inspect the live evaluation and written record. The evaluator should discuss the actual custom plan, preserve uncertainty about recovery and avoid claiming that board approval made the proposed actions happen. Export the record.
+
+This is a manual procedure and its expected result, not a claim that the live case has already passed. Actual verification belongs in [the extended conversation report](EXTENDED_CONVERSATION_REPORT.md).
+
+## Test changing the ballot after a vote
+
+1. Start a fresh meeting and proceed to decisions. As Alex, choose **Controlled continuity** and click **Confirm my vote**. One confirmed ballot now exists.
+2. As any participant, enter a new custom title and proposal. Leave the reset acknowledgement unchecked: the option must not be added while confirmed ballots exist.
+3. Check the acknowledgement and click **Add custom option**. Expect a new ballot version, all prior ballots cleared, and Alex prompted to vote again. The previous Controlled continuity vote must not remain counted.
+4. Repeat selection and confirmation for Alex, Morgan and Sam. Confirm that the CEO cannot commit before all three updated ballots arrive.
+5. If you add another custom option, expect the same reset. A fourth custom addition must be refused because the limit is three custom options.
+
+For a tie test, start a new meeting and choose a different option for each of the three members. Before commitment, the CEO must explicitly select a tied leader. A custom response has no priority over another tied choice. Neither participant audio nor the recorded guide submits ballots.
 
 ## Written minutes, usage and limits
 
@@ -104,4 +136,4 @@ Start requests a live introduction. Optional previews, adviser questions, minute
 
 Manual joining, CEO reassignment and PDF upload remain secondary controls. Changing the CEO before Start resets readiness. Uploaded PDFs stay scoped to their room. The roster freezes at Start. This is a localhost experiment with test membership tokens, not a public deployment or production account login. Restarting the backend loses rooms; export important records first.
 
-The live harness is `python -m playtest.guided_round_benchmark --live`. Its measurements and limitations are recorded in [the guided round report](GUIDED_ROUND_REPORT.md); older streaming results remain in [the preparation report](STREAMING_PREPARATION.md). Browser visual quality, human microphone permission and listening quality remain unverified. HTTP and audio byte checks do not establish those results. The separate audio website remains removed.
+The live harness is `python -m playtest.extended_round_benchmark --live`. Its measurements and limitations are recorded in [the extended conversation report](EXTENDED_CONVERSATION_REPORT.md); older streaming results remain in [the preparation report](STREAMING_PREPARATION.md). Browser visual quality, human microphone permission and listening quality remain unverified. HTTP and audio byte checks do not establish those results. The separate audio website remains removed.

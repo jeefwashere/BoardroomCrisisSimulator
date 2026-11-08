@@ -40,7 +40,7 @@ test('partial summary coverage is visible and does not hide the transcript',()=>
 test('recorded playback finishes before a separate trusted caption commit',async()=>{
  const {run,node,ctx}=harness();const calls=[];
  ctx.fetch=async(url,options)=>{calls.push({url,auth:options.headers.Authorization,body:options.body});return {ok:true,json:async()=>({id:'lease'}),blob:async()=>new Blob(['fixed audio'])};};
- run(`states[0].phase='discussion';recordings=[{id:'fixed',seat_index:0,available:true,text:'Known caption'}];refresh=async()=>{};`);
+ run(`states[0].phase='discussion';recordings=[{id:'fixed',turn_number:1,seat_index:0,available:true,text:'Known caption'}];refresh=async()=>{};`);
  const pending=run('playRecordedTurn()');await new Promise(resolve=>setImmediate(resolve));
  assert(!calls.some(c=>c.url.endsWith('/complete')));node('recordedAudio').onended();assert.equal(await pending,true);
  assert(run('completedPlayback!==null'));assert(!calls.some(c=>c.url.endsWith('/complete')));
@@ -50,7 +50,7 @@ test('recorded playback finishes before a separate trusted caption commit',async
 test('stopped pending recording cannot play or commit in a replacement room',async()=>{
  const {run,ctx}=harness();let resolveLease;const calls=[];
  ctx.fetch=(url,options)=>{calls.push({url,auth:options.headers.Authorization});if(url.endsWith('/play'))return new Promise(resolve=>resolveLease=resolve);return Promise.resolve({ok:true,json:async()=>({ok:true})});};
- run(`states[0].phase='discussion';recordings=[{id:'fixed',seat_index:0,available:true}];`);
+ run(`states[0].phase='discussion';recordings=[{id:'fixed',turn_number:1,seat_index:0,available:true}];`);
  const pending=run('playRecordedTurn()');await run('stopTurnPlayback()');run(`bundle={code:'NEW',seats:[{token:'new'}]};`);
  resolveLease({ok:true,json:async()=>({id:'old-lease'})});assert.equal(await pending,false);
  assert(!calls.some(c=>c.url.includes('/audio/')||c.url.endsWith('/complete')));const stop=calls.find(c=>c.url.endsWith('/stop'));assert.equal(stop.auth,'Bearer secret');
@@ -64,7 +64,7 @@ test('decision and evaluation auto streams are marked before requests and never 
 
 test('each participant has manual turn controls and only the current speaker can play',async()=>{
  const {run,node,ctx}=harness();ctx.plays=[];
- run(`states[0].phase='discussion';states[0].speaker='b';states=[states[0],{...states[0],me:'b'},{...states[0],me:'c'}];recordings=[0,1,2].map(i=>({id:'clip'+i,seat_index:i,available:true,title:'Participant '+i}));playRecordedTurn=async()=>{plays.push(context().token);};render();`);
+ run(`states[0].phase='discussion';states[0].speaker='b';states[0].turn_number=2;states=[states[0],{...states[0],me:'b'},{...states[0],me:'c'}];recordings=[0,1,2].map(i=>({id:'clip'+i,turn_number:i+1,seat_index:i,available:true,title:'Participant '+i}));playRecordedTurn=async()=>{plays.push(context().token);};render();`);
  const cards=node('seats').children;assert.equal(cards.length,3);
  const buttons=cards.map(card=>card.children.find(c=>c.className==='actions').children);
  assert(buttons[0][0].disabled);assert(!buttons[1][0].disabled);assert(buttons[2][0].disabled);assert.equal(cards[1].children[1].textContent,'SPEAKING NOW');
@@ -76,7 +76,7 @@ test('unlimited health displays tracking without a false zero balance',async()=>
  await run('health()');assert.equal(node('budget').textContent,'Usage tracking only · no app spending cap');assert(!node('budget').textContent.includes('$0'));
 });
 
-function fixedFixture(run){run(`states[0].phase='decision';states[0].fixed_scenario='T01';states[0].decisions=[{id:'t01_response',mode:'fixed_choice',problem:'Choose a response',status:'pending',ballot_count:1,voted_members:['a'],my_vote:'controlled_continuity',options:[{id:'controlled_continuity',label:'Controlled continuity',proposal:'Coordinate and verify'},{id:'technical_first',label:'Technical checks first',proposal:'Prioritize technical checks'},{id:'wait_for_director',label:'Wait for director',proposal:'Defer until contact'}]}];render();`);}
+function fixedFixture(run){run(`states[0].phase='decision';states[0].fixed_scenario='T01';states[0].decisions=[{id:'t01_response',mode:'fixed_choice',ballot_version:1,problem:'Choose a response',status:'pending',ballot_count:1,voted_members:['a'],my_vote:'controlled_continuity',options:[{id:'controlled_continuity',label:'Controlled continuity',proposal:'Coordinate and verify'},{id:'technical_first',label:'Technical checks first',proposal:'Prioritize technical checks'},{id:'wait_for_director',label:'Wait for director',proposal:'Defer until contact'}]}];render();`);}
 test('consultation has a visible minute timer and CEO can finish it early',()=>{
  const {run,node}=harness();run(`states[0].phase='consultation';states[0].deadline=160;states[0].received=Date.now();render();`);
  assert.equal(node('phase').textContent,'One minute with live advisers');assert.equal(node('timer').textContent,'01:00');assert.equal(node('consultationNotice').hidden,false);assert(!node('skipConsultation').disabled);assert(!node('facilitate').disabled);
@@ -154,4 +154,35 @@ test('a stale confirmation cannot submit a different selected member ballot',asy
  const confirm=node('decisions').children[0].children.find(c=>c.className==='vote-confirmation').children.at(-1);
  run(`states.push({...states[0],me:'b',decisions:[{...states[0].decisions[0],my_vote:null,next_voter:'b'}]});active=1;voteDrafts[voteDraftKey(states[1].decisions[0],states[1])]='technical_first';`);
  await confirm.onclick();assert.equal(ctx.commands.length,0);assert(node('notice').textContent.includes('changed'));
+});
+
+test('recorded turns use nine distinct ordinals and preview the next assigned clip',async()=>{
+ const {run,node}=harness();run(`states[0].phase='discussion';recordings=Array.from({length:9},(_,i)=>({id:'turn'+(i+1),turn_number:i+1,default_seat:i%3,title:'Script '+(i+1),text:'Caption '+(i+1),available:true}));states[0].turn_number=4;states[0].speaker='a';render();`);
+ assert.equal(run("recordingAtTurn(state().turn_number).id"),'turn4');assert.equal(run("upcomingRecording(state(),'b').id"),'turn5');assert.equal(run("upcomingRecording(state(),'c').id"),'turn6');assert(node('recordingProgress').textContent.includes('Recorded turn 4 of 9'));assert.equal(node('recordedCaption').textContent,'Caption 4');
+ run(`states[0].turn_number=10;render();`);assert(node('playTurn').disabled);assert(!node('commit').disabled);assert(node('recordedCaption').textContent.includes('finished'));await assert.rejects(run('playRecordedTurn()'),/scripted turns are finished/);
+});
+test('custom response requires explicit reset acknowledgement and submits the displayed version',async()=>{
+ const {run,node,ctx}=harness();fixedFixture(run);ctx.commands=[];run(`command=async(action,data,owner)=>commands.push({action,data,token:owner.token});$('customOptionTitle').value='Coordinated fallback';$('customOptionProposal').value='Morgan verifies service status; Alex coordinates a documented fallback.';`);
+ assert(!node('fixedCustomForm').hidden);assert.equal(node('addCustomOption').textContent,'Add custom option and restart voting');assert(node('addCustomOption').disabled);await assert.rejects(run('addCustomOption()'),/existing votes will be cleared/);assert.equal(ctx.commands.length,0);
+ run(`$('acknowledgeReset').checked=true;render();`);assert(!node('addCustomOption').disabled);await run('addCustomOption()');assert.equal(ctx.commands[0].action,'add_custom_option');assert.equal(ctx.commands[0].data.ballot_version,1);assert.equal(ctx.commands[0].data.acknowledge_reset,true);assert.equal(ctx.commands[0].token,'secret');
+});
+test('custom choices are labelled unverified and the six choice limit disables addition',()=>{
+ const {run,node}=harness();fixedFixture(run);run(`states[0].decisions[0].options.push(...[1,2,3].map(i=>({id:'custom_'+i,label:'Custom '+i,proposal:'Human alternative '+i,custom:true,proposed_by:'b'})));render();`);
+ const options=node('decisions').children[0].children.find(c=>c.className==='fixed-options');assert.equal(options.children.length,6);assert(options.children[3].children.some(c=>c.textContent==='Human proposal · unverified'));assert(node('addCustomOption').disabled);assert(node('customOptionLimit').textContent.includes('limit has been reached'));
+});
+test('ballot version change clears selections and reopens the first named voting turn',()=>{
+ const {run,node}=harness();fixedFixture(run);
+ run(`states=['a','b','c'].map(id=>({...states[0],me:id,decisions:[{...states[0].decisions[0],ballot_version:1,voted_members:['a','b'],ballot_count:2,next_voter:'c'}]}));active=2;render();voteDrafts[voteDraftKey(states[2].decisions[0],states[2])]='technical_first';$('customOptionTitle').value='Stale text';for(const own of states){own.decisions[0]={...own.decisions[0],ballot_version:2,voted_members:[],ballot_count:0,next_voter:'a',my_vote:null};}render();`);
+ assert.equal(run('active'),0);assert.equal(run('Object.keys(voteDrafts).length'),0);assert(node('votePrompt').textContent.startsWith('A, which response'));assert(node('ballotUpdate').textContent.includes('All previous votes and selections were cleared'));assert.equal(node('customOptionTitle').value,'');
+});
+test('stale confirmation and CEO result controls reject a changed ballot version',async()=>{
+ const {run,node,ctx}=harness();fixedFixture(run);ctx.commands=[];run(`command=async(...args)=>commands.push(args);`);
+ await node('decisions').children[0].children.find(c=>c.className==='fixed-options').children[0].children.at(-1).onclick();const staleConfirm=node('decisions').children[0].children.find(c=>c.className==='vote-confirmation').children.at(-1);
+ run(`states[0].decisions[0].ballot_count=3;states[0].decisions[0].tally={controlled_continuity:2,technical_first:1,wait_for_director:0};render();`);const staleCommit=node('decisions').children[0].children.at(-1).children[0];
+ run(`states[0].decisions[0]={...states[0].decisions[0],ballot_version:2,ballot_count:0,voted_members:[],tally:null,my_vote:null};render();`);await staleConfirm.onclick();assert.equal(ctx.commands.length,0);assert(node('notice').textContent.includes('ballot changed'));await staleCommit.onclick();assert.equal(ctx.commands.length,0);assert(node('notice').textContent.includes('ballot changed'));
+});
+test('confirmed choices and CEO ties carry the captured ballot revision',async()=>{
+ const {run,node,ctx}=harness();fixedFixture(run);ctx.commands=[];run(`states[0].decisions[0].ballot_version=2;command=async(action,data)=>commands.push({action,data});render();`);
+ await node('decisions').children[0].children.find(c=>c.className==='fixed-options').children[1].children.at(-1).onclick();await node('decisions').children[0].children.find(c=>c.className==='vote-confirmation').children.at(-1).onclick();assert.equal(ctx.commands[0].data.ballot_version,2);
+ run(`states[0].decisions[0].ballot_count=3;states[0].decisions[0].tally={controlled_continuity:1,technical_first:1,wait_for_director:1};render();`);await node('decisions').children[0].children.at(-1).children.find(c=>c.onclick).onclick();assert.equal(ctx.commands[1].data.ballot_version,2);
 });

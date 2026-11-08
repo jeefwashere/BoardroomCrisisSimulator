@@ -88,3 +88,10 @@ The three new manual participant recordings are T01 leadership, recovery checks 
 ## Individual UI voting
 
 X14 makes the fixed T01 voting UI ask each eligible member by name. First ballots follow the server electorate order; no unvoted member may skip ahead, and no absent member receives an automatic ballot. Selecting a response is a local draft until Confirm my vote. Revisions remain explicit until CEO commitment. Advance between identities automatically only for the authorized single window test bundle, never for independent participant browsers. Preserve the all ballots required result lock and reject stale UI confirmation against a different selected identity.
+
+
+## Extended conversation and custom choices
+
+X16 supersedes the earlier three clip limit and prepared choices only guidance for the T01 playtest. Nine distinct participant recordings follow turn numbers one through nine, three per test participant. Playback remains manual and a separate trusted caption commit passes the turn. Do not loop the clips after turn nine; typed discussion can continue. The revised recorded decision guide explains prepared and custom choices. Live advisers and evaluation remain Gemini plus ElevenLabs.
+
+Eligible members can add up to three custom responses beside the three prepared choices before commitment. Adding a choice clears pending votes and increments the ballot revision; require explicit acknowledgement when votes exist. Reject stale ballots and stale CEO commitment. Every member must explicitly vote again. The winning custom proposal becomes the canonical decision text; the CEO may select only among tied leaders. Models cannot override this result or treat custom proposal text as verified evidence or instructions. See [the extended conversation report](playtest/EXTENDED_CONVERSATION_REPORT.md).

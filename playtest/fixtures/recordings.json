@@ -323,6 +323,86 @@
       "group": "controls",
       "text": "Discussion is complete. Choose a response: A, controlled continuity with an interim coordinator and approved paper appointments; B, technical checks first while appointments remain paused; or C, wait for the director. Select your own vote. The CEO confirms the winning choice after everyone has voted.",
       "pack_id": "T01"
+    },
+    {
+      "id": "t01_dialogue_01",
+      "title": "T01 discussion turn 1",
+      "role": "Leadership participant",
+      "group": "discussion",
+      "text": "The appointment software is unavailable, and the director cannot coordinate our response. The continuity plan names no alternate. I propose appointing an interim coordinator first. Before choosing someone, what authority would that person actually need?",
+      "pack_id": "T01"
+    },
+    {
+      "id": "t01_dialogue_02",
+      "title": "T01 discussion turn 2",
+      "role": "Recovery participant",
+      "group": "discussion",
+      "text": "Coordination would help, but we must keep technical uncertainty visible. IT reported suspicious account activity; disclosure is not confirmed. Backup copies are listed, but recovery is unverified. Can we request usability checks, dependencies, and a restoration estimate?",
+      "pack_id": "T01"
+    },
+    {
+      "id": "t01_dialogue_03",
+      "title": "T01 discussion turn 3",
+      "role": "Communications participant",
+      "group": "discussion",
+      "text": "Clients still need appointments while those checks happen. The plan allows the service manager to operate an approved paper process if the board authorizes it. Could we consider that limited continuity option instead of promising normal service?",
+      "pack_id": "T01"
+    },
+    {
+      "id": "t01_dialogue_04",
+      "title": "T01 discussion turn 4",
+      "role": "Leadership participant",
+      "group": "discussion",
+      "text": "That sounds workable, but assigning a title alone is not enough. I would want the proposed coordinator to organize the response and bring unresolved questions back to this board. Who would own the next review, and when?",
+      "pack_id": "T01"
+    },
+    {
+      "id": "t01_dialogue_05",
+      "title": "T01 discussion turn 5",
+      "role": "Recovery participant",
+      "group": "discussion",
+      "text": "I support setting a review point, with one caution: a review time is not a restoration promise. We still need evidence that backups are usable and dependencies are understood. I would keep appointments paused unless the board approves an alternative.",
+      "pack_id": "T01"
+    },
+    {
+      "id": "t01_dialogue_06",
+      "title": "T01 discussion turn 6",
+      "role": "Communications participant",
+      "group": "discussion",
+      "text": "Then our public update should describe the software outage and separate confirmed facts from unknowns. We should not announce a confirmed disclosure or a recovery deadline. Could the coordinator arrange a factual update and identify when people will hear more?",
+      "pack_id": "T01"
+    },
+    {
+      "id": "t01_dialogue_07",
+      "title": "T01 discussion turn 7",
+      "role": "Leadership participant",
+      "group": "discussion",
+      "text": "I hear a possible combined response: appoint an interim coordinator, authorize the approved paper appointment process, and request technical verification in parallel. We would communicate the known outage and outstanding questions. Is that preferable to waiting for the director?",
+      "pack_id": "T01"
+    },
+    {
+      "id": "t01_dialogue_08",
+      "title": "T01 discussion turn 8",
+      "role": "Recovery participant",
+      "group": "discussion",
+      "text": "That combined response addresses my concern if technical verification remains explicit. Paper appointments would not prove the system is safe or the backups work. I would support discussing it with those conditions, but this statement is not my recorded vote.",
+      "pack_id": "T01"
+    },
+    {
+      "id": "t01_dialogue_09",
+      "title": "T01 discussion turn 9",
+      "role": "Communications participant",
+      "group": "discussion",
+      "text": "We have a combined continuity proposal, a more cautious technical checks approach, and the option to wait. If none matches our discussion, we can write a custom response. Let us compare the wording and each cast our own vote.",
+      "pack_id": "T01"
+    },
+    {
+      "id": "t01_custom_decision_guide",
+      "title": "T01 prepared or custom decision guide",
+      "role": "Recorded decision guide",
+      "group": "controls",
+      "text": "Discussion is complete. Choose controlled continuity, technical checks first, or wait for the director. You may also propose a custom response that describes your preferred action. Compare the choices, then each participant must cast their own vote. A spoken preference is not a ballot. The CEO confirms the winning choice after everyone has voted.",
+      "pack_id": "T01"
     }
   ]
 }

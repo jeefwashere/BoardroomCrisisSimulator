@@ -1,0 +1,714 @@
+{
+  "room": "WY4Y3H",
+  "method": "Three real HTTP memberships; scripted explicit contributions and votes. Real recorded bytes and elapsed clip durations. No browser control. Automatic minutes and text evaluation are live. Preparation and advisers are not called in this probe.",
+  "recordings": [
+    {
+      "turn": 1,
+      "clip_id": "t01_dialogue_01",
+      "bytes": 245385,
+      "seconds": 15.279,
+      "caption": "The appointment software is unavailable, and the director cannot coordinate our response. The continuity plan names no alternate. I propose appointing an interim coordinator first. Before choosing someone, what authority would that person actually need?"
+    },
+    {
+      "turn": 2,
+      "clip_id": "t01_dialogue_02",
+      "bytes": 270044,
+      "seconds": 16.811,
+      "caption": "Coordination would help, but we must keep technical uncertainty visible. IT reported suspicious account activity; disclosure is not confirmed. Backup copies are listed, but recovery is unverified. Can we request usability checks, dependencies, and a restoration estimate?"
+    },
+    {
+      "turn": 3,
+      "clip_id": "t01_dialogue_03",
+      "bytes": 227830,
+      "seconds": 14.164,
+      "caption": "Clients still need appointments while those checks happen. The plan allows the service manager to operate an approved paper process if the board authorizes it. Could we consider that limited continuity option instead of promising normal service?"
+    },
+    {
+      "turn": 4,
+      "clip_id": "t01_dialogue_04",
+      "bytes": 208186,
+      "seconds": 12.957,
+      "caption": "That sounds workable, but assigning a title alone is not enough. I would want the proposed coordinator to organize the response and bring unresolved questions back to this board. Who would own the next review, and when?"
+    },
+    {
+      "turn": 5,
+      "clip_id": "t01_dialogue_05",
+      "bytes": 244131,
+      "seconds": 15.186,
+      "caption": "I support setting a review point, with one caution: a review time is not a restoration promise. We still need evidence that backups are usable and dependencies are understood. I would keep appointments paused unless the board approves an alternative."
+    },
+    {
+      "turn": 6,
+      "clip_id": "t01_dialogue_06",
+      "bytes": 234518,
+      "seconds": 14.582,
+      "caption": "Then our public update should describe the software outage and separate confirmed facts from unknowns. We should not announce a confirmed disclosure or a recovery deadline. Could the coordinator arrange a factual update and identify when people will hear more?"
+    },
+    {
+      "turn": 7,
+      "clip_id": "t01_dialogue_07",
+      "bytes": 272134,
+      "seconds": 16.951,
+      "caption": "I hear a possible combined response: appoint an interim coordinator, authorize the approved paper appointment process, and request technical verification in parallel. We would communicate the known outage and outstanding questions. Is that preferable to waiting for the director?"
+    },
+    {
+      "turn": 8,
+      "clip_id": "t01_dialogue_08",
+      "bytes": 252908,
+      "seconds": 15.743,
+      "caption": "That combined response addresses my concern if technical verification remains explicit. Paper appointments would not prove the system is safe or the backups work. I would support discussing it with those conditions, but this statement is not my recorded vote."
+    },
+    {
+      "turn": 9,
+      "clip_id": "t01_dialogue_09",
+      "bytes": 204843,
+      "seconds": 12.725,
+      "caption": "We have a combined continuity proposal, a more cautious technical checks approach, and the option to wait. If none matches our discussion, we can write a custom response. Let us compare the wording and each cast our own vote."
+    }
+  ],
+  "health_before": {
+    "ok": true,
+    "storage": "single process memory",
+    "models": {
+      "online": true,
+      "verified": false,
+      "provider": "Google Vertex AI",
+      "model": "gemini-3.8-flash",
+      "thinking_level": "LOW",
+      "name": "Gemini 3.8 Flash \u00b7 LOW",
+      "note": "Configured; live response not yet verified",
+      "budget": {
+        "cap_usd": null,
+        "reserved_usd": 3.25,
+        "remaining_usd": null,
+        "attempts": 65,
+        "unlimited": true,
+        "note": "Local test reservations, including failures; excludes other account spending."
+      }
+    },
+    "test_name_rejoin": true,
+    "speech": {
+      "cap": null,
+      "reserved": 19652,
+      "remaining": null,
+      "unlimited": true,
+      "unit": "credits",
+      "note": "Conservative reservations, not an exact provider invoice. Failed calls stay reserved."
+    },
+    "speech_configured": true
+  },
+  "speech_reservations_after_replay": 19652,
+  "shared_speech_reservations_unchanged_during_replay": true,
+  "guide_bytes": 352382,
+  "decision": {
+    "id": "t01_response",
+    "problem": "How should the board respond to the service outage and unavailable director?",
+    "options": [
+      {
+        "id": "controlled_continuity",
+        "label": "Controlled continuity",
+        "proposal": "Appoint an interim incident coordinator, authorize the approved paper appointment process, ask IT to verify backup usability, recovery dependencies and a restoration estimate before any restoration promise, and issue a factual update that separates confirmed facts from unknowns and states the next update time."
+      },
+      {
+        "id": "technical_first",
+        "label": "Technical checks first",
+        "proposal": "Appoint an interim incident coordinator, keep appointments paused until IT verifies recovery, and issue a factual update that separates confirmed facts from unknowns and states the next update time."
+      },
+      {
+        "id": "wait_for_director",
+        "label": "Wait for the director",
+        "proposal": "Keep appointments paused and defer the interim coordinator appointment and paper appointment process while awaiting the director."
+      },
+      {
+        "id": "custom_b14e98e1210f4653890c844c54e09c55",
+        "label": "Continuity with a board review",
+        "proposal": "Appoint an interim coordinator, authorize the approved paper appointment process, and ask IT to verify backup usability, recovery dependencies and a restoration estimate. Return to the board for a recorded review before making any restoration promise; issue a factual update with the next update time.",
+        "custom": true,
+        "proposed_by": "52e7b08622344ce19c249ec6f7272d21"
+      }
+    ],
+    "mode": "fixed_choice",
+    "proposal": "Appoint an interim coordinator, authorize the approved paper appointment process, and ask IT to verify backup usability, recovery dependencies and a restoration estimate. Return to the board for a recorded review before making any restoration promise; issue a factual update with the next update time.",
+    "option_id": "custom_b14e98e1210f4653890c844c54e09c55",
+    "source_ids": [
+      "WY4Y3H_e12",
+      "WY4Y3H_e16",
+      "WY4Y3H_e20",
+      "WY4Y3H_e24",
+      "WY4Y3H_e28",
+      "WY4Y3H_e32",
+      "WY4Y3H_e36",
+      "WY4Y3H_e40",
+      "WY4Y3H_e44"
+    ],
+    "document_ids": [
+      "T01"
+    ],
+    "member": null,
+    "at": 1794110870.747617,
+    "status": "approved",
+    "votes": {
+      "615b170a0dde4043b622f1eb3986ea6f": "custom_b14e98e1210f4653890c844c54e09c55",
+      "fe479e8ba4304ccc8e65c75ec7999276": "custom_b14e98e1210f4653890c844c54e09c55",
+      "52e7b08622344ce19c249ec6f7272d21": "technical_first"
+    },
+    "ballot_version": 2,
+    "option_label": "Continuity with a board review",
+    "option_kind": "custom",
+    "committed_by": "615b170a0dde4043b622f1eb3986ea6f",
+    "committed_at": 1794110870.795885,
+    "tally": {
+      "controlled_continuity": 0,
+      "technical_first": 1,
+      "wait_for_director": 0,
+      "custom_b14e98e1210f4653890c844c54e09c55": 2
+    },
+    "reason": "plurality",
+    "my_vote": "custom_b14e98e1210f4653890c844c54e09c55",
+    "ballot_count": 3,
+    "voted_members": [
+      "615b170a0dde4043b622f1eb3986ea6f",
+      "fe479e8ba4304ccc8e65c75ec7999276",
+      "52e7b08622344ce19c249ec6f7272d21"
+    ],
+    "next_voter": null,
+    "waiting_members": []
+  },
+  "guide": {
+    "clip_id": "t01_custom_decision_guide",
+    "text": "Discussion is complete. Choose controlled continuity, technical checks first, or wait for the director. You may also propose a custom response that describes your preferred action. Compare the choices, then each participant must cast their own vote. A spoken preference is not a ballot. The CEO confirms the winning choice after everyone has voted.",
+    "audio_url": "/api/roundtable/decision-prompt/audio",
+    "decision_id": "t01_response",
+    "duration_seconds": 21.966,
+    "prerecorded": true
+  },
+  "evaluation": {
+    "text": "The board faced an unavailable director, suspicious account activity, and an appointment software outage. The recorded proposal, Continuity with a board review, was approved. Under this decision, appointing an interim coordinator and activating paper appointments could maintain services. However, manual processes might introduce operational burdens without verifying system security. Requiring technical checks and a board review before promising restoration could prevent premature commitments, though it might slow public assurances. Waiting for the director would avoid interim leadership changes, but prolonged inaction could disrupt operations. Maintaining appointments paused could protect data, yet might halt community support.",
+    "events": [
+      "status",
+      "sources",
+      "text",
+      "text",
+      "text",
+      "text",
+      "text",
+      "text",
+      "text_done",
+      "done"
+    ],
+    "citations": [
+      {
+        "id": "T01:p1:c3",
+        "document_id": "T01",
+        "title": "Service outage and unavailable director",
+        "page": 1,
+        "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+        "score": 0.785257
+      },
+      {
+        "id": "T01:p2:c7",
+        "document_id": "T01",
+        "title": "Service outage and unavailable director",
+        "page": 2,
+        "text": "Shared participant instructions\n1. Three human roles: Arjun = chair; Jeff = treasurer; Ricardo = service-continuity board member. Replace display names as\nneeded while keeping stable participant IDs.\n2. A board action needs two explicit affirmative votes from eligible, non-conflicted members and a chair confirmation in the\napplication.\n3. A conflicted participant may supply requested facts but cannot vote on or approve the matter involving their conflict.\n4. The chair has one vote and no special tiebreak power in these fixtures.\n5. A participant's proposal or verbal assent is evidence for a draft. The server records the actual votes and authorized\nconfirmation.\n6. \"By exercise minute 7\" is a scenario deadline; it is not a legal or insurance deadline.\n7. Unknown information stays unknown. Requests outside the authored scenario receive \"That information is not available in this\nexercise\" and can be recorded for follow-up.\n8. Real sources are preparation/reference material. Only released fictional documents and events establish facts about the\nsimulated organization.\n9. No fixture",
+        "score": 0.765065
+      },
+      {
+        "id": "T01:p1:c2",
+        "document_id": "T01",
+        "title": "Service outage and unavailable director",
+        "page": 1,
+        "text": "T01-ORG\nFictional organization for software testing. The organization coordinates community appointments. Anika Rao is\nexecutive director. Morgan Ellis is service manager. The board exercise uses the common three-person voting\nrules. IT support is an external supplier and cannot authorize board spending.\nContinuity plan, version 1",
+        "score": 0.73488
+      },
+      {
+        "id": "T01:p2:c6",
+        "document_id": "T01",
+        "title": "Service outage and unavailable director",
+        "page": 2,
+        "text": "T01-STATUS:STATUS-1\nAppointment software is unavailable. IT has reported suspicious account activity.\n\nT01-STATUS:STATUS-2\nNo data disclosure has been confirmed.\n\nT01-STATUS:STATUS-3\nBackup copies are listed in the inventory, but their restorability has not been checked during this incident.",
+        "score": 0.730667
+      },
+      {
+        "id": "T01:p1:c4",
+        "document_id": "T01",
+        "title": "Service outage and unavailable director",
+        "page": 1,
+        "text": "T01-POLICY:POLICY-1\nOn contact, the simulated insurer requests an incident contact, an event timeline and a staff-training record.\n\nT01-POLICY:POLICY-2\nA missing training record means evidence is outstanding. This excerpt does not determine whether coverage is\nvalid or denied.",
+        "score": 0.724076
+      },
+      {
+        "id": "T01:p2:c8",
+        "document_id": "T01",
+        "title": "Service outage and unavailable director",
+        "page": 2,
+        "text": "needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.\nReference scope: this is a preparation pack, not a fully implemented timed scenario. Unknowns remain unknown. Use page\nnumbers and clause IDs when citing evidence.",
+        "score": 0.717297
+      }
+    ],
+    "first_text_ms": 4247.0,
+    "result": {
+      "type": "done",
+      "status": "done",
+      "timing": {
+        "retrieval_ms": 2664.4,
+        "first_text_ms": 4151.2,
+        "text_complete_ms": 5515.4,
+        "total_ms": 5516.6
+      },
+      "speech_error": false,
+      "elapsed_ms": 5516.8
+    },
+    "total_ms": 5528.6
+  },
+  "record": {
+    "phase": "ended",
+    "transcript": [
+      {
+        "id": "WY4Y3H_e12",
+        "type": "contribution",
+        "at": 1794110747.581245,
+        "member": "615b170a0dde4043b622f1eb3986ea6f",
+        "name": "Alex extended CEO",
+        "text": "The appointment software is unavailable, and the director cannot coordinate our response. The continuity plan names no alternate. I propose appointing an interim coordinator first. Before choosing someone, what authority would that person actually need?",
+        "source": "recorded",
+        "turn_number": 1,
+        "recording_id": "t01_dialogue_01"
+      },
+      {
+        "id": "WY4Y3H_e16",
+        "type": "contribution",
+        "at": 1794110764.6150742,
+        "member": "fe479e8ba4304ccc8e65c75ec7999276",
+        "name": "Morgan extended participant",
+        "text": "Coordination would help, but we must keep technical uncertainty visible. IT reported suspicious account activity; disclosure is not confirmed. Backup copies are listed, but recovery is unverified. Can we request usability checks, dependencies, and a restoration estimate?",
+        "source": "recorded",
+        "turn_number": 2,
+        "recording_id": "t01_dialogue_02"
+      },
+      {
+        "id": "WY4Y3H_e20",
+        "type": "contribution",
+        "at": 1794110779.332459,
+        "member": "52e7b08622344ce19c249ec6f7272d21",
+        "name": "Sam extended participant",
+        "text": "Clients still need appointments while those checks happen. The plan allows the service manager to operate an approved paper process if the board authorizes it. Could we consider that limited continuity option instead of promising normal service?",
+        "source": "recorded",
+        "turn_number": 3,
+        "recording_id": "t01_dialogue_03"
+      },
+      {
+        "id": "WY4Y3H_e24",
+        "type": "contribution",
+        "at": 1794110792.645418,
+        "member": "615b170a0dde4043b622f1eb3986ea6f",
+        "name": "Alex extended CEO",
+        "text": "That sounds workable, but assigning a title alone is not enough. I would want the proposed coordinator to organize the response and bring unresolved questions back to this board. Who would own the next review, and when?",
+        "source": "recorded",
+        "turn_number": 4,
+        "recording_id": "t01_dialogue_04"
+      },
+      {
+        "id": "WY4Y3H_e28",
+        "type": "contribution",
+        "at": 1794110808.177901,
+        "member": "fe479e8ba4304ccc8e65c75ec7999276",
+        "name": "Morgan extended participant",
+        "text": "I support setting a review point, with one caution: a review time is not a restoration promise. We still need evidence that backups are usable and dependencies are understood. I would keep appointments paused unless the board approves an alternative.",
+        "source": "recorded",
+        "turn_number": 5,
+        "recording_id": "t01_dialogue_05"
+      },
+      {
+        "id": "WY4Y3H_e32",
+        "type": "contribution",
+        "at": 1794110823.369191,
+        "member": "52e7b08622344ce19c249ec6f7272d21",
+        "name": "Sam extended participant",
+        "text": "Then our public update should describe the software outage and separate confirmed facts from unknowns. We should not announce a confirmed disclosure or a recovery deadline. Could the coordinator arrange a factual update and identify when people will hear more?",
+        "source": "recorded",
+        "turn_number": 6,
+        "recording_id": "t01_dialogue_06"
+      },
+      {
+        "id": "WY4Y3H_e36",
+        "type": "contribution",
+        "at": 1794110841.347573,
+        "member": "615b170a0dde4043b622f1eb3986ea6f",
+        "name": "Alex extended CEO",
+        "text": "I hear a possible combined response: appoint an interim coordinator, authorize the approved paper appointment process, and request technical verification in parallel. We would communicate the known outage and outstanding questions. Is that preferable to waiting for the director?",
+        "source": "recorded",
+        "turn_number": 7,
+        "recording_id": "t01_dialogue_07"
+      },
+      {
+        "id": "WY4Y3H_e40",
+        "type": "contribution",
+        "at": 1794110857.661689,
+        "member": "fe479e8ba4304ccc8e65c75ec7999276",
+        "name": "Morgan extended participant",
+        "text": "That combined response addresses my concern if technical verification remains explicit. Paper appointments would not prove the system is safe or the backups work. I would support discussing it with those conditions, but this statement is not my recorded vote.",
+        "source": "recorded",
+        "turn_number": 8,
+        "recording_id": "t01_dialogue_08"
+      },
+      {
+        "id": "WY4Y3H_e44",
+        "type": "contribution",
+        "at": 1794110870.7327528,
+        "member": "52e7b08622344ce19c249ec6f7272d21",
+        "name": "Sam extended participant",
+        "text": "We have a combined continuity proposal, a more cautious technical checks approach, and the option to wait. If none matches our discussion, we can write a custom response. Let us compare the wording and each cast our own vote.",
+        "source": "recorded",
+        "turn_number": 9,
+        "recording_id": "t01_dialogue_09"
+      }
+    ],
+    "summary": {
+      "items": [
+        {
+          "source_ids": [
+            "WY4Y3H_e12"
+          ],
+          "text": "The appointment software is unavailable, and the director cannot coordinate our response. The continuity plan names no alternate. I propose appointing an interim coordinator first. Before choosing someone, what authority would that person actually need?",
+          "speaker": "Alex extended CEO"
+        },
+        {
+          "source_ids": [
+            "WY4Y3H_e16"
+          ],
+          "text": "Coordination would help, but we must keep technical uncertainty visible. IT reported suspicious account activity; disclosure is not confirmed. Backup copies are listed, but recovery is unverified. Can we request usability checks, dependencies, and a restoration estimate?",
+          "speaker": "Morgan extended participant"
+        },
+        {
+          "source_ids": [
+            "WY4Y3H_e20"
+          ],
+          "text": "Clients still need appointments while those checks happen. The plan allows the service manager to operate an approved paper process if the board authorizes it. Could we consider that limited continuity option instead of promising normal service?",
+          "speaker": "Sam extended participant"
+        },
+        {
+          "source_ids": [
+            "WY4Y3H_e24"
+          ],
+          "text": "That sounds workable, but assigning a title alone is not enough. I would want the proposed coordinator to organize the response and bring unresolved questions back to this board. Who would own the next review, and when?",
+          "speaker": "Alex extended CEO"
+        },
+        {
+          "source_ids": [
+            "WY4Y3H_e28"
+          ],
+          "text": "I support setting a review point, with one caution: a review time is not a restoration promise. We still need evidence that backups are usable and dependencies are understood. I would keep appointments paused unless the board approves an alternative.",
+          "speaker": "Morgan extended participant"
+        },
+        {
+          "source_ids": [
+            "WY4Y3H_e32"
+          ],
+          "text": "Then our public update should describe the software outage and separate confirmed facts from unknowns. We should not announce a confirmed disclosure or a recovery deadline. Could the coordinator arrange a factual update and identify when people will hear more?",
+          "speaker": "Sam extended participant"
+        },
+        {
+          "source_ids": [
+            "WY4Y3H_e36"
+          ],
+          "text": "I hear a possible combined response: appoint an interim coordinator, authorize the approved paper appointment process, and request technical verification in parallel. We would communicate the known outage and outstanding questions. Is that preferable to waiting for the director?",
+          "speaker": "Alex extended CEO"
+        },
+        {
+          "source_ids": [
+            "WY4Y3H_e44"
+          ],
+          "text": "We have a combined continuity proposal, a more cautious technical checks approach, and the option to wait. If none matches our discussion, we can write a custom response. Let us compare the wording and each cast our own vote.",
+          "speaker": "Sam extended participant"
+        }
+      ],
+      "covered_ids": [
+        "WY4Y3H_e12",
+        "WY4Y3H_e16",
+        "WY4Y3H_e20",
+        "WY4Y3H_e24",
+        "WY4Y3H_e28",
+        "WY4Y3H_e32",
+        "WY4Y3H_e36",
+        "WY4Y3H_e40",
+        "WY4Y3H_e44"
+      ],
+      "transcript_count": 9,
+      "generated_at": 1794110872.9464169,
+      "partial": false,
+      "stale": false
+    },
+    "decisions": [
+      {
+        "id": "t01_response",
+        "problem": "How should the board respond to the service outage and unavailable director?",
+        "options": [
+          {
+            "id": "controlled_continuity",
+            "label": "Controlled continuity",
+            "proposal": "Appoint an interim incident coordinator, authorize the approved paper appointment process, ask IT to verify backup usability, recovery dependencies and a restoration estimate before any restoration promise, and issue a factual update that separates confirmed facts from unknowns and states the next update time."
+          },
+          {
+            "id": "technical_first",
+            "label": "Technical checks first",
+            "proposal": "Appoint an interim incident coordinator, keep appointments paused until IT verifies recovery, and issue a factual update that separates confirmed facts from unknowns and states the next update time."
+          },
+          {
+            "id": "wait_for_director",
+            "label": "Wait for the director",
+            "proposal": "Keep appointments paused and defer the interim coordinator appointment and paper appointment process while awaiting the director."
+          },
+          {
+            "id": "custom_b14e98e1210f4653890c844c54e09c55",
+            "label": "Continuity with a board review",
+            "proposal": "Appoint an interim coordinator, authorize the approved paper appointment process, and ask IT to verify backup usability, recovery dependencies and a restoration estimate. Return to the board for a recorded review before making any restoration promise; issue a factual update with the next update time.",
+            "custom": true,
+            "proposed_by": "52e7b08622344ce19c249ec6f7272d21"
+          }
+        ],
+        "mode": "fixed_choice",
+        "proposal": "Appoint an interim coordinator, authorize the approved paper appointment process, and ask IT to verify backup usability, recovery dependencies and a restoration estimate. Return to the board for a recorded review before making any restoration promise; issue a factual update with the next update time.",
+        "option_id": "custom_b14e98e1210f4653890c844c54e09c55",
+        "source_ids": [
+          "WY4Y3H_e12",
+          "WY4Y3H_e16",
+          "WY4Y3H_e20",
+          "WY4Y3H_e24",
+          "WY4Y3H_e28",
+          "WY4Y3H_e32",
+          "WY4Y3H_e36",
+          "WY4Y3H_e40",
+          "WY4Y3H_e44"
+        ],
+        "document_ids": [
+          "T01"
+        ],
+        "member": null,
+        "at": 1794110870.747617,
+        "status": "approved",
+        "votes": {
+          "615b170a0dde4043b622f1eb3986ea6f": "custom_b14e98e1210f4653890c844c54e09c55",
+          "fe479e8ba4304ccc8e65c75ec7999276": "custom_b14e98e1210f4653890c844c54e09c55",
+          "52e7b08622344ce19c249ec6f7272d21": "technical_first"
+        },
+        "ballot_version": 2,
+        "option_label": "Continuity with a board review",
+        "option_kind": "custom",
+        "committed_by": "615b170a0dde4043b622f1eb3986ea6f",
+        "committed_at": 1794110870.795885,
+        "tally": {
+          "controlled_continuity": 0,
+          "technical_first": 1,
+          "wait_for_director": 0,
+          "custom_b14e98e1210f4653890c844c54e09c55": 2
+        },
+        "reason": "plurality",
+        "my_vote": "custom_b14e98e1210f4653890c844c54e09c55",
+        "ballot_count": 3,
+        "voted_members": [
+          "615b170a0dde4043b622f1eb3986ea6f",
+          "fe479e8ba4304ccc8e65c75ec7999276",
+          "52e7b08622344ce19c249ec6f7272d21"
+        ],
+        "next_voter": null,
+        "waiting_members": []
+      }
+    ],
+    "history": [
+      {
+        "id": "t01_response",
+        "problem": "How should the board respond to the service outage and unavailable director?",
+        "options": [
+          {
+            "id": "controlled_continuity",
+            "label": "Controlled continuity",
+            "proposal": "Appoint an interim incident coordinator, authorize the approved paper appointment process, ask IT to verify backup usability, recovery dependencies and a restoration estimate before any restoration promise, and issue a factual update that separates confirmed facts from unknowns and states the next update time."
+          },
+          {
+            "id": "technical_first",
+            "label": "Technical checks first",
+            "proposal": "Appoint an interim incident coordinator, keep appointments paused until IT verifies recovery, and issue a factual update that separates confirmed facts from unknowns and states the next update time."
+          },
+          {
+            "id": "wait_for_director",
+            "label": "Wait for the director",
+            "proposal": "Keep appointments paused and defer the interim coordinator appointment and paper appointment process while awaiting the director."
+          },
+          {
+            "id": "custom_b14e98e1210f4653890c844c54e09c55",
+            "label": "Continuity with a board review",
+            "proposal": "Appoint an interim coordinator, authorize the approved paper appointment process, and ask IT to verify backup usability, recovery dependencies and a restoration estimate. Return to the board for a recorded review before making any restoration promise; issue a factual update with the next update time.",
+            "custom": true,
+            "proposed_by": "52e7b08622344ce19c249ec6f7272d21"
+          }
+        ],
+        "mode": "fixed_choice",
+        "proposal": "Appoint an interim coordinator, authorize the approved paper appointment process, and ask IT to verify backup usability, recovery dependencies and a restoration estimate. Return to the board for a recorded review before making any restoration promise; issue a factual update with the next update time.",
+        "option_id": "custom_b14e98e1210f4653890c844c54e09c55",
+        "source_ids": [
+          "WY4Y3H_e12",
+          "WY4Y3H_e16",
+          "WY4Y3H_e20",
+          "WY4Y3H_e24",
+          "WY4Y3H_e28",
+          "WY4Y3H_e32",
+          "WY4Y3H_e36",
+          "WY4Y3H_e40",
+          "WY4Y3H_e44"
+        ],
+        "document_ids": [
+          "T01"
+        ],
+        "member": null,
+        "at": 1794110870.747617,
+        "status": "approved",
+        "votes": {
+          "615b170a0dde4043b622f1eb3986ea6f": "custom_b14e98e1210f4653890c844c54e09c55",
+          "fe479e8ba4304ccc8e65c75ec7999276": "custom_b14e98e1210f4653890c844c54e09c55",
+          "52e7b08622344ce19c249ec6f7272d21": "technical_first"
+        },
+        "ballot_version": 2,
+        "option_label": "Continuity with a board review",
+        "option_kind": "custom",
+        "committed_by": "615b170a0dde4043b622f1eb3986ea6f",
+        "committed_at": 1794110870.795885,
+        "tally": {
+          "controlled_continuity": 0,
+          "technical_first": 1,
+          "wait_for_director": 0,
+          "custom_b14e98e1210f4653890c844c54e09c55": 2
+        },
+        "reason": "plurality"
+      }
+    ],
+    "jobs": [
+      {
+        "id": "5d398e0ff67249bd9e55dd46064ca3fd",
+        "kind": "minutes",
+        "member": "615b170a0dde4043b622f1eb3986ea6f",
+        "status": "done",
+        "error": null,
+        "question": "",
+        "submitted_at": 1794110870.7482848,
+        "text": "The appointment software is unavailable, and the director cannot coordinate our response. The continuity plan names no alternate. I propose appointing an interim coordinator first. Before choosing someone, what authority would that person actually need?\n\nCoordination would help, but we must keep technical uncertainty visible. IT reported suspicious account activity; disclosure is not confirmed. Backup copies are listed, but recovery is unverified. Can we request usability checks, dependencies, and a restoration estimate?\n\nClients still need appointments while those checks happen. The plan allows the service manager to operate an approved paper process if the board authorizes it. Could we consider that limited continuity option instead of promising normal service?\n\nThat sounds workable, but assigning a title alone is not enough. I would want the proposed coordinator to organize the response and bring unresolved questions back to this board. Who would own the next review, and when?\n\nI support setting a review point, with one caution: a review time is not a restoration promise. We still need evidence that backups are usable and dependencies are understood. I would keep appointments paused unless the board approves an alternative.\n\nThen our public update should describe the software outage and separate confirmed facts from unknowns. We should not announce a confirmed disclosure or a recovery deadline. Could the coordinator arrange a factual update and identify when people will hear more?\n\nI hear a possible combined response: appoint an interim coordinator, authorize the approved paper appointment process, and request technical verification in parallel. We would communicate the known outage and outstanding questions. Is that preferable to waiting for the director?\n\nWe have a combined continuity proposal, a more cautious technical checks approach, and the option to wait. If none matches our discussion, we can write a custom response. Let us compare the wording and each cast our own vote.",
+        "sources": [],
+        "completed_at": 1794110872.946451,
+        "timing": {
+          "total_ms": 2198.2,
+          "local_queue_ms": 0.2,
+          "retrieval_and_prompt_ms": 0.3,
+          "provider_roundtrip_ms": 2197.5
+        }
+      },
+      {
+        "id": "10563fdea87749b5bda30ddaa37378a5",
+        "kind": "evaluation_stream",
+        "member": "615b170a0dde4043b622f1eb3986ea6f",
+        "status": "done",
+        "question": "Explain the recorded decision in the context of the problem. State whether the actual proposal was approved or rejected. Explain possible tradeoffs, explicitly as possibilities. Do not invent downstream outcomes or rewrite the committed decision.",
+        "submitted_at": 1794110870.8066812,
+        "error": null,
+        "text": "The board faced an unavailable director, suspicious account activity, and an appointment software outage. The recorded proposal, Continuity with a board review, was approved. Under this decision, appointing an interim coordinator and activating paper appointments could maintain services. However, manual processes might introduce operational burdens without verifying system security. Requiring technical checks and a board review before promising restoration could prevent premature commitments, though it might slow public assurances. Waiting for the director would avoid interim leadership changes, but prolonged inaction could disrupt operations. Maintaining appointments paused could protect data, yet might halt community support.",
+        "sources": [
+          {
+            "id": "T01:p1:c3",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+            "score": 0.785257
+          },
+          {
+            "id": "T01:p2:c7",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 2,
+            "text": "Shared participant instructions\n1. Three human roles: Arjun = chair; Jeff = treasurer; Ricardo = service-continuity board member. Replace display names as\nneeded while keeping stable participant IDs.\n2. A board action needs two explicit affirmative votes from eligible, non-conflicted members and a chair confirmation in the\napplication.\n3. A conflicted participant may supply requested facts but cannot vote on or approve the matter involving their conflict.\n4. The chair has one vote and no special tiebreak power in these fixtures.\n5. A participant's proposal or verbal assent is evidence for a draft. The server records the actual votes and authorized\nconfirmation.\n6. \"By exercise minute 7\" is a scenario deadline; it is not a legal or insurance deadline.\n7. Unknown information stays unknown. Requests outside the authored scenario receive \"That information is not available in this\nexercise\" and can be recorded for follow-up.\n8. Real sources are preparation/reference material. Only released fictional documents and events establish facts about the\nsimulated organization.\n9. No fixture",
+            "score": 0.765065
+          },
+          {
+            "id": "T01:p1:c2",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "T01-ORG\nFictional organization for software testing. The organization coordinates community appointments. Anika Rao is\nexecutive director. Morgan Ellis is service manager. The board exercise uses the common three-person voting\nrules. IT support is an external supplier and cannot authorize board spending.\nContinuity plan, version 1",
+            "score": 0.73488
+          },
+          {
+            "id": "T01:p2:c6",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 2,
+            "text": "T01-STATUS:STATUS-1\nAppointment software is unavailable. IT has reported suspicious account activity.\n\nT01-STATUS:STATUS-2\nNo data disclosure has been confirmed.\n\nT01-STATUS:STATUS-3\nBackup copies are listed in the inventory, but their restorability has not been checked during this incident.",
+            "score": 0.730667
+          },
+          {
+            "id": "T01:p1:c4",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "T01-POLICY:POLICY-1\nOn contact, the simulated insurer requests an incident contact, an event timeline and a staff-training record.\n\nT01-POLICY:POLICY-2\nA missing training record means evidence is outstanding. This excerpt does not determine whether coverage is\nvalid or denied.",
+            "score": 0.724076
+          },
+          {
+            "id": "T01:p2:c8",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 2,
+            "text": "needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.\nReference scope: this is a preparation pack, not a fully implemented timed scenario. Unknowns remain unknown. Use page\nnumbers and clause IDs when citing evidence.",
+            "score": 0.717297
+          }
+        ],
+        "completed_at": 1794110876.3234408,
+        "timing": {
+          "retrieval_ms": 2664.4,
+          "first_text_ms": 4151.2,
+          "text_complete_ms": 5515.4,
+          "total_ms": 5516.6
+        }
+      }
+    ]
+  },
+  "health_after": {
+    "ok": true,
+    "storage": "single process memory",
+    "models": {
+      "online": true,
+      "verified": true,
+      "provider": "Google Vertex AI",
+      "model": "gemini-3.8-flash",
+      "thinking_level": "LOW",
+      "name": "Gemini 3.8 Flash \u00b7 LOW",
+      "note": "Live response verified",
+      "budget": {
+        "cap_usd": null,
+        "reserved_usd": 3.35,
+        "remaining_usd": null,
+        "attempts": 67,
+        "unlimited": true,
+        "note": "Local test reservations, including failures; excludes other account spending."
+      }
+    },
+    "test_name_rejoin": true,
+    "speech": {
+      "cap": null,
+      "reserved": 19652,
+      "remaining": null,
+      "unlimited": true,
+      "unit": "credits",
+      "note": "Conservative reservations, not an exact provider invoice. Failed calls stay reserved."
+    },
+    "speech_configured": true
+  },
+  "checks": {
+    "nine_recorded_turns": true,
+    "shared_speech_reservations_unchanged_during_replay": true,
+    "custom_requires_explicit_vote_reset": true,
+    "stale_ballot_rejected": true,
+    "first_votes_in_order": true,
+    "custom_wins_two_to_one": true,
+    "canonical_custom_proposal_committed": true,
+    "live_evaluation_completed": true
+  }
+}

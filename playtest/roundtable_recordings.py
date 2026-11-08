@@ -7,7 +7,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import FileResponse
 from .engine import require
 
-DEFAULT_CLIPS = ['t01_leadership_turn', 't01_recovery_turn', 't01_communications_turn']
+DEFAULT_CLIPS = [f't01_dialogue_{number:02d}' for number in range(1, 10)]
 
 
 class RoundtableRecordings:
@@ -56,9 +56,10 @@ class RoundtableRecordings:
                 engine.identity(self.token(request))
             clips = [clip for clip in self.library.entries() if clip['id'] in DEFAULT_CLIPS]
             for clip in clips:
-                clip['default_seat'] = DEFAULT_CLIPS.index(clip['id']) if clip['id'] in DEFAULT_CLIPS else None
-            return {'clips': clips, 'default_clip_ids': DEFAULT_CLIPS,
-                    'note': 'Three fixed participant recordings only. Each participant uses their electorate position modulo three. AI agent voices are not prerecorded here. Completion commits the exact caption and passes the turn; playback does not call a provider.'}
+                clip['turn_number'] = DEFAULT_CLIPS.index(clip['id']) + 1
+                clip['default_seat'] = (clip['turn_number'] - 1) % 3
+            return {'clips': clips, 'default_clip_ids': DEFAULT_CLIPS, 'script_length': len(DEFAULT_CLIPS),
+                    'note': 'Nine fixed participant turns in order. Each clip belongs to one numbered speaking turn; the script does not repeat after turn nine. AI agent voices are not prerecorded here. Completion commits the exact caption and passes the turn; playback does not call a provider.'}
 
         @router.post('/recordings/play')
         def play(data: dict, request: Request):
@@ -68,9 +69,11 @@ class RoundtableRecordings:
                         'Only the current discussion speaker can play a recording', 403)
                 require(not room.get('active_audio') and not room.get('active_stream'),
                         'Stop the current room audio before starting a recorded turn', 409)
-                assigned = DEFAULT_CLIPS[room['electorate'].index(mid) % len(DEFAULT_CLIPS)]
+                require(1 <= room['turn_number'] <= len(DEFAULT_CLIPS),
+                        'The nine recorded turns are complete; continue by text or proceed to a decision', 409)
+                assigned = DEFAULT_CLIPS[room['turn_number'] - 1]
                 require(data.get('clip_id') == assigned,
-                        'This participant may play only their assigned recording', 403)
+                        'Only the recording assigned to this numbered speaking turn may play', 403)
                 item, path = self.library.get(assigned)
                 seconds = item.get('duration_seconds')
                 require(type(seconds) in (int, float) and math.isfinite(seconds) and 0 < seconds <= 30,

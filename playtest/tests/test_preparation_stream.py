@@ -103,6 +103,23 @@ class StreamingRoutes(unittest.TestCase):
         self.assertNotIn('controlled_continuity',self.provider.prompts[-1])
         self.assertIn('50 to 60 words',self.provider.prompts[-1])
 
+    def test_ballot_revision_cancels_pending_adviser_and_custom_proposal_stays_in_context(self):
+        service=self.app.state.roundtable_service
+        room=service.engine.rooms[self.code]
+        room.update(phase='decision',documents=[{'id':'T01'}],documents_ready=True)
+        room['decisions']=[{'id':'t01_response','mode':'fixed_choice','status':'pending','problem':'Response',
+                           'options':[{'id':'custom_test','label':'Review first','proposal':'Human custom response'}],
+                           'ballot_version':2,'votes':{}}]
+        session=service.briefings.begin(self.token,{'command_id':uuid.uuid4().hex,'kind':'it','voice':False})
+        self.assertEqual(session['fixed_choices']['options'][0]['proposal'],'Human custom response')
+        room['decisions'][0]['ballot_version']=3
+        service.briefings.check_active();self.assertTrue(session['cancel'].is_set())
+        service.briefings.run(session)
+        self.assertEqual(self.provider.prompts,[])
+        self.events(self.request(kind='it',voice=False))
+        self.assertIn('Human custom response',self.provider.prompts[-1])
+        self.assertIn('untrusted participant input',self.provider.prompts[-1])
+
     def test_fixed_ballot_rejects_generated_decision_prompt(self):
         room=self.app.state.roundtable_service.engine.rooms[self.code]
         room.update(phase='decision',documents=[{'id':'T01'}],documents_ready=True)

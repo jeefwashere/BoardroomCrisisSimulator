@@ -50,6 +50,10 @@ Actual tests used `eleven_flash_v2_5`, George and `scribe_v2`. Ten STT and two T
 
 Official references: [ElevenLabs transcription](https://elevenlabs.io/docs/api-reference/speech-to-text/convert), [public pricing](https://elevenlabs.io/pricing/api?price.section=speech_to_text), [MediaRecorder](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder).
 
+## Verification
+
+Final checks passed 138 backend tests, 86 frontend tests after current main room chat integration, 31 prototype and board tests, seven narration player tests, frontend build and lint, and the authored offline demo. The main room chat stays mounted beside the game across phases; the hook retains both refresh and gameplay execute. The final merge received the affected frontend checks; the full browser game preceded that room chat merge.
+
 ## Actual acceptance evidence
 
 Three independent browser tabs completed join, roles, three speaking and voting rounds, a CEO tie selecting a custom winner, actual hosted LFM allowed outcome mapping, final history and eight successful final AI batches. All three participants across all three rounds produced nine browser MediaRecorder originals, actual ElevenLabs transcriptions and owner reviews. A real TTS consequence produced browser started and completed playback events. Final page reload preserved the same seat, three members and unchanged history. The complete final screen was visually inspected.

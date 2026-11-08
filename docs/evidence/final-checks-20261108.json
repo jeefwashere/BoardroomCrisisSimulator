@@ -1,0 +1,14 @@
+{
+  "backend_tests": 138,
+  "frontend_tests_after_main_merge": 86,
+  "prototype_and_board_tests": 31,
+  "narration_player_tests": 7,
+  "build": "passed",
+  "lint": "passed",
+  "authored_offline_demo": "passed",
+  "independent_focused_review_tests": 16,
+  "source_commit": "7d4bee6",
+  "verified_remote_integration_head": "5c224a40f7ebda1056758448c05329b00e768ce7",
+  "browser_boundary": "Synthetic spoken MediaStream; complete game preceded room chat main merge, affected frontend checks rerun after merge",
+  "paid_budget_boundary": "USD 0.07650666666666667 estimated reservation, not billed receipt"
+}

@@ -1,0 +1,45 @@
+{
+  "passed": true,
+  "synthetic_media_stream": true,
+  "transcriber": "test fixture",
+  "new_paid_calls": false,
+  "shared_speech_visible": true,
+  "reviewed_replaces_provisional_in_place": true,
+  "speech_row_count": 1,
+  "public_decision_phase_chat_visible": true,
+  "private_decision_absent_from_chat": true,
+  "decision_editor_unchanged": true,
+  "history_height": 132,
+  "history_poll_responses": [
+    {
+      "status": 200,
+      "path": "/api/rooms/2edb8692-343a-4d51-abd7-cb80a34a9732/contributions"
+    },
+    {
+      "status": 200,
+      "path": "/api/rooms/2edb8692-343a-4d51-abd7-cb80a34a9732/recordings"
+    },
+    {
+      "status": 200,
+      "path": "/api/rooms/2edb8692-343a-4d51-abd7-cb80a34a9732/contributions"
+    },
+    {
+      "status": 200,
+      "path": "/api/rooms/2edb8692-343a-4d51-abd7-cb80a34a9732/recordings"
+    },
+    {
+      "status": 200,
+      "path": "/api/rooms/2edb8692-343a-4d51-abd7-cb80a34a9732/contributions"
+    },
+    {
+      "status": 200,
+      "path": "/api/rooms/2edb8692-343a-4d51-abd7-cb80a34a9732/recordings"
+    }
+  ],
+  "post_reload_errors": [],
+  "earlier_console_messages": [
+    "Failed to load resource: the server responded with a status of 409 (Conflict)"
+  ],
+  "task_pages_closed": true,
+  "lease_released": true
+}

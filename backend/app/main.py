@@ -274,6 +274,10 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
         return {"recordings": recordings.listing(member_session, room_id), "contributions": contributions,
                 "feedback": feedback.view(room_id)}
 
+    @app.get("/api/rooms/{room_id}/recordings", response_model=list[RecordingView], responses=errors)
+    async def room_recordings(room_id: UUID, member_session: authenticated):
+        return recordings.listing(member_session, room_id)
+
     @app.post("/api/rooms/{room_id}/recordings/begin", responses=errors)
     async def begin_recording(room_id: UUID, body: BeginRecording, member_session: authenticated):
         return await recordings.begin(member_session, room_id, body.command_id, body.phase_id, body.round_id)

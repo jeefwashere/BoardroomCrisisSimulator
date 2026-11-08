@@ -60,6 +60,33 @@ class RecordingsTests(unittest.IsolatedAsyncioTestCase):
             await asyncio.sleep(.02)
         self.fail('Transcription fixture did not finish')
 
+    async def test_room_transcript_list_is_shared_scoped_and_has_no_feedback_side_effect(self):
+        from unittest.mock import AsyncMock, patch
+        item, _ = await self.record()
+        self.assertEqual((await self.send(item)).status_code, 200)
+        await self.wait_ready(item)
+        outsider = await self.client()
+        forbidden = await outsider.get(self.path + '/recordings')
+        self.assertEqual(forbidden.status_code, 403)
+        with patch.object(self.app.state.feedback, 'start', new_callable=AsyncMock) as feedback:
+            for client in self.clients:
+                response = await client.get(self.path + '/recordings')
+                self.assertEqual(response.status_code, 200, response.text)
+                self.assertEqual(len(response.json()), 1)
+                self.assertEqual(response.json()[0]['recording_id'], item['recording_id'])
+                self.assertEqual(response.json()[0]['status'], 'review_required')
+                self.assertIsNone(response.json()[0]['reviewed_text'])
+            feedback.assert_not_awaited()
+        reviewed = await self.clients[0].post(self.path + '/recordings/' + item['recording_id'] + '/review', json={'text': 'Corrected shared speech.'})
+        self.assertEqual(reviewed.status_code, 200)
+        shared = (await self.clients[1].get(self.path + '/recordings')).json()
+        self.assertEqual(len(shared), 1)
+        self.assertEqual(shared[0]['reviewed_text'], 'Corrected shared speech.')
+        other = await outsider.post('/api/rooms', json=command(room_code='OTHER1', display_name='Other host'))
+        other_path = '/api/rooms/' + other.json()['room_id'] + '/recordings'
+        self.assertEqual((await outsider.get(other_path)).json(), [])
+        self.assertEqual(len(self.calls), 1)
+
     async def test_original_audio_review_provenance_and_exact_retry(self):
         item, body = await self.record()
         repeated = await self.clients[0].post(self.path + '/recordings/begin', json=body)

@@ -1,13 +1,18 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { RoomApiError } from '../src/services/rooms.ts'
-import type { Contribution, ContributionInput } from '../src/services/rooms.ts'
-import { chatTextProblem, createChatStore, mergeContributions } from '../src/features/rooms/chatState.ts'
+import type { Contribution, ContributionInput, Recording } from '../src/services/rooms.ts'
+import { chatTextProblem, createChatStore, mergeContributions, mergeRecordings, visibleRoomChatEntries } from '../src/features/rooms/chatState.ts'
 
 const record = (sequence: number, text = `Message ${sequence}`): Contribution => ({
     contribution_id: `entry-${sequence}`, sequence, member_id: 'member-1', role_id: null,
     phase_id: null, phase: 'lobby', round_id: null, round_number: null, node_id: null,
     kind: 'chat', source: 'typed', text, at: '2026-11-08T00:00:00Z',
+})
+const recording = (status: string, transcript = 'Spoken words', reviewed_text: string | null = null): Recording => ({
+    recording_id: 'recording-1', member_id: 'member-1', round_id: 'round-1', round_number: 1,
+    phase_id: 'phase-1', status, transcript, reviewed_text, error: null, mime_type: 'audio/webm', audio_available: true,
+    started_at: '2026-11-08T00:00:30Z', ended_at: '2026-11-08T00:00:40Z', duration_seconds: 10,
 })
 const deferred = <T>() => {
     let resolve!: (value: T) => void
@@ -23,6 +28,29 @@ test('merge keeps complete ordered history and a POST receipt against a stale GE
     assert.equal(staleRead.length, 251)
     assert.deepEqual(staleRead.map((entry) => entry.sequence), Array.from({ length: 251 }, (_, i) => i + 1))
     assert.equal(mergeContributions(staleRead, [record(251)]).length, 251)
+})
+
+test('recording snapshots deduplicate by recording identity and replace provisional transcripts in place', () => {
+    const provisional = recording('review_required')
+    const merged = mergeRecordings([], [provisional])
+    const reviewed = recording('reviewed', 'Spoken words', 'Corrected words')
+    const refreshed = mergeRecordings(merged, [reviewed])
+    assert.equal(refreshed.length, 1)
+    assert.equal(refreshed[0].reviewed_text, 'Corrected words')
+    assert.deepEqual(mergeRecordings(refreshed, [reviewed]), refreshed)
+})
+
+test('room history shows speech transcripts and public decision phase chat but never private decision answers', () => {
+    const visible = visibleRoomChatEntries([
+        { ...record(1), phase: 'individual_decision', kind: 'answer' },
+        { ...record(2), phase: 'individual_decision', kind: 'chat' },
+    ], [recording('review_required'), { ...recording('reviewed', 'Old transcript', 'Reviewed words'), recording_id: 'recording-2', started_at: '2026-11-08T00:00:50Z' }])
+    assert.deepEqual(visible.map((entry) => [entry.kind, entry.text, entry.source]), [
+        ['chat', 'Message 2', 'typed'],
+        ['speech', 'Spoken words', 'Unreviewed speech transcript'],
+        ['speech', 'Reviewed words', 'Reviewed speech transcript'],
+    ])
+    assert.equal(visible.some((entry) => entry.text === 'Message 1'), false)
 })
 
 test('validation rejects blank and over limit text and counts Unicode code points', () => {

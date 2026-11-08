@@ -161,7 +161,7 @@ export type IndividualDecisions = {
     self: { text: string; at: string } | null
 }
 export type Decision = { decision_id: string; round_number: number; question: string; selected_option_label: string | null; text: string; selection_method: string; vote_counts: Record<string, number> }
-export type Recording = { recording_id: string; member_id: string; round_number: number; phase_id: string; status: string; transcript: string; reviewed_text: string | null; error: string | null; mime_type: string | null; audio_available: boolean }
+export type Recording = { recording_id: string; member_id: string; round_id?: string | null; round_number: number; phase_id: string; status: string; transcript: string; reviewed_text: string | null; error: string | null; mime_type: string | null; audio_available: boolean; started_at?: string; duration_seconds?: number | null; ended_at?: string | null }
 export type Extras = { feedback?: { status: string; text: string; error: string | null; completed_parts: number; total_parts: number; evidence_refs?: { id: string; label: string; assessment: string; criterion: string; quote: string; fragment: number }[] }; recordings: Recording[]; contributions: { member_id: string; round_number: number | null; text: string; kind: string }[] }
 
 
@@ -174,6 +174,7 @@ export type RoomApi = {
     discussionSummary(roomId: string, input: { command_id: string; round_id: string; retry?: boolean }, signal?: AbortSignal): Promise<DiscussionSummary>
     command(roomId: string, path: string, input: object, signal?: AbortSignal): Promise<RoomSnapshot>
     extras(roomId: string, signal?: AbortSignal): Promise<Extras>
+    recordings(roomId: string, signal?: AbortSignal): Promise<Recording[]>
     mediaPost(roomId: string, path: string, input: object, signal?: AbortSignal): Promise<Recording>
     audio(roomId: string, recordingId: string, signal?: AbortSignal): Promise<Blob>
     prepareNarration(roomId: string, narrationId: string): Promise<{ status: string; error?: string }>
@@ -248,6 +249,18 @@ function contribution(value: unknown): value is Contribution {
         && (value.node_id === null || typeof value.node_id === 'string')
         && (value.kind === 'answer' || value.kind === 'chat') && (value.source === 'typed' || value.source === 'speech')
         && typeof value.text === 'string' && typeof value.at === 'string'
+}
+
+function recording(value: unknown): value is Recording {
+    return record(value) && typeof value.recording_id === 'string' && typeof value.member_id === 'string'
+        && (value.round_id === undefined || value.round_id === null || typeof value.round_id === 'string')
+        && Number.isInteger(value.round_number) && typeof value.phase_id === 'string' && typeof value.status === 'string'
+        && typeof value.transcript === 'string' && (value.reviewed_text === null || typeof value.reviewed_text === 'string')
+        && (value.error === null || typeof value.error === 'string') && (value.mime_type === null || typeof value.mime_type === 'string')
+        && typeof value.audio_available === 'boolean'
+        && (value.started_at === undefined || typeof value.started_at === 'string')
+        && (value.duration_seconds === undefined || value.duration_seconds === null || typeof value.duration_seconds === 'number')
+        && (value.ended_at === undefined || value.ended_at === null || typeof value.ended_at === 'string')
 }
 
 function game(value: unknown): value is RoomGame {
@@ -367,6 +380,7 @@ export function createRoomApi(options: { baseUrl?: string; fetch?: typeof global
             return request(`/api/rooms/${encodeURIComponent(roomId)}/${path}`, snapshot, signal, input)
         },
         extras: (roomId, signal) => request(`/api/rooms/${encodeURIComponent(roomId)}/extras`, (value): value is Extras => record(value) && Array.isArray(value.recordings) && Array.isArray(value.contributions), signal),
+        recordings: (roomId, signal) => request(`/api/rooms/${encodeURIComponent(roomId)}/recordings`, (value): value is Recording[] => Array.isArray(value) && value.every(recording), signal),
         mediaPost: (roomId, path, input, signal) => request(`/api/rooms/${encodeURIComponent(roomId)}/${path}`, (value): value is Recording => record(value) && typeof value.recording_id === 'string' && typeof value.status === 'string', signal, input),
         audio: (roomId, recordingId, signal) => bytes(`/api/rooms/${encodeURIComponent(roomId)}/recordings/${encodeURIComponent(recordingId)}/audio`, signal),
         prepareNarration: (roomId, id) => request(`/api/rooms/${encodeURIComponent(roomId)}/narration/${encodeURIComponent(id)}/prepare`, (value): value is { status: string; error?: string } => record(value) && typeof value.status === 'string', undefined, {}),

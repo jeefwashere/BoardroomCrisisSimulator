@@ -104,11 +104,12 @@ export function createChatStore({ api, roomId, randomId = () => crypto.randomUUI
             await post(intent)
         },
         async retry() { if (state.retry) await post(state.retry) },
-        start(subscribeResume?: (resume: () => void) => () => void) {
+        /** Polls history; with `once` (the game has ended) it reads the final history a single time. */
+        start(subscribeResume?: (resume: () => void) => () => void, once = false) {
             active = true
             stopPolling = pollRoom(async (signal) => ({ contributions: await api.contributions(roomId, signal), recordings: api.recordings ? await api.recordings(roomId, signal) : [] }),
                 (history) => receive(history.contributions, history.recordings),
-                (failure) => update({ historyError: failure instanceof Error ? failure.message : 'History could not be refreshed.' }), 2000, subscribeResume)
+                (failure) => update({ historyError: failure instanceof Error ? failure.message : 'History could not be refreshed.' }), 2000, subscribeResume, once ? () => true : undefined)
             return () => { active = false; stopPolling?.(); request?.abort() }
         },
     }

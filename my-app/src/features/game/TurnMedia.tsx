@@ -14,23 +14,34 @@ const STATUS_TEXT: Record<string, string> = {
  * Recording follow ups for the main column. The microphone itself lives in the bottom control bar; this only shows
  * a compact notice when a save failed or one of your transcripts needs review, plus the retained records once the game ends.
  */
+const FEEDBACK_WORKING = new Set(['pending', 'waiting_media', 'running'])
+
 export default function TurnMedia({ room, recorder }: { room: RoomSnapshot; recorder: TurnRecorder }) {
     const [notice, setNotice] = useState('')
     const [extras, setExtras] = useState<Extras>({ recordings: [], contributions: [] })
     const [drafts, setDrafts] = useState<Record<string, string>>({})
     const [audioUrl, setAudioUrl] = useState('')
     const { state, capture } = recorder
+    const ended = room.phase === 'ended'
     useEffect(() => {
         const controller = new AbortController()
         let timer: ReturnType<typeof setTimeout>
+        let emptyReads = 0
         async function poll() {
-            try { const incoming = await roomApi.extras(room.room_id, controller.signal); if (!controller.signal.aborted) setExtras(incoming) }
+            let incoming: Extras | null = null
+            try { incoming = await roomApi.extras(room.room_id, controller.signal); if (!controller.signal.aborted) setExtras(incoming) }
             catch (error) { if (!controller.signal.aborted) setNotice(errorMessage(error)) }
-            if (!controller.signal.aborted) timer = setTimeout(() => void poll(), 2000)
+            if (controller.signal.aborted) return
+            // After the call: keep asking only while the end of game feedback is still being written.
+            if (ended && incoming) {
+                const status = incoming.feedback?.status
+                if (status ? !FEEDBACK_WORKING.has(status) : ++emptyReads >= 5) return
+            }
+            timer = setTimeout(() => void poll(), ended ? 3000 : 2000)
         }
         void poll()
         return () => { controller.abort(); clearTimeout(timer) }
-    }, [room.room_id])
+    }, [room.room_id, ended])
     useEffect(() => () => { if (audioUrl) URL.revokeObjectURL(audioUrl) }, [audioUrl])
     async function play(recording: Recording) {
         try { const blob = await roomApi.audio(room.room_id, recording.recording_id); setAudioUrl(URL.createObjectURL(blob)) }
@@ -40,7 +51,6 @@ export default function TurnMedia({ room, recorder }: { room: RoomSnapshot; reco
         try { await roomApi.mediaPost(room.room_id, `recordings/${recording.recording_id}/review`, { text: drafts[recording.recording_id] ?? recording.transcript }); setNotice('Reviewed transcript saved.') }
         catch (error) { setNotice(errorMessage(error)) }
     }
-    const ended = room.phase === 'ended'
     const pending = recordingsToReview(extras.recordings, room.self_member_id)
     const name = (memberId: string) => room.members.find((member) => member.member_id === memberId)?.display_name ?? 'Participant'
     const reviewCard = (recording: Recording) => <article key={recording.recording_id} className="game-review-item">

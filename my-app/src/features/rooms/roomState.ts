@@ -52,6 +52,8 @@ export function pollRoom<T>(
     failed: (error: unknown) => void,
     interval = 2000,
     subscribeResume?: (resume: () => void) => () => void,
+    /** Stop polling once this holds for a received value (a game that has ended no longer changes). */
+    until?: (value: T) => boolean,
 ): () => void {
     const controller = new AbortController()
     let timer: ReturnType<typeof setTimeout> | undefined
@@ -62,7 +64,10 @@ export function pollRoom<T>(
         running = true
         try {
             const room = await read(controller.signal)
-            if (!controller.signal.aborted) receive(room)
+            if (!controller.signal.aborted) {
+                receive(room)
+                if (until?.(room)) { controller.abort(); unsubscribe?.() }
+            }
         } catch (error) {
             if (!controller.signal.aborted) failed(error)
         } finally {
@@ -74,6 +79,7 @@ export function pollRoom<T>(
             }
         }
     }
+    // Declared before the first tick runs, so `tick` can unsubscribe when `until` holds.
     const unsubscribe = subscribeResume?.(() => {
         if (controller.signal.aborted) return
         clearTimeout(timer)

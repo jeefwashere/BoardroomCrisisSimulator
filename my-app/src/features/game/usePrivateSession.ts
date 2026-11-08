@@ -49,17 +49,20 @@ export function usePrivateSession(roomId: string, active: boolean, refreshKey = 
         if (!active) return
         const controller = new AbortController()
         let timer: ReturnType<typeof setTimeout> | undefined
+        // After the call ends, read the final record once; nothing is retried or polled (no requests after hanging up).
+        const ended = refreshKey === 'ended'
         async function read() {
             try {
                 const next = normalizePrivateSession(await facilitationApi.privateSession(roomId, controller.signal))
                 if (controller.signal.aborted) return
                 setUnavailable(false)
-                if (!next) { setError('The private session returned an unexpected response. Retrying…'); timer = setTimeout(() => void read(), RETRY_MS); return }
+                if (!next) { if (ended) return; setError('The private session returned an unexpected response. Retrying…'); timer = setTimeout(() => void read(), RETRY_MS); return }
                 setSession(next)
                 setError('')
-                if (shouldPollPrivate(next)) timer = setTimeout(() => void read(), PRIVATE_POLL_MS)
+                if (!ended && shouldPollPrivate(next)) timer = setTimeout(() => void read(), PRIVATE_POLL_MS)
             } catch (failure) {
                 if (controller.signal.aborted) return
+                if (ended) return
                 if (failure instanceof FacilitationError && failure.code === PRIVATE_NOT_STARTED) { setNotStarted(true); return }
                 if (failure instanceof FacilitationError && failure.code === PRIVATE_NOT_ELIGIBLE) { setNotEligible(true); return }
                 if (failure instanceof FacilitationError && !failure.code && (failure.status === 404 || failure.status === 405)) {

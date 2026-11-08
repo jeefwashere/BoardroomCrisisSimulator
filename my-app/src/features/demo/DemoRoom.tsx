@@ -137,6 +137,8 @@ export default function DemoRoom() {
                 lastTargetRef.current = key
                 if (followRef.current) setSelected(target!)
             }
+            // Once every seat has ended, nothing changes; the demo stops polling until a new game starts.
+            if (current.every((snapshot) => snapshot?.phase === 'ended')) return
             timer = setTimeout(() => void tick(), 1000)
         }
         void tick()

@@ -17,7 +17,7 @@ import './Host.css'
 
 function Host({ roomId, initialRoom }: { roomId: string; initialRoom?: RoomSnapshot }) {
     const { room, scenarios, error, accessError, starting, leaving, start, leave, rename, execute, refresh } = useRoom(roomId, initialRoom)
-    const chat = useRoomChat(roomId, refresh)
+    const chat = useRoomChat(roomId, refresh, room?.phase === 'ended')
     const [draft, setDraft] = useState<RoleDraft>({})
     const [selectedScenario, setSelectedScenario] = useState('')
     const [selectedTiming, setSelectedTiming] = useState('')

@@ -1,4 +1,5 @@
 import { facilitationApi } from '../facilitation/facilitationClient'
+import { trackSpeechStream } from './windowMute'
 
 /** Prefix for an AI reply shared as the speaker's clip (`speaker_clip.clip_id`), followed by its speech ID. */
 export const REPLY_CLIP_PREFIX = 'reply:'
@@ -37,7 +38,8 @@ export async function streamedSpeech(roomId: string, speechId: string): Promise<
     }
     const controller = new AbortController()
     let response: Response
-    try { response = await facilitationApi.speechStream(roomId, speechId, controller.signal) } catch { return null }
+    const untrack = trackSpeechStream(controller)
+    try { response = await facilitationApi.speechStream(roomId, speechId, controller.signal) } catch { untrack(); return null }
     const reader = response.body!.getReader()
     const source = new MediaSource()
     const url = URL.createObjectURL(source)
@@ -65,6 +67,7 @@ export async function streamedSpeech(roomId: string, speechId: string): Promise<
         dispose: () => {
             disposed = true
             controller.abort()
+            untrack()
             player.pause()
             URL.revokeObjectURL(url)
         },

@@ -50,7 +50,7 @@ export function useRoom(roomId: string, initialRoom?: RoomSnapshot) {
                     window.addEventListener('focus', resume)
                     document.addEventListener('visibilitychange', visible)
                     return () => { window.removeEventListener('focus', resume); document.removeEventListener('visibilitychange', visible) }
-                })
+                }, (room) => room.phase === 'ended') // An ended game does not change: stop asking.
             } catch (failure) {
                 failed(failure)
             }

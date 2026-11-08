@@ -48,6 +48,7 @@ import { seatFromSearch } from '../services/tabSession'
 import './Game.css'
 import './GameTheme.css'
 import { preloadBoardroomAssets } from '../features/boardroom3d/assets'
+import { hangUpSound, resumeSound } from '../features/game/windowMute'
 
 const CONTEXT_PHASES = ['reading', 'speaking', 'discussion']
 
@@ -119,6 +120,14 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const [dictationReady, setDictationReady] = useState(false)
     const dictation = useDictation((words) => dictationSink.current?.(words), (clip) => roomApi.dictate(room.room_id, clip))
     const { stop: stopDictation } = dictation
+    // Ending the call stops everything in this window: voices, clips, speech streams and dictation. Leaving the room does too.
+    const callEnded = room.phase === 'ended'
+    useEffect(() => {
+        if (!callEnded) { resumeSound(); return }
+        stopDictation()
+        hangUpSound()
+    }, [callEnded, stopDictation])
+    useEffect(() => () => hangUpSound(), [])
     const attachDictation = useCallback<AttachDictation>((sink) => {
         dictationSink.current = sink
         setDictationReady(Boolean(sink))

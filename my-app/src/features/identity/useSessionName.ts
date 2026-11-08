@@ -2,6 +2,7 @@ import { createContext, useContext } from 'react'
 
 type SessionNameValue = {
     name: string
+    isMenuReady: boolean
     updateName: (name: string) => void
 }
 

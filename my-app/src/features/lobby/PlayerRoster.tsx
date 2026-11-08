@@ -4,6 +4,7 @@ import { getLobbyRows, LOBBY_ROLES } from './lobbyModel'
 import type { LobbyMember } from './lobbyModel'
 import { useElasticRosterScroll } from './useElasticRosterScroll'
 import LobbyIcon from './LobbyIcon'
+import RolePicker from './RolePicker'
 
 type PlayerRosterProps = {
     members: LobbyMember[]
@@ -59,19 +60,7 @@ function PlayerRoster({ members, onAssignRole, roles = [...LOBBY_ROLES], editabl
                                                 {member.connected !== undefined && <span className="lobby-presence">{member.connected ? 'Active' : 'Away'}</span>}
                                                 {member.isHost && <span className="lobby-host-badge"><LobbyIcon name="crown" /> Host</span>}
                                             </div>
-                                            <label className="lobby-visually-hidden" htmlFor={`role-${member.id}`}>Role for {member.name}</label>
-                                            <span className="lobby-role-picker">
-                                                <select
-                                                    id={`role-${member.id}`}
-                                                    className="lobby-role-select"
-                                                    value={member.role}
-                                                    disabled={!editable}
-                                                    onChange={(event) => onAssignRole(member.id, event.target.value)}
-                                                >
-                                                    {roles.map((role) => <option key={role.id} value={role.id}>{role.label}</option>)}
-                                                </select>
-                                                <span aria-hidden="true">⌄</span>
-                                            </span>
+                                            <RolePicker id={`role-${member.id}`} playerName={member.name} value={member.role} roles={roles} disabled={!editable} onChange={(role) => onAssignRole(member.id, role)} />
                                         </motion.article>
                                     ))}
                                 </AnimatePresence>

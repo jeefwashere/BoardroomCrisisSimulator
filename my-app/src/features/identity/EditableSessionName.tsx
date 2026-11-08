@@ -41,36 +41,38 @@ function EditableSessionName() {
     if (!name) return null
 
     return (
-        <div className="session-name">
+        <div className={`session-name${isEditing ? ' is-editing' : ''}`}>
             {isEditing ? (
                 <>
-                    <input
-                        ref={inputRef}
-                        className="session-name__input"
-                        aria-label="Edit your name"
-                        type="text"
-                        autoComplete="off"
-                        maxLength={MAX_NAME_LENGTH}
-                        size={Math.max(4, Math.min(draft.length + 1, 28))}
-                        value={draft}
-                        onChange={(event) => setDraft(event.target.value)}
-                        onBlur={() => finishEditing(true)}
-                        onKeyDown={(event) => {
-                            if (event.nativeEvent.isComposing) return
-                            if (event.key === 'Enter') {
-                                event.preventDefault()
-                                finishEditing(true, true)
-                            } else if (event.key === 'Escape') {
-                                event.preventDefault()
-                                finishEditing(false, true)
-                            }
-                        }}
-                    />
+                    <span className="session-name__edit">
+                        <input
+                            ref={inputRef}
+                            className="session-name__input"
+                            aria-label="Edit your name"
+                            type="text"
+                            autoComplete="off"
+                            maxLength={MAX_NAME_LENGTH}
+                            size={Math.max(4, Math.min(draft.length + 1, 28))}
+                            value={draft}
+                            onChange={(event) => setDraft(event.target.value)}
+                            onBlur={() => finishEditing(true)}
+                            onKeyDown={(event) => {
+                                if (event.nativeEvent.isComposing) return
+                                if (event.key === 'Enter') {
+                                    event.preventDefault()
+                                    finishEditing(true, true)
+                                } else if (event.key === 'Escape') {
+                                    event.preventDefault()
+                                    finishEditing(false, true)
+                                }
+                            }}
+                        />
+                    </span>
                     <PencilIcon />
                 </>
             ) : (
                 <button ref={buttonRef} className="session-name__button" type="button" onClick={startEditing} aria-label={`Edit your name, currently ${name}`} title={name}>
-                    <span>{name}</span>
+                    <span className="session-name__text">{name}</span>
                     <PencilIcon />
                 </button>
             )}

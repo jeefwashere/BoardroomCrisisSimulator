@@ -78,5 +78,48 @@
     "result-chat.png": "9b27e2abfb197016d499f85991436336efdae0d6a12e4bc4894403b22c177bdd",
     "ended-chat.png": "6ba8b68dd87002d92587ab08171902ae96851d6baccc5a0aecae40f00ce33f79",
     "ended-mobile.png": "dda37157220db97f1a2ff6287f88946c40e01035db05cd6bf5e8e7989dd7f6a6"
+  },
+  "local_activation": {
+    "source_commit": "925bfd7230ab0dd42c8c56deafae4e13228bf00c",
+    "hosted_model_configured": true,
+    "tts_enabled": false,
+    "stt_enabled": false,
+    "voice_budget_usd": 0,
+    "test_clock_enabled": false,
+    "build": {
+      "command": "npm run build --prefix my-app",
+      "exit_code": 0,
+      "transformed_modules": 486,
+      "javascript": "my-app/dist/assets/index-BnpoZD_J.js",
+      "css": "my-app/dist/assets/index-BOypPDPr.css"
+    },
+    "http": {
+      "/": 200,
+      "/@vite/client": 200,
+      "/src/pages/Game.tsx": 200,
+      "/src/features/rooms/RoomChat.tsx": 200,
+      "/src/features/game/votePresentation.ts": 200,
+      "/src/features/game/TurnMedia.tsx": 200,
+      "/src/services/rooms.ts": 200,
+      "backend/docs": 200,
+      "backend/api/health": 200,
+      "backend/openapi.json": 200
+    },
+    "module_proof": {
+      "gameplay_controls": true,
+      "unified_room_chat": true,
+      "vote_counts": true,
+      "media_controls": true
+    },
+    "backend_health": {
+      "status": "ok",
+      "storage": "memory"
+    },
+    "api_version": "0.4.0",
+    "no_generation_or_paid_calls_performed": true,
+    "verified_at": "2026-11-08T01:08:38.109Z",
+    "public_route_count": 16,
+    "memory_rooms_reset": true,
+    "original_recordings_and_model_service_preserved": true
   }
 }

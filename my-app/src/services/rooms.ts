@@ -9,6 +9,30 @@ export type CreateRoomInput = {
 
 export type JoinRoomInput = CreateRoomInput & { role_id?: string | null }
 
+export type ContributionInput = {
+    command_id: string
+    phase_id: string | null
+    kind: 'answer' | 'chat'
+    source: 'typed' | 'speech'
+    text: string
+}
+
+export type Contribution = {
+    contribution_id: string
+    sequence: number
+    member_id: string
+    role_id: string | null
+    phase_id: string | null
+    phase: string
+    round_id: string | null
+    round_number: number | null
+    node_id: string | null
+    kind: ContributionInput['kind']
+    source: ContributionInput['source']
+    text: string
+    at: string
+}
+
 export type StartRoomInput = {
     command_id: string
     room_code: string
@@ -81,6 +105,8 @@ export type RoomApi = {
     join(input: JoinRoomInput, signal?: AbortSignal): Promise<RoomSnapshot>
     snapshot(roomId: string, signal?: AbortSignal): Promise<RoomSnapshot>
     start(roomId: string, input: StartRoomInput, signal?: AbortSignal): Promise<RoomSnapshot>
+    contributions(roomId: string, signal?: AbortSignal): Promise<Contribution[]>
+    contribute(roomId: string, input: ContributionInput, signal?: AbortSignal): Promise<Contribution>
 }
 
 type ValidationDetail = { loc: (string | number)[]; msg: string; type: string }
@@ -126,6 +152,18 @@ function member(value: unknown): value is RoomMember {
         && (value.role_id === null || typeof value.role_id === 'string')
         && (value.eligible_from_round === null || Number.isInteger(value.eligible_from_round))
         && typeof value.eligible_current_round === 'boolean'
+}
+
+function contribution(value: unknown): value is Contribution {
+    return record(value) && typeof value.contribution_id === 'string'
+        && Number.isInteger(value.sequence) && Number(value.sequence) >= 1
+        && typeof value.member_id === 'string' && (value.role_id === null || typeof value.role_id === 'string')
+        && (value.phase_id === null || typeof value.phase_id === 'string') && typeof value.phase === 'string'
+        && (value.round_id === null || typeof value.round_id === 'string')
+        && (value.round_number === null || (Number.isInteger(value.round_number) && Number(value.round_number) >= 1))
+        && (value.node_id === null || typeof value.node_id === 'string')
+        && (value.kind === 'answer' || value.kind === 'chat') && (value.source === 'typed' || value.source === 'speech')
+        && typeof value.text === 'string' && typeof value.at === 'string'
 }
 
 function game(value: unknown): value is RoomGame {
@@ -232,5 +270,8 @@ export function createRoomApi(options: { baseUrl?: string; fetch?: typeof global
         join: (input, signal) => request('/api/rooms/join', snapshot, signal, input),
         snapshot: (roomId, signal) => request(`/api/rooms/${encodeURIComponent(roomId)}`, snapshot, signal),
         start: (roomId, input, signal) => request(`/api/rooms/${encodeURIComponent(roomId)}/start`, snapshot, signal, input),
+        contributions: (roomId, signal) => request(`/api/rooms/${encodeURIComponent(roomId)}/contributions`,
+            (value): value is Contribution[] => Array.isArray(value) && value.every(contribution), signal),
+        contribute: (roomId, input, signal) => request(`/api/rooms/${encodeURIComponent(roomId)}/contributions`, contribution, signal, input),
     }
 }

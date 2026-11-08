@@ -5,7 +5,7 @@ import { badgeText, formatClock } from './controlBarModel'
 import type { MicControl } from './controlBarModel'
 import './ControlBar.css'
 
-type IconName = 'mic' | 'mic-off' | 'stop' | 'chat' | 'cc' | 'skip' | 'skip-speaker' | 'check' | 'end' | 'play' | 'cube'
+type IconName = 'mic' | 'mic-off' | 'stop' | 'chat' | 'cc' | 'skip' | 'skip-speaker' | 'check' | 'end' | 'play' | 'cube' | 'doc'
 
 function Icon({ name }: { name: IconName }) {
     const paths: Record<IconName, ReactNode> = {
@@ -18,6 +18,7 @@ function Icon({ name }: { name: IconName }) {
         'skip-speaker': <><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20a6.5 6.5 0 0 1 13 0M17 9l4 3-4 3" /></>,
         check: <path d="M5 12.5l4.5 4.5L19 7.5" />,
         play: <path d="M8 5.5v13l10.5-6.5L8 5.5Z" className="control-icon-fill" />,
+        doc: <><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5M9 13h6M9 17h4" /></>,
         cube: <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3ZM4 7.5l8 4.5 8-4.5M12 12v9" />,
         end: <path d="M3.2 14.6c4.9-4.6 12.7-4.6 17.6 0l-2.3 2.6-3.6-1.4v-2.6a10.4 10.4 0 0 0-5.8 0v2.6l-3.6 1.4-2.3-2.6Z" />,
     }
@@ -48,6 +49,8 @@ export type ControlBarProps = {
     captions?: { on: boolean; onToggle: () => void }
     /** Stage switch: the 3D boardroom or the call tiles, live, without reloading. */
     stage?: { threeD: boolean; onToggle: () => void }
+    /** The meeting's incident report PDF; shown once a report is available. */
+    report?: { open: boolean; onToggle: () => void }
     autoResponse?: { label: string; live: boolean; disabled: boolean; title?: string; onClick: () => void }
     finishTurn?: () => void
     skip?: { label: string; onClick: () => void }
@@ -56,7 +59,7 @@ export type ControlBarProps = {
 }
 
 /** Zoom style call toolbar fixed to the bottom of the game screen. Host controls only render when the server allows them. */
-export default function ControlBar({ caption, round, phaseId, deadline, serverTime, showCountdown, pending, mic, chat, captions, stage, autoResponse, finishTurn, skip, skipSpeaker, end }: ControlBarProps) {
+export default function ControlBar({ caption, round, phaseId, deadline, serverTime, showCountdown, pending, mic, chat, captions, stage, report, autoResponse, finishTurn, skip, skipSpeaker, end }: ControlBarProps) {
     const [armedEnd, setArmedEnd] = useState(false)
     useEffect(() => {
         if (!armedEnd) return
@@ -78,6 +81,7 @@ export default function ControlBar({ caption, round, phaseId, deadline, serverTi
             <ControlButton icon="chat" label="Chat" title={chat.open ? 'Close chat' : 'Open room chat'} pressed={chat.open} badge={chat.open ? 0 : chat.unread} onClick={chat.onToggle} />
             {captions && <ControlButton icon="cc" label="Captions" title={captions.on ? 'Hide the live transcript' : 'Show the live transcript'} pressed={captions.on} onClick={captions.onToggle} />}
             {stage && <ControlButton icon="cube" label="3D view" title={stage.threeD ? 'Switch to the call tiles' : 'Switch to the 3D boardroom'} pressed={stage.threeD} onClick={stage.onToggle} />}
+            {report && <ControlButton icon="doc" label="Report" title={report.open ? 'Close the incident report' : 'Open the incident report'} pressed={report.open} onClick={report.onToggle} />}
             {autoResponse && <ControlButton icon={autoResponse.live ? 'stop' : 'play'} label={autoResponse.label} title={autoResponse.title ?? 'Play your recorded response, then pass the turn'} tone={autoResponse.live ? 'live' : 'accent'} pressed={autoResponse.live} disabled={autoResponse.disabled} onClick={autoResponse.onClick} />}
             {finishTurn && <ControlButton icon="check" label="Finish my turn" title="Pass the floor to the next participant" tone="accent" disabled={pending} onClick={finishTurn} />}
             {skip && <ControlButton icon="skip" label={skip.label} title={`${skip.label} (host)`} disabled={pending} onClick={skip.onClick} />}

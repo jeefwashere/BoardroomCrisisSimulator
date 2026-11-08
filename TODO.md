@@ -262,6 +262,10 @@ The user now owns frontend implementation and backend integration, retaining Jef
 
   Owner: Arjun's Claude agent. Status: `done`. Evidence: completion record 35. Scope from the user: delete the "Incident report (PDF)" card shown over the stage. Progress: removed the card from `OpeningBriefing.tsx`, deleted `IncidentReportCard.tsx` and its `opening-report` styles in `Game.css`, `GameTheme.css` and `Boardroom3D.css`. The game screen no longer links to the incident report PDF (the facilitation documents tab is not mounted in the game). Checks: `npx tsc -b`, `npm run lint`, `npm run build` passed; `npm test` passed 226 of 226. Next action: none for this task.
 
+* [ ] X26 Remove the briefing skip and source strip; add a Report button for the incident report.
+
+  Owner: Arjun's Claude agent. Status: `in_progress`. Scope from the user: delete the strip with "Skip to the call for everyone" and the "Generated live by Gemini" note, then add a button to open the incident report. Progress: removed the skip link and the source label from `OpeningBriefing.tsx` (the host keeps "Skip briefing" in the control bar); added a **Report** control bar button, shown once the meeting's featured report loads, that opens `ReportDialog` (a paper card over the stage with the PDF, Open in new tab, and close). Checks: `npx tsc -b`, `npm run lint`, `npm run build` passed; `npm test` passed 226 of 226; Playwright opened the report on the demo room (T01 PDF) and closed it with the × and the Report button. Escape closes it unless the browser's PDF viewer holds keyboard focus. Next action: commit, push and record completion.
+
 ## Integration and verification
 
 * [x] I01 Publish the frontend API and snapshot contract with examples.

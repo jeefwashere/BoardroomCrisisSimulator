@@ -30,6 +30,8 @@ import { useDictation } from '../features/game/useDictation'
 import { useTurnRecorder } from '../features/game/useTurnRecorder'
 import RoomNameEditor from '../features/rooms/RoomNameEditor'
 import TranscriptPanel from '../features/game/TranscriptPanel'
+import ReportDialog from '../features/game/ReportDialog'
+import { useMeetingDocuments } from '../features/facilitation/useMeetingDocuments'
 import { useSpokenLine, useTranscript } from '../features/game/useTranscript'
 import { CAPTIONS_STORAGE_KEY, captionsPreference, speechDurationMs, turnEntry } from '../features/game/transcriptModel'
 import { clipForTurn } from '../features/game/savedClips'
@@ -107,6 +109,10 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const [chatOpen, setChatOpen] = useState(false)
     const [promptedPhase, setPromptedPhase] = useState('')
     const closeChat = useCallback(() => setChatOpen(false), [])
+    // Report: the meeting's incident report PDF, opened from the control bar.
+    const report = useMeetingDocuments(room.room_id).featured
+    const [reportOpen, setReportOpen] = useState(false)
+    const closeReport = useCallback(() => setReportOpen(false), [])
     // CC: the live transcript panel, on by default and remembered for this tab. Chat replaces it while open.
     const [captions, setCaptions] = useState(readCaptions)
     const toggleCaptions = useCallback(() => setCaptions((on) => { storeCaptions(!on); return !on }), [])
@@ -308,12 +314,14 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
             chat={{ open: chatOpen, unread, onToggle: () => setChatOpen((open) => !open) }}
             captions={{ on: captions, onToggle: toggleCaptions }}
             stage={stageSwitch ? { threeD: show3d, onToggle: toggleView3d } : undefined}
+            report={report ? { open: reportOpen, onToggle: () => setReportOpen((open) => !open) } : undefined}
             autoResponse={autoControl}
             finishTurn={actions.includes('finish_speaking') ? () => void act(rounds + 'speaker/finish') : undefined}
             skip={actions.includes('skip_phase') ? { label: skipLabel(room.phase), onClick: () => void act(rounds + 'skip-phase') } : undefined}
             skipSpeaker={actions.includes('skip_speaker') ? () => void act(rounds + 'speaker/skip', { reason: 'Skipped by the host' }) : undefined}
             end={actions.includes('end') ? () => void act('end') : undefined}
         />
+        <ReportDialog report={report} open={reportOpen} onClose={closeReport} />
         <TranscriptPanel entries={transcriptEntries} open={transcriptOpen} onClose={hideCaptions} dockRef={setDock} minimized={transcriptMinimized} onToggleMinimized={toggleTranscriptMinimized} />
         <ChatDrawer room={room} scenarios={scenarios} chat={chat} open={chatOpen} onClose={closeChat}
             pinned={individual && room.phase === 'individual_decision' ? <div className="game-briefing chat-decision"><p className="chat-decision-from">Facilitator · Round 1</p><IndividualDecisionPanel key={game.phase_id} room={room} pending={pending} act={act} notice={notice} dictation={dictation} attachDictation={attachDictation} /></div> : undefined} />

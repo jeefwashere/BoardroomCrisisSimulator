@@ -1,0 +1,34 @@
+/* Incident report viewer: a paper card over the stage, above the transcript and chat, below the control bar. */
+.report-dialog {
+  position: fixed;
+  top: 84px;
+  left: 50%;
+  bottom: calc(var(--control-bar-height, 84px) + 12px);
+  z-index: 88;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(880px, calc(100vw - 24px));
+  padding: 14px 16px 12px;
+  border: 1px solid #e3d6c2;
+  border-radius: 14px;
+  background: #fffaf1;
+  color: #422820;
+  font-family: var(--font-heading);
+  box-shadow: 0 18px 50px #42282033;
+  transform: translateX(-50%);
+}
+.report-dialog-head { display: flex; align-items: center; gap: 14px; }
+.report-dialog-text { display: grid; flex: 1 1 auto; gap: 2px; min-width: 0; }
+.report-dialog-eyebrow { color: #8b362c; font-size: 11px; font-style: italic; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+.report-dialog h2 { margin: 0; overflow: hidden; font-size: 17px; font-weight: 700; letter-spacing: -.01em; text-overflow: ellipsis; white-space: nowrap; }
+.report-dialog-link { flex: none; color: #8b362c; font-size: 13px; font-weight: 650; text-underline-offset: 3px; }
+.report-dialog-link:hover { color: #a3443a; }
+.report-dialog-close { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: #7a6656; font-size: 22px; line-height: 1; cursor: pointer; }
+.report-dialog-close:hover { background: #8b362c12; color: #8b362c; }
+.report-dialog :is(a, button):focus-visible { outline: 2px solid #8b362c; outline-offset: 2px; }
+.report-dialog-frame { display: flex; flex: 1 1 auto; flex-direction: column; gap: 6px; min-height: 0; }
+.report-dialog-frame iframe { display: block; flex: 1 1 auto; width: 100%; min-height: 0; border: 1px solid #e3d6c2; border-radius: 8px; background: #fff; }
+.report-dialog-frame .pdf-frame-fallback { margin: 0; color: #7a6656; font-size: 11.5px; }
+.report-dialog-frame .pdf-frame-fallback a { color: inherit; }
+@media (max-width: 600px) { .report-dialog { top: 64px; } .report-dialog-link { display: none; } }

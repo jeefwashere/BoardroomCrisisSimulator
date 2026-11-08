@@ -11,7 +11,6 @@ export const DEMO_SEATS = [
 
 export type DemoSeat = (typeof DEMO_SEATS)[number]['seat']
 export const DEMO_STORAGE_KEY = 'boardroom.demoRoom'
-export const SPLIT_VIEW_MIN_WIDTH = 1400
 
 export type StoredDemo = { room_id: string; room_code: string }
 

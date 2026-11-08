@@ -51,6 +51,7 @@
 }
 
 .game-call-heading { text-align: center; }
+.game-room-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; }
 .game-call-heading h1 { margin: 0 0 5px; font-size: 20px; font-weight: 650; letter-spacing: -0.035em; }
 .game-call-heading > span { color: #b0b4bf; font-size: 10px; letter-spacing: 0.04em; }
 .game-player-count { justify-self: end; padding-right: 10px; font-size: 14px; font-weight: 650; }

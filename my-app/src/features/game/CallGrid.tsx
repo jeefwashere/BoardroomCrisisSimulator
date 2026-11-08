@@ -51,7 +51,7 @@ function CallGrid({ members, badges = {} }: { members: LobbyMember[]; badges?: R
                         </div>
                         <div className="game-player-caption">
                             <h2 title={member.name}>{member.name}</h2>
-                            {member.connected !== undefined && <small>{member.connected ? 'Active' : 'Away'}</small>}
+                            {member.connected !== undefined && <small>{member.connected ? 'Active' : 'Disconnected'}</small>}
                             <span title={(member.roleLabel ?? playerRoleLabel(member.role))}>{(member.roleLabel ?? playerRoleLabel(member.role))}</span>
                         </div>
                     </motion.article>

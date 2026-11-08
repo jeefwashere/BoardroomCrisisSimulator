@@ -229,7 +229,7 @@ ElevenLabs speech is selected under Route A. Authenticated narration status, pre
 
 Confirmed initial shape: one backend process and active rooms in memory. The first lobby capability uses HTTP snapshots with approximately two second frontend polling. WebSocket delivery remains later work. Scenario files remain immutable versioned inputs. Browser refresh and reconnect recover the seat while that process lives. Process restart recovery is not provided. This matches the user's decision to defer advanced recovery. FastAPI explicitly documents the process lifetime and single process limitation of its [memory based WebSocket example](https://fastapi.tiangolo.com/advanced/websockets/).
 
-Run one worker for this shape. A reverse proxy may serve the frontend and route `/api` and `/ws` to the backend under the same origin. This is a recommended deployment shape, not a selected hosting provider. An active room continues while temporarily empty. Cleanup may remove expired lobbies and ended rooms according to an explicitly chosen retention setting, not merely because a socket closed.
+Run one worker for this shape. A reverse proxy may serve the frontend and route `/api` and `/ws` to the backend under the same origin. This is a recommended deployment shape, not a selected hosting provider. The confirmed host lifecycle now closes open lobbies and active calls on explicit host departure or after 30 seconds without host activity. Short interruptions retain membership; see the room API. Storage cleanup and retention for ended records remain separate from this call closure policy.
 
 The target logical database model, if durable storage is selected later, contains:
 

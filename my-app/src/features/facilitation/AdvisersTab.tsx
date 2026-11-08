@@ -23,7 +23,7 @@ function formatTime(at: string): string {
     return Number.isFinite(time) ? new Date(time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : ''
 }
 
-export default function AdvisersTab({ room, player, onToggle }: { room: RoomSnapshot; player: SharedAudioState; onToggle: (key: string, src: string) => void }) {
+export default function AdvisersTab({ room, player, onToggle, review = false }: { room: RoomSnapshot; player: SharedAudioState; onToggle: (key: string, src: string) => void; review?: boolean }) {
     const [state, setState] = useState<Facilitation | null>(null)
     const [loadError, setLoadError] = useState('')
     const [retryToken, setRetryToken] = useState(0)
@@ -117,7 +117,15 @@ export default function AdvisersTab({ room, player, onToggle }: { room: RoomSnap
 
         {!state && !loadError && <p className="facilitation-loading" role="status"><span className="facilitation-spinner" aria-hidden="true" /> Loading advisers…</p>}
 
-        {advisers.length > 0 && <div className="facilitation-adviser-list" role="radiogroup" aria-label="Choose an adviser">
+        {review && <div className="facilitation-summary-cards">{advisers.map((adviser) => {
+            const replies = consultations.filter((item) => item.kind === adviser.kind && (room.phase === 'ended' || item.round_number === room.game?.round_number))
+            return <article key={adviser.kind} className="facilitation-summary-card"><header><AdviserAvatar kind={adviser.kind} label={adviser.label} /><div><h3>{adviser.label}</h3><p>{adviser.description}</p></div></header>
+                {adviser.kind === 'facilitator' && state?.opening?.text && <details><summary>Opening briefing</summary><p>{state.opening.text}</p></details>}
+                {replies.length === 0 && <p className="facilitation-empty">No summary is available for this {room.phase === 'ended' ? 'session' : 'round'} yet.</p>}
+                {replies.map((reply) => <div className="facilitation-summary-reply" key={reply.consultation_id}><span className="facilitation-note">{reply.question}</span><p>{reply.status === 'ready' ? reply.reply : reply.status === 'pending' ? 'Preparing a reply…' : reply.error || 'No reply available.'}</p></div>)}
+            </article>
+        })}</div>}
+        {!review && advisers.length > 0 && <div className="facilitation-adviser-list" role="radiogroup" aria-label="Choose an adviser">
             {advisers.map((adviser) => <button key={adviser.kind} type="button" role="radio" aria-checked={adviser.kind === currentKind}
                 className={`facilitation-adviser${adviser.kind === currentKind ? ' is-selected' : ''}`} onClick={() => setSelected(adviser.kind)}>
                 <AdviserAvatar kind={adviser.kind} label={adviser.label} />
@@ -128,7 +136,7 @@ export default function AdvisersTab({ room, player, onToggle }: { room: RoomSnap
             </button>)}
         </div>}
 
-        {current && <form className="facilitation-ask" onSubmit={(event) => void ask(event)}>
+        {!review && current && <form className="facilitation-ask" onSubmit={(event) => void ask(event)}>
             <label htmlFor={`facilitation-question-${roomId}`}>Ask the {current.label}</label>
             <div className="facilitation-suggestions" aria-label="Suggested questions">
                 {(SUGGESTED_QUESTIONS[current.kind] ?? []).map((suggestion) => <button key={suggestion} type="button" className="facilitation-chip" onClick={() => setQuestion(suggestion)}>{suggestion}</button>)}
@@ -142,7 +150,7 @@ export default function AdvisersTab({ room, player, onToggle }: { room: RoomSnap
             {askError && <p className="facilitation-note facilitation-note--error" role="alert">{askError}</p>}
         </form>}
 
-        <section className="facilitation-feed" aria-labelledby={`facilitation-feed-${roomId}`}>
+        {!review && <section className="facilitation-feed" aria-labelledby={`facilitation-feed-${roomId}`}>
             <h3 id={`facilitation-feed-${roomId}`}>Room consultations <span>{consultations.length}</span></h3>
             {state && consultations.length === 0 && <p className="facilitation-empty">No questions yet. Everything asked here is shared with the whole room.</p>}
             <ol>
@@ -175,6 +183,6 @@ export default function AdvisersTab({ room, player, onToggle }: { room: RoomSnap
                     </li>
                 })}
             </ol>
-        </section>
+        </section>}
     </div>
 }

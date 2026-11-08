@@ -12,15 +12,20 @@ import Game from './Game'
 import Summary from './Summary'
 import LobbyNameEditor from '../features/rooms/LobbyNameEditor'
 import RoomChat from '../features/rooms/RoomChat'
+import HostLeavePrompt from '../features/rooms/HostLeavePrompt'
+import SessionEnded from '../features/rooms/SessionEnded'
+import { sessionClosure } from '../features/rooms/sessionClosure'
+import RoomCodeButton from '../features/lobby/RoomCodeButton'
 import './Host.css'
 
-function Host({ roomId, initialRoom }: { roomId: string; initialRoom?: RoomSnapshot }) {
+function Host({ roomId, initialRoom, showChat = true, onLeaveDemo }: { roomId: string; initialRoom?: RoomSnapshot; showChat?: boolean; onLeaveDemo?: () => void }) {
     const { room, scenarios, error, accessError, starting, leaving, start, leave, rename, execute, refresh } = useRoom(roomId, initialRoom)
     const [draft, setDraft] = useState<RoleDraft>({})
     const [selectedScenario, setSelectedScenario] = useState('')
     const [selectedTiming, setSelectedTiming] = useState('')
     const [documentNotice, setDocumentNotice] = useState('Optional uploads are acknowledged only. They do not change the scenario.')
     const [notice, setNotice] = useState('')
+    const [confirmLeave, setConfirmLeave] = useState(false)
     const [isDocumentUploading, setIsDocumentUploading] = useState(false)
     const summaryPreview = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('preview') === 'summary'
     function showSummaryPreview() { window.location.hash = `/room/${roomId}?preview=summary` }
@@ -32,14 +37,25 @@ function Host({ roomId, initialRoom }: { roomId: string; initialRoom?: RoomSnaps
     const controlsDisabled = starting || leaving || isDocumentUploading
 
     async function leaveLobby() {
+        if (onLeaveDemo) { onLeaveDemo(); return }
         try { await leave(); window.location.hash = '/' }
         catch (failure) { setNotice(failure instanceof Error ? failure.message : 'The lobby could not be left. Please try again.') }
     }
 
-    async function copyRoomCode() {
-        if (!room) return
-        try { await navigator.clipboard.writeText(room.room_code); setNotice('Room code copied.') }
-        catch { setNotice(`Your room code is ${room.room_code}.`) }
+    function requestLeave() {
+        if (onLeaveDemo) onLeaveDemo()
+        else if (isHost) setConfirmLeave(true)
+        else void leaveLobby()
+    }
+
+    async function confirmHostLeave() {
+        await leave()
+        window.location.hash = '/'
+    }
+
+    function backHome() {
+        if (onLeaveDemo) onLeaveDemo()
+        else window.location.hash = '/'
     }
 
     function submitStart() {
@@ -52,17 +68,19 @@ function Host({ roomId, initialRoom }: { roomId: string; initialRoom?: RoomSnaps
         } catch (failure) { setNotice(failure instanceof Error ? failure.message : 'Check the role assignments.') }
     }
 
-    if (accessError) return <main className="room-loading"><h1>{accessError.code === 'room_closed' ? 'Lobby closed' : 'Lobby unavailable'}</h1><p role="alert">{accessError.message}</p><button className="room-text-button" type="button" onClick={() => { window.location.hash = '/' }}>Back home</button></main>
-    if (!room) return <main className="room-loading"><h1>Opening boardroom</h1><p role={error ? 'alert' : 'status'}>{error || 'Connecting to the room server…'}</p><button onClick={() => { window.location.hash = '/' }}>Back home</button></main>
+    const closure = sessionClosure(accessError)
+    if (closure) return <SessionEnded reason={closure} onBack={backHome} />
+    if (accessError) return <main className="room-loading"><h1>Room unavailable</h1><p role="alert">{accessError.message}</p><button className="room-text-button" type="button" onClick={backHome}>Back home</button></main>
+    if (!room) return <main className="room-loading"><h1>Opening boardroom</h1><p role={error ? 'alert' : 'status'}>{error || 'Connecting to the room server…'}</p><button onClick={backHome}>Back home</button></main>
     const problem = startProblem(room, scenario, draft)
     const members = roomMembers(room, isHost ? draft : {})
 
     return <>
-        {summaryPreview ? <Summary members={roomMembers(room, {}, scenario)} roomCode={room.room_code} onBackToCall={returnToRoom} /> : room.phase !== 'lobby' ? <Game room={room} scenarios={scenarios} error={error} rename={rename} execute={execute} onViewSummary={showSummaryPreview} /> : <MotionConfig reducedMotion="user">
+        {summaryPreview ? <Summary members={roomMembers(room, {}, scenario)} roomCode={room.room_code} onBackToCall={returnToRoom} /> : room.phase !== 'lobby' ? <Game room={room} scenarios={scenarios} error={error} execute={execute} onLeaveRoom={requestLeave} leaveLabel={onLeaveDemo ? 'Leave demo' : 'Leave room'} /> : <MotionConfig reducedMotion="user">
         <div className="host-lobby">
             <header className="lobby-toolbar">
-                <button className="lobby-leave-button" type="button" disabled={controlsDisabled} title={isHost ? 'Close this lobby for everyone' : 'Leave this lobby and remove your seat'} onClick={() => void leaveLobby()}>{leaving ? 'Leaving…' : 'Leave'}</button>
-                <button className="lobby-room-code" type="button" onClick={() => void copyRoomCode()} aria-label={`Copy room code ${room.room_code}`} title="Copy room code"><span>Room code</span><strong>{room.room_code}</strong></button>
+                <button className="lobby-leave-button" type="button" disabled={!onLeaveDemo && controlsDisabled} title={onLeaveDemo ? 'End the demo and return to the main menu' : isHost ? 'Close this lobby for everyone' : 'Leave this lobby and remove your seat'} onClick={requestLeave}>{onLeaveDemo ? 'Leave demo' : leaving ? 'Leaving…' : 'Leave'}</button>
+                <RoomCodeButton key={room.room_code} code={room.room_code} />
                 {isHost ? <DocumentUpload onUploadingChange={setIsDocumentUploading} roomCode={room.room_code} onContextChange={(context) => setDocumentNotice(`${context} This upload is not processed or used by the briefing.`)} /> : <span className="lobby-waiting">Waiting for the host</span>}
             </header>
             <main className="lobby-main" aria-labelledby="lobby-title">
@@ -82,7 +100,8 @@ function Host({ roomId, initialRoom }: { roomId: string; initialRoom?: RoomSnaps
             </footer>
         </div>
     </MotionConfig>}
-        <RoomChat key={room.room_id} room={room} scenarios={scenarios} refreshRoom={refresh} />
+        {showChat && <RoomChat key={room.room_id} room={room} scenarios={scenarios} refreshRoom={refresh} />}
+        {confirmLeave && <HostLeavePrompt onYes={confirmHostLeave} onNo={() => setConfirmLeave(false)} />}
     </>
 }
 

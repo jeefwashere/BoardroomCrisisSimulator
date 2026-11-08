@@ -15,7 +15,7 @@ from . import gameplay
 
 
 
-# Timed phases the host may end early with the skip_phase command.
+# Timed phases the host may end early. CEOs may also end speaking or discussion.
 SKIPPABLE = (sim.BriefingPhase, sim.ReadingPhase, sim.SpeakingPhase, sim.DiscussionPhase,
              sim.VotingPhase, sim.TiePhase, sim.ResultPhase)
 
@@ -34,6 +34,7 @@ class Seat:
     display_name: str
     last_seen: float
     joined_at: datetime
+    has_left: bool = False
 
 
 @dataclass(frozen=True)
@@ -74,6 +75,7 @@ class MemberSnapshot:
     role_id: str | None
     eligible_from_round: int | None
     eligible_current_round: bool
+    has_left: bool = False
 
 
 @dataclass(frozen=True)
@@ -227,7 +229,7 @@ class EvaluationEvidence:
 
 
 def active(seat: Seat, now: float) -> bool:
-    return 0 <= now - seat.last_seen < PRESENCE_WINDOW_SECONDS
+    return not seat.has_left and 0 <= now - seat.last_seen < PRESENCE_WINDOW_SECONDS
 
 
 def identity(state: sim.Game) -> ScenarioIdentity:
@@ -245,17 +247,23 @@ class Room:
     contributions: tuple[Contribution, ...] = ()
     version: int = 1
     closed: bool = False
+    closed_reason: str | None = None
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
     def ensure_open(self) -> None:
         if self.closed:
-            raise RoomError(410, "room_closed", "The host has closed this lobby. Create or join another room.")
+            if self.closed_reason == "host_disconnected":
+                raise RoomError(410, "host_disconnected", "The host has been disconnected.")
+            raise RoomError(410, "room_closed", "The session has been ended by the host.")
 
     def member(self, session: str) -> Seat:
         self.ensure_open()
         if session not in self.members:
             raise RoomError(403, "not_a_member", "Join this room before reading it")
-        return self.members[session]
+        seat = self.members[session]
+        if seat.has_left:
+            raise RoomError(403, "member_left", "You left this room. Join again to return.")
+        return seat
 
     def touch(self, session: str, now: float) -> None:
         self.members[session] = replace(self.member(session), last_seen=now)
@@ -296,12 +304,14 @@ class Room:
                     actions.append("end")
                 if isinstance(state.phase, sim.BriefingPhase) and caller.member_id == self.host_member_id:
                     actions.append("finish_briefing")
-                if caller.member_id == self.host_member_id and isinstance(state.phase, SKIPPABLE):
+                is_ceo = assignments.get(caller.member_id) is not None and assignments[caller.member_id].role_id == "ceo"
+                if (caller.member_id == self.host_member_id and isinstance(state.phase, SKIPPABLE)
+                        or is_ceo and isinstance(state.phase, (sim.SpeakingPhase, sim.DiscussionPhase))):
                     actions.append("skip_phase")
                 if isinstance(state.phase, sim.SpeakingPhase):
                     if caller.member_id == state.phase.order[state.phase.index]:
                         actions.append("finish_speaking")
-                    if caller.member_id == self.host_member_id:
+                    if caller.member_id == self.host_member_id or is_ceo:
                         actions.append("skip_speaker")
                 if isinstance(state.phase, sim.VotingPhase) and caller.member_id in electorate:
                     actions.append("vote")
@@ -339,7 +349,7 @@ class Room:
             members.append(MemberSnapshot(
                 seat.member_id, seat.display_name, seat.member_id == self.host_member_id, active(seat, now),
                 assignment.role_id if assignment else None,
-                assignment.eligible_from_round if assignment else None, seat.member_id in electorate,
+                assignment.eligible_from_round if assignment else None, seat.member_id in electorate, seat.has_left,
             ))
         return RoomSnapshot(self.room_id, self.code, self.version, self.host_member_id,
                             caller.member_id, tuple(members), game)
@@ -374,10 +384,31 @@ class Rooms:
             room.phase = replace(phase, state=state, electorate=electorate)
             room.version += 1
 
+    def close_room(self, room: Room, now: float, reason: str) -> None:
+        if room.closed:
+            return
+        if isinstance(room.phase, StartedGame):
+            room.phase = replace(room.phase, state=gameplay.end(room.phase.state, now, reason))
+        room.closed = True
+        room.closed_reason = reason
+        room.version += 1
+
     async def tick(self) -> None:
         for room in tuple(self.rooms.values()):
             async with room.lock:
-                self.reconcile(room, self.clock())
+                now = self.clock()
+                finished = isinstance(room.phase, StartedGame) and isinstance(room.phase.state.phase, sim.EndedPhase)
+                if self.automatic and not room.closed and not finished:
+                    host = next((seat for seat in room.members.values() if seat.member_id == room.host_member_id), None)
+                    # Preserve a total deadline that fell before the host lease expired.
+                    if isinstance(room.phase, StartedGame) and host is not None:
+                        deadline = room.phase.state.session_deadline
+                        if deadline is not None and deadline <= now and deadline <= host.last_seen + PRESENCE_WINDOW_SECONDS:
+                            self.reconcile(room, now)
+                            finished = isinstance(room.phase.state.phase, sim.EndedPhase)
+                    if not finished and (host is None or now - host.last_seen >= PRESENCE_WINDOW_SECONDS):
+                        self.close_room(room, now, "host_disconnected")
+                self.reconcile(room, now)
 
     async def play(self, session: str, room_id: UUID, command_id: UUID, phase_id: UUID,
                    round_id: UUID | None, action: str, value: str | UUID | None = None) -> RoomSnapshot:
@@ -415,10 +446,12 @@ class Rooms:
                 seen = {seat.member_id: seat.last_seen for seat in room.members.values()}
                 state = gameplay.begin_speaking(state, now, group.electorate, seen)
             elif action == "skip_phase":
-                if caller.member_id != room.host_member_id:
-                    raise RoomError(403, "host_required", "Only the host can skip a phase")
+                is_ceo = any(item.member_id == caller.member_id and item.role_id == "ceo" for item in assignments)
+                if caller.member_id != room.host_member_id and not (is_ceo and isinstance(phase, (sim.SpeakingPhase, sim.DiscussionPhase))):
+                    raise RoomError(403, "host_required", "Only the host can skip this phase; the CEO can finish discussion")
                 if isinstance(phase, sim.SpeakingPhase):
-                    state = gameplay.finish_record(state, now, "host_skip_phase", caller.member_id)
+                    reason = "host_skip_phase" if caller.member_id == room.host_member_id else "ceo_finish_round"
+                    state = gameplay.finish_record(state, now, reason, caller.member_id)
                     state = replace(state, phase=sim.DiscussionPhase(uuid4(), now))
                 elif isinstance(phase, sim.BriefingPhase):
                     seen = {seat.member_id: seat.last_seen for seat in room.members.values()}
@@ -435,11 +468,12 @@ class Rooms:
                 speaker = phase.order[phase.index]
                 if action == "finish" and caller.member_id != speaker:
                     raise RoomError(403, "speaker_required", "Only the active speaker can finish")
-                if action == "skip" and caller.member_id != room.host_member_id:
-                    raise RoomError(403, "host_required", "Only the host can skip a speaker")
+                if action == "skip" and caller.member_id != room.host_member_id and not any(item.member_id == caller.member_id and item.role_id == "ceo" for item in assignments):
+                    raise RoomError(403, "host_required", "Only the host or CEO can skip a speaker")
                 seen = {seat.member_id: seat.last_seen for seat in room.members.values()}
+                actor = "host" if caller.member_id == room.host_member_id else "ceo"
                 state = gameplay.next_speaker(state, now, seen,
-                                              f"host_skip: {value}" if action == "skip" else "finished",
+                                              f"{actor}_skip: {value}" if action == "skip" else "finished",
                                               caller.member_id)
             elif action == "vote":
                 if not isinstance(phase, sim.VotingPhase):
@@ -557,11 +591,17 @@ class Rooms:
             if previous := self.retry(session, command_id, intent):
                 return previous
             caller = room.member(session)
-            if not isinstance(room.phase, Lobby):
-                raise RoomError(409, "already_started", "Leaving a lobby is only available before the game starts")
-            room.closed = caller.member_id == room.host_member_id
-            del room.members[session]
+            if caller.member_id == room.host_member_id:
+                self.close_room(room, self.clock(), "host_ended")
+                receipt = LeaveReceipt(room.room_id, room.version, "closed")
+                self.receipts[(session, command_id)] = (intent, receipt)
+                return receipt
+            if isinstance(room.phase, Lobby):
+                del room.members[session]
+            else:
+                room.members[session] = replace(caller, has_left=True, last_seen=self.clock() - PRESENCE_WINDOW_SECONDS)
             room.version += 1
+            self.reconcile(room, self.clock())
             receipt = LeaveReceipt(room.room_id, room.version, "closed" if room.closed else "left")
             self.receipts[(session, command_id)] = (intent, receipt)
             return receipt
@@ -614,7 +654,10 @@ class Rooms:
                     if any(seat.member_id != existing.member_id and seat.display_name.casefold() == display_name.casefold()
                            for seat in room.members.values()):
                         raise RoomError(409, "name_taken", "Choose another display name")
-                    room.members[session] = replace(existing, display_name=display_name, last_seen=now)
+                    room.members[session] = replace(existing, display_name=display_name, last_seen=now, has_left=False)
+                    room.version += 1
+                elif existing.has_left:
+                    room.members[session] = replace(existing, last_seen=now, has_left=False)
                     room.version += 1
                 else:
                     room.touch(session, now)

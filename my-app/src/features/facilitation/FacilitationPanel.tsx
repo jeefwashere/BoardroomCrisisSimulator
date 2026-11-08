@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
+import type { ReactNode } from 'react'
 import type { RecordedClip } from '../../services/facilitation'
 import type { RoomSnapshot } from '../../services/rooms'
 import { facilitationApi, facilitationErrorMessage } from './facilitationClient'
@@ -15,7 +16,7 @@ import './Facilitation.css'
 type Tab = 'advisers' | 'recordings' | 'documents'
 const TABS: { id: Tab; label: string }[] = [{ id: 'advisers', label: 'AI facilitators' }, { id: 'recordings', label: 'Recorded audio' }, { id: 'documents', label: 'Documents' }]
 
-export default function FacilitationPanel({ room }: { room: RoomSnapshot }) {
+export default function FacilitationPanel({ room, review = false, recordingsContent, documentsContent, feedbackContent }: { room: RoomSnapshot; review?: boolean; recordingsContent?: ReactNode; documentsContent?: ReactNode; feedbackContent?: ReactNode }) {
     const [tab, setTab] = useState<Tab>('advisers')
     const [open, setOpen] = useState(false)
     const [clips, setClips] = useState<RecordedClip[]>([])
@@ -56,6 +57,12 @@ export default function FacilitationPanel({ room }: { room: RoomSnapshot }) {
         tabRefs.current[next]?.focus()
     }
 
+    if (review) return <section className="facilitation-panel facilitation-review" aria-label="Round review resources">
+        <audio {...audioProps} />
+        <details><summary>AI facilitators<span aria-hidden="true">+</span></summary>{feedbackContent}<AdvisersTab room={room} player={player} onToggle={toggle} review /></details>
+        <details><summary>Recorded audio<span aria-hidden="true">+</span></summary>{recordingsContent}<RecordingsTab clips={clips} error={clipsError} loading={clipsLoading} onRetry={retryClips} player={player} onToggle={toggle} /></details>
+        <details><summary>Documents<span aria-hidden="true">+</span></summary><DocumentsTab entries={documents.entries} status={documents.status} error={documents.error} />{documentsContent}</details>
+    </section>
     return <aside className={`facilitation-panel${open ? ' is-open' : ''}`} aria-label="Meeting facilitation">
         <audio {...audioProps} />
         <button type="button" className="facilitation-collapse" aria-expanded={open} aria-controls={`${id}-body`} onClick={() => setOpen((value) => !value)}>

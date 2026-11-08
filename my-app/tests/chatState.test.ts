@@ -161,3 +161,55 @@ test('leaving aborts an in flight POST and ignores its late response', async () 
     await sending
     assert.deepEqual(store.getSnapshot().records, [])
 })
+
+test('switching participants preserves private drafts and sends through each original identity', async () => {
+    const sent: { member: string; text: string }[] = []
+    const stores = ['alex', 'morgan'].map((member) => createChatStore({ roomId: 'shared-room', refreshRoom: async () => {}, api: {
+        contributions: async () => [],
+        contribute: async (_room, input) => { sent.push({ member, text: input.text }); return { ...record(sent.length, input.text), member_id: member } },
+    } }))
+    let stop = stores[0].start()
+    try {
+        stores[0].setDraft('Alex draft')
+        stop()
+        stop = stores[1].start()
+        assert.equal(stores[1].getSnapshot().draft, '')
+        stores[1].setDraft('Morgan message')
+        await stores[1].send('phase-1')
+        stop()
+        stop = stores[0].start()
+        assert.equal(stores[0].getSnapshot().draft, 'Alex draft')
+        await stores[0].send('phase-1')
+        assert.deepEqual(sent, [{ member: 'morgan', text: 'Morgan message' }, { member: 'alex', text: 'Alex draft' }])
+    } finally { stop() }
+})
+
+test('switching away during send retains an exact retry and its late completion cannot clear a resumed request', async () => {
+    const original = deferred<Contribution>()
+    const recovered = deferred<Contribution>()
+    const calls: ContributionInput[] = []
+    const store = createChatStore({ roomId: 'room', refreshRoom: async () => {}, api: {
+        contributions: async () => [],
+        contribute: async (_room, input) => { calls.push(input); return calls.length === 1 ? original.promise : recovered.promise },
+    } })
+    let stop = store.start()
+    try {
+        store.setDraft('Keep original author and phase')
+        const sending = store.send('phase-original')
+        stop()
+        assert.equal(store.getSnapshot().sending, false)
+        assert.strictEqual(store.getSnapshot().retry, calls[0])
+        stop = store.start()
+        const retrying = store.retry()
+        original.resolve(record(1))
+        await sending
+        assert.equal(store.getSnapshot().sending, true)
+        assert.strictEqual(calls[0], calls[1])
+        assert.equal(calls[1].phase_id, 'phase-original')
+        recovered.resolve(record(1, 'Keep original author and phase'))
+        await retrying
+        assert.equal(store.getSnapshot().sending, false)
+        assert.equal(store.getSnapshot().retry, null)
+        assert.equal(store.getSnapshot().records.length, 1)
+    } finally { stop() }
+})

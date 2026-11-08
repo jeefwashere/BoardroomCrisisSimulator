@@ -105,15 +105,32 @@ class LobbyLeaveTests(unittest.TestCase):
         self.assertEqual(stale.json()["detail"]["code"], "roster_changed")
         self.assertEqual(self.snapshot()["phase"], "lobby")
 
-    def test_lobby_leave_does_not_remove_players_from_an_active_game(self):
+    def test_guest_departure_marks_disconnected_and_host_departure_closes_the_call(self):
         self.client.post("/api/rooms/join", headers=self.identity(), json=command(room_code="LEAVE1", display_name="Third"))
         started = self.client.post(self.path + "/start", headers=self.host, json=self.start_body(self.snapshot()))
         self.assertEqual(started.status_code, 200)
+        response = self.client.post(self.path + "/leave", headers=self.guest, json=command())
+        self.assertEqual(response.status_code, 200)
+        current = self.snapshot()
+        self.assertEqual(len(current["members"]), 3)
+        departed = next(member for member in current['members'] if member['member_id'] == self.joined['self_member_id'])
+        self.assertTrue(departed['has_left'])
+        self.assertFalse(departed['connected'])
+        self.assertEqual(self.client.get(self.path, headers=self.guest).json()['detail']['code'], 'member_left')
+        resumed = self.client.post('/api/rooms/join', headers=self.guest, json=command(room_code='LEAVE1', display_name='Guest'))
+        self.assertEqual(resumed.status_code, 200)
+        self.assertEqual(resumed.json()['self_member_id'], self.joined['self_member_id'])
+        returned = next(member for member in resumed.json()['members'] if member['member_id'] == self.joined['self_member_id'])
+        self.assertTrue(returned['connected'])
+        self.assertFalse(returned['has_left'])
+        self.assertEqual(returned['role_id'], departed['role_id'])
+        closed = self.client.post(self.path + "/leave", headers=self.host, json=command())
+        self.assertEqual(closed.status_code, 200)
+        self.assertEqual(closed.json()['status'], 'closed')
         for headers in (self.host, self.guest):
-            response = self.client.post(self.path + "/leave", headers=headers, json=command())
-            self.assertEqual(response.status_code, 409)
-            self.assertEqual(response.json()["detail"]["code"], "already_started")
-        self.assertEqual(len(self.snapshot()["members"]), 3)
+            response = self.client.get(self.path, headers=headers)
+            self.assertEqual(response.status_code, 410)
+            self.assertEqual(response.json()['detail']['message'], 'The session has been ended by the host.')
 
     def test_leave_intent_conflicts_and_other_rooms_are_isolated(self):
         other = self.client.post("/api/rooms", headers=self.guest, json=command(room_code="OTHER1", display_name="Guest")).json()

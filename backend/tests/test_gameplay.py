@@ -118,6 +118,45 @@ class GameplayTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn('voting', seen)
         self.assertEqual(seen[0], 'speaking')
 
+    async def test_ceo_can_skip_turn_and_finish_discussion_without_bypassing_votes(self):
+        briefing = await self.ready()
+        speaking = await self.action(0, briefing, 'briefing/finish')
+        ceo = await self.view(1)
+        self.assertIn('skip_speaker', ceo['game']['allowed_actions'])
+        self.assertIn('skip_phase', ceo['game']['allowed_actions'])
+        guest = await self.view(2)
+        self.assertNotIn('skip_speaker', guest['game']['allowed_actions'])
+        self.assertNotIn('skip_phase', guest['game']['allowed_actions'])
+        await self.action(2, speaking, 'speaker/skip', expected=403, reason='Not authorized')
+        await self.action(2, speaking, 'skip-phase', expected=403)
+        skipped = await self.action(1, speaking, 'speaker/skip', reason='Move to the next speaker')
+        self.assertEqual(skipped['game']['active_speaker_id'], self.ids[1])
+        self.assertEqual(len(skipped['game']['turns']), 1)
+        self.assertEqual(skipped['game']['turns'][0]['actor_id'], self.ids[1])
+        self.assertEqual(skipped['game']['turns'][0]['reason'], 'ceo_skip: Move to the next speaker')
+        voting = await self.action(1, skipped, 'skip-phase')
+        self.assertEqual(voting['phase'], 'voting')
+        self.assertEqual(voting['game']['history'], [])
+        self.assertEqual(voting['game']['eligible_member_ids'], self.ids)
+        self.assertEqual(voting['game']['turns'][-1]['member_id'], self.ids[1])
+        self.assertEqual(voting['game']['turns'][-1]['actor_id'], self.ids[1])
+        self.assertEqual(voting['game']['turns'][-1]['reason'], 'ceo_finish_round')
+        self.assertNotIn('skip_phase', voting['game']['allowed_actions'])
+        await self.action(1, voting, 'skip-phase', expected=403)
+        option_id = voting['game']['current_node']['options'][0]['option_id']
+        voted = await self.action(1, voting, 'vote', option_id=option_id)
+        self.assertEqual(voted['phase'], 'voting')
+        self.assertEqual(voted['game']['self_vote'], option_id)
+
+    async def test_ceo_can_finish_remaining_discussion(self):
+        await self.ready()
+        discussion = await self.reach('discussion')
+        ceo = await self.view(1)
+        self.assertIn('skip_phase', ceo['game']['allowed_actions'])
+        voting = await self.action(1, discussion, 'skip-phase')
+        self.assertEqual(voting['phase'], 'voting')
+        self.assertEqual(len(voting['game']['turns']), 3)
+
     async def test_complete_game_tie_late_admission_and_frozen_evidence(self):
         await self.ready()
         speaker = await self.reach('speaking')
@@ -292,12 +331,17 @@ class GameplayTests(unittest.IsolatedAsyncioTestCase):
         await self.ready()
         async with self.app.router.lifespan_context(self.app):
             self.clock.now += 90
+            # Keep the host connected while exercising phase scheduling without commands.
+            room = self.rooms.rooms[self.room_id]
+            token = self.clients[0].headers[SESSION_HEADER]
+            room.members[token] = replace(room.members[token], last_seen=self.clock.now)
             await asyncio.sleep(0.15)
             self.assertEqual(self.rooms.rooms[self.room_id].phase.state.phase.kind, 'reading')
             version = self.rooms.rooms[self.room_id].version
             await self.rooms.tick()
             self.assertEqual(self.rooms.rooms[self.room_id].version, version)
             self.clock.now += 10000
+            room.members[token] = replace(room.members[token], last_seen=self.clock.now)
             await asyncio.sleep(0.15)
             state = self.rooms.rooms[self.room_id].phase.state
             self.assertEqual(state.phase.kind, 'ended')
@@ -307,22 +351,24 @@ class GameplayTests(unittest.IsolatedAsyncioTestCase):
             task = self.app.state.clock_task
         self.assertTrue(task.cancelled())
 
-    async def test_disconnect_during_slot_skips_once_and_keeps_vote_eligibility(self):
+    async def test_guest_disconnect_during_slot_skips_once_and_keeps_vote_eligibility(self):
         await self.ready()
         speaking = await self.reach('speaking')
+        await self.action(0, speaking, 'speaker/finish')
+        speaking = await self.view()
         room = self.rooms.rooms[self.room_id]
-        host_token = self.clients[0].headers[SESSION_HEADER]
-        room.members[host_token] = replace(room.members[host_token], last_seen=self.clock.now - 29)
+        guest_token = self.clients[1].headers[SESSION_HEADER]
+        room.members[guest_token] = replace(room.members[guest_token], last_seen=self.clock.now - 29)
         self.clock.now += 1
         await self.rooms.tick()
         recovered = await self.view()
-        self.assertEqual(recovered['game']['active_speaker_id'], self.ids[1])
-        self.assertEqual(len(recovered['game']['turns']), 1)
-        self.assertEqual(recovered['game']['turns'][0]['reason'], 'disconnected')
+        self.assertEqual(recovered['game']['active_speaker_id'], self.ids[2])
+        self.assertEqual(len(recovered['game']['turns']), 2)
+        self.assertEqual(recovered['game']['turns'][1]['reason'], 'disconnected')
         await self.rooms.tick()
-        self.assertEqual(len((await self.view())['game']['turns']), 1)
-        self.assertIn(self.ids[0], recovered['game']['eligible_member_ids'])
-        await self.action(0, speaking, 'speaker/finish', expected=409)
+        self.assertEqual(len((await self.view())['game']['turns']), 2)
+        self.assertIn(self.ids[1], recovered['game']['eligible_member_ids'])
+        await self.action(1, speaking, 'speaker/finish', expected=409)
 
     async def test_late_start_retry_reconciles_before_refreshing_presence(self):
         await self.ready()
@@ -358,22 +404,17 @@ class GameplayTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(ended['game']['history'], [])
         self.assertEqual(ended['game']['turns'], [])
 
-    async def test_all_offline_speakers_rejoin_in_vote_without_rewinding_turns(self):
+    async def test_absent_host_closes_the_call_and_prevents_rejoin(self):
         await self.ready()
         self.clock.now += 300
         await self.rooms.tick()
-        current = await self.view()
-        self.assertEqual(current['phase'], 'voting')
-        self.assertEqual(len(current['game']['turns']), 3)
-        self.assertTrue(all(turn['reason'] == 'disconnected' for turn in current['game']['turns']))
-        option = current['game']['current_node']['options'][0]['option_id']
+        current = await self.clients[0].get(self.path)
+        self.assertEqual(current.status_code, 410)
+        self.assertEqual(current.json()['detail']['code'], 'host_disconnected')
         recovered = await self.clients[0].post('/api/rooms/join', json=command(
             room_code='PLAY01', display_name='Player 0'))
-        self.assertEqual(recovered.status_code, 200, recovered.text)
-        self.assertEqual(recovered.json()['self_member_id'], self.ids[0])
-        await self.action(0, current, 'vote', option_id=option)
-        after = await self.view()
-        self.assertEqual(len(after['game']['turns']), 3)
+        self.assertEqual(recovered.status_code, 410, recovered.text)
+        self.assertEqual(self.rooms.rooms[self.room_id].phase.state.phase.kind, 'ended')
 
     async def test_old_round_speaker_command_and_repeated_tick_cannot_skip_new_turn(self):
         await self.ready()
@@ -415,6 +456,10 @@ class GameplayTests(unittest.IsolatedAsyncioTestCase):
             self.clients[1].post(other_path + '/rounds/' + second['game']['round_id'] + '/vote',
                 json=command(phase_id=second['game']['phase_id'], option_id=second_option)))
         self.clock.now += 60
+        # Both hosts remain connected; only phase deadlines are under test here.
+        for active_room in self.rooms.rooms.values():
+            token = self.clients[0].headers[SESSION_HEADER]
+            active_room.members[token] = replace(active_room.members[token], last_seen=self.clock.now)
         await asyncio.gather(*(self.rooms.tick() for _ in range(3)))
         first = await self.view()
         second = (await self.clients[1].get(other_path)).json()

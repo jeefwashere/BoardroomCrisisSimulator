@@ -185,6 +185,8 @@ class Feedback:
 
     async def tick(self):
         for room in tuple(self.rooms.rooms.values()):
+            if room.closed:
+                continue
             if isinstance(room.phase, StartedGame) and isinstance(room.phase.state.phase, sim.EndedPhase):
                 entry = self.entries.get(room.room_id)
                 if entry is None or entry['status'] == 'waiting_media':

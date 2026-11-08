@@ -64,6 +64,7 @@ export type RoomMember = {
     display_name: string
     is_host: boolean
     connected: boolean
+    has_left?: boolean
     role_id: string | null
     eligible_from_round: number | null
     eligible_current_round: boolean
@@ -189,6 +190,7 @@ function scenario(value: unknown): value is Scenario {
 function member(value: unknown): value is RoomMember {
     return record(value) && typeof value.member_id === 'string' && typeof value.display_name === 'string'
         && typeof value.is_host === 'boolean' && typeof value.connected === 'boolean'
+        && (value.has_left === undefined || typeof value.has_left === 'boolean')
         && (value.role_id === null || typeof value.role_id === 'string')
         && (value.eligible_from_round === null || Number.isInteger(value.eligible_from_round))
         && typeof value.eligible_current_round === 'boolean'

@@ -56,6 +56,12 @@ class StartApiTests(unittest.TestCase):
             self.add_player()
         return self.start_body()
 
+    def age_guests_with_host_present(self):
+        # Guest inactivity is independent of the new host-disconnect deadline.
+        self.clock.now += 29
+        self.assertEqual(self.host.get(self.path).status_code, 200)
+        self.clock.now += 2
+
     def start_body(self):
         return command(
             room_code=self.room["room_code"], scenario_id="maplecart_cybersecurity",
@@ -243,6 +249,7 @@ class StartApiTests(unittest.TestCase):
             retried = client.post("/api/rooms/join", json=request)
             self.assertEqual(retried.status_code, 200, retried.text)
             self.assertEqual(retried.json(), original)
+        self.assertEqual(self.host.get(self.path).status_code, 200)
         self.clock.now += 1
         started = self.start()
         self.assertEqual(started.status_code, 200, started.text)
@@ -267,7 +274,7 @@ class StartApiTests(unittest.TestCase):
 
     def test_failed_role_request_does_not_refresh_stale_member_activity(self):
         body = self.ready()
-        self.clock.now += 31
+        self.age_guests_with_host_present()
         self.assertEqual(self.clients[1].get(self.path).status_code, 200)
         before = self.structure(self.snapshot())
         rejected = self.clients[2].post("/api/rooms/join", json=command(
@@ -287,7 +294,7 @@ class StartApiTests(unittest.TestCase):
 
     def test_start_caller_counts_active_without_preceding_get(self):
         body = self.ready()
-        self.clock.now += 31
+        self.clock.now += 29
         self.clients[1].get(self.path)
         self.clients[2].get(self.path)
         response = self.start(body)
@@ -297,7 +304,7 @@ class StartApiTests(unittest.TestCase):
 
     def test_inactive_registered_member_is_not_removed_from_first_electorate(self):
         self.ready(4)
-        self.clock.now += 31
+        self.age_guests_with_host_present()
         self.clients[1].get(self.path)
         self.clients[2].get(self.path)
         response = self.start()

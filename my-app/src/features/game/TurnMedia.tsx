@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { createPortal } from 'react-dom'
 import { ManualTurnRecorder } from './manualRecorder'
 import type { Extras, Recording, RoomSnapshot } from '../../services/rooms'
 import { roomApi, errorMessage } from '../rooms/useRoom'
@@ -18,7 +19,7 @@ function toBase64(blob: Blob): Promise<string> {
     })
 }
 
-export default function TurnMedia({ room }: { room: RoomSnapshot }) {
+export default function TurnMedia({ room, portalMode = false, controlsTarget, archiveTarget, feedbackTarget }: { room: RoomSnapshot; portalMode?: boolean; controlsTarget?: HTMLElement | null; archiveTarget?: HTMLElement | null; feedbackTarget?: HTMLElement | null }) {
     const [notice, setNotice] = useState('')
     const [extras, setExtras] = useState<Extras>({ recordings: [], contributions: [] })
     const [drafts, setDrafts] = useState<Record<string, string>>({})
@@ -43,7 +44,7 @@ export default function TurnMedia({ room }: { room: RoomSnapshot }) {
         encode: toBase64,
         now: captureTime,
     }), [room.room_id, room.self_member_id])
-    const recordingState = useSyncExternalStore(capture.subscribe, capture.getSnapshot)
+    const recordingState = useSyncExternalStore(capture.subscribe, capture.getSnapshot, capture.getSnapshot)
     useEffect(() => {
         capture.setTurn(ownTurn && game ? {
             phaseId: game.phase_id,
@@ -73,8 +74,9 @@ export default function TurnMedia({ room }: { room: RoomSnapshot }) {
         try { await roomApi.mediaPost(room.room_id, `recordings/${recording.recording_id}/review`, { text: drafts[recording.recording_id] ?? recording.transcript }); setNotice('Reviewed transcript saved with your recording.') }
         catch (error) { setNotice(errorMessage(error)) }
     }
-    return <section className="game-media" aria-label="Speaking recordings">
-        {room.phase !== 'ended' && <div className={`microphone-control microphone-${recordingState.status}`}>
+    const feedback = room.phase === 'ended' && <section className="game-feedback-card"><h3>Session evaluation</h3><p role="status">{extras.feedback?.status ?? 'Preparing feedback'}</p><p className="game-feedback">{extras.feedback?.text}</p>{extras.feedback?.error && <p>{extras.feedback.error}</p>}{extras.feedback?.evidence_refs?.map((item, index) => <details key={`${item.id}:${index}`}><summary>{item.label}: {item.criterion}</summary><p>AI assessment: {item.assessment === 'supported' ? 'Addresses this criterion' : 'Needs clarification'}</p><blockquote className="game-feedback">{item.quote}</blockquote></details>)}</section>
+    const archive = <section className="game-media" aria-label="Speaking recordings">
+        {!portalMode && room.phase !== 'ended' && <div className={`microphone-control microphone-${recordingState.status}`}>
             <p className="microphone-status" role="status"><span aria-hidden="true">{recordingState.status === 'recording' ? '●' : '◉'}</span> {recordingState.message}</p>
             {recordingState.status === 'requesting' ? <button type="button" onClick={capture.stop}>Cancel microphone request</button>
                 : recordingState.status === 'recording' ? <button type="button" className="microphone-stop" onClick={capture.stop}><MicrophoneIcon stop /> Stop and save recording</button>
@@ -85,8 +87,8 @@ export default function TurnMedia({ room }: { room: RoomSnapshot }) {
         {room.phase === 'ended' && <p role="status">{recordingState.message}</p>}
         {notice && <p role="status">{notice}</p>}
         {audioUrl && <audio controls src={audioUrl} />}
-        {room.phase === 'ended' && <section><h3>AI feedback</h3><p role="status">{extras.feedback?.status ?? 'Preparing feedback'}</p><p className="game-feedback">{extras.feedback?.text}</p>{extras.feedback?.error && <p>{extras.feedback.error}</p>}{extras.feedback?.evidence_refs?.map((item, index) => <details key={`${item.id}:${index}`}><summary>{item.label}: {item.criterion}</summary><p>AI assessment: {item.assessment === 'supported' ? 'Addresses this criterion' : 'Needs clarification'}</p><blockquote className="game-feedback">{item.quote}</blockquote></details>)}</section>}
-        <details open={room.phase === 'ended'}><summary>Recordings and transcripts ({extras.recordings.length})</summary>
+        {!portalMode && feedback}
+        <details><summary>Recordings and transcripts ({extras.recordings.length})</summary>
             {extras.recordings.map((recording) => <article key={recording.recording_id}>
                 <h4>{room.members.find((member) => member.member_id === recording.member_id)?.display_name ?? 'Participant'}, round {recording.round_number}</h4>
                 <p>{{ awaiting_audio: 'Waiting for recording upload', validating_audio: 'Checking audio', transcribing: 'Transcribing', transcription_disabled: 'Transcription is off. Original audio is saved.', review_required: 'Ready for your review', reviewed: 'Reviewed transcript saved', transcription_failed: 'Transcription unavailable', audio_validation_failed: 'Audio validation failed' }[recording.status] ?? recording.status}{recording.error ? `: ${recording.error}` : ''}</p>
@@ -95,6 +97,19 @@ export default function TurnMedia({ room }: { room: RoomSnapshot }) {
                 {recording.member_id === room.self_member_id && !recording.reviewed_text && recording.transcript && <><label>Review your transcript<textarea value={drafts[recording.recording_id] ?? recording.transcript} onChange={(event) => setDrafts({ ...drafts, [recording.recording_id]: event.target.value })} /></label><button type="button" onClick={() => void review(recording)}>Save reviewed transcript</button></>}
             </article>)}
         </details>
-        <details open={room.phase === 'ended'}><summary>All retained contributions ({extras.contributions.length})</summary>{extras.contributions.map((item, index) => <p key={index}><strong>{room.members.find((member) => member.member_id === item.member_id)?.display_name}:</strong> {item.text}</p>)}</details>
+        <details><summary>All retained contributions ({extras.contributions.length})</summary>{extras.contributions.map((item, index) => <p key={index}><strong>{room.members.find((member) => member.member_id === item.member_id)?.display_name}:</strong> {item.text}</p>)}</details>
     </section>
+    if (!portalMode) return archive
+    const active = ['recording', 'requesting'].includes(recordingState.status)
+    const locked = !active && (!ownTurn || ['stopping', 'saving'].includes(recordingState.status) || recordingState.retryUpload || (recordingState.status === 'saved' && recordingState.phaseId === game?.phase_id))
+    return <>
+        {controlsTarget && createPortal(<div className="game-microphone-dock">
+            <button type="button" className={active ? 'is-recording' : ''} aria-label={active ? 'Mute microphone and save recording' : 'Unmute microphone and record your turn'} aria-pressed={active} disabled={locked} title={recordingState.message} onClick={() => { if (active) capture.stop(); else void capture.start() }}><MicrophoneIcon /> <span>{active ? 'Mute' : 'Unmute'}</span>{!active && <span className="game-mic-slash" aria-hidden="true" />}</button>
+            <span className="game-visually-hidden" role="status">{recordingState.message}</span>
+            {recordingState.retryUpload && <button type="button" onClick={() => void capture.retryUpload()}>Retry audio</button>}
+            {recordingState.status === 'error' && <span className="game-microphone-error" role="alert">{recordingState.message}</span>}
+        </div>, controlsTarget)}
+        {archiveTarget && createPortal(archive, archiveTarget)}
+        {feedbackTarget && createPortal(feedback, feedbackTarget)}
+    </>
 }

@@ -1,0 +1,8 @@
+.room-code-value { display: inline-flex; align-items: center; gap: 9px; }
+.room-code-feedback, .room-code-feedback > span { display: inline-grid; place-items: center; width: 18px; height: 18px; }
+.room-code-feedback svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.host-lobby .room-code-feedback svg { width: 18px; height: 18px; }
+.game-room-code { display: inline-flex; align-items: center; min-height: 32px; padding: 3px 5px; border: 0; border-radius: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.game-room-code strong { font: inherit; }
+.game-room-code .room-code-feedback, .game-room-code .room-code-feedback > span, .game-room-code .room-code-feedback svg { width: 14px; height: 14px; }
+.room-code-feedback-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

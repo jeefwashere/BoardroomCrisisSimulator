@@ -2,12 +2,13 @@ import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import type { RoomSnapshot, Scenario } from '../../services/rooms'
 import { roomApi } from './useRoom'
 import { chatTextProblem, createChatStore } from './chatState'
+import type { ChatStore } from './chatState'
 import './RoomChat.css'
 
-type Props = { room: RoomSnapshot; scenarios: Scenario[]; refreshRoom: () => Promise<void> }
+type Props = { room: RoomSnapshot; scenarios: Scenario[]; refreshRoom: () => Promise<void>; chatStore?: ChatStore; identityLabel?: string }
 
-export default function RoomChat({ room, scenarios, refreshRoom }: Props) {
-    const store = useMemo(() => createChatStore({ api: roomApi, roomId: room.room_id, refreshRoom }), [room.room_id, refreshRoom])
+export default function RoomChat({ room, scenarios, refreshRoom, chatStore, identityLabel }: Props) {
+    const store = useMemo(() => chatStore ?? createChatStore({ api: roomApi, roomId: room.room_id, refreshRoom }), [chatStore, room.room_id, refreshRoom])
     const state = useSyncExternalStore(store.subscribe, store.getSnapshot)
     const [open, setOpen] = useState(false)
     useEffect(() => store.start((resume) => {
@@ -18,11 +19,12 @@ export default function RoomChat({ room, scenarios, refreshRoom }: Props) {
     }), [store])
     const scenario = room.game ? scenarios.find((item) => item.scenario_id === room.game?.scenario.scenario_id && item.version === room.game.scenario.version) : scenarios[0]
     const ended = room.phase === 'ended'
-    return <aside className={`room-chat ${open ? 'room-chat--open' : ''}`} aria-label="Room conversation">
+    return <aside className={`room-chat ${open ? 'room-chat--open' : ''}`} aria-label="Chat">
         <button className="room-chat-toggle" type="button" aria-expanded={open} aria-controls="room-chat-panel" onClick={() => setOpen(!open)}>
-            <span>Room chat</span><span>{state.records.length} {state.records.length === 1 ? 'record' : 'records'} {open ? '⌄' : '⌃'}</span>
+            <span>Chat</span>
         </button>
         <div id="room-chat-panel" hidden={!open}>
+            {identityLabel && <p className="room-chat-note">Chatting as <strong>{identityLabel}</strong></p>}
             <p className="room-chat-note">Shared with everyone in this room. Committed messages remain in the session record.</p>
             <div className="room-chat-history" role="log" aria-label="Committed room records" aria-live="polite" aria-relevant="additions">
                 {!state.loaded && !state.historyError && <p role="status">Loading conversation…</p>}

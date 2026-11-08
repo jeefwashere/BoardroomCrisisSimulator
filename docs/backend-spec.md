@@ -41,6 +41,8 @@ Confirmed means selected in the user's latest discussion. Proposed means an arch
 
 Confirmed lobby departure update: before Start, clicking Leave removes the authenticated player's seat. When the host clicks Leave, the lobby closes for everyone and its code cannot be rejoined. Reloading a tab or temporarily disconnecting continues to preserve membership. The implementation and retry boundaries are documented in [the room API](room-api.md).
 
+Confirmed host lifecycle update: host Leave requires a Yes and No prompt. Yes ends and closes the entire call, revokes all participants' access and shows them that the host ended the session. The backend also closes open lobbies and active calls when the host is inactive for the existing 30 second presence window, with a distinct host disconnected message. Participants return through a main menu styled button. Short reloads retain membership, guest activity cannot keep an absent host connected, and a naturally completed game's records remain available.
+
 The implemented registration contract is documented in [room-api.md](room-api.md), with scenario admission, batch roles, Start, and next round eligibility in [start-api.md](start-api.md). The prepared backend game flow is implemented in the gameplay update. The custom action, media and qualitative final assessment software is implemented and verified as described in full-game-integration.md; shared deployment remains separate.
 
 At the initial design review, remote `main` contained only the initial README and `.gitignore`. Existing story scripts had not been located in the repository. This specification defines their required shape without inventing their contents.

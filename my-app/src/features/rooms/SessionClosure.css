@@ -1,0 +1,10 @@
+.session-ended__title { margin: 0 0 24px; color: var(--menu-ink); font-family: var(--font-heading); font-size: clamp(38px, 6vw, 76px); font-weight: 800; font-style: italic; line-height: 1.05; letter-spacing: -0.045em; }
+.session-ended__message { max-width: 52ch; color: #715d50; font-family: var(--font-heading); font-size: 16px; line-height: 1.7; }
+.session-ended__actions { width: min(100%, 380px); margin-top: 36px; }
+.host-leave-prompt { --menu-ink: #422820; --menu-red: #8b362c; --menu-cream: #fff4dc; width: min(480px, calc(100vw - 40px)); max-height: calc(100dvh - 40px); padding: clamp(24px, 5vw, 40px); overflow-y: auto; border: 0; border-radius: 12px; background: var(--paper, #f6f5ef); color: var(--menu-ink); font-family: var(--font-heading); box-shadow: 0 16px 64px #0003; }
+.host-leave-prompt::backdrop { background: #24191566; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.host-leave-prompt h2 { margin: 0 0 18px; font-size: 34px; font-weight: 750; font-style: italic; letter-spacing: -0.04em; }
+.host-leave-prompt p { font-size: 14px; line-height: 1.7; }
+.host-leave-prompt__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 28px; }
+.host-leave-prompt__actions .home-menu__button { justify-content: center; min-height: 54px; padding: 8px 10px; font-size: 30px; }
+.host-leave-prompt__error { margin-top: 12px; color: #b52e25; }

@@ -37,6 +37,7 @@ export function createChatStore({ api, roomId, randomId = () => crypto.randomUUI
     const listeners = new Set<() => void>()
     let active = true
     let request: AbortController | null = null
+    let pendingIntent: ContributionInput | null = null
     let stopPolling: (() => void) | undefined
     const update = (change: Partial<ChatState>) => {
         if (!active) return
@@ -49,6 +50,7 @@ export function createChatStore({ api, roomId, randomId = () => crypto.randomUUI
         if (!active || request) return
         const controller = new AbortController()
         request = controller
+        pendingIntent = intent
         update({ sending: true, error: '' })
         try {
             const entry = await api.contribute(roomId, intent, controller.signal)
@@ -64,8 +66,11 @@ export function createChatStore({ api, roomId, randomId = () => crypto.randomUUI
                 try { await refreshRoom() } catch { /* The room poll will recover; preserve the draft. */ }
             }
         } finally {
-            request = null
-            update({ sending: false })
+            if (request === controller) {
+                request = null
+                pendingIntent = null
+                update({ sending: false })
+            }
         }
     }
 
@@ -88,7 +93,16 @@ export function createChatStore({ api, roomId, randomId = () => crypto.randomUUI
             active = true
             stopPolling = pollRoom((signal) => api.contributions(roomId, signal), receive,
                 (failure) => update({ historyError: failure instanceof Error ? failure.message : 'History could not be refreshed.' }), 2000, subscribeResume)
-            return () => { active = false; stopPolling?.(); request?.abort() }
+            return () => {
+                active = false
+                stopPolling?.()
+                if (pendingIntent) state = { ...state, sending: false, retry: pendingIntent, error: 'The previous send was not confirmed. Retry the original message to check it.' }
+                request?.abort()
+                request = null
+                pendingIntent = null
+            }
         },
     }
 }
+
+export type ChatStore = ReturnType<typeof createChatStore>

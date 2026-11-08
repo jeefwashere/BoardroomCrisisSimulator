@@ -59,7 +59,7 @@ function PlayerRoster({ members, onAssignRole, roles = [...LOBBY_ROLES], editabl
                                             </span>
                                             <div className="lobby-player-identity">
                                                 <h2 className="lobby-player-name" title={member.name}>{renderName ? renderName(member) : member.name}</h2>
-                                                {member.connected !== undefined && <span className="lobby-presence">{member.connected ? 'Active' : 'Away'}</span>}
+                                                {member.connected !== undefined && <span className="lobby-presence">{member.connected ? 'Active' : 'Disconnected'}</span>}
                                                 {member.isHost && <span className="lobby-host-badge"><LobbyIcon name="crown" /> Host</span>}
                                             </div>
                                             <RolePicker id={`role-${member.id}`} playerName={member.name} value={member.role} roles={roles} opaqueMenu disabled={!editable} onChange={(role) => onAssignRole(member.id, role)} />

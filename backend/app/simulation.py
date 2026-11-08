@@ -84,6 +84,14 @@ class IndividualDecisionPhase:
 
 
 @dataclass(frozen=True)
+class PrivateSessionPhase:
+    """Rounds 2 and 3: every electorate member works through a private coaching and assessment branch."""
+    phase_id: UUID
+    deadline: float
+    kind: Literal["private_session"] = "private_session"
+
+
+@dataclass(frozen=True)
 class TiePhase:
     phase_id: UUID
     deadline: float
@@ -230,7 +238,7 @@ class Game:
     node_id: str
     facts: Facts
     history: tuple[DecisionRecord, ...]
-    phase: BriefingPhase | DecisionPhase | ResultPhase | EndedPhase | ReadingPhase | SpeakingPhase | DiscussionPhase | VotingPhase | TiePhase | ResolvingPhase | ResolutionFailedPhase | IndividualDecisionPhase
+    phase: BriefingPhase | DecisionPhase | ResultPhase | EndedPhase | ReadingPhase | SpeakingPhase | DiscussionPhase | VotingPhase | TiePhase | ResolvingPhase | ResolutionFailedPhase | IndividualDecisionPhase | PrivateSessionPhase
     started_mono: float = 0
     session_deadline: float | None = None
     ballots: tuple[tuple[UUID, str], ...] = ()
@@ -248,6 +256,9 @@ class Game:
     ballot_source: Literal["ai", "authored"] = "ai"
     # Written decisions for decision_mode "individual"; resubmission replaces the member's entry.
     individual_decisions: tuple[IndividualDecision, ...] = ()
+    # Private session progress per electorate member, in electorate order, from the private_session phase on.
+    # Stages: "not_started", "coaching", "card", "assessment", "complete". Contents live in PrivateSessions.
+    private_stages: tuple[tuple[UUID, str], ...] = ()
 
 
 @dataclass(frozen=True)

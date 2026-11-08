@@ -128,7 +128,7 @@ POST /api/rooms/{room_id}/rounds/{round_id}/decision
 1. `allowed_actions` contains `"submit_decision"` for current electorate members during `individual_decision`. Members who joined after Start get 403 `not_eligible`. Outside the phase the command returns 409 `not_individual_decision`; a stale phase or round returns 409 `stale_phase`; blank or overlong text returns 422.
 2. Resubmission replaces the member's decision until the phase ends. Commands are idempotent by `command_id` like every other command; reusing an ID with different text returns 409 `command_conflict`.
 3. Every submission, including replacements, is retained as an attributed contribution with `kind: "answer"`, `source: "typed"` and `phase: "individual_decision"`. While the game is running, `GET /contributions` and `/extras` show these only to their author. After the game ends they appear in the final records (`/contributions`, `/evaluation-evidence` and the final AI assessment) like other answers.
-4. The phase ends as soon as every electorate member has submitted, when its deadline passes, or when the host uses `skip_phase` (now allowed in this phase). The game then ends with `ending_label: "individual_decisions_recorded"` and `ending_title: "Individual decisions recorded"`, with empty `history` and no vote outcome. Evaluation evidence and `POST /feedback` work as for other endings. `gameplay.finish_individual_decision` is the single place a later phase can be added.
+4. The phase ends as soon as every electorate member has submitted, when its deadline passes, or when the host uses `skip_phase` (now allowed in this phase). Profiles with `"private_rounds": true` (both Cedar Bridge profiles) then enter the `private_session` phase described below. Other individual mode profiles end with `ending_label: "individual_decisions_recorded"` and `ending_title: "Individual decisions recorded"`, with empty `history` and no vote outcome. Evaluation evidence and `POST /feedback` work as for other endings. `gameplay.finish_individual_decision` is the single place that chooses the next phase.
 
 From the `individual_decision` phase onwards (and in the ended view) the snapshot includes:
 
@@ -141,4 +141,27 @@ From the `individual_decision` phase onwards (and in the ended view) the snapsho
 }
 ```
 
-`submitted` lists the round electorate in seat order. `self` is the caller's own latest decision or `null`. Other members' texts are never projected in any snapshot, including after the end. `individual_decisions` is `null` in vote mode and before the phase. `game.ending_title` is `null` for every other ending.
+`submitted` lists the round electorate in seat order. `self` is the caller's own latest decision or `null`. It stays available during `private_session`. Other members' texts are never projected in any snapshot, including after the end. `individual_decisions` is `null` in vote mode and before the phase. `game.ending_title` is `null` for every other ending.
+
+## Rounds 2 and 3: private session phase
+
+A timing profile in individual decision mode may set `"private_rounds": true` and `"private_session_seconds"` (default 1500). Both Cedar Bridge T01 profiles use `true` with 1500 seconds; every other scenario keeps `false` and is unchanged. `GET /api/scenarios` lists both values on each timing profile, and the snapshot field `game.private_rounds` is fixed for the whole game.
+
+When the `individual_decision` phase ends (every member submitted, its deadline, or a host `skip_phase`), the room enters the `private_session` phase instead of ending. Every member of the round electorate then runs a private branch at the same time with one AI agent, labelled "Crisis coach": Round 2 coaching with a response card and no points, then Round 3, where the same agent becomes the examiner and scores three stages worth 30, 40 and 30 points. Branch content, routes and scoring are documented in [the facilitation API](facilitation-api.md#rounds-2-and-3-private-coach-and-examiner). The room only tracks each member's stage and the phase deadline.
+
+1. `phase_deadline` is `private_session_seconds` after the phase begins. `session_deadline` is extended to at least that deadline so the Round 1 ceiling cannot cut the private rounds short.
+2. `allowed_actions` contains `"private_session"` for electorate members during the phase. Members who joined after Start are not part of the electorate and get 403 `not_eligible` from the private session routes. The host keeps `"skip_phase"` and `"end"`.
+3. The phase ends when every electorate member reaches `complete`, when its deadline passes, or when the host uses `skip_phase` (now allowed in this phase). The game then ends with `ending_label: "private_sessions_complete"` and `ending_title: "Private sessions complete"`. A host `end` still ends with `host_ended`. `gameplay.finish_private_session` is the single place where Round 4 (the board reunion) can begin instead of ending; Round 4 is not implemented.
+4. Private answers, cards and scores are not room contributions. They never appear in `/contributions`, `/extras` or `/evaluation-evidence`, so no other member can read them, including after the end.
+
+From the `private_session` phase onwards (and in the ended view) the snapshot includes progress without content or scores:
+
+```json
+"private_progress": [
+  {"member_id": "UUID", "display_name": "Alex", "role_name": "CEO",
+   "stage": "not_started | coaching | card | assessment | complete"}
+]
+```
+
+`private_progress` lists the electorate in seat order and is `null` before the phase or when `private_rounds` is `false`. A stage only moves forward: `not_started` until the member first opens their private session, `coaching` during the Round 2 questions, `card` while the response card is drafted and reviewed, `assessment` during Round 3, and `complete` after the third stage is scored. Progress is frozen once the phase ends.
+

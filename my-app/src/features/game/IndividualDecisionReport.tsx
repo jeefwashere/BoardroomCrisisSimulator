@@ -3,12 +3,14 @@ import { BoardStatusList } from './IndividualDecisionPanel'
 import { boardRows, endingTitle, submittedCount } from './individualDecisionModel'
 
 /** Ended view for individual decision games: the caller's own decision and who submitted one. */
-export default function IndividualDecisionReport({ decisions, ownText, selfId, endingLabel }: {
+export default function IndividualDecisionReport({ decisions, ownText, selfId, endingLabel, heading }: {
     decisions: IndividualDecisions | null | undefined
     /** The caller's decision; falls back to the last one seen during the game when the ended projection omits it. */
     ownText: string | null
     selfId: string
     endingLabel: string | null
+    /** Overrides the ending heading, e.g. when later private rounds own the ending. */
+    heading?: string
 }) {
     const rows = boardRows(decisions, selfId)
     const progress = submittedCount(rows)
@@ -16,7 +18,7 @@ export default function IndividualDecisionReport({ decisions, ownText, selfId, e
         <header className="vote-panel-header">
             <div>
                 <p className="vote-eyebrow">Round 1 · Board discussion</p>
-                <h3 id="decision-report-title">{endingTitle(endingLabel)}</h3>
+                <h3 id="decision-report-title">{heading ?? endingTitle(endingLabel)}</h3>
             </div>
         </header>
         <div className="decision-report-block">

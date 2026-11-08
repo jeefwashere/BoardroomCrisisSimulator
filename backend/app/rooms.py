@@ -17,7 +17,8 @@ from . import gameplay
 
 # Timed phases the host may end early with the skip_phase command.
 SKIPPABLE = (sim.BriefingPhase, sim.ReadingPhase, sim.SpeakingPhase, sim.DiscussionPhase,
-             sim.VotingPhase, sim.TiePhase, sim.ResultPhase, sim.IndividualDecisionPhase)
+             sim.VotingPhase, sim.TiePhase, sim.ResultPhase, sim.IndividualDecisionPhase,
+             sim.PrivateSessionPhase)
 # Written individual decisions stay private to their author until the game ends.
 PRIVATE_CONTRIBUTION_PHASES = frozenset({"individual_decision"})
 MAX_DECISION_CHARACTERS = 1200
@@ -161,6 +162,9 @@ class GameSnapshot:
     # status plus the caller's own text. Other members' texts are never projected.
     individual_decisions: dict | None = None
     ending_title: str | None = None
+    private_rounds: bool = False
+    # From the private_session phase on: every electorate member's stage, never their content or scores.
+    private_progress: tuple[dict, ...] | None = None
 
     @property
     def facts(self) -> dict:
@@ -293,7 +297,7 @@ class Room:
     def individual_view(self, state: sim.Game, assignments: dict, electorate: tuple[UUID, ...],
                         caller_id: UUID) -> dict | None:
         if gameplay.decision_mode(state) != "individual" or not isinstance(
-                state.phase, (sim.IndividualDecisionPhase, sim.EndedPhase)):
+                state.phase, (sim.IndividualDecisionPhase, sim.PrivateSessionPhase, sim.EndedPhase)):
             return None
         names = {seat.member_id: seat.display_name for seat in self.members.values()}
         roles = {role.role_id: role.name for role in state.scenario.roles}
@@ -305,6 +309,15 @@ class Room:
                            "submitted": member in decisions} for member in electorate],
             "self": {"text": own.text, "at": own.at} if own is not None else None,
         }
+
+    def private_progress(self, state: sim.Game, assignments: dict) -> tuple[dict, ...] | None:
+        if not state.private_stages:
+            return None
+        names = {seat.member_id: seat.display_name for seat in self.members.values()}
+        roles = {role.role_id: role.name for role in state.scenario.roles}
+        return tuple({"member_id": member, "display_name": names.get(member, ""),
+                      "role_name": roles.get(assignments[member].role_id, assignments[member].role_id),
+                      "stage": stage} for member, stage in state.private_stages)
 
     def snapshot(self, session: str, now: float) -> RoomSnapshot:
         caller = self.member(session)
@@ -318,7 +331,7 @@ class Room:
             if isinstance(state.phase, (sim.DecisionPhase, sim.ReadingPhase, sim.SpeakingPhase,
                                         sim.DiscussionPhase, sim.VotingPhase, sim.TiePhase,
                                         sim.ResolvingPhase, sim.ResolutionFailedPhase,
-                                        sim.IndividualDecisionPhase)):
+                                        sim.IndividualDecisionPhase, sim.PrivateSessionPhase)):
                 node = sim.current_node(state)
                 current = CurrentNode(node.node_id, node.title, sim.render(node.inject, state.facts),
                                       node.study_questions, tuple(VisibleOption(option.option_id, option.label, option.kind, option.member_id,
@@ -341,6 +354,9 @@ class Room:
                     actions.append("vote")
                 if isinstance(state.phase, sim.IndividualDecisionPhase) and caller.member_id in electorate:
                     actions.append("submit_decision")
+                if (isinstance(state.phase, sim.PrivateSessionPhase)
+                        and caller.member_id in dict(state.private_stages)):
+                    actions.append("private_session")
                 # Custom ballot options only exist when the round ends in a vote.
                 if (isinstance(state.phase, (sim.SpeakingPhase, sim.DiscussionPhase, sim.VotingPhase))
                         and caller.member_id in electorate and gameplay.decision_mode(state) == "vote"):
@@ -372,8 +388,9 @@ class Room:
                 gameplay.options_source(state), gameplay.ai_options_status(state), state.ballot_source,
                 gameplay.discussion_mode(state), gameplay.decision_mode(state),
                 self.individual_view(state, assignments, electorate, caller.member_id),
-                gameplay.INDIVIDUAL_ENDING_TITLE if isinstance(state.phase, sim.EndedPhase)
-                and state.phase.ending_label == gameplay.INDIVIDUAL_ENDING else None,
+                gameplay.ENDING_TITLES.get(state.phase.ending_label)
+                if isinstance(state.phase, sim.EndedPhase) else None,
+                state.timing.private_rounds, self.private_progress(state, assignments),
             )
         members = []
         for seat in self.members.values():
@@ -514,7 +531,7 @@ class Rooms:
                     if (item.member_id, item.round_id) != (caller.member_id, state.round_id)) + (decision,))
                 submitted = {item.member_id for item in state.individual_decisions if item.round_id == state.round_id}
                 if set(group.electorate) <= submitted:
-                    state = gameplay.finish_individual_decision(state, now)
+                    state = gameplay.finish_individual_decision(state, now, group.electorate)
             elif action == "proposal":
                 if gameplay.decision_mode(state) != "vote":
                     raise RoomError(409, "proposals_disabled", "This room records individual decisions instead of a vote")
@@ -783,6 +800,19 @@ class Rooms:
             self.reconcile(room, now)
             room.touch(session, now)
             return room.snapshot(session, now)
+
+    async def private_stage(self, room_id: UUID, member_id: UUID, stage: str) -> None:
+        """Server integration only: PrivateSessions reports a member's forward stage change."""
+        room = self.require_room(room_id)
+        async with room.lock:
+            now = self.clock()
+            self.reconcile(room, now)
+            if not isinstance(room.phase, StartedGame):
+                return
+            state = gameplay.record_private_stage(room.phase.state, now, member_id, stage)
+            if state is not room.phase.state:
+                room.phase = replace(room.phase, state=state)
+                room.version += 1
 
     async def transition_internal(self, room_id: UUID, event_id: UUID, expected_phase_id: UUID,
                                   event: sim.InternalEvent) -> sim.Game:

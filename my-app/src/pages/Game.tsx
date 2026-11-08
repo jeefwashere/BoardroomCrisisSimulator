@@ -14,9 +14,14 @@ import VotingPanel from '../features/game/VotingPanel'
 import IndividualDecisionPanel from '../features/game/IndividualDecisionPanel'
 import type { AttachDictation } from '../features/game/IndividualDecisionPanel'
 import IndividualDecisionReport from '../features/game/IndividualDecisionReport'
-import { decisionBadges, isIndividualMode } from '../features/game/individualDecisionModel'
+import { decisionBadges, endingTitle, isIndividualMode } from '../features/game/individualDecisionModel'
 import TurnMedia from '../features/game/TurnMedia'
 import { useAutoResponse } from '../features/game/useAutoResponse'
+import PrivateSessionStage from '../features/game/PrivateSessionStage'
+import PrivateSessionReport from '../features/game/PrivateSessionReport'
+import { usePrivateSession } from '../features/game/usePrivateSession'
+import { usePrivateAutoResponse } from '../features/game/usePrivateAutoResponse'
+import { ownPrivateRound } from '../features/game/privateSessionModel'
 import ControlBar from '../features/game/ControlBar'
 import ChatDrawer from '../features/game/ChatDrawer'
 import { chatUnread, micControl, othersCount, phaseCaption, skipLabel } from '../features/game/controlBarModel'
@@ -59,12 +64,19 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const unread = seenChat === null ? 0 : chatUnread(chat.state.records, room.self_member_id, seenChat)
     const game = room.game
     const auto = useAutoResponse(room, execute, (failure) => setNotice(errorMessage(failure)))
+    // Rounds 2 and 3: the caller's private branch, read during the private sessions and once more for the ended record.
+    const privatePhase = room.phase === 'private_session'
+    const privateRecord = privatePhase || (room.phase === 'ended' && Boolean(game?.private_rounds))
+    const privateSession = usePrivateSession(room.room_id, privateRecord, room.phase)
+    const privateAuto = usePrivateAutoResponse(privatePhase ? privateSession.session : null, privateSession.sending, privateSession.answer)
     // Keep the caller's last recorded decision so the ended report can show it even if that projection omits it.
     const seenDecision = game?.individual_decisions?.self?.text
     if (seenDecision && seenDecision !== ownDecision) setOwnDecision(seenDecision)
     useEffect(() => { const audio = speechRef.current; return () => { audio?.pause(); if (speech.url) URL.revokeObjectURL(speech.url) } }, [speech.url, game?.phase_id])
     // The decision prompt arrives in the chat: open the drawer once when the decision phase starts.
     if (game && room.phase === 'individual_decision' && promptedPhase !== game.phase_id) { setPromptedPhase(game.phase_id); setChatOpen(true) }
+    // Private sessions are one to one with the coach: close the room chat once when they begin.
+    if (game && room.phase === 'private_session' && promptedPhase !== game.phase_id) { setPromptedPhase(game.phase_id); setChatOpen(false) }
     if (!game) return null
     const scenario = scenarios.find((option) => option.scenario_id === game.scenario.scenario_id && option.version === game.scenario.version)
     const self = room.members.find((member) => member.member_id === room.self_member_id)
@@ -72,6 +84,9 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const rounds = `rounds/${game.round_id}/`
     // Individual decision scenarios (Cedar T01) replace the board vote with one written decision per member.
     const individual = isIndividualMode(game)
+    // Games with private rounds also keep the call full width and end on the centered card.
+    const centered = individual || Boolean(game.private_rounds)
+    const ownRound = privatePhase ? ownPrivateRound(privateSession.session, game.private_progress, room.self_member_id) : null
     async function act(path: string, fields: Record<string, unknown> = {}) {
         if (pending) return false
         setPending(true); setNotice('')
@@ -93,11 +108,13 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const opening = room.phase === 'briefing' && dismissedOpening !== game.phase_id
     // After the turns, the AI experts take the full stage one after another before voting opens.
     const experts = !opening && showsExpertStage(room.phase, game.discussion_mode)
+    // Rounds 2 and 3 take the full stage: only the member and their crisis coach, no call grid.
+    const privateStage = !opening && privatePhase
     // Full stage phases keep their own on stage countdown, so the control bar omits its clock there.
-    const fullStage = opening || experts
+    const fullStage = opening || experts || privateStage
     // Individual decision games keep the call full width; the decision and the result appear as a centered card, never a side window.
-    const card = individual && room.phase === 'ended'
-    const sidePanel = !fullStage && !individual
+    const card = centered && room.phase === 'ended'
+    const sidePanel = !fullStage && !centered
     const layout = fullStage ? ' game-live-main--opening' : sidePanel ? ' game-live-main--focus' : card ? ' game-live-main--card' : ' game-live-main--call'
     // Only the caller's own ballot is known, so ballot badges are limited to the self tile.
     const badges: Record<string, TileBadge> = room.phase === 'individual_decision' ? decisionBadges(game.individual_decisions, room.self_member_id) : {}
@@ -116,6 +133,18 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
         else if (mic.action === 'dictate') dictation.start()
         else if (mic.action === 'stop-dictation') dictation.stop()
     }
+    // Auto response: the saved clip for the caller's speaking turn, or for the current private question.
+    // In a private session the button stays (disabled) between questions so the bar does not jump.
+    const activeAuto = privatePhase ? privateAuto : auto
+    const privateAnswering = privatePhase && (privateSession.session?.stage === 'coaching' || privateSession.session?.stage === 'assessment')
+    const autoControl = activeAuto.status === 'unavailable'
+        ? privateAnswering ? { label: 'Auto response', live: false, disabled: true, title: 'Available when your coach asks a question that has a saved answer.', onClick: () => undefined } : undefined
+        : {
+            label: activeAuto.status === 'playing' ? 'Stop response' : activeAuto.status === 'saving' ? 'Saving…' : activeAuto.status === 'done' ? 'Response sent' : 'Auto response',
+            live: activeAuto.status === 'playing', disabled: pending || (privatePhase && privateSession.sending) || activeAuto.status === 'saving' || activeAuto.status === 'done',
+            title: privatePhase ? 'Play your saved answer with subtitles, then submit it to your coach' : undefined,
+            onClick: () => { if (activeAuto.status === 'playing') activeAuto.stop(); else activeAuto.start() },
+        }
     const node = game.current_node
     const nodeArticle = node && <article className="game-situation"><h3>{node.title}</h3><p>{node.situation}</p>{node.study_questions.map((question) => <p key={question} className="game-question">{question}</p>)}</article>
     const answering = self?.eligible_current_round && ((room.phase === 'speaking' && recorder.ownTurn) || room.phase === 'discussion')
@@ -130,9 +159,15 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
             <AnimatePresence mode="wait" initial={false}>
                 {opening ? <OpeningBriefing key="opening" room={room} onDismiss={() => setDismissedOpening(game.phase_id)} finishBriefing={actions.includes('finish_briefing') ? () => act(rounds + 'briefing/finish') : undefined} />
                     : experts ? <ExpertPanelStage key={`experts-${game.round_id}`} room={room} notice={error || notice} finishPanel={actions.includes('skip_phase') ? () => act(rounds + 'skip-phase') : undefined} />
+                    : privateStage ? <PrivateSessionStage key="private" room={room} handle={privateSession} autoPlaying={privateAuto.status === 'playing'} autoCaption={privateAuto.caption}
+                        selfName={self?.display_name ?? 'You'} dictation={dictation} attachDictation={attachDictation} notice={error || notice} />
                     : card ? <motion.section key={`card-${room.phase}`} className="game-briefing game-center-card" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: 'easeOut' }}>
                         {(error || notice) && <p className="game-alert" role="alert">{error || notice}</p>}
-                        {room.phase === 'ended' && <IndividualDecisionReport decisions={game.individual_decisions} ownText={game.individual_decisions?.self?.text ?? ownDecision} selfId={room.self_member_id} endingLabel={game.ending_label} />}
+                        {room.phase === 'ended' && game.private_rounds && <h2 className="private-ended-title">{game.ending_title || endingTitle(game.ending_label)}</h2>}
+                        {room.phase === 'ended' && <IndividualDecisionReport decisions={game.individual_decisions} ownText={game.individual_decisions?.self?.text ?? ownDecision ?? privateSession.session?.decision_text ?? null} selfId={room.self_member_id} endingLabel={game.ending_label}
+                            heading={game.private_rounds ? 'Your individual decision' : game.ending_title ?? undefined} />}
+                        {room.phase === 'ended' && game.private_rounds && <PrivateSessionReport session={privateSession.session} unavailable={privateSession.unavailable} notStarted={privateSession.notStarted}
+                            notEligible={privateSession.notEligible} retry={privateSession.retry} sending={privateSession.sending} />}
                         {room.phase === 'ended' && <TurnMedia room={room} recorder={recorder} />}
                     </motion.section>
                     : <motion.div key="call" className="game-stage-call" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4, ease: 'easeOut' }}>
@@ -160,16 +195,12 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
             </section>}
         </main>
         <ControlBar
-            caption={phaseCaption(room.phase, speaker ? { name: speaker.display_name, self: speaker.member_id === room.self_member_id } : null)}
-            round={`Round ${game.round_number}`} phaseId={game.phase_id} deadline={game.phase_deadline} serverTime={game.server_time}
+            caption={phaseCaption(room.phase, speaker ? { name: speaker.display_name, self: speaker.member_id === room.self_member_id } : null, ownRound)}
+            round={`Round ${ownRound ?? game.round_number}`} phaseId={game.phase_id} deadline={game.phase_deadline} serverTime={game.server_time}
             showCountdown={!fullStage} pending={pending}
             mic={{ ...mic, onClick: pressMic }}
             chat={{ open: chatOpen, unread, onToggle: () => setChatOpen((open) => !open) }}
-            autoResponse={auto.status === 'unavailable' ? undefined : {
-                label: auto.status === 'playing' ? 'Stop response' : auto.status === 'saving' ? 'Saving…' : auto.status === 'done' ? 'Response sent' : 'Auto response',
-                live: auto.status === 'playing', disabled: pending || auto.status === 'saving' || auto.status === 'done',
-                onClick: () => { if (auto.status === 'playing') auto.stop(); else auto.start() },
-            }}
+            autoResponse={autoControl}
             finishTurn={actions.includes('finish_speaking') ? () => void act(rounds + 'speaker/finish') : undefined}
             skip={actions.includes('skip_phase') ? { label: skipLabel(room.phase), onClick: () => void act(rounds + 'skip-phase') } : undefined}
             skipSpeaker={actions.includes('skip_speaker') ? () => void act(rounds + 'speaker/skip', { reason: 'Skipped by the host' }) : undefined}

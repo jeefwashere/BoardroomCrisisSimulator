@@ -401,13 +401,16 @@ class RecordingCatalogTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(catalog.status_code, 200)
         self.assertEqual(catalog.headers.get('access-control-allow-origin'), 'http://localhost:5173')
         clips = {item['clip_id']: item for item in catalog.json()}
-        self.assertEqual(len(clips), 40)
+        self.assertEqual(len(clips), 58)
+        self.assertEqual(clips['r2_member_1_step_1']['group'], 'private_coaching')
+        self.assertEqual(clips['r3_member_3_step_3']['group'], 'private_assessment')
         self.assertEqual(clips['t01_decision_prompt']['group'], 'decision_guide')
         self.assertEqual(clips['t01_decision_prompt']['label'], 'Recorded decision guide')
         self.assertEqual(clips['t01_recovery_turn']['group'], 'participant')
         self.assertEqual(clips['it_dependencies']['group'], 'adviser')
         self.assertEqual({item['group'] for item in clips.values()}, {
-            'decision_guide', 'participant', 'facilitator', 'adviser', 'journalist', 'discussion', 'control', 'reference'})
+            'decision_guide', 'participant', 'facilitator', 'adviser', 'journalist', 'discussion', 'control', 'reference',
+            'private_coaching', 'private_assessment'})
         self.assertGreater(clips['t01_decision_prompt']['duration_seconds'], 0)
         audio = await client.get(clips['facilitator_open']['audio_url'])
         self.assertEqual(audio.status_code, 200)

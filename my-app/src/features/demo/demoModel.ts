@@ -1,5 +1,6 @@
 import type { RoomSnapshot, Scenario } from '../../services/rooms.ts'
 import type { RoleDraft } from '../rooms/roomState.ts'
+import { progressStatus } from '../game/privateSessionModel.ts'
 
 // Three test memberships driven from one browser window. Seat IDs namespace
 // each frame's tab session storage (see seatStorage in services/tabSession).
@@ -142,6 +143,8 @@ export type DemoBot = {
     fallback: string
     /** Submitted as this bot's own written decision in individual decision games. */
     decision: string
+    /** Short answers in its private session when no saved clip is offered: coaching (Round 2) and assessment (Round 3). */
+    privateAnswers: { coaching: string; assessment: string }
 }
 
 export const DEMO_BOTS: readonly DemoBot[] = [
@@ -149,12 +152,20 @@ export const DEMO_BOTS: readonly DemoBot[] = [
         seat: 'morgan', index: 1, name: 'Morgan', title: 'IT recovery lead',
         keywords: [/technical/i, /verif/i, /check/i, /\bIT\b/, /backup/i, /recover/i],
         fallback: 'From IT recovery: before we promise anything, we verify the backups are usable, map the recovery dependencies and get a restoration estimate.',
+        privateAnswers: {
+            coaching: 'I would ask the alternate provider to confirm their availability and access needs, check the delegation policy for who can authorize access, and keep restoring from verified backups only.',
+            assessment: 'First, the authorized deputy approves the alternate provider\'s access while my team verifies backups. If the provider is delayed, staff use the paper appointment process. I will review progress at the next update in two hours.',
+        },
         decision: 'I would verify that our backups are usable and map the recovery dependencies before we promise any restoration time, because a missed promise would cost more trust than a short delay. Using the IT status report (systems down, backups not yet test restored, vendor dependencies unconfirmed), I would run a test restore first. I still need to establish whether the latest backup is clean and complete, how long a restore takes and which systems must come back first.',
     },
     {
         seat: 'sam', index: 2, name: 'Sam', title: 'Communications lead',
         keywords: [/update/i, /communicat/i, /public/i, /continuity/i],
         fallback: 'From communications: we issue a factual update now that separates confirmed facts from unknowns and commits to a time for the next update.',
+        privateAnswers: {
+            coaching: 'I would tell staff and clients what is confirmed, what is still unknown and when the next update comes, and ask the authorized deputy to approve the wording.',
+            assessment: 'First, the deputy approves a short update to staff and clients separating facts from unknowns. If the provider cannot start, staff follow the paper process and we say so. I will review and send the next update in two hours.',
+        },
         decision: 'I would publish an honest update now that separates confirmed facts from unknowns and names the time of the next update, because silence invites rumours while a scheduled update shows control without overpromising. Using what is confirmed so far (the affected services, the approved paper appointment workaround and the recovery checks under way), I would keep it short. I still need to establish the restoration estimate, whether any personal data was exposed and who approves the wording while the director is unavailable.',
     },
 ]
@@ -271,8 +282,16 @@ export function turnBudgetMs(game: { phase_deadline?: string | null; server_time
 /** What the parent page is doing for a bot right now (not visible in any snapshot). */
 export type BotActivity = 'clip' | 'fallback' | 'committing' | 'deciding' | 'writing'
 
-/** Status shown in the solo Board strip for one bot. */
-export function botStatusText(bot: DemoBot, snapshots: readonly Snapshot[], activity: BotActivity | null | undefined): string {
+/** A bot's fallback private answer for a Round 2 or Round 3 question. */
+export function botPrivateAnswer(bot: DemoBot, round: 2 | 3): string {
+    return round === 3 ? bot.privateAnswers.assessment : bot.privateAnswers.coaching
+}
+
+/**
+ * Status shown in the solo Board strip for one bot. `privateStatus` is the bot's own private session progress
+ * ("coaching 2/3", "response card", "assessment 1/3", "complete") as read by the parent page.
+ */
+export function botStatusText(bot: DemoBot, snapshots: readonly Snapshot[], activity: BotActivity | null | undefined, privateStatus?: string | null): string {
     if (activity === 'clip') return 'speaking (playing saved clip)…'
     if (activity === 'fallback') return 'speaking…'
     if (activity === 'committing') return 'passing the turn…'
@@ -288,6 +307,8 @@ export function botStatusText(bot: DemoBot, snapshots: readonly Snapshot[], acti
     const turn = (game.turns ?? []).findLast((item) => item.member_id === own.self_member_id && item.round_id === game.round_id)
     if (['speaking', 'discussion'].includes(own.phase) && turn) return turn.reason === 'finished' ? 'spoke' : turn.reason === 'disconnected' ? 'skipped (disconnected)' : 'turn ended'
     if (own.phase === 'individual_decision') return game.individual_decisions?.self ? 'submitted' : 'writing…'
+    if (own.phase === 'private_session') return privateStatus || progressStatus(game.private_progress?.find((item) => item.member_id === own.self_member_id)?.stage)
+    if (own.phase === 'ended' && game.private_rounds) return game.private_progress?.find((item) => item.member_id === own.self_member_id)?.stage === 'complete' || privateStatus === 'complete' ? 'complete' : 'ended early'
     if (own.phase === 'ended' && game.decision_mode === 'individual') return game.individual_decisions?.self ? 'submitted' : 'decisions closed'
     if (game.self_vote != null && ['voting', 'tie_break', 'resolving', 'resolution_failed', 'decision', 'result', 'ended'].includes(own.phase)) return 'voted'
     if (own.phase === 'voting') return snapshots[0]?.game?.self_vote == null ? 'waiting for your vote' : 'waiting'
@@ -340,12 +361,14 @@ export function soloStage(snapshots: readonly Snapshot[]): SoloStage {
             const canRecord = !individual && (game.allowed_actions?.includes('skip_phase') ?? false)
             return stage(canRecord ? 'The board has voted: record the final decision' : 'The board has voted', { action: canRecord ? 'record' : null })
         }
+        case 'private_session': return stage('Your private session with the crisis coach')
         case 'tie_break': return stage('Tie — choose the final decision in your view')
         case 'resolving': return stage('Evaluating the custom decision…')
         case 'resolution_failed': return stage('The custom decision could not be evaluated: retry in your view')
         case 'decision': return stage('Recording the decision…')
         case 'result': return stage('Decision recorded', { decision: label })
         case 'ended': {
+            if (game.private_rounds) return stage('Game over · see your response card and score in your view', { over: true })
             if (individual) return stage('Game over · decisions recorded', { over: true })
             const final = label ?? game.last_result?.selected_option_label ?? null
             return stage(game.last_result ? 'Decision recorded · game over' : 'Game over', { decision: final, over: true })

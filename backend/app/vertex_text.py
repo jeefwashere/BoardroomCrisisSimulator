@@ -91,14 +91,14 @@ class VertexText:
                 "thinking_level": THINKING, "last_error": self.last_error}
 
     def generate(self, prompt: str, *, json_output: bool = False, max_output_tokens: int = 1024,
-                 timeout: float = 30) -> str:
+                 timeout: float = 30, temperature: float = 0.4) -> str:
         """Blocking call. Never raises provider bodies or credentials."""
         if not self.configured:
             raise VertexError("Vertex is not configured")
         if not isinstance(prompt, str) or not prompt or len(prompt.encode("utf-8")) > MAX_PROMPT_BYTES:
             raise ValueError("Vertex input limit exceeded")
         config = {"thinkingConfig": {"thinkingLevel": THINKING}, "maxOutputTokens": max_output_tokens,
-                  "temperature": 0.4}
+                  "temperature": temperature}
         if json_output:
             config["responseMimeType"] = "application/json"
         payload = {"contents": [{"role": "user", "parts": [{"text": prompt}]}], "generationConfig": config}
@@ -130,11 +130,16 @@ class VertexText:
             self.last_error = "Vertex request failed or returned invalid output"
             raise VertexError(self.last_error) from None
 
-    async def text(self, prompt: str, timeout: float = 30, max_output_tokens: int = 1024) -> str:
+    async def text(self, prompt: str, timeout: float = 30, max_output_tokens: int = 1024,
+                   temperature: float = 0.4) -> str:
         return await asyncio.wait_for(asyncio.to_thread(
-            self.generate, prompt, max_output_tokens=max_output_tokens, timeout=timeout), timeout + 1)
+            self.generate, prompt, max_output_tokens=max_output_tokens, timeout=timeout,
+            temperature=temperature), timeout + 1)
 
-    async def json(self, prompt: str, timeout: float = 30, max_output_tokens: int = 2048) -> dict:
+    async def json(self, prompt: str, timeout: float = 30, max_output_tokens: int = 2048,
+                   temperature: float = 0.4) -> dict:
+        # Private coaching and rubric scoring pass temperature 0 for repeatable beta behaviour.
         raw = await asyncio.wait_for(asyncio.to_thread(
-            self.generate, prompt, json_output=True, max_output_tokens=max_output_tokens, timeout=timeout), timeout + 1)
+            self.generate, prompt, json_output=True, max_output_tokens=max_output_tokens, timeout=timeout,
+            temperature=temperature), timeout + 1)
         return parse_json_object(raw)

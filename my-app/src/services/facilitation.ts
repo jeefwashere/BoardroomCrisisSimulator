@@ -68,19 +68,59 @@ export type RecordedClip = {
     audio_url: string
 }
 
+// Rounds 2 and 3: one member's private branch with the crisis coach (`GET /api/rooms/{id}/private-session`).
+export type PrivateStage = 'coaching' | 'card' | 'assessment' | 'complete'
+export type PrivateRound = 2 | 3
+export type PrivateMessage = {
+    message_id: string
+    author: 'agent' | 'member'
+    kind: 'twist' | 'question' | 'ack' | 'update' | 'transition' | 'answer' | 'result'
+    round: PrivateRound
+    step: number | null
+    text: string
+    status: JobStatus
+    source: 'vertex' | 'hosted' | 'offline' | 'canonical' | null
+    speech_id: string | null
+    at: string
+}
+export type CardFieldKey = 'action' | 'responsibility' | 'evidence' | 'dependencies' | 'fallback' | 'communication' | 'review'
+export type ResponseCardFields = Record<CardFieldKey, string>
+export type ResponseCard = { status: 'drafting' | 'draft' | 'confirmed'; fields: ResponseCardFields }
+export type AssessmentStage = { step: number; max: number; points: number | null; status: 'waiting' | 'scoring' | 'scored' | 'failed' }
+export type CriterionFeedback = { id: string; label: string; max: number; points: number; reason: string; quote: string }
+export type StageFeedback = { step: number; criteria: CriterionFeedback[] }
+export type Assessment = { stages: AssessmentStage[]; total: number | null; max: number; feedback: StageFeedback[] | null }
+export type PrivateClip = { clip_id: string; audio_url: string; text: string; duration_seconds: number | null }
+export type PrivateSession = {
+    round: PrivateRound
+    stage: PrivateStage
+    agent: { label: string; role: 'coach' | 'examiner' }
+    decision_text: string | null
+    messages: PrivateMessage[]
+    expecting: { round: PrivateRound; step: number; question: string } | null
+    busy: boolean
+    clip: PrivateClip | null
+    card: ResponseCard | null
+    assessment: Assessment
+    retryable: boolean
+}
+
 export type SpeechStatus = { status: 'ready' | 'disabled' | 'failed' | 'pending'; error?: string | null }
 
 export class FacilitationError extends Error {
     readonly status: number
-    constructor(message: string, status: number) { super(message); this.status = status }
+    /** The server's error code when it sent one (`detail.code`); absent for framework errors such as a missing route. */
+    readonly code: string | null
+    constructor(message: string, status: number, code: string | null = null) { super(message); this.status = status; this.code = code }
 }
 
 async function json<T>(response: Response): Promise<T> {
     let payload: unknown = null
     try { payload = await response.json() } catch { /* handled below */ }
     if (!response.ok) {
-        const detail = (payload as { detail?: { message?: string } } | null)?.detail
-        throw new FacilitationError(detail?.message ?? `The facilitation service returned HTTP ${response.status}.`, response.status)
+        const detail = (payload as { detail?: { message?: string; code?: string } } | null)?.detail
+        const known = typeof detail === 'object' && detail !== null
+        throw new FacilitationError((known && detail.message) || `The facilitation service returned HTTP ${response.status}.`, response.status, known && typeof detail.code === 'string' ? detail.code : null)
     }
     return payload as T
 }
@@ -102,6 +142,19 @@ export function createFacilitationApi(api: RoomApi) {
         recordings: async (signal?: AbortSignal) => json<RecordedClip[]>(await fetch(`${api.baseUrl}/api/recordings`, { signal })),
         /** Absolute URL usable directly as an <audio src>. */
         recordingUrl: (clip: RecordedClip) => `${api.baseUrl}${clip.audio_url}`,
+        /** The caller's own private branch (Rounds 2 and 3). The first read creates it. Throws FacilitationError 404 before the route exists. */
+        privateSession: async (roomId: string, signal?: AbortSignal) => json<unknown>(await api.authorized(`/api/rooms/${encodeURIComponent(roomId)}/private-session`, { signal })),
+        privateAnswer: async (roomId: string, input: { command_id: string; text: string; used_clip: boolean }, signal?: AbortSignal) => json<unknown>(await api.authorized(`/api/rooms/${encodeURIComponent(roomId)}/private-session/answer`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input), signal,
+        })),
+        privateCard: async (roomId: string, input: { command_id: string; fields: ResponseCardFields }, signal?: AbortSignal) => json<unknown>(await api.authorized(`/api/rooms/${encodeURIComponent(roomId)}/private-session/card`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input), signal,
+        })),
+        privateRetry: async (roomId: string, input: { command_id: string }, signal?: AbortSignal) => json<unknown>(await api.authorized(`/api/rooms/${encodeURIComponent(roomId)}/private-session/retry`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input), signal,
+        })),
+        /** Absolute URL of the caller's saved answer clip for the current private question. */
+        privateClipUrl: (clip: Pick<PrivateClip, 'audio_url'>) => /^https?:\/\//i.test(clip.audio_url) ? clip.audio_url : `${api.baseUrl}${clip.audio_url}`,
         /** Public catalog of the demo incident report PDFs. Throws FacilitationError (status 404) before the route exists. */
         documents: async (signal?: AbortSignal) => json<IncidentDocument[]>(await fetch(`${api.baseUrl}/api/documents`, { signal })),
         /** Absolute URL of the inline PDF, usable as a link href or viewer src. */

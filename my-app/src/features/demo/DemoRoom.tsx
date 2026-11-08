@@ -7,6 +7,7 @@ import { acceptSnapshot, startInput } from '../rooms/roomState'
 import { DEFAULT_DEMO_MODE, DEMO_BOTS, DEMO_SEATS, DEMO_STORAGE_KEY, SPLIT_VIEW_MIN_WIDTH, botStatusText, demoRoles, demoRoomCode, followTarget, phaseLabel, pickDemoScenario, readStoredDemo, seatStatus, soloStage } from './demoModel'
 import type { BallotSource, DemoMode, StoredDemo } from './demoModel'
 import { useSoloBots } from './useSoloBots'
+import { usePrivateBots } from './usePrivateBots'
 import './DemoRoom.css'
 
 type SeatClient = { seat: string; name: string; api: RoomApi }
@@ -68,6 +69,7 @@ export default function DemoRoom() {
         setSnapshots((current) => current.map((item, position) => position === index ? acceptSnapshot(item, next) : item))
     }, [])
     const bots = useSoloBots({ enabled: solo, roomId: demo?.room_id ?? null, apis, snapshots, onSnapshot: acceptBotSnapshot })
+    const privateBots = usePrivateBots({ enabled: solo, roomId: demo?.room_id ?? null, apis, snapshots })
     async function skipPhase() {
         const game = hostView?.game
         if (!demo || !clients || !game || skipping) return
@@ -238,7 +240,7 @@ export default function DemoRoom() {
 
     const hostRoom = snapshots[0]
     const phaseText = `${phaseLabel(hostRoom?.phase ?? null)}${hostRoom?.game ? ` · Round ${hostRoom.game.round_number}` : ''}`
-    const alert = pollError || error || (solo ? bots.error : '')
+    const alert = pollError || error || (solo ? bots.error || privateBots.error : '')
     const alexFrameSrc = `${window.location.pathname}?seat=${DEMO_SEATS[0].seat}#/room/${demo.room_id}`
 
     if (solo) {
@@ -253,7 +255,7 @@ export default function DemoRoom() {
                 <div className="demo-board" role="group" aria-label="Board">
                     <span className="demo-board__label">Board</span>
                     {DEMO_BOTS.map((bot) => {
-                        const text = botStatusText(bot, snapshots, bots.activity[bot.seat])
+                        const text = botStatusText(bot, snapshots, bots.activity[bot.seat], privateBots.status[bot.seat])
                         const live = /…$/.test(text) && !/^(connecting|reconnecting)/.test(text)
                         return <span key={bot.seat} className={`demo-board__bot${live ? ' demo-board__bot--live' : ''}`} data-bot={bot.seat}>
                             <strong>{bot.name} · {bot.title}</strong> — <span className="demo-board__status">{text}</span>

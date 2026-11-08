@@ -87,3 +87,16 @@ test('during individual decisions the mic toggles dictation into the decision bo
     // The turn recorder state is irrelevant while deciding.
     assert.equal(micControl(input({ phase: 'individual_decision', ownTurn: true, dictation: { ...noDictation, ready: true } })).action, 'dictate')
 })
+
+test('private sessions: skip label, own round caption and dictation into the answer box', () => {
+    assert.equal(skipLabel('private_session'), 'End private sessions')
+    assert.equal(phaseCaption('private_session', null, 2), 'Private coaching')
+    assert.equal(phaseCaption('private_session', null, 3), 'Assessment')
+    assert.equal(phaseCaption('private_session', null), 'Private coaching')
+    const answer = (dictation: Partial<MicInput['dictation']>) => micControl(input({ phase: 'private_session', dictation: { ...noDictation, ...dictation } }))
+    assert.equal(answer({ ready: true }).action, 'dictate')
+    assert.match(answer({ ready: true }).title, /answer box/)
+    assert.equal(answer({ ready: true, listening: true }).action, 'stop-dictation')
+    assert.equal(answer({ ready: false }).action, null)
+    assert.match(answer({ ready: false }).title, /coach asks/)
+})

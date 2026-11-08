@@ -42,7 +42,7 @@ export type ControlBarProps = {
     pending: boolean
     mic: MicControl & { onClick: () => void }
     chat: { open: boolean; unread: number; onToggle: () => void }
-    autoResponse?: { label: string; live: boolean; disabled: boolean; onClick: () => void }
+    autoResponse?: { label: string; live: boolean; disabled: boolean; title?: string; onClick: () => void }
     finishTurn?: () => void
     skip?: { label: string; onClick: () => void }
     skipSpeaker?: () => void
@@ -70,7 +70,7 @@ export default function ControlBar({ caption, round, phaseId, deadline, serverTi
         <div className="control-bar-center">
             <ControlButton icon={micIcon} label={mic.label} title={mic.title} disabled={!mic.action} tone={mic.live ? 'live' : undefined} pressed={mic.live} onClick={mic.onClick} />
             <ControlButton icon="chat" label="Chat" title={chat.open ? 'Close chat' : 'Open room chat'} pressed={chat.open} badge={chat.open ? 0 : chat.unread} onClick={chat.onToggle} />
-            {autoResponse && <ControlButton icon={autoResponse.live ? 'stop' : 'play'} label={autoResponse.label} title="Play your recorded response, then pass the turn" tone={autoResponse.live ? 'live' : 'accent'} pressed={autoResponse.live} disabled={autoResponse.disabled} onClick={autoResponse.onClick} />}
+            {autoResponse && <ControlButton icon={autoResponse.live ? 'stop' : 'play'} label={autoResponse.label} title={autoResponse.title ?? 'Play your recorded response, then pass the turn'} tone={autoResponse.live ? 'live' : 'accent'} pressed={autoResponse.live} disabled={autoResponse.disabled} onClick={autoResponse.onClick} />}
             {finishTurn && <ControlButton icon="check" label="Finish my turn" title="Pass the floor to the next participant" tone="accent" disabled={pending} onClick={finishTurn} />}
             {skip && <ControlButton icon="skip" label={skip.label} title={`${skip.label} (host)`} disabled={pending} onClick={skip.onClick} />}
             {skipSpeaker && <ControlButton icon="skip-speaker" label="Skip speaker" title="Move the floor to the next participant (host)" disabled={pending} onClick={skipSpeaker} />}

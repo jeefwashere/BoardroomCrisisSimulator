@@ -5,7 +5,7 @@ import { DICTATION_UNAVAILABLE } from './dictationModel.ts'
 /** Host skip label for the current phase; the server decides whether `skip_phase` is allowed. */
 export const SKIP_LABELS: Readonly<Record<string, string>> = {
     briefing: 'Skip briefing', reading: 'Skip reading', speaking: 'Skip remaining turns',
-    discussion: 'Skip to decisions', individual_decision: 'Close decisions', voting: 'Record final decision',
+    discussion: 'Skip to decisions', individual_decision: 'Close decisions', private_session: 'End private sessions', voting: 'Record final decision',
     tie_break: 'Skip tie break', result: 'Continue',
 }
 
@@ -21,9 +21,10 @@ export function phaseTitle(phase: string): string {
     return text ? text[0].toUpperCase() + text.slice(1) : ''
 }
 
-/** Status pill text: the phase, or who holds the floor while speaking. */
-export function phaseCaption(phase: string, speaker: { name: string; self: boolean } | null): string {
+/** Status pill text: the phase, who holds the floor while speaking, or the caller's own private round. */
+export function phaseCaption(phase: string, speaker: { name: string; self: boolean } | null, privateRound?: 2 | 3 | null): string {
     if (phase === 'speaking' && speaker) return speaker.self ? 'Your turn' : `${speaker.name} speaking`
+    if (phase === 'private_session') return privateRound === 3 ? 'Assessment' : 'Private coaching'
     return phaseTitle(phase)
 }
 
@@ -59,16 +60,23 @@ export type MicInput = {
     dictation: { supported: boolean; listening: boolean; blocked: boolean; ready: boolean }
 }
 
+// Phases where the Mic dictates into a text box instead of recording a speaking turn.
+const DICTATION_TITLES: Readonly<Record<string, { stop: string; unready: string; ready: string }>> = {
+    individual_decision: { stop: 'Stop dictating into your decision', unready: 'Open your decision for editing to dictate into it.', ready: 'Speak your decision; your words go into the text box.' },
+    private_session: { stop: 'Stop dictating into your answer', unready: 'Dictation opens when your coach asks you a question.', ready: 'Speak your answer; your words go into the answer box.' },
+}
+
 /**
- * What the Mic button does right now. During individual decisions it dictates into the decision text box;
+ * What the Mic button does right now. During individual decisions and private sessions it dictates into the open text box;
  * otherwise it records the caller's own speaking turn. A null action renders the button disabled with `title` as the reason.
  */
 export function micControl({ phase, phaseId, ownTurn, recording, dictation }: MicInput): MicControl {
-    if (phase === 'individual_decision') {
-        if (dictation.listening) return { action: 'stop-dictation', label: 'Stop', title: 'Stop dictating into your decision', live: true, muted: false }
+    const titles = DICTATION_TITLES[phase]
+    if (titles) {
+        if (dictation.listening) return { action: 'stop-dictation', label: 'Stop', title: titles.stop, live: true, muted: false }
         if (!dictation.supported || dictation.blocked) return { action: null, label: 'Dictate', title: DICTATION_UNAVAILABLE, live: false, muted: true }
-        if (!dictation.ready) return { action: null, label: 'Dictate', title: 'Open your decision for editing to dictate into it.', live: false, muted: true }
-        return { action: 'dictate', label: 'Dictate', title: 'Speak your decision; your words go into the text box.', live: false, muted: true }
+        if (!dictation.ready) return { action: null, label: 'Dictate', title: titles.unready, live: false, muted: true }
+        return { action: 'dictate', label: 'Dictate', title: titles.ready, live: false, muted: true }
     }
     if (recording.status === 'requesting') return { action: 'cancel', label: 'Cancel', title: recording.message, live: false, muted: false }
     if (recording.status === 'recording') return { action: 'stop', label: 'Stop', title: 'Stop and save your recording', live: true, muted: false }

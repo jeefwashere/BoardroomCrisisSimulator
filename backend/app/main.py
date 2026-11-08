@@ -17,7 +17,8 @@ from fastapi.exceptions import RequestValidationError
 from .models import (LeaveRoom, LeaveView, ProposalCommand, RecordingView, AudioBody, BeginRecording, ReviewBody, CeoCommand, DecisionCommand, PhaseCommand, SkipCommand, VoteCommand,
                      ContributionBody, ContributionView, CreateRoom, DeliveryBody, ErrorResponse,
                      EvaluationEvidenceView, JoinRoom, MediaView, RoomView, ScenarioView, StartRoom,
-                     TabSessionBody, TabSessionView, ValidationErrorResponse, ConsultBody)
+                     TabSessionBody, TabSessionView, ValidationErrorResponse, ConsultBody,
+                     PrivateAnswerBody, PrivateCardBody, PrivateRetryBody)
 from .narration import NarrationService
 from .rooms import RoomError, Rooms, StartSpec
 from .scenarios import ScenarioCatalog
@@ -26,6 +27,7 @@ from .feedback import Feedback
 from .custom_resolution import CustomResolver
 from .facilitation import Facilitation, IncidentDocuments, RecordedClips
 from .ai_options import AiOptions
+from .private_sessions import PrivateSessions
 from .vertex_text import VertexText
 
 COOKIE_NAME = "boardroom_session"
@@ -55,6 +57,9 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
         rooms, inference_provider, speech, documents, vertex=vertex)
     ai_options = AiOptions(rooms, vertex, documents)
     clips = recorded_clips if recorded_clips is not None else RecordedClips()
+    # Rounds 2 and 3: one private crisis coach and examiner per member (Cedar Bridge private_rounds profiles).
+    private = PrivateSessions(rooms, facilitation, vertex, clips)
+    facilitation.private = private
     secure = secure_cookie if secure_cookie is not None else os.getenv("BOARDROOM_SECURE_COOKIE", "false").lower() == "true"
     origins = allowed_origins if allowed_origins is not None else [
         origin.strip() for origin in os.getenv(
@@ -85,6 +90,7 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
             await ai_options.close()
             await feedback.close()
             await facilitation.close()
+            await private.close()
             await recordings.close()
 
     app = FastAPI(title="Boardroom gameplay and evidence API", version="0.4.0", lifespan=lifespan)
@@ -95,6 +101,7 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     app.state.recordings = recordings
     app.state.speech = speech
     app.state.facilitation = facilitation
+    app.state.private_sessions = private
     app.add_middleware(
         CORSMiddleware, allow_origins=origins, allow_credentials=True,
         allow_methods=["GET", "POST"], allow_headers=["Content-Type", SESSION_HEADER],
@@ -333,6 +340,23 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     @app.get("/api/rooms/{room_id}/facilitation/speech/{speech_id}/audio", response_class=Response, responses=errors)
     async def facilitation_audio(room_id: UUID, speech_id: UUID, member_session: authenticated):
         return Response(content=await facilitation.audio(member_session, room_id, speech_id), media_type="audio/mpeg")
+
+    @app.get("/api/rooms/{room_id}/private-session", responses=errors,
+             summary="The caller's own private coaching and assessment branch (Rounds 2 and 3)")
+    async def private_session(room_id: UUID, member_session: authenticated):
+        return await private.view(member_session, room_id)
+
+    @app.post("/api/rooms/{room_id}/private-session/answer", responses=errors)
+    async def private_answer(room_id: UUID, body: PrivateAnswerBody, member_session: authenticated):
+        return await private.answer(member_session, room_id, body.command_id, body.text, body.used_clip)
+
+    @app.post("/api/rooms/{room_id}/private-session/card", responses=errors)
+    async def private_card(room_id: UUID, body: PrivateCardBody, member_session: authenticated):
+        return await private.confirm_card(member_session, room_id, body.command_id, body.fields.model_dump())
+
+    @app.post("/api/rooms/{room_id}/private-session/retry", responses=errors)
+    async def private_retry(room_id: UUID, body: PrivateRetryBody, member_session: authenticated):
+        return await private.retry(member_session, room_id, body.command_id)
 
     @app.get("/api/recordings", summary="Public catalog of prerecorded fictional clips")
     async def recorded_catalog():

@@ -239,7 +239,7 @@ test('concurrent room commands await one tab bootstrap before sending the origin
 })
 
 test('accepts every implemented gameplay phase and preserves caller ballot privacy', async () => {
-    for (const phase of ['reading', 'speaking', 'discussion', 'individual_decision', 'voting', 'tie_break', 'result', 'ended'] as const) {
+    for (const phase of ['reading', 'speaking', 'discussion', 'individual_decision', 'private_session', 'voting', 'tie_break', 'result', 'ended'] as const) {
         const value = { ...lobby, phase, game: {
             phase_id: 'phase-current', round_id: 'round-current', round_number: 1, started_at: '2026-11-08T00:00:00Z',
             scenario: catalog[0], timing_profile: 'standard_18', briefing_seconds: 90, result_seconds: 30,

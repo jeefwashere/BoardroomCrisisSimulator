@@ -201,9 +201,16 @@ class CedarBridgeHttpTests(unittest.IsolatedAsyncioTestCase):
                 "command_id": str(uuid4()), "phase_id": current["game"]["phase_id"],
                 "text": f"Decision {number}: controlled continuity with checks."})
             self.assertEqual(response.status_code, 200, response.text)
+        # Cedar continues into the private Rounds 2 and 3; the host skip ends that phase.
+        private = await view()
+        self.assertEqual(private["phase"], "private_session", private)
+        self.assertTrue(private["game"]["private_rounds"])
+        response = await self.clients[0].post(path + "/rounds/" + private["game"]["round_id"] + "/skip-phase", json={
+            "command_id": str(uuid4()), "phase_id": private["game"]["phase_id"]})
+        self.assertEqual(response.status_code, 200, response.text)
         ended = await view()
         self.assertEqual(ended["phase"], "ended", ended)
-        self.assertEqual(ended["game"]["ending_label"], "individual_decisions_recorded")
+        self.assertEqual(ended["game"]["ending_label"], "private_sessions_complete")
         self.assertEqual(ended["game"]["history"], [])
         evidence = await self.clients[0].get(path + "/evaluation-evidence")
         self.assertEqual(evidence.status_code, 200, evidence.text)

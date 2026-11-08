@@ -100,14 +100,12 @@ class IndividualDecisionTests(unittest.IsolatedAsyncioTestCase):
             self.assertNotIn('proposal', actions)
         self.assertIn('skip_phase', (await self.view(0))['game']['allowed_actions'])
         self.assertNotIn('skip_phase', (await self.view(1))['game']['allowed_actions'])
-        # Deadline closes the phase and ends the game without a vote outcome.
+        # Deadline closes the phase without a vote outcome; Cedar continues into the private rounds.
         self.clock.now += 181
-        ended = await self.view()
-        self.assertEqual(ended['phase'], 'ended')
-        self.assertEqual(ended['game']['ending_label'], 'individual_decisions_recorded')
-        self.assertEqual(ended['game']['ending_title'], 'Individual decisions recorded')
-        self.assertEqual(ended['game']['history'], [])
-        self.assertEqual([item['submitted'] for item in ended['game']['individual_decisions']['submitted']],
+        private = await self.view()
+        self.assertEqual(private['phase'], 'private_session')
+        self.assertEqual(private['game']['history'], [])
+        self.assertEqual([item['submitted'] for item in private['game']['individual_decisions']['submitted']],
                          [False, False, False])
 
     async def test_submit_resubmit_privacy_idempotency_and_validation(self):
@@ -158,12 +156,15 @@ class IndividualDecisionTests(unittest.IsolatedAsyncioTestCase):
         view = await self.to_decision()
         for index in (0, 1):
             self.assertEqual((await self.decide(index, view, DECISIONS[index]))['phase'], 'individual_decision')
-        ended = await self.decide(2, view, DECISIONS[2])
+        private = await self.decide(2, view, DECISIONS[2])
+        self.assertEqual(private['phase'], 'private_session')
+        ended = await self.action(0, private, 'skip-phase')
         self.assertEqual(ended['phase'], 'ended')
         game = ended['game']
         self.assertEqual((game['ending_label'], game['ending_title']),
-                         ('individual_decisions_recorded', 'Individual decisions recorded'))
-        self.assertEqual(game['individual_decisions']['self']['text'], DECISIONS[2])
+                         ('private_sessions_complete', 'Private sessions complete'))
+        self.assertEqual(private['game']['individual_decisions']['self']['text'], DECISIONS[2])
+        self.assertEqual(game['individual_decisions']['self']['text'], DECISIONS[0])
         self.assertEqual([item['submitted'] for item in game['individual_decisions']['submitted']], [True] * 3)
         self.assertEqual(game['allowed_actions'], [])
         await self.decide(0, view, 'Too late', expected=409)
@@ -172,7 +173,7 @@ class IndividualDecisionTests(unittest.IsolatedAsyncioTestCase):
         evidence = await self.clients[1].get(self.path + '/evaluation-evidence')
         self.assertEqual(evidence.status_code, 200, evidence.text)
         record = evidence.json()
-        self.assertEqual(record['ending_label'], 'individual_decisions_recorded')
+        self.assertEqual(record['ending_label'], 'private_sessions_complete')
         self.assertEqual(record['decisions'], [])
         decisions = [item for item in record['contributions'] if item['phase'] == 'individual_decision']
         self.assertEqual([(item['member_id'], item['kind'], item['text']) for item in decisions],
@@ -180,16 +181,15 @@ class IndividualDecisionTests(unittest.IsolatedAsyncioTestCase):
         report = await self.clients[0].post(self.path + '/feedback', json=fixture.command(phase_id=game['phase_id']))
         self.assertEqual(report.status_code, 200, report.text)
         extras = (await self.clients[0].get(self.path + '/extras')).json()
-        self.assertIn('Ending: individual_decisions_recorded', extras['feedback']['text'])
+        self.assertIn('Ending: private_sessions_complete', extras['feedback']['text'])
 
     async def test_host_skip_ends_individual_decision(self):
         view = await self.to_decision()
         await self.decide(1, view, DECISIONS[1])
         await self.action(1, view, 'skip-phase', expected=403)
-        ended = await self.action(0, view, 'skip-phase')
-        self.assertEqual(ended['phase'], 'ended')
-        self.assertEqual(ended['game']['ending_label'], 'individual_decisions_recorded')
-        self.assertEqual([item['submitted'] for item in ended['game']['individual_decisions']['submitted']],
+        private = await self.action(0, view, 'skip-phase')
+        self.assertEqual(private['phase'], 'private_session')
+        self.assertEqual([item['submitted'] for item in private['game']['individual_decisions']['submitted']],
                          [False, True, False])
 
     async def test_no_vote_or_proposal_commands_in_individual_mode(self):

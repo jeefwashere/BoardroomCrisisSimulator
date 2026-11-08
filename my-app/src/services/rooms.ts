@@ -120,7 +120,15 @@ export type RoomGame = {
     /** "vote": board ballot (default). "individual": each member writes their own decision instead (Cedar T01). */
     decision_mode?: 'vote' | 'individual'
     individual_decisions?: IndividualDecisions | null
+    /** Rounds 2 and 3 (private coaching, then private assessment) follow the individual decisions. */
+    private_rounds?: boolean
+    /** Readable ending heading, e.g. "Private sessions complete". */
+    ending_title?: string | null
+    private_progress?: PrivateProgress[]
 }
+export type PrivateProgressStage = 'not_started' | 'coaching' | 'card' | 'assessment' | 'complete'
+/** Each member's private session stage; never their answers. */
+export type PrivateProgress = { member_id: string; display_name: string; role_name: string; stage: PrivateProgressStage }
 export type IndividualDecisions = {
     /** Who has submitted; other members' texts are never projected. */
     submitted: { member_id: string; display_name: string; role_name: string; submitted: boolean }[]
@@ -134,7 +142,7 @@ export type Extras = { feedback?: { status: string; text: string; error: string 
 
 export type RoomSnapshot = RoomFields & (
     { phase: 'lobby'; game: null } |
-    { phase: 'briefing' | 'reading' | 'speaking' | 'discussion' | 'individual_decision' | 'voting' | 'tie_break' | 'resolving' | 'resolution_failed' | 'decision' | 'result' | 'ended'; game: RoomGame }
+    { phase: 'briefing' | 'reading' | 'speaking' | 'discussion' | 'individual_decision' | 'private_session' | 'voting' | 'tie_break' | 'resolving' | 'resolution_failed' | 'decision' | 'result' | 'ended'; game: RoomGame }
 )
 
 export type RoomApi = {
@@ -235,7 +243,7 @@ function snapshot(value: unknown): value is RoomSnapshot {
         && typeof value.host_member_id === 'string' && typeof value.self_member_id === 'string'
         && Array.isArray(value.members) && value.members.every(member)
         && (value.phase === 'lobby' ? value.game === null
-            : ['briefing', 'reading', 'speaking', 'discussion', 'individual_decision', 'voting', 'tie_break', 'resolving', 'resolution_failed', 'decision', 'result', 'ended'].includes(String(value.phase)) && game(value.game))
+            : ['briefing', 'reading', 'speaking', 'discussion', 'individual_decision', 'private_session', 'voting', 'tie_break', 'resolving', 'resolution_failed', 'decision', 'result', 'ended'].includes(String(value.phase)) && game(value.game))
 }
 
 function cleanMessage(value: string): string {

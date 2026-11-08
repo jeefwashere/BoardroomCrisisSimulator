@@ -48,6 +48,9 @@ class Timing:
     # per member, after which the game ends.
     decision_mode: str = "vote"
     individual_decision_seconds: int = 180
+    # When true, the individual decision phase is followed by the private_session phase (Rounds 2 and 3).
+    private_rounds: bool = False
+    private_session_seconds: int = 1500
 
 
 @dataclass(frozen=True)
@@ -313,6 +316,11 @@ def _validate_timings(data, rounds):
             raise ValueError("decision_mode must be vote or individual")
         individual_seconds = _integer(value.get("individual_decision_seconds", 180),
                                       f"timing.{name}.individual_decision_seconds", positive=True)
+        private_rounds = value.get("private_rounds", False)
+        if type(private_rounds) is not bool or (private_rounds and mode != "individual"):
+            raise ValueError("private_rounds must be boolean and requires individual decision mode")
+        private_seconds = _integer(value.get("private_session_seconds", 1500),
+                                   f"timing.{name}.private_session_seconds", positive=True)
         timings.append(Timing(
             name, value["briefing_seconds"], value["result_seconds_per_round"],
             value["reading_seconds_per_round"], value["discussion_seconds_per_round"],
@@ -320,7 +328,7 @@ def _validate_timings(data, rounds):
             value["gameplay_ceiling_from_briefing_start_seconds"], value["speaker_max_seconds"],
             value["unused_speaking_seconds"] if value["unused_speaking_seconds"] in UNUSED_SPEAKING_MODES
             else "open_discussion",
-            mode, individual_seconds,
+            mode, individual_seconds, private_rounds, private_seconds,
         ))
     vote = _object(data.get("vote_policy"), "vote_policy")
     if type(vote.get("duration_seconds")) is not int or vote["duration_seconds"] != 60:

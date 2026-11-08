@@ -230,3 +230,21 @@ test('individual decisions show writing and submitted states and never offer the
     assert.equal(followTarget(decisionViews({ a: true, b: false, c: false })), 1)
     assert.equal(followTarget(decisionViews({ a: true, b: true, c: true })), null)
 })
+
+test('private sessions: the solo bar addresses Alex and the Board strip shows each branch', () => {
+    const progress = [
+        { member_id: 'a', display_name: 'a', role_name: 'CEO', stage: 'coaching' as const },
+        { member_id: 'b', display_name: 'b', role_name: 'Security', stage: 'card' as const },
+        { member_id: 'c', display_name: 'c', role_name: 'Finance', stage: 'not_started' as const },
+    ]
+    const sessions = views('private_session', () => ({ private_rounds: true, private_progress: progress }))
+    assert.equal(soloStage(sessions).text, 'Your private session with the crisis coach')
+    assert.equal(botStatusText(MORGAN, sessions, null, 'coaching 2/3'), 'coaching 2/3')
+    assert.equal(botStatusText(MORGAN, sessions, null), 'response card')
+    assert.equal(botStatusText(SAM, sessions, null), 'starting…')
+    const ended = views('ended', () => ({ private_rounds: true, decision_mode: 'individual', private_progress: progress.map((item) => item.member_id === 'b' ? { ...item, stage: 'complete' as const } : item) }))
+    assert.equal(botStatusText(MORGAN, ended, null), 'complete')
+    assert.equal(botStatusText(SAM, ended, null), 'ended early')
+    assert.equal(soloStage(ended).over, true)
+    assert.match(DEMO_BOTS[0].privateAnswers.assessment, /review/)
+})

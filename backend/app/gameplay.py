@@ -13,6 +13,11 @@ EXPERT_PANEL_SECONDS = 90
 # Ending label when the individual decision phase closes (decision_mode "individual").
 INDIVIDUAL_ENDING = "individual_decisions_recorded"
 INDIVIDUAL_ENDING_TITLE = "Individual decisions recorded"
+# Ending label when the private_session phase (Rounds 2 and 3) closes.
+PRIVATE_ENDING = "private_sessions_complete"
+PRIVATE_ENDING_TITLE = "Private sessions complete"
+PRIVATE_STAGES = ("not_started", "coaching", "card", "assessment", "complete")
+ENDING_TITLES = {INDIVIDUAL_ENDING: INDIVIDUAL_ENDING_TITLE, PRIVATE_ENDING: PRIVATE_ENDING_TITLE}
 
 
 def at(game: sim.Game, instant: float):
@@ -39,12 +44,47 @@ def begin_individual_decision(game: sim.Game, instant: float) -> sim.Game:
     return replace(game, phase=sim.IndividualDecisionPhase(uuid4(), instant + game.timing.individual_decision_seconds))
 
 
-def finish_individual_decision(game: sim.Game, instant: float) -> sim.Game:
+def finish_individual_decision(game: sim.Game, instant: float, electorate: tuple[UUID, ...] = ()) -> sim.Game:
     """Called when every member has submitted, at the deadline, or on host skip.
 
-    The game currently ends here; a later phase (for example a private preparation round) can begin instead.
+    Timing profiles with private_rounds continue into the private_session phase; others end here.
     """
+    if game.timing.private_rounds and electorate:
+        return begin_private_session(game, instant, electorate)
     return end(game, instant, INDIVIDUAL_ENDING)
+
+
+def begin_private_session(game: sim.Game, instant: float, electorate: tuple[UUID, ...]) -> sim.Game:
+    """Rounds 2 and 3 run per member in PrivateSessions; the room only tracks stage and deadline."""
+    ends = instant + game.timing.private_session_seconds
+    session_deadline = game.session_deadline
+    if session_deadline is not None:
+        # The private rounds have their own budget; the Round 1 ceiling must not cut them short.
+        session_deadline = max(session_deadline, ends)
+    return replace(game, phase=sim.PrivateSessionPhase(uuid4(), ends), session_deadline=session_deadline,
+                   private_stages=tuple((member, "not_started") for member in electorate))
+
+
+def record_private_stage(game: sim.Game, instant: float, member_id: UUID, stage: str) -> sim.Game:
+    """Stages only move forward. The phase finishes once every electorate member is complete."""
+    if not isinstance(game.phase, sim.PrivateSessionPhase) or stage not in PRIVATE_STAGES:
+        return game
+    stages = dict(game.private_stages)
+    if member_id not in stages or PRIVATE_STAGES.index(stage) <= PRIVATE_STAGES.index(stages[member_id]):
+        return game
+    stages[member_id] = stage
+    game = replace(game, private_stages=tuple((member, stages[member]) for member, _ in game.private_stages))
+    if all(value == "complete" for _, value in game.private_stages):
+        return finish_private_session(game, instant)
+    return game
+
+
+def finish_private_session(game: sim.Game, instant: float) -> sim.Game:
+    """Called when every member completes, at the deadline, or on host skip.
+
+    Round 4 (board reunion) hooks in here: begin its phase instead of ending the game.
+    """
+    return end(game, instant, PRIVATE_ENDING)
 
 
 def ready_ai_options(game: sim.Game) -> tuple[sim.BallotOption, ...]:
@@ -203,6 +243,9 @@ def reconcile(game: sim.Game, now: float, roster: tuple[tuple[UUID, int, float],
               evidence: tuple[tuple[UUID, UUID], ...]) -> sim.Game:
     """Total expiry wins; otherwise catch up elapsed phases in deadline order."""
     if game.session_deadline is not None and now >= game.session_deadline:
+        if isinstance(game.phase, sim.PrivateSessionPhase) and game.phase.deadline <= game.session_deadline:
+            # The private deadline extended the session ceiling, so it closes with the private ending.
+            return finish_private_session(game, game.phase.deadline)
         return end(game, game.session_deadline, "total_timeout")
     last_seen = {member: seen for member, _, seen in roster}
     while not isinstance(game.phase, sim.EndedPhase):
@@ -226,7 +269,9 @@ def reconcile(game: sim.Game, now: float, roster: tuple[tuple[UUID, int, float],
         elif isinstance(phase, sim.DiscussionPhase) and decision_mode(game) == "individual":
             game = begin_individual_decision(game, due)
         elif isinstance(phase, sim.IndividualDecisionPhase):
-            game = finish_individual_decision(game, due)
+            game = finish_individual_decision(game, due, electorate)
+        elif isinstance(phase, sim.PrivateSessionPhase):
+            game = finish_private_session(game, due)
         elif isinstance(phase, sim.DiscussionPhase):
             game = replace(freeze(game), phase=sim.VotingPhase(uuid4(), due + game.timing.voting_seconds),
                            ballots=(), last_tally=())

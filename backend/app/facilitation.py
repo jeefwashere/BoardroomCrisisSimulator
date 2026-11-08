@@ -132,6 +132,8 @@ class Facilitation:
         self.panels: dict[UUID, dict[str, dict]] = {}
         self.receipts: dict[tuple[UUID, UUID, UUID], tuple[tuple, dict]] = {}
         self.tasks: set[asyncio.Task] = set()
+        # PrivateSessions (Rounds 2 and 3) resolves speech IDs within the caller's own branch only.
+        self.private = None
 
     # Grounding: only public material visible in the caller's own snapshot, plus the attached public report.
     def context(self, snapshot) -> dict:
@@ -404,7 +406,7 @@ class Facilitation:
         return dict(item)
 
     async def speech_text(self, session: str, room_id: UUID, speech_id: UUID) -> str:
-        await self.rooms.snapshot(session, room_id)
+        snapshot = await self.rooms.snapshot(session, room_id)
         opening = self.openings.get(room_id)
         if opening is not None and opening["speech_id"] == str(speech_id):
             return spoken(opening["text"])
@@ -415,6 +417,10 @@ class Facilitation:
             for item in panel["experts"]:
                 if item["speech_id"] == str(speech_id):
                     return spoken(item["text"])
+        if self.private is not None:
+            text = self.private.speech_text(room_id, snapshot.self_member_id, speech_id)
+            if text is not None:
+                return spoken(text)
         raise RoomError(404, "speech_not_found", "No ready facilitation text has this speech ID")
 
     async def prepare(self, session: str, room_id: UUID, speech_id: UUID) -> dict:
@@ -439,11 +445,16 @@ RECORDINGS_CATALOG = Path(__file__).resolve().parents[2] / "playtest" / "fixture
 GROUP_PREFIXES = (("t01_decision_prompt", "decision_guide"), ("facilitator_", "facilitator"), ("it_", "adviser"),
                   ("journalist_", "journalist"), ("discussion_", "discussion"), ("control_", "control"),
                   ("reference_", "reference"))
+# Saved fictional member answers for the private rounds: r{round}_member_{seat}_step_{step}.
+PRIVATE_CLIP_GROUPS = {"2": "private_coaching", "3": "private_assessment"}
 
 
 def clip_group(clip_id: str) -> str | None:
     if re.fullmatch(r"t01_[a-z]+_turn", clip_id):
         return "participant"
+    private = re.fullmatch(r"r([23])_member_[1-3]_step_[1-3]", clip_id)
+    if private:
+        return PRIVATE_CLIP_GROUPS[private[1]]
     return next((group for prefix, group in GROUP_PREFIXES if clip_id.startswith(prefix)), None)
 
 

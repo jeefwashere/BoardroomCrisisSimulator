@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, StringConstraints, field_validator
+from pydantic import AfterValidator, BaseModel, BeforeValidator, ConfigDict, Field, StrictBool, StringConstraints, field_validator
 
 from .rules import PRESENCE_WINDOW_SECONDS, ROOM_CAPACITY
 
@@ -104,6 +104,8 @@ class RoleView(View):
 class TimingView(View):
     profile_id: str
     briefing_seconds: int
+    private_rounds: bool = False
+    private_session_seconds: int | None = None
 
 
 class ScenarioRef(View):
@@ -223,6 +225,13 @@ class IndividualDecisionsView(View):
     self: OwnDecisionView | None = None
 
 
+class PrivateProgressView(View):
+    member_id: UUID
+    display_name: str
+    role_name: str
+    stage: Literal["not_started", "coaching", "card", "assessment", "complete"]
+
+
 class GameView(View):
     phase_id: UUID
     round_id: UUID
@@ -266,6 +275,10 @@ class GameView(View):
     individual_decisions: IndividualDecisionsView | None = None
     # Human readable title for endings that have no authored outcome, for example "Individual decisions recorded".
     ending_title: str | None = None
+    # True when the timing profile continues into the private_session phase (Rounds 2 and 3).
+    private_rounds: bool = False
+    # From the private_session phase on: each electorate member's stage, never content or scores.
+    private_progress: list[PrivateProgressView] | None = None
 
 
 class RoomFields(View):
@@ -285,7 +298,7 @@ class LobbyRoomView(RoomFields):
 
 
 class StartedRoomView(RoomFields):
-    phase: Literal["briefing", "reading", "speaking", "discussion", "voting", "tie_break", "resolving", "resolution_failed", "decision", "result", "individual_decision", "ended"]
+    phase: Literal["briefing", "reading", "speaking", "discussion", "voting", "tie_break", "resolving", "resolution_failed", "decision", "result", "individual_decision", "private_session", "ended"]
     game: GameView
 
 
@@ -450,3 +463,42 @@ class ConsultBody(BaseModel):
     command_id: UUID
     kind: Literal["facilitator", "it", "journalist"]
     question: str = Field(min_length=1, max_length=1000)
+
+
+def _nonblank(value: str) -> str:
+    if not value.strip():
+        raise ValueError("Write nonempty text")
+    return value
+
+
+AnswerText = Annotated[str, StringConstraints(min_length=1, max_length=1200), AfterValidator(_nonblank)]
+CardText = Annotated[str, StringConstraints(min_length=1, max_length=600), AfterValidator(_nonblank)]
+
+
+class PrivateAnswerBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    command_id: UUID
+    text: AnswerText
+    used_clip: StrictBool = False
+
+
+class CardFields(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    action: CardText
+    responsibility: CardText
+    evidence: CardText
+    dependencies: CardText
+    fallback: CardText
+    communication: CardText
+    review: CardText
+
+
+class PrivateCardBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    command_id: UUID
+    fields: CardFields
+
+
+class PrivateRetryBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    command_id: UUID

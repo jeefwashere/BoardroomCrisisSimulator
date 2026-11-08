@@ -245,3 +245,17 @@ test('a reload in the quiz replays only the current question; a finished quiz re
     assert.equal(initiallySpoken(messages).size, 0)
     assert.equal(initiallySpoken(messages, quiz({ status: 'generating' })).size, 0)
 })
+
+test('quiz outcomes: 0 or a timeout is wrong, 20 is best, between is partial, with matching tags', async () => {
+    const { quizOutcome, outcomeTag } = await import('../src/features/game/quizModel.ts')
+    const base = { max: 20, chosen: 'a', timed_out: false }
+    assert.equal(quizOutcome({ ...base, points: 0 }), 'wrong')
+    assert.equal(quizOutcome({ ...base, points: 20 }), 'best')
+    assert.equal(quizOutcome({ ...base, points: 12 }), 'partial')
+    assert.equal(quizOutcome({ ...base, points: null, chosen: null, timed_out: true }), 'wrong')
+    assert.equal(quizOutcome({ ...base, points: null }), null)
+    assert.equal(outcomeTag('wrong', 0), 'Wrong answer · 0')
+    assert.equal(outcomeTag('partial', 12), 'Partly right · 12')
+    assert.equal(outcomeTag('best', 20), 'Best answer · 20')
+    assert.equal(outcomeTag(null, null), 'Your answer')
+})

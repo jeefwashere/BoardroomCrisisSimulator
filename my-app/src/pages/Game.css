@@ -641,6 +641,16 @@ details.game-notice { display: block; border-color: #b58c28; background: #fbf1d6
 .private-quiz-choice.is-chosen, .private-quiz-choice.is-sending { border-color: #ecc783; border-width: 2px; padding: 8px 11px; background: #ecc78324; }
 .private-quiz-letter { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 999px; background: #ffffff1a; font-size: 12px; font-weight: 800; }
 .private-quiz-choice.is-chosen .private-quiz-letter { background: #ecc783; color: #2b2112; }
+.private-quiz-choice.is-chosen.is-wrong { border-color: #e07a7a; background: #e07a7a29; }
+.private-quiz-choice.is-chosen.is-wrong .private-quiz-letter { background: #e07a7a; color: #2b1212; }
+.private-quiz-choice.is-chosen.is-best { border-color: #7ccf9a; background: #7ccf9a29; }
+.private-quiz-choice.is-chosen.is-best .private-quiz-letter { background: #7ccf9a; color: #11251a; }
+.private-quiz-result.is-wrong strong { color: #f1a6a6; }
+.private-quiz-result.is-partial strong { color: #ecc783; }
+.private-quiz-result.is-best strong { color: #9fe0b5; }
+.private-quiz-choice.is-chosen.is-wrong { animation: private-quiz-shake 360ms ease; }
+@keyframes private-quiz-shake { 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
+@media (prefers-reduced-motion: reduce) { .private-quiz-choice.is-chosen.is-wrong { animation: none; } }
 .private-quiz-text { overflow-wrap: anywhere; }
 .private-quiz-tag { justify-self: end; padding: 2px 8px; border-radius: 999px; background: #ecc783; color: #2b2112; font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
 .private-quiz-tag.is-best { background: #3b5e47; color: #e4f3e7; }

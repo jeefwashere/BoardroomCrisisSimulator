@@ -130,6 +130,13 @@
 .game-call-screen .private-quiz-choice.is-chosen, .game-call-screen .private-quiz-choice.is-sending { border-color: #b58c28; background: #fbf1d6; }
 .game-call-screen .private-quiz-letter { background: var(--call-card-deep); color: var(--call-ink); }
 .game-call-screen .private-quiz-choice.is-chosen .private-quiz-letter { background: #b58c28; color: #fffaf1; }
+.game-call-screen .private-quiz-choice.is-chosen.is-wrong { border-color: #b23a3a; background: #fbe3e1; }
+.game-call-screen .private-quiz-choice.is-chosen.is-wrong .private-quiz-letter { background: #b23a3a; color: #fffaf1; }
+.game-call-screen .private-quiz-choice.is-chosen.is-best { border-color: #2f7d4f; background: #e2f3e8; }
+.game-call-screen .private-quiz-choice.is-chosen.is-best .private-quiz-letter { background: #2f7d4f; color: #fffaf1; }
+.game-call-screen .private-quiz-result.is-wrong strong { color: #9a3030; }
+.game-call-screen .private-quiz-result.is-partial strong { color: #8a6a1c; }
+.game-call-screen .private-quiz-result.is-best strong { color: #2f7d4f; }
 .game-call-screen .private-quiz-tag { background: #f1dfb2; color: #4a3510; }
 .game-call-screen .private-quiz-tag.is-best { background: var(--call-green); color: #e4f3e7; }
 .game-call-screen .private-quiz-result span { color: var(--call-muted); }

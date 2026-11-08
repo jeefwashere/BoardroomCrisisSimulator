@@ -29,6 +29,22 @@ export function submittedCount(rows: readonly BoardRow[]): { done: number; total
     return { done: rows.filter((row) => row.submitted).length, total: rows.length }
 }
 
+function names(list: readonly string[]): string {
+    return list.length <= 1 ? list.join('') : `${list.slice(0, -1).join(', ')} and ${list[list.length - 1]}`
+}
+
+/** One line on who the round is waiting for, the caller included ("you"). */
+export function waitingSummary(rows: readonly BoardRow[]): string {
+    if (!rows.length) return ''
+    const pending = rows.filter((row) => !row.submitted)
+    const done = rows.filter((row) => row.submitted && !row.self).map((row) => row.name)
+    if (!pending.length) return 'All decisions are in. Waiting for decisions to close.'
+    const waiting = names(pending.map((row) => row.self ? 'you' : row.name))
+    const selfDone = rows.some((row) => row.self && row.submitted)
+    const lead = selfDone ? `Your decision is in. Waiting for ${waiting}` : `Waiting for ${waiting}`
+    return done.length ? `${lead} · ${names(done)} ${done.length === 1 ? 'has' : 'have'} submitted` : lead
+}
+
 const ROUND_ONE_PHASES = ['briefing', 'reading', 'speaking', 'discussion', 'individual_decision']
 
 /** Small header label for individual decision games; null in vote mode or once the game has ended. */
@@ -42,7 +58,7 @@ export type DecisionBadge = { label: string; tone: 'decide' | 'voted' }
 /** Call tile badges during the decision step: Submitted or Writing… for every listed board member. */
 export function decisionBadges(decisions: IndividualDecisions | null | undefined, selfId: string): Record<string, DecisionBadge> {
     const badges: Record<string, DecisionBadge> = {}
-    for (const row of boardRows(decisions, selfId)) badges[row.member_id] = row.submitted ? { label: 'Submitted', tone: 'voted' } : { label: 'Writing…', tone: 'decide' }
+    for (const row of boardRows(decisions, selfId)) badges[row.member_id] = row.submitted ? { label: 'Submitted', tone: 'voted' } : { label: 'Deciding…', tone: 'decide' }
     if (!badges[selfId] && decisions) badges[selfId] = decisions.self ? { label: 'Submitted', tone: 'voted' } : { label: 'Decide now', tone: 'decide' }
     return badges
 }

@@ -218,3 +218,6 @@
 .game-call-screen .board3d-vignette { background: radial-gradient(ellipse at 50% 50%, transparent 60%, #42282026 100%); }
 .game-call-screen .board3d-loading { background: #fffaf1eb; color: var(--call-ink); box-shadow: 0 6px 18px var(--call-shadow); }
 .game-call-screen .board3d-loading--failed { color: #9a3030; }
+.game-call-screen .decision-waiting { margin: 4px 0 8px; color: var(--call-ink); font-size: 13px; font-weight: 600; }
+.game-call-screen .chat-drawer .room-chat-compose .room-chat-target > button { background: transparent; color: var(--call-muted); }
+.game-call-screen .chat-drawer .room-chat-compose .room-chat-target > button.is-active { background: var(--call-red); color: var(--call-cream); }

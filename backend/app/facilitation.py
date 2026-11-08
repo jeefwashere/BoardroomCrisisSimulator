@@ -458,8 +458,10 @@ class Facilitation:
         game = snapshot.game
         if game is None:
             raise RoomError(409, "not_started", "Start this room first")
-        if mode not in ("turn", "private"):
-            raise RoomError(422, "invalid_mode", "Choose turn or private")
+        if mode not in ("turn", "private", "decision"):
+            raise RoomError(422, "invalid_mode", "Choose turn, private or decision")
+        if mode == "decision" and (game.phase != "individual_decision" or "submit_decision" not in (game.allowed_actions or [])):
+            raise RoomError(409, "not_deciding", "AI decisions are for your own Round 1 decision while decisions are open")
         if mode == "turn" and (game.phase != "speaking" or game.active_speaker_id != member_id):
             raise RoomError(409, "not_your_turn", "AI replies are for your own speaking turn")
         if mode == "private":
@@ -471,7 +473,15 @@ class Facilitation:
         scenario = self.rooms.catalog.get(game.scenario.scenario_id, game.scenario.version)
         roles = {role.role_id: role.name for role in scenario.roles} if scenario is not None else {}
         role = roles.get(me.role_id or "", "board member")
-        if mode == "turn":
+        if mode == "decision":
+            contributions = await self.rooms.contributions(session, room_id)
+            context = self.expert_context(snapshot, contributions)
+            instructions = (f"You are {me.display_name}, the {role} on the board of a fictional organisation in a crisis "
+                            "exercise. The board discussion is over and each member now records their own individual "
+                            "decision, privately. State yours in the first person, in the shape: I would ... because ... "
+                            "using ... I still need to establish ... Build on what the board said and what your role can do.")
+            extra = {"you": {"name": me.display_name, "role": role}, "contributions": context["contributions"][-12:]}
+        elif mode == "turn":
             contributions = await self.rooms.contributions(session, room_id)
             context = self.expert_context(snapshot, contributions)
             instructions = (f"You are {me.display_name}, the {role} on the board of a fictional organisation in a crisis "
@@ -487,7 +497,7 @@ class Facilitation:
                             "honestly and specifically, building on your own written decision when one is given.")
             extra = {"you": {"name": me.display_name, "role": role}, "coach_question": question.strip(),
                      "your_decision": (own or {}).get("text") if isinstance(own, dict) else None}
-        if mode == "turn":
+        if mode in ("turn", "decision"):
             recent = " ".join(item["text"] for item in extra["contributions"][-3:])
             query = f"{role}: {context['situation'][:300]} {recent}"
         else:

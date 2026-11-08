@@ -486,7 +486,7 @@ class DeliveryBody(BaseModel):
 class ReplyBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     command_id: UUID
-    mode: Literal["turn", "private"]
+    mode: Literal["turn", "private", "decision"]
     # Private answers only: the coach's current question, as shown to the member.
     question: str | None = Field(default=None, min_length=1, max_length=1200)
 

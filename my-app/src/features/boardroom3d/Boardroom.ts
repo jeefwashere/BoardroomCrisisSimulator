@@ -1,6 +1,6 @@
 /**
  * The 3D boardroom for the solo T01 demo: the baked room, the full size table, three seated
- * Mixamo characters (Alex, Morgan, Sam) and the table hub, which is where the AI agents speak.
+ * face rigged Mixamo characters (Alex, Morgan, Sam) and the table hub, which is where the AI agents speak.
  *
  * Ported from the standalone 3D UI (`game-ui/src/scene/Boardroom.ts` on `arjun/game-ui-3d`).
  * Characters share one skeleton, so the clips in animations.glb drive all of them. Props come
@@ -18,9 +18,14 @@ import { ao } from 'three/examples/jsm/tsl/display/GTAONode.js'
 import { bloom } from 'three/examples/jsm/tsl/display/BloomNode.js'
 import { SeatTags } from './SeatTags'
 import type { BoardMood, BoardroomView } from './boardroomModel'
+import { Blinker, FACE_MORPHS, faceFrame, neutralFace, type FaceContext, type FaceMorph } from './faceExpressions'
 
-/** Alex (CEO), Morgan (IT recovery lead), Sam (communications lead), in seat order. */
-export const CHARACTER_IDS = ['01-coo', '03-cto', '06-head-of-communications']
+/**
+ * Alex (CEO), Morgan (IT recovery lead), Sam (communications lead), in seat order. All three are
+ * face rigged: besides the shared skeleton they carry blink, smile, frown, brow and mouth morph
+ * targets (see faceExpressions.ts).
+ */
+export const CHARACTER_IDS = ['01-coo', '03-cto', '02-cfo']
 
 type Mood = BoardMood | 'disbelief'
 
@@ -86,6 +91,12 @@ class Avatar {
   hips: THREE.Bone | null = null
   mood: Mood | null = null
   yaw = 0
+  /** Every mesh slot for each face morph: the face mesh, and the mouth interior for MouthOpen. */
+  private morphs = new Map<FaceMorph, { influences: number[]; index: number }[]>()
+  private face = neutralFace()
+  private blinker = new Blinker()
+  private readonly faceSeed = Math.random() * 100
+  faceContext: FaceContext = { phase: 'lobby', talking: false, memberTalking: false, agentTalking: false }
 
   readonly seat: Seat
 
@@ -104,6 +115,16 @@ class Avatar {
         mesh.receiveShadow = true
         mesh.frustumCulled = false
         tuneMaterial(mesh.material as THREE.MeshStandardMaterial, { roughness: 0.74, envMapIntensity: 0.95 })
+      }
+      const morphMesh = o as THREE.Mesh
+      if (morphMesh.isMesh && morphMesh.morphTargetDictionary && morphMesh.morphTargetInfluences) {
+        for (const morph of FACE_MORPHS) {
+          const index = morphMesh.morphTargetDictionary[morph]
+          if (index === undefined) continue
+          const slots = this.morphs.get(morph) ?? []
+          slots.push({ influences: morphMesh.morphTargetInfluences, index })
+          this.morphs.set(morph, slots)
+        }
       }
       const bone = o as THREE.Bone
       if (bone.isBone && /Head$/.test(bone.name) && !/HeadTop/.test(bone.name)) this.head = bone
@@ -131,6 +152,16 @@ class Avatar {
     if (previous && fade > 0) previous.crossFadeTo(next, fade, false)
     else previous?.stop()
     this.mood = mood
+  }
+
+  /** Blink, hold the mood's expression and move the mouth while talking (no op for unrigged faces). */
+  updateFace(dt: number, time: number) {
+    if (this.morphs.size === 0) return
+    const blink = this.blinker.update(dt, this.faceContext.talking)
+    const weights = faceFrame(this.face, this.faceContext, blink, time, this.faceSeed, dt)
+    for (const [morph, slots] of this.morphs) {
+      for (const slot of slots) slot.influences[slot.index] = weights[morph]
+    }
   }
 
   /** Turn the head toward a world point after the animation pose is applied. */
@@ -529,7 +560,15 @@ export class Boardroom {
         speaking: seat.talking,
         away: !seat.connected,
       } : null)
-      if (seat) avatar.setMood(seat.mood)
+      if (seat) {
+        avatar.setMood(seat.mood)
+        avatar.faceContext = {
+          phase: view.phase,
+          talking: seat.talking,
+          memberTalking: view.seats.some((other) => other.talking && other.id !== seat.id),
+          agentTalking: Boolean(view.agent),
+        }
+      }
     })
     const agent = view.agent
     this.tags.set(CHARACTER_IDS.length, agent ? {
@@ -1046,6 +1085,7 @@ export class Boardroom {
     for (const avatar of this.avatars) {
       if (!avatar.mixer || !avatar.group.visible) continue
       avatar.animate(dt)
+      avatar.updateFace(dt, time)
       avatar.placeHands()
       const target = avatar === focus ? this.camera.position : lookTarget
       avatar.lookAt(target, dt)

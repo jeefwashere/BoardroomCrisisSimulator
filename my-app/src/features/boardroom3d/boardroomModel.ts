@@ -22,6 +22,8 @@ export type BoardroomInput = {
 }
 
 export type BoardroomView = {
+    /** The room phase, which sets the characters' held facial expression. */
+    phase: string
     seats: BoardSeat[]
     /** The member the camera presents: whoever is talking, else the member holding the turn. Null while an agent talks. */
     focusId: string | null
@@ -72,6 +74,7 @@ export function boardroomView(input: BoardroomInput, members: readonly BoardMemb
     const talker = seats.find((seat) => seat.talking)
     const turnHolder = input.phase === 'speaking' && input.activeSpeakerId && seats.some((seat) => seat.id === input.activeSpeakerId) ? input.activeSpeakerId : null
     return {
+        phase: input.phase,
         seats,
         focusId: agent ? null : talker?.id ?? turnHolder,
         agent,

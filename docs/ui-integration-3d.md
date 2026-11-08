@@ -169,6 +169,12 @@ instant. The button appears when the room has at most three members, since the 3
   10 seconds after the last drag, and a double click resumes at once.
 * Moods: talking members play the talking clip, everyone types during individual decisions, and in private sessions
   Morgan and Sam work at their laptops. Heads turn toward the speaker or the hub.
+* Faces: the three characters (`01-coo` Alex, `03-cto` Morgan, `02-cfo` Sam) are face rigged with six morph targets
+  and a mouth interior. `features/boardroom3d/faceExpressions.ts` blinks every 2 to 6 seconds, moves the mouth and
+  brows while a member talks (procedural lip flap: the scene receives no audio level), raises listeners' brows while
+  a colleague or an AI agent talks, frowns in thought during individual decisions, private sessions and voting, looks
+  alert in the briefing and smiles in the lobby and at the end. `npm run dev` serves `/face-preview.html`, a dev only
+  page with the real scene and a fake room state for checking faces without a backend.
 * No spoken text on the stage. The wall screen shows only the scenario title, the phase and the clock; name tags
   show names, roles and a talking indicator.
 
@@ -179,4 +185,4 @@ builds the scene state with `boardroomView` (`features/boardroom3d/boardroomMode
 heads, buttons, notices, the transcript, the private answer box and the control bar are unchanged. Audio still
 plays only from the existing hooks. The scene (`Boardroom.ts`, `SeatTags.ts`) is ported from
 `game-ui/src/scene` on `arjun/game-ui-3d` and loads on demand, so the call view never downloads three.js. Models
-are in `my-app/public/models` (3 characters, the baked room and the props) and `my-app/public/textures/sky`.
+are in `my-app/public/models` (3 face rigged characters, the baked room and the props) and `my-app/public/textures/sky`.

@@ -99,7 +99,7 @@ function RolePicker({ id, playerName, value, roles, disabled = false, onChange }
             close(true)
         } else if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
             event.preventDefault()
-            const now = performance.now()
+            const now = event.timeStamp
             const search = (now - searchRef.current.updatedAt < 600 ? searchRef.current.text : '') + event.key.toLocaleLowerCase()
             searchRef.current = { text: search, updatedAt: now }
             const match = roles.findIndex((role) => role.label.toLocaleLowerCase().startsWith(search))

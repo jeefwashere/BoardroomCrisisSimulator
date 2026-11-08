@@ -132,6 +132,10 @@ The user assigned Jeff the pages before game start and Ricardo the backend. Keep
 
   Owner: Arjun's Claude agent. Status: `waiting`. Scope: 12 isolated prop images in one design language (smoked walnut, graphite, brushed brass, smoked glass, amber light lines) suitable for TRELLIS.2 reconstruction, saved to the untracked folder `assets/props/advanced-2026-11-07/` with `prompts.json`, a contact sheet and a README. Progress: all 12 images generated and reviewed on a contact sheet; the first wall display came out as two folded panels and was regenerated once (original kept in `rejected/`). Calls: 15 Vertex requests, 13 images returned, 2 retried 429 or 503 rejections. The images stay local because `assets/` is untracked, so this box stays unchecked until they are reconstructed and used in the room. Next action: waiting for the user to approve TRELLIS.2 reconstruction on an assigned Velocity job and integration into `game-ui`.
 
+* [ ] G04 Upgrade the boardroom room and renderer: a baked lighting room shell with a skyline, and three.js WebGPU with node based post processing.
+
+  Owner: Arjun's Claude agent. Status: `in_progress`. Scope confirmed by the user: step 1 (room shell built in Blender with free Poly Haven textures and HDRI, fully baked lighting, skyline behind a glass wall) and step 2 (WebGPURenderer with automatic WebGL2 fallback, TSL post processing). Progress: the renderer now uses `three/webgpu` with a 4x multisampled scene pass, half resolution GTAO and bloom; Playwright on Chromium reported the WebGPU backend, no console errors, and 42 frames per second where the WebGL version measured 16. A room loader is ready for `public/models/room/room.glb`; the room build is in progress. Next action: integrate and review the baked room, then build, commit and push.
+
 ## Integration and verification
 
 * [ ] I01 Publish the frontend API and snapshot contract with examples.

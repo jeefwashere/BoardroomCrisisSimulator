@@ -6,14 +6,13 @@
  * They share one skeleton, so the clips in animations.glb drive all of them. Props are read
  * from public/models/props/props.json when present; simple geometry stands in otherwise.
  */
-import * as THREE from 'three'
+import * as THREE from 'three/webgpu'
+import { mrt, normalView, output, pass, vec3, vec4 } from 'three/tsl'
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
-import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
-import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
+import { ao } from 'three/examples/jsm/tsl/display/GTAONode.js'
+import { bloom } from 'three/examples/jsm/tsl/display/BloomNode.js'
 import { SeatTags } from './SeatTags'
 import { ROLE_COLORS } from '../game/types'
 
@@ -291,20 +290,29 @@ function orientHand(arm: Arm, forward: THREE.Vector3, weight: number) {
 }
 
 export class Boardroom {
-  private renderer: THREE.WebGLRenderer
-  private composer: EffectComposer
-  private sun!: THREE.DirectionalLight
-  private ao: GTAOPass
+  private renderer: THREE.WebGPURenderer
+  private post: THREE.PostProcessing
+  /** Output graphs with and without ambient occlusion, so quality can step down without rebuilding. */
+  private outputs: { full: THREE.Node; light: THREE.Node } | null = null
+  /** 'WebGPU' or 'WebGL2' once the renderer has initialised (WebGPURenderer falls back automatically). */
+  backend = ''
+  private disposed = false
   private tags: SeatTags
   private speakerRing: THREE.Mesh
   private highlightRing: THREE.Mesh
   private size = { width: 1, height: 1 }
+  get aoEnabled() {
+    return this.outputs !== null && this.post.outputNode === this.outputs.full
+  }
   private scene = new THREE.Scene()
   private camera = new THREE.PerspectiveCamera(36, 1, 0.05, 60)
   private controls: OrbitControls
   private clock = new THREE.Clock()
   private avatars: Avatar[]
   private chairs: THREE.Object3D[] = []
+  /** Placeholder walls, floor and windows; hidden once the baked room from tools/build_room.py loads. */
+  private shell = new THREE.Group()
+  private room: THREE.Object3D | null = null
   private laptops: THREE.Object3D[] = []
   private screenCanvas = document.createElement('canvas')
   private screenTexture: THREE.CanvasTexture
@@ -318,7 +326,8 @@ export class Boardroom {
   onProgress: (loaded: number, total: number) => void = () => {}
 
   constructor(private container: HTMLElement) {
-    this.renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' })
+    // WebGPU where the browser supports it, with three.js falling back to WebGL2 by itself.
+    this.renderer = new THREE.WebGPURenderer({ antialias: false, powerPreference: 'high-performance' })
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75))
     this.renderer.shadowMap.enabled = true
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
@@ -330,21 +339,7 @@ export class Boardroom {
     vignette.className = 'scene-vignette'
     container.appendChild(vignette)
 
-    // Image based lighting: soft reflections and bounce light for every PBR material.
-    const pmrem = new THREE.PMREMGenerator(this.renderer)
-    this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-    this.scene.environmentIntensity = 0.5
-    pmrem.dispose()
-
-    // Post processing: multisampled render, ground contact ambient occlusion, tone mapped output.
-    const target = new THREE.WebGLRenderTarget(1, 1, { samples: 4, type: THREE.HalfFloatType })
-    this.composer = new EffectComposer(this.renderer, target)
-    this.composer.addPass(new RenderPass(this.scene, this.camera))
-    this.ao = new GTAOPass(this.scene, this.camera, 1, 1)
-    this.ao.updateGtaoMaterial({ radius: 0.32, distanceExponent: 1.4, thickness: 1.2, scale: 1.15, samples: 12 })
-    this.ao.blendIntensity = 0.9
-    this.composer.addPass(this.ao)
-    this.composer.addPass(new OutputPass())
+    this.post = new THREE.PostProcessing(this.renderer)
 
     this.tags = new SeatTags(CHARACTER_IDS.length)
     container.appendChild(this.tags.element)
@@ -365,6 +360,8 @@ export class Boardroom {
     this.screenCanvas.height = 576
     this.screenTexture = new THREE.CanvasTexture(this.screenCanvas)
     this.screenTexture.colorSpace = THREE.SRGBColorSpace
+    // WebGPU cannot upload a canvas that has no 2D context yet, so draw the first frame now.
+    this.drawScreen()
 
     this.buildRoom()
     this.avatars = makeSeats().map((seat) => {
@@ -377,15 +374,61 @@ export class Boardroom {
     this.resizeObserver = new ResizeObserver(() => this.resize())
     this.resizeObserver.observe(container)
     this.resize()
-    this.renderer.setAnimationLoop(() => this.render())
+    void this.start()
     void this.loadModels()
     void this.loadProps()
+    void this.loadRoom()
+  }
+
+  /** WebGPU initialises asynchronously; the environment and post processing need a ready backend. */
+  private async start() {
+    await this.renderer.init()
+    if (this.disposed) return
+    const backend = this.renderer.backend as { isWebGPUBackend?: boolean }
+    this.backend = backend.isWebGPUBackend ? 'WebGPU' : 'WebGL2'
+    console.info('[boardroom] renderer backend:', this.backend)
+
+    // Image based lighting: soft reflections and bounce light for every PBR material.
+    const pmrem = new THREE.PMREMGenerator(this.renderer)
+    this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
+    this.scene.environmentIntensity = 0.5
+    pmrem.dispose()
+
+    this.buildPost()
+    this.renderer.setAnimationLoop(() => this.render())
+  }
+
+  /**
+   * Node based post processing: a 4x multisampled scene pass that also writes view normals,
+   * half resolution GTAO for contact shading, and bloom so light lines, screens and other
+   * values above 1 glow. Tone mapping and colour conversion happen once at the end.
+   */
+  private buildPost() {
+    const scenePass = pass(this.scene, this.camera, { samples: 4 })
+    scenePass.setMRT(mrt({ output, normal: normalView }))
+    const color = scenePass.getTextureNode('output')
+    const aoPass = ao(scenePass.getTextureNode('depth'), scenePass.getTextureNode('normal'), this.camera)
+    aoPass.resolutionScale = 0.5
+    aoPass.radius.value = 0.32
+    aoPass.thickness.value = 1.2
+    aoPass.distanceExponent.value = 1.4
+    aoPass.scale.value = 1.15
+    aoPass.samples.value = 12
+    const occluded = color.mul(vec4(vec3(aoPass.getTextureNode().r), 1))
+    this.outputs = {
+      full: occluded.add(bloom(occluded, 0.28, 0.45, 0.92)),
+      light: color.add(bloom(color, 0.28, 0.45, 0.92)),
+    }
+    this.post.outputNode = this.outputs.full
+    this.post.needsUpdate = true
   }
 
   dispose() {
+    this.disposed = true
     this.renderer.setAnimationLoop(null)
     this.resizeObserver.disconnect()
     this.controls.dispose()
+    this.post.dispose()
     this.renderer.dispose()
     this.container.replaceChildren()
   }
@@ -500,6 +543,58 @@ export class Boardroom {
     this.scene.add(model)
   }
 
+  /**
+   * The baked room (public/models/room, built by tools/build_room.py). Its surfaces carry fully
+   * baked lighting and render unlit; `Glass` becomes a faint reflective pane in front of the
+   * skyline panorama, and `Emit_*` meshes are pushed above 1 so the bloom pass makes them glow.
+   */
+  private async loadRoom() {
+    try {
+      const response = await fetch(`${MODELS}room/room.json`)
+      if (!response.ok || !response.headers.get('content-type')?.includes('json')) return
+      type Sky = { file: string; u_facing_minus_x?: number; three_background_rotation_y_rad_suggested?: number }
+      const info = (await response.json()) as { sky?: string | Sky; emissive_boost?: number }
+      const gltf = await this.loader.loadAsync(`${MODELS}room/room.glb`)
+      const boost = info.emissive_boost ?? 3
+      gltf.scene.traverse((object) => {
+        const mesh = object as THREE.Mesh
+        if (!mesh.isMesh) return
+        mesh.castShadow = false
+        mesh.receiveShadow = false
+        const material = mesh.material as THREE.MeshBasicMaterial
+        if (material.map) material.map.anisotropy = 8
+        if (mesh.name.startsWith('Glass')) {
+          mesh.material = new THREE.MeshPhysicalMaterial({
+            color: '#c9d6dc', transparent: true, opacity: 0.1, roughness: 0.04, metalness: 0,
+            envMapIntensity: 1.2, depthWrite: false,
+          })
+          mesh.renderOrder = 2
+        } else if (mesh.name.startsWith('Emit_')) {
+          const glow = (material as unknown as THREE.MeshStandardMaterial).emissive ?? material.color
+          mesh.material = new THREE.MeshBasicMaterial({ color: glow.clone().multiplyScalar(boost) })
+        }
+      })
+      const skyInfo: Sky | null = typeof info.sky === 'string' ? { file: info.sky } : info.sky ?? null
+      if (skyInfo) {
+        // room.json may give the sky as a repository path or as a path under public/.
+        const file = skyInfo.file
+        const relative = file.includes('public/') ? file.split('public/')[1] : file.replace(/^\//, '')
+        const sky = await new THREE.TextureLoader().loadAsync(`${import.meta.env.BASE_URL}${relative}`)
+        sky.mapping = THREE.EquirectangularReflectionMapping
+        sky.colorSpace = THREE.SRGBColorSpace
+        this.scene.background = sky
+        // three.js samples u = 0.5 + atan2(z, x) / 2pi, so -X looks at u = 0; rotate the chosen u there.
+        this.scene.backgroundRotation.y = skyInfo.three_background_rotation_y_rad_suggested ?? Math.PI + Math.PI * 2 * ((skyInfo.u_facing_minus_x ?? 0.5) - 0.5)
+        this.scene.fog = null
+      }
+      this.shell.visible = false
+      this.scene.add(gltf.scene)
+      this.room = gltf.scene
+    } catch (error) {
+      console.warn('[boardroom] baked room unavailable, keeping the placeholder room', error)
+    }
+  }
+
   private async placeProp(model: THREE.Object3D | null, position: THREE.Vector3, yaw: number) {
     if (!model) return
     model.position.copy(position)
@@ -556,9 +651,6 @@ export class Boardroom {
     sun.shadow.camera.bottom = -5
     sun.shadow.bias = -0.0004
     sun.shadow.normalBias = 0.02
-    // Refreshed every other frame in render(); seated motion is slow enough that this is invisible.
-    sun.shadow.autoUpdate = false
-    this.sun = sun
     this.scene.add(sun)
     const fill = new THREE.PointLight('#ffd9b0', 4, 9, 1.6)
     fill.position.set(0, 2.6, 0)
@@ -567,26 +659,27 @@ export class Boardroom {
     const floor = new THREE.Mesh(new THREE.PlaneGeometry(10.5, 7.2), new THREE.MeshStandardMaterial({ color: '#8c7a66', roughness: 0.85 }))
     floor.rotation.x = -Math.PI / 2
     floor.receiveShadow = true
-    this.scene.add(floor)
+    this.scene.add(this.shell)
+    this.shell.add(floor)
     const rug = new THREE.Mesh(new THREE.PlaneGeometry(6.6, 3.6), new THREE.MeshStandardMaterial({ color: '#33473d', roughness: 1 }))
     rug.rotation.x = -Math.PI / 2
     rug.position.y = 0.004
     rug.receiveShadow = true
-    this.scene.add(rug)
+    this.shell.add(rug)
 
     const wall = new THREE.MeshStandardMaterial({ color: '#f1eee5', roughness: 0.95 })
     const back = new THREE.Mesh(new THREE.PlaneGeometry(10.5, 3.2), wall)
     back.position.set(0, 1.6, -3.6)
     back.receiveShadow = true
-    this.scene.add(back)
+    this.shell.add(back)
     const left = new THREE.Mesh(new THREE.PlaneGeometry(7.2, 3.2), wall)
     left.position.set(-5.25, 1.6, 0)
     left.rotation.y = Math.PI / 2
-    this.scene.add(left)
+    this.shell.add(left)
     const front = new THREE.Mesh(new THREE.PlaneGeometry(10.5, 3.2), wall)
     front.position.set(0, 1.6, 3.6)
     front.rotation.y = Math.PI
-    this.scene.add(front)
+    this.shell.add(front)
 
     // Window band on the far wall.
     const glass = new THREE.MeshBasicMaterial({ color: '#e4eef1', toneMapped: false })
@@ -594,12 +687,12 @@ export class Boardroom {
       const pane = new THREE.Mesh(new THREE.PlaneGeometry(1.9, 1.7), glass)
       pane.position.set(-5.24, 1.75, z)
       pane.rotation.y = Math.PI / 2
-      this.scene.add(pane)
+      this.shell.add(pane)
     }
     const trim = new THREE.MeshStandardMaterial({ color: '#213c32', roughness: 0.6 })
     const skirting = new THREE.Mesh(new THREE.BoxGeometry(10.5, 0.1, 0.03), trim)
     skirting.position.set(0, 0.05, -3.58)
-    this.scene.add(skirting)
+    this.shell.add(skirting)
 
     // Wall display with the live phase and timer.
     const bezel = new THREE.Mesh(new THREE.BoxGeometry(2.1, 1.22, 0.06), new THREE.MeshStandardMaterial({ color: '#141614', roughness: 0.4 }))
@@ -681,11 +774,6 @@ export class Boardroom {
     const { clientWidth: w, clientHeight: h } = this.container
     if (!w || !h) return
     this.renderer.setSize(w, h)
-    this.composer.setPixelRatio(this.renderer.getPixelRatio())
-    this.composer.setSize(w, h)
-    // Ambient occlusion at half resolution; its denoise pass hides the difference.
-    const ratio = this.renderer.getPixelRatio()
-    this.ao.setSize(Math.round((w * ratio) / 2), Math.round((h * ratio) / 2))
     this.size = { width: w, height: h }
     this.camera.aspect = w / h
     const dx = (this.insets.left - this.insets.right) / 2
@@ -738,7 +826,10 @@ export class Boardroom {
     if (this.slowFrames < 60) return
     this.slowFrames = 0
     this.qualityLevel -= 1
-    if (this.qualityLevel === 1) this.ao.enabled = false
+    if (this.qualityLevel === 1 && this.outputs) {
+      this.post.outputNode = this.outputs.light
+      this.post.needsUpdate = true
+    }
     if (this.qualityLevel === 0) {
       this.renderer.setPixelRatio(1)
       this.resize()
@@ -769,6 +860,11 @@ export class Boardroom {
     this.focus.lerp(goal, 1 - Math.exp(-dt * 2))
     this.controls.target.copy(this.focus)
     this.controls.update()
+    // With the baked room loaded, keep the orbit camera inside its walls and below the ceiling.
+    if (this.room) {
+      const p = this.camera.position
+      p.set(THREE.MathUtils.clamp(p.x, -5.0, 7.35), Math.min(p.y, 3.0), THREE.MathUtils.clamp(p.z, -3.35, 3.35))
+    }
     if (this.frame % 6 === 0) this.drawScreen()
 
     // Floor rings under the speaker and the player hovered in the HUD.
@@ -779,8 +875,7 @@ export class Boardroom {
     this.placeRing(this.highlightRing, highlightIndex === speakerIndex ? -1 : highlightIndex, 1)
     if (highlightIndex >= 0) (this.highlightRing.material as THREE.MeshBasicMaterial).color.set(ROLE_COLORS[state!.seats[highlightIndex].roleId] ?? ROLE_COLORS.none)
 
-    if (this.frame % 2 === 0) this.sun.shadow.needsUpdate = true
-    this.composer.render(dt)
+    this.post.render()
     this.camera.updateMatrixWorld()
     const anchors = this.avatars.map((avatar) => (avatar.model && avatar.group.visible ? avatar.headPosition().add(new THREE.Vector3(0, 0.27, 0)) : null))
     this.tags.layout(anchors, this.camera, this.size.width, this.size.height)

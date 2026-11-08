@@ -201,6 +201,17 @@ export function initiallySpoken(messages: readonly PrivateMessage[], quiz: Priva
     return new Set(messages.slice(0, lastAnswer + 1).filter((item) => item.author === 'agent').map((item) => item.message_id))
 }
 
+/**
+ * Round 3 is silent: the multiple choice questions and their results appear on screen and in the transcript at once and
+ * are never voiced, so nothing reads through the questions after the member has answered them and the results show as
+ * soon as the last answer is in. In a Round 3 test start the prerecorded Rounds 1 and 2 history is silent too.
+ */
+export function withSilentQuiz(spoken: ReadonlySet<string>, messages: readonly PrivateMessage[], quizActive: boolean, testStart: boolean): ReadonlySet<string> {
+    if (!quizActive && !testStart) return spoken
+    const silent = messages.filter((item) => item.author === 'agent' && !spoken.has(item.message_id) && (testStart || item.round === 3))
+    return silent.length ? new Set([...spoken, ...silent.map((item) => item.message_id)]) : spoken
+}
+
 /** The next agent message to type out and voice, in order: the first one not yet spoken. Failed replies are skipped. */
 export function nextToSpeak(messages: readonly PrivateMessage[], spoken: ReadonlySet<string>): PrivateMessage | null {
     for (const item of messages) {

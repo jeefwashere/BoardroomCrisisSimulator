@@ -259,3 +259,16 @@ test('quiz outcomes: 0 or a timeout is wrong, 20 is best, between is partial, wi
     assert.equal(outcomeTag('best', 20), 'Best answer · 20')
     assert.equal(outcomeTag(null, null), 'Your answer')
 })
+
+test('Round 3 lines are silent: quiz questions and results never queue for voice, test starts skip the prerecorded history', async () => {
+    const { withSilentQuiz, nextToSpeak } = await import('../src/features/game/privateSessionModel.ts')
+    const line = (id: string, round: number, author = 'agent') => ({ message_id: id, author, kind: 'question', round, step: 1, text: id, status: 'ready', speech_id: id }) as never
+    const messages = [line('r2-update', 2), line('r3-transition', 3), line('r3-q1', 3), line('r3-result', 3)]
+    const none = new Set<string>()
+    assert.equal(nextToSpeak(messages, withSilentQuiz(none, messages, false, false))?.message_id, 'r2-update')
+    const quiz = withSilentQuiz(none, messages, true, false)
+    assert.equal(nextToSpeak(messages, quiz)?.message_id, 'r2-update', 'the last Round 2 line may still finish')
+    assert.equal(nextToSpeak(messages, new Set([...quiz, 'r2-update'])), null, 'nothing in Round 3 is voiced, so the results are not held back')
+    assert.equal(nextToSpeak(messages, withSilentQuiz(none, messages, true, true)), null, 'a Round 3 test start voices nothing')
+    assert.equal(withSilentQuiz(none, messages, false, false), none)
+})

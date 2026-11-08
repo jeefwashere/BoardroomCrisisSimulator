@@ -25,7 +25,7 @@ import { useLiveSpeech, useSpokenLine } from './useTranscript'
 import type { TranscriptWriter } from './useTranscript'
 import {
     ANSWER_LIMIT, CARD_FIELDS, CARD_FIELD_LIMIT, NEEDS_CONFIRMATION, canConfirmCard, canSubmitAnswer, expectingKey, initiallySpoken, nextToSpeak, privateRoundLabel,
-    questionText, scoreText, stageChips, trimCard,
+    questionText, scoreText, stageChips, trimCard, withSilentQuiz,
 } from './privateSessionModel'
 
 // Roughly the pace of spoken ElevenLabs speech, used to hold silent lines about as long as the voice would take.
@@ -170,15 +170,18 @@ export default function PrivateSessionStage({ room, handle, auto, selfName, self
     const live = useLiveSpeech(transcript)
     // Earlier messages are not replayed when the stage opens again (reload); the current question is.
     if (session && spoken === null) setSpoken(initiallySpoken(session.messages, session.quiz))
-    const voiceFor = useAgentVoices(room.room_id, messages, spoken, PLAYS_VOICE)
-    const current = spoken ? nextToSpeak(messages, spoken) : null
+    const quizActive = Boolean(session?.quiz)
+    const testStart = room.game?.start_at === 'assessment'
+    const heard = useMemo(() => spoken && withSilentQuiz(spoken, messages, quizActive, testStart), [spoken, messages, quizActive, testStart])
+    const voiceFor = useAgentVoices(room.room_id, messages, heard, PLAYS_VOICE)
+    const current = heard ? nextToSpeak(messages, heard) : null
     // Auto response plays the member's own clip: the coach falls silent and its pending lines go to the transcript in full.
     if (auto.playing && current && current.status === 'ready' && spoken) setSpoken(new Set([...spoken, ...messages.filter((item) => item.author === 'agent' && item.status === 'ready').map((item) => item.message_id)]))
     const voice = current ? voiceFor(current) : null
     const voiceDriven = voice !== null && voice.state !== 'unavailable' && brokenSpeech !== current?.speech_id
     const activeUrl = voiceDriven && voice?.state === 'ready' ? voice.url : null
     const waitingForVoice = Boolean(current && voiceDriven && startedId !== current.message_id && !blocked)
-    const caughtUp = spoken !== null && current === null
+    const caughtUp = heard !== null && current === null
 
     const markSpoken = useCallback((id: string) => setSpoken((set) => set && !set.has(id) ? new Set([...set, id]) : set), [])
 
@@ -266,6 +269,12 @@ export default function PrivateSessionStage({ room, handle, auto, selfName, self
     const selfState = auto.playing ? 'Saved answer' : dictation.listening ? 'Dictating' : showComposer || choosing ? 'Your turn' : undefined
     const complete = session?.stage === 'complete' && caughtUp
     // The quiz keeps the stage until the review takes over (including the last result while the examiner reads it).
+    const tiles = <div className="call-duo">
+        <CallTile name={`${selfName} (you)`} role={selfRole} size="main" talking={selfTalking} status={selfState}
+            avatar={{ kind: 'initials', text: playerInitials(selfName), color: playerAvatarColor(room.self_member_id) }} />
+        <CallTile name={examiner ? `${agentName} · examiner` : agentName} role={examiner ? 'AI examiner · scored assessment' : 'AI crisis coach · private'} size="main"
+            talking={coachTalking} status={coachState} avatar={{ kind: 'orb' }} accent={examiner ? '#b58c28' : undefined} className="call-tile--coach" />
+    </div>
     const stageQuiz = session && !complete && (session.stage === 'assessment' || session.stage === 'complete') ? session.quiz : null
     const problem = error || notice
 
@@ -319,12 +328,7 @@ export default function PrivateSessionStage({ room, handle, auto, selfName, self
             <PrivateBoard progress={room.game?.private_progress} selfId={room.self_member_id} />
         </div> : stageQuiz && session ? <QuizStage quiz={stageQuiz} blocked={sending || session.busy} agentName={agentName} retryable={session.retryable}
             onChoose={handle.choose} onRetry={handle.retry} />
-        : !handle.notEligible && <div className="call-duo">
-            <CallTile name={`${selfName} (you)`} role={selfRole} size="main" talking={selfTalking} status={selfState}
-                avatar={{ kind: 'initials', text: playerInitials(selfName), color: playerAvatarColor(room.self_member_id) }} />
-            <CallTile name={examiner ? `${agentName} · examiner` : agentName} role={examiner ? 'AI examiner · scored assessment' : 'AI crisis coach · private'} size="main"
-                talking={coachTalking} status={coachState} avatar={{ kind: 'orb' }} accent={examiner ? '#b58c28' : undefined} className="call-tile--coach" />
-        </div>}
+        : !handle.notEligible && tiles}
 
         {activeUrl && current && <audio key={current.speech_id} ref={audioRef} src={activeUrl}
             onPlaying={(event) => { setPlaying(true); setStartedId(current.message_id); live.start(privateEntry(current, agentName, selfName), audioDurationMs(event.currentTarget), audioElapsedMs(event.currentTarget)) }}

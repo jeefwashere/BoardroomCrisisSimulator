@@ -1,8 +1,13 @@
-# Test all four rounds in one window
+# Test one member or the full board
 
-Open [the local meeting](http://127.0.0.1:8791/roundtable) and create a new room. The attached report is **Service outage and unavailable director**, about fictional Cedar Bridge Community Services. [The AI workflow](FOUR_ROUND_WORKFLOW.md) explains Gemini, ElevenLabs and document memory; [the report](FOUR_ROUND_REPORT.md) records verification and limitations.
+Latest X24: [test Alex alone with a finite recorded sequence](SOLO_SEQUENCE_GUIDE.md). Use port 8792 and **Load Alex only**. Three coaching clips stop at card review; three assessment clips stop at personal results. No Morgan or Sam session is required. The three member group mode remains optional.
 
-## Start and choose the test mode
+The guide below describes the optional three member group. For the requested single member test, follow the linked solo instructions.
+
+
+Open [the local meeting](http://127.0.0.1:8792/roundtable) and create a new room. The attached report is **Service outage and unavailable director**, about fictional Cedar Bridge Community Services. [The AI workflow](FOUR_ROUND_WORKFLOW.md) explains Gemini, ElevenLabs and document memory; [the report](FOUR_ROUND_REPORT.md) records verification and limitations.
+
+## Optional three member group test
 
 1. Refresh and click **Load 3 test participants**. Alex, Morgan and Sam have separate memberships. Alex is CEO.
 2. Keep **Beta test mode** checked for fixed questions matching the saved answers. To test adaptive Gemini questions, the CEO unchecks it before Start. The setting cannot change during the exercise.
@@ -23,7 +28,7 @@ After the clips, the CEO can finish discussion early. The five minute discussion
 
 Select each member. In **Saved answer for this turn**, play that person's decision clip. After it finishes, choose **Review this answer as a draft**. Review the single answer box, check the confirmation box and submit the individual decision. The prompt asks what you would do next and why. In a few sentences, include your action, supporting information and what you still need to check. Saved clips and reviewed microphone transcripts fill this same editable box. Repeat for all three members.
 
-Select the CEO and choose **CEO: Start private sessions**. There is no group winning ballot, CEO override or scoring in this first round.
+Select the CEO and choose **CEO: Start Round 2**. There is no group winning ballot, CEO override or scoring in this first round.
 
 ## Round 2: one member and one crisis coach
 

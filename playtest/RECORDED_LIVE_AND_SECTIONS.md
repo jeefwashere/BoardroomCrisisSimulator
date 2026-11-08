@@ -1,5 +1,8 @@
 # Saved recordings in Live and protected decisions
 
+Latest X24: [test Alex alone with a finite recorded sequence](SOLO_SEQUENCE_GUIDE.md). Use port 8792 and **Load Alex only**. Three coaching clips stop at card review; three assessment clips stop at personal results. No Morgan or Sam session is required. The three member group mode remains optional.
+
+
 X23 corrects the earlier broad skip controls and lets saved participant audio act as input to Gemini Live. Working branch: `experiment/ai-voice-playtest`. Open [the updated app](http://127.0.0.1:8791/roundtable) and create a fresh room. Earlier meetings remain on their original localhost ports.
 
 ## What you can skip

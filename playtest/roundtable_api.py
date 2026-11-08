@@ -266,7 +266,7 @@ class RoundtableService:
         def join(data: dict, request: Request):
             auth = request.headers.get('authorization', '')
             with engine.lock:
-                result = engine.join(data.get('name'), data.get('code'), auth[7:] if auth.startswith('Bearer ') else None, flow=data.get('flow'))
+                result = engine.join(data.get('name'), data.get('code'), auth[7:] if auth.startswith('Bearer ') else None, flow=data.get('flow'),solo_test=data.get('solo_test',False))
                 room, _ = engine.identity(result['token'])
                 self.refresh_documents(room)
                 return result

@@ -116,13 +116,13 @@ class Roundtable(RoundOne, FourRounds):
         blockers = []
         if room['phase'] != 'lobby':
             return ['The meeting has already started.']
-        if not 3 <= len(room['members']) <= 30:
+        if not (1 if room.get('solo_test') else 3) <= len(room['members']) <= 30:
             blockers.append('At least three participants must join.')
         if any(not self._connected(member) for member in room['members'].values()):
             blockers.append('All joined participants must be connected.')
         if any(not member['ready'] for member in room['members'].values()):
             blockers.append('All participants must mark themselves ready.')
-        if self.is_four_rounds(room) and len(room['members']) != 3:
+        if self.is_four_rounds(room) and len(room['members']) != (1 if room.get('solo_test') else 3):
             blockers.append('This four round beta uses exactly three members.')
         if self.is_four_rounds(room) and [d['id'] for d in room['documents']] != ['T01']:
             blockers.append('This four round beta uses the included T01 incident report only.')
@@ -132,9 +132,10 @@ class Roundtable(RoundOne, FourRounds):
             blockers.append('Exactly one participant must hold the CEO role.')
         return blockers
 
-    def join(self, name, code=None, token=None, role=None, flow=None):
+    def join(self, name, code=None, token=None, role=None, flow=None, solo_test=False):
         with self.lock:
             name = bounded_text(name, 40)
+            require(type(solo_test) is bool and (not solo_test or (code is None and flow=='four_rounds')), 'Solo tests must create a new four round room',422)
             require(flow in (None, "legacy", "board_round1", "four_rounds"), "Unknown meeting flow", 422)
             if isinstance(token, str) and token in self.identities:
                 old_code, _ = self.identities[token]
@@ -150,7 +151,7 @@ class Roundtable(RoundOne, FourRounds):
                     code = ''.join(secrets.choice('ABCDEFGHJKLMNPQRSTUVWXYZ23456789') for _ in range(6))
                 self.rooms[code] = {'code': code, 'members': {}, 'host': None, 'phase': 'lobby',
                     'version': 0, 'events': [], 'deadline': None, 'electorate': [],
-                    'flow': flow or 'legacy', 'expert_briefings': {}, 'individual_decisions': {},
+                    'flow': flow or 'legacy', 'solo_test':solo_test, 'expert_briefings': {}, 'individual_decisions': {},
                     'speaker': None, 'turn_index': None, 'turn_number': 0, 'active_audio': None, 'active_stream': None,
                     'documents': [], 'documents_ready': False, 'transcript': [], 'summary': {'items': []},
                     'decision_prompts': [], 'decisions': [], 'history': [], 'jobs': {}, 'suggestions': []}
@@ -158,6 +159,7 @@ class Roundtable(RoundOne, FourRounds):
             room = self.rooms[code]
             self.tick(room)
             require(room['phase'] == 'lobby', 'New participants can join only before this test meeting starts')
+            require(not room.get('solo_test') or not room['members'], 'This is a single member test room',409)
             require(len(room['members']) < 30, 'Room is full')
             require(not any(member['name'].casefold() == name.casefold()
                             for member in room['members'].values()),
@@ -449,7 +451,7 @@ class Roundtable(RoundOne, FourRounds):
             'history', 'suggestions', 'speaker', 'turn_index', 'turn_number', 'active_stream', 'flow')}
         public.update(self.round_one_snapshot(room, mid))
         public.update(self.four_round_snapshot(room, mid))
-        public.update(me=mid, ceo=self._ceo(room), fixed_scenario=self._fixed_scenario(room), server_time=self.clock(), roles=deepcopy(self.roles),
+        public.update(solo_test=bool(room.get('solo_test')),me=mid, ceo=self._ceo(room), fixed_scenario=self._fixed_scenario(room), server_time=self.clock(), roles=deepcopy(self.roles),
                       recording_policy=self.RECORDING_POLICY, speaking=list(room['electorate']) if room['phase'] == 'discussion' else [])
         lease = room.get('active_audio')
         public['active_audio'] = ({key: deepcopy(value) for key, value in lease.items()

@@ -291,3 +291,9 @@ test('a remote CEO skip stops stale private agent speech',()=>{
  run(`states[0].flow='four_rounds';states[0].test_skip={version:2,actions:[],revision:2,history:[]};exerciseVoice={owner:context(),skipRevision:1};let skippedSpeechStops=0;stopExerciseVoice=async()=>{skippedSpeechStops++;};render();`);
  assert.equal(run('skippedSpeechStops'),1);
 });
+
+test('solo creation registers exactly one membership and does not fabricate other seats',async()=>{
+ const {run}=harness(true);
+ run(`let soloRequests=[];api=async(path,data)=>{soloRequests.push({path,data});return {token:'solo-token',code:'SOLO'};};refresh=async()=>{};loadMemory=async()=>{};loadRecordings=async()=>{};`);
+ await run('join(false,true)');assert.equal(run('soloRequests.length'),1);assert.equal(run('soloRequests[0].data.solo_test'),true);assert.equal(run('bundle.seats.length'),1);assert.equal(run('bundle.solo'),true);assert.equal(run('bundle.test'),false);
+});

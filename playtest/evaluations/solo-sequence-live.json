@@ -1,0 +1,89 @@
+{
+  "room": "XU79UV",
+  "method": "One HTTP membership, explicitly scripted decision and saved answers, real Gemini Live clip input and replies. Separate explicit card confirmation. No browser or human listening.",
+  "turns": [
+    {
+      "clip": "r2_member_1_step_1",
+      "phase": "coaching",
+      "step": 1,
+      "human_transcript": "I would keep coordination separate from technical diagnosis. I would ask the board to appoint an interim coordinator, then request another approved provider. I would not grant access just because someone is available. First, I need to check authority, scope, and the information they require.",
+      "agent_transcript": "I note your focus on addressing the leadership gap and maintaining limited service via board authorization while technical checks remain pending. The IT specialist is now unavailable. Your original response relied on their advice. What would you do next?The board can appoint an interim incident coordinator since the executive director is unavailable. To maintain service, the board must authorize the paper appointment process. Remember that IT support must verify backup usability before promising a restoration time.",
+      "output_bytes": 1663200,
+      "preview_bytes": 549848,
+      "first_audio_ms": 1167.8,
+      "total_ms": 54589.4,
+      "source_session": "f4bc9917321745588aa59183afa7d5b2"
+    },
+    {
+      "clip": "r2_member_1_step_2",
+      "phase": "coaching",
+      "step": 2,
+      "human_transcript": "I would establish availability, relevant capability, expected cost, and the access required. The alternate provider needs an authorized contact. I would check the documented delegation and seek the appropriate approval because the current report does not establish a spending limit or permission to share credentials.",
+      "agent_transcript": "I acknowledge your approach of keeping coordination distinct from technical diagnosis while verifying authority, scope, and required information prior to granting access. Scenario update: an alternate provider can investigate, but needs an authorized contact. What authority, access, and dependencies must you establish?You are correct to focus on establishing authority and access requirements. The board must authorize activating the paper process, and IT support must verify backup usability and recovery dependencies before any service restoration time is promised.",
+      "output_bytes": 1570562,
+      "preview_bytes": 639014,
+      "first_audio_ms": 2173.5,
+      "total_ms": 56067.9,
+      "source_session": "5d616182c53c49b6a8846aa3e4e0975c"
+    },
+    {
+      "clip": "r2_member_1_step_3",
+      "phase": "coaching",
+      "step": 3,
+      "human_transcript": "My action is to establish coordination and request approved technical help. Authority must be checked before access or spending. The paper process is a possible fallback only after board authorization. I would ask the coordinator to arrange a review and a factual update without promising restoration.",
+      "agent_transcript": "I note your focus on establishing provider details, required access, and documented delegation limits before granting permissions or committing resources. Review your proposed response: who should act, what is the fallback, who needs an update, and when would you review progress?That aligns with the plan. The board must authorize the paper process, and the communications lead must provide factual updates without promising restoration times until IT verifies the technical details.",
+      "output_bytes": 3396480,
+      "preview_bytes": 627124,
+      "first_audio_ms": 1230.8,
+      "total_ms": 94023.6,
+      "source_session": "3eb4660f6b254b8fbc6d4209120ae505"
+    },
+    {
+      "clip": "r3_member_1_step_1",
+      "phase": "assessment",
+      "step": 1,
+      "human_transcript": "First, I would establish an authorized interim coordinator because the director is unavailable and no alternate is named. In parallel, I would seek approval for limited paper appointments and qualified technical checks. The outage is confirmed. Disclosure and backup restorability are not. Coordination does not remove those uncertainties.",
+      "agent_transcript": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. Explain your response as if briefing the rest of the board. What should happen first, and why?Thank you. Please review your response to ensure it is complete before submitting.",
+      "output_bytes": 2413922,
+      "preview_bytes": 647930,
+      "first_audio_ms": 1679.9,
+      "total_ms": 73760.3,
+      "source_session": "e9298511bd614d60b9cce1625a5d53ee"
+    },
+    {
+      "clip": "r3_member_1_step_2",
+      "phase": "assessment",
+      "step": 2,
+      "human_transcript": "The delay means I cannot rely on immediate technical verification. I would tell staff not to promise recovery or start an unverified restoration. I would seek authorization for the paper process and explain its limits. This preserves some service. But creates manual work and does not establish system safety.",
+      "agent_transcript": "Stage 1: 30 of 30 points. Scenario update: the alternate provider cannot begin immediately. Staff still need instructions. What changes in your plan?Thank you. Please review your transcript and submit your answer in the user interface.",
+      "output_bytes": 780482,
+      "preview_bytes": 625638,
+      "first_audio_ms": 1238.1,
+      "total_ms": 38603.5,
+      "source_session": "af95a28b34874dfaa814cdbf00bc68a5"
+    },
+    {
+      "clip": "r3_member_1_step_3",
+      "phase": "assessment",
+      "step": 3,
+      "human_transcript": "I would ask the authorized coordinator to arrange replacement support and keep an action record. The service manager should activate paper appointments only after approval. If that cannot proceed, provide clear outage instructions. Ask the communications lead for a factual update and propose a review in 30 minutes without promising recovery.",
+      "agent_transcript": "Stage 2: 34 of 40 points. Give your final instruction: who does what, under whose authority, what happens if it fails, and when will you review it?Thank you. Please review your transcript and submit your answer in the user interface.",
+      "output_bytes": 2607844,
+      "preview_bytes": 686568,
+      "first_audio_ms": 1065.8,
+      "total_ms": 78478.2,
+      "source_session": "42cbff8deca9469c8cda6133c3b15392"
+    }
+  ],
+  "paused_for_card_review": true,
+  "checks": {
+    "one_member": true,
+    "six_distinct_clips_in_order": true,
+    "six_submitted_answers": true,
+    "three_scored_stages": true,
+    "no_other_member_wait": true,
+    "stopped_with_no_live_lock": true,
+    "no_automatic_winner": true,
+    "card_confirmation_separate": true
+  }
+}

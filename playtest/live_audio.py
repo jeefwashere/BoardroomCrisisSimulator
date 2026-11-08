@@ -145,6 +145,7 @@ class LiveAudio:
             ident = None
             history = []
             played_clips = []
+            completed_clips = []
             input_mode = 'microphone'
             input_bytes = output_bytes = turns = 0
             started = time.monotonic()
@@ -189,6 +190,7 @@ class LiveAudio:
                                 await ws.send_json({'type': 'fixture_audio', 'pcm': base64.b64encode(chunk).decode(), 'sample_rate': 16000})
                                 await asyncio.sleep(len(chunk)/32000)
                             await upstream.send(json.dumps({'realtimeInput': {'audioStreamEnd': True}}))
+                            completed_clips.append(clip['id'])
                             fixture_active = False
                             await ws.send_json({'type': 'fixture_complete', 'clip_id': clip['id']})
 
@@ -278,7 +280,7 @@ class LiveAudio:
                             session.pop('live_connection', None);session['busy'] = False
                         session.setdefault('live_history', []).append({'id': ident, 'phase': frozen['private_sessions'][mid]['phase'],
                             'revision': hello['revision'], 'transcript': history, 'provisional': True, 'reason': reason,
-                            'input_mode': input_mode, 'recorded_clips': played_clips,
+                            'input_mode': input_mode, 'recorded_clips': played_clips, 'completed_clips': completed_clips,
                             'input_audio_seconds': round(input_bytes / 32000, 2), 'output_audio_seconds': round(output_bytes / 48000, 2)})
                 try:
                     await ws.send_json({'type': 'closed', 'reason': reason, 'transcript': history})

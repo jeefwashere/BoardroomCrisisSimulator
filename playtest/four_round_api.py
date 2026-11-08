@@ -304,6 +304,16 @@ class FourRoundService:
             except Exception as exc:
                 if hasattr(exc,'status'):raise
                 require(False,'Review failed. The prior score remains; retry or withdraw the request.',502)
+        @router.get('/sequence')
+        def sequence(request:Request):
+            with self.engine.lock:
+                room,mid=self.identity(token(request));session=room.get('private_sessions',{}).get(mid,{})
+                require(room.get('solo_test') and room.get('beta_mode',True),'Sequences are available in single member beta tests',409)
+                require(room['phase']=='private' and session.get('phase') in ('coaching','assessment'),'Start a sequence from a private question',409)
+                number=2 if session['phase']=='coaching' else 3
+                clips=[{**c,'question':(COACH_QUESTIONS if number==2 else EXAM_QUESTIONS)[c['step']-1]} for c in self.clips if c['round']==number and c['seat']==0 and c['step']>=session['turn']]
+                return {'phase':session['phase'],'revision':session['revision'],'clips':clips,'final_step':3}
+
         @router.get('/recordings')
         def recordings(request:Request):
             with self.engine.lock:

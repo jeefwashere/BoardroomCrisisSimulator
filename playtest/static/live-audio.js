@@ -42,7 +42,7 @@ function showLiveTranscript(task,role,text){
 }
 async function startLiveAudio(inputMode='microphone'){
  const s=state();if(liveTask||!four(s)||s.phase!=='private'||!s.private_session?.prompt||s.private_session.busy||exerciseVoice||briefing||fixturePlayback||fixtureDraft||recording)throw new Error('Finish the current audio or saved answer before starting Live.');
- const task={owner:context(),key:liveKey(s),revision:s.private_session.revision,history:[],inputMode,clips:[],ready:false,finished:false,stopping:false};liveTask=task;liveDraft=null;$('liveTranscript').replaceChildren();render();
+ const task={owner:context(),key:liveKey(s),revision:s.private_session.revision,history:[],inputMode,clips:[],modelTurns:0,ready:false,finished:false,stopping:false};liveTask=task;liveDraft=null;$('liveTranscript').replaceChildren();render();
  try{
   task.player=new PCMStreamPlayer();await task.player.unlock();
   if(inputMode==='recordings'){task.fixturePlayer=new PCMStreamPlayer();await task.fixturePlayer.unlock();$('liveState').textContent='Connecting with saved clips. Microphone stays off.';}
@@ -72,7 +72,8 @@ async function startLiveAudio(inputMode='microphone'){
    }
    if(event.type==='fixture_started'){task.playingClip=true;$('liveClipState').textContent='Playing into Gemini: '+event.title+' · '+Math.ceil(event.seconds)+'s. This is a prerecorded participant, not your microphone.';render();}
    if(event.type==='fixture_audio'&&!task.stopping)task.fixturePlayer?.append(event.pcm,event.sample_rate);
-   if(event.type==='fixture_complete'){task.playingClip=false;await task.fixturePlayer?.drain();if(!task.stopping)for(const chunk of task.deferredAudio||[])task.player.append(chunk.pcm,chunk.sample_rate);task.deferredAudio=[];$('liveClipState').textContent='Recording sent. Listen to the live reply, then Stop and review the recognized answer.';render();}
+   if(event.type==='turn_complete'){task.modelTurns++;if(task.fixtureCompleted)task.replyCompleted=true;}
+   if(event.type==='fixture_complete'){task.fixtureCompleted=true;task.playingClip=false;await task.fixturePlayer?.drain();if(!task.stopping)for(const chunk of task.deferredAudio||[])task.player.append(chunk.pcm,chunk.sample_rate);task.deferredAudio=[];$('liveClipState').textContent='Recording sent. Listen to the live reply, then Stop and review the recognized answer.';render();}
 
    if(event.type==='transcript')showLiveTranscript(task,event.role,event.text);
    if(event.type==='audio'&&!task.stopping){if(task.playingClip)(task.deferredAudio||=[]).push(event);else task.player.append(event.pcm,event.sample_rate);}
@@ -84,16 +85,18 @@ async function startLiveAudio(inputMode='microphone'){
   socket.onclose=()=>void processing.finally(()=>finishLive(task,task.error));
   socket.onerror=()=>{task.error='Live connection failed. Check the backend Live key; your saved answers are unchanged.';};
   task.timer=setTimeout(()=>void finishLive(task,'Live connection timed out. Audio stopped.'),30000);
+  return task;
  }catch(e){await finishLive(task,e.name==='NotAllowedError'?'Microphone permission was denied. You can still type or use saved clips.':e.message);}
 }
 bind('startLive',()=>startLiveAudio('microphone'));
 bind('startLiveClips',()=>startLiveAudio('recordings'));
-bind('sendLiveClip',async()=>{
- const task=liveTask,id=$('liveClipSelect').value;
+async function sendLiveRecording(id=$('liveClipSelect').value){
+ const task=liveTask;
  if(!task?.ready||task.inputMode!=='recordings'||task.playingClip||task.stopping||task.key!==liveKey(state())||!task.clips.some(c=>c.id===id))throw new Error('Connect saved clip mode for the current question first.');
- task.playingClip=true;task.deferredAudio=[];await task.player.stop();task.player=new PCMStreamPlayer();void task.player.unlock();
+ task.fixtureCompleted=false;task.replyCompleted=false;task.playingClip=true;task.deferredAudio=[];await task.player.stop();task.player=new PCMStreamPlayer();void task.player.unlock();
  task.socket.send(JSON.stringify({type:'play_fixture',clip_id:id}));$('liveClipState').textContent='Sending the selected recording to Gemini…';render();
-});
+}
+bind('sendLiveClip',()=>sendLiveRecording());
 $('liveClipSelect').onchange=()=>{$('liveClipCaption').textContent=liveTask?.clips?.find(c=>c.id===$('liveClipSelect').value)?.text||'';};
 function liveAnswerMetadata(){return liveAnswerSource?.key===liveKey(state())?{live_session_id:liveAnswerSource.id}:{};}
 $('stopLive').onclick=()=>void stopLiveAudio();

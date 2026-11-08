@@ -1,5 +1,7 @@
 """Authority for parallel private coaching, assessment and a shared reunion."""
 from copy import deepcopy
+import json
+from pathlib import Path
 import uuid
 from .engine import bounded_text, require
 
@@ -73,6 +75,25 @@ class FourRounds:
             return False
         if action=='skip_test_stage':
             self.skip_test_stage(room,mid,data)
+            return True
+        if action=='submit_sequence_answer':
+            require(room.get('solo_test') and room.get('beta_mode',True),'Saved sequences require a solo beta test',403)
+            require(data.get('approved') is True,'Approve the saved test answers first',422)
+            require(room['phase']=='private','Private testing is not active',409)
+            session=room['private_sessions'][mid]
+            source=next((h for h in session.get('live_history',[]) if h['id']==data.get('live_session_id') and h['revision']==session['revision']),None)
+            require(source is not None,'Wait for the Live recording session to close',409)
+            round_number={'coaching':2,'assessment':3}.get(session['phase'])
+            clips=json.loads((Path(__file__).parent/'fixtures/four-round-audio.json').read_text())['clips']
+            clip=next((c for c in clips if c['seat']==0 and c['round']==round_number and c['step']==session['turn']),None)
+            require(clip is not None and clip['id'] in source.get('completed_clips',[]),'Play the full recording for this question before submitting',409)
+            data={**data,'text':clip['text']}
+            action='private_answer'
+        if action=='finish_solo_test':
+            require(room.get('solo_test') and room['phase']=='reunion' and mid==self._ceo(room),'Finish your solo test from its results',409)
+            require(room['reviews'].get(mid) and room.get('reunion_summary') and room['reunion_summary']['score_version']==room['score_version'], 'Review your results and current summary first',409)
+            require(not room['private_sessions'][mid]['busy'] and not room.get('_reunion_busy'),'Wait for the active review',409)
+            room['winners']=[];self._transition(room,'ended');self.event(room,'solo_test_completed',member=mid)
             return True
         if action=='set_beta_mode':
             require(room['phase']=='lobby' and mid==self._ceo(room),'Only the CEO can change beta mode before Start',403)
@@ -152,6 +173,7 @@ class FourRounds:
             self.event(room,'score_review_withdrawn',member=mid,stage=stage)
             return True
         if action=='announce_winner':
+            require(not room.get('solo_test'),'Solo tests finish without a competition winner',409)
             require(not self.test_skip_controls(room)['ranking_disabled'],'This test skipped rounds; finish without a winner',409)
             require(room['phase']=='reunion' and mid==self._ceo(room),'Only the CEO can finish the reunion',403)
             require(all(room['reviews'].get(person) for person in room['electorate']),

@@ -1,0 +1,44 @@
+{
+  "room": "YHELES",
+  "method": "One HTTP membership, explicitly scripted decision and saved answers, real Gemini Live clip input and replies. Separate explicit card confirmation. No browser or human listening.",
+  "turns": [
+    {
+      "clip": "r2_member_1_step_1",
+      "phase": "coaching",
+      "step": 1,
+      "human_transcript": "I would keep coordination separate from technical diagnosis. I would ask the board to appoint an interim coordinator, then request another approved provider. I would not grant access just because someone is available. First, I need to check authority, scope, and the information they require.",
+      "agent_transcript": "I note your focus on addressing the leadership gap and maintaining service through board authorization. The IT specialist is now unavailable. Your original response relied on their advice. What would you do next?The board can appoint an interim coordinator. Before promising service restoration, IT support must verify backup usability and restoration estimates.",
+      "output_bytes": 1118884,
+      "preview_bytes": 549848,
+      "first_audio_ms": 1196.6,
+      "total_ms": 43141.8,
+      "source_session": "748b9b00cd194049a69fb98e0d4798aa"
+    },
+    {
+      "clip": "r2_member_1_step_2",
+      "phase": "coaching",
+      "step": 2,
+      "human_transcript": "I would establish availability, relevant capability, expected cost, and the access required. The alternate provider needs an authorized contact. I would check the documented delegation and seek the appropriate approval because the current report does not establish a spending limit or permission to share credentials.",
+      "agent_transcript": "I acknowledge your rationale of maintaining a distinction between incident coordination and technical investigation while verifying authority and scope before permitting provider access. Scenario update: an alternate provider can investigate, but needs an authorized contact. What authority, access and dependencies must you establish?You must check the board's role in appointing an interim coordinator and the requirement for IT support to verify backup usability and recovery dependencies before any restoration promises are made.",
+      "output_bytes": 1565762,
+      "preview_bytes": 639014,
+      "first_audio_ms": 1085.4,
+      "total_ms": 63177.9,
+      "source_session": "8b2930447ed6407b8f7105cd2d625d4e"
+    },
+    {
+      "clip": "r2_member_1_step_3",
+      "phase": "coaching",
+      "step": 3,
+      "human_transcript": "My action is to establish coordination and request approved technical help. Authority must be checked before access or spending. The paper process is a possible fallback only after board authorization. I would ask the coordinator to arrange a review and a factual update without promising restoration.",
+      "agent_transcript": "I note your focus on verifying documented delegations, provider capability, and required approvals before granting access or committing resources. Review your proposed response: who should act, what is the fallback, who needs an update, and when would you review progress?That aligns with the plan. The board must authorize the paper process, and the communications lead must provide factual updates without promising restoration times. You must verify authority before any access or spending occurs.",
+      "output_bytes": 1491364,
+      "preview_bytes": 627124,
+      "first_audio_ms": 1307.9,
+      "total_ms": 53584.5,
+      "source_session": "c9b9d464af19415eab06b51326f4af80"
+    }
+  ],
+  "paused_for_card_review": true,
+  "limitation": "The initial benchmark completed all three real coaching clips, then its Python helper collided with the response card action field. It did not test assessment. The corrected benchmark uses a direct structured command request."
+}

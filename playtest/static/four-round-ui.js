@@ -10,10 +10,10 @@ function renderFourRounds(s,locked){
  $('exerciseRecordings').hidden=!enabled||!['decision','private','reunion'].includes(s.phase);
  if(!enabled)return;
  $('groupAgents').hidden=privateStage||reunion;$('groupDiscussion').hidden=privateStage||reunion;$('roundOneExperts').hidden=privateStage||reunion;$('individualPanel').hidden=privateStage||reunion;
- if(s.phase==='decision')$('end').textContent='CEO: Start private sessions';
- $('phaseHint').textContent=privateStage?'One human and one coach/examiner per private branch. Other members cannot see this conversation.':reunion?(s.test_skip?.ranking_disabled?'Test reunion: review recorded work. Skipped work is unassessed; no winner.':'Compare separate branches, review the evidence, then announce the highest final score.'):$('phaseHint').textContent;
+ if(s.phase==='decision')$('end').textContent='CEO: Start Round 2';
+ $('phaseHint').textContent=privateStage?'One human and one coach/examiner per private branch. Other members cannot see this conversation.':reunion?(s.solo_test?'Review your personal assessment. Playback has stopped; request feedback when ready.':s.test_skip?.ranking_disabled?'Test reunion: review recorded work. Skipped work is unassessed; no winner.':'Compare separate branches, review the evidence, then announce the highest final score.'):$('phaseHint').textContent;
  if(privateStage)$('phase').textContent='Round '+s.exercise_round+' · Private '+(ps.phase==='coaching'||ps.phase==='card_review'?'preparation':'assessment');
- if(reunion)$('phase').textContent=s.phase==='ended'?'Exercise complete':'Round 4 · Board reunion';
+ if(reunion)$('phase').textContent=s.phase==='ended'?'Exercise complete':s.solo_test?'Your results':'Round 4 · Board reunion';
  if(exerciseVoice&&(!same(exerciseVoice.owner)||active!==exerciseVoice.owner.seat||exerciseVoice.skipRevision!==s.test_skip?.revision))void stopExerciseVoice();
  const signature=exerciseKey(s);
  if(fixturePlayback&&fixturePlayback.key!==signature)void stopFixture().catch(e=>say(e.message));
@@ -45,8 +45,9 @@ function renderFourRounds(s,locked){
  $('stopExerciseVoice').disabled=!exerciseVoice;
  if(reunion){
   const r=s.reunion;if(reunionFormKey!==s.code+':'+s.me){reunionFormKey=s.code+':'+s.me;$('reviewQuote').value='';$('reunionAnswer').value='';}
-  $('reunionAgent').disabled=locked||!!exerciseVoice||s.me!==s.ceo||s.phase!=='reunion';
-  $('reunionSummary').textContent=r.summary?.text||'The facilitator will compare these branches. Scores come from the assessment record.';
+  $('reunionAgent').textContent=s.solo_test?'Hear my feedback':'CEO: Hear reunion summary';
+ $('reunionAgent').disabled=locked||!!exerciseVoice||s.me!==s.ceo||s.phase!=='reunion';
+  $('reunionSummary').textContent=r.summary?.text||(s.solo_test?'Your scores are below. Choose Hear my feedback when ready.':'The facilitator will compare these branches. Scores come from the assessment record.');
   $('reunionResults').replaceChildren(...r.branches.map(b=>{const n=el('article',undefined,'reply');n.append(el('h3',b.name+' · '+b.total+(b.assessment_skipped?' earned points · incomplete':'/100')),el('p','Original approach: '+b.original_decision.action),el('p','Final instruction: '+(b.assessment_answers.assessment_3?.text||'Not submitted')),el('small',b.reviewed?'Review confirmed':'Awaiting member review'));for(const score of Object.values(b.scores)){const detail=el('details');detail.append(el('summary','Stage '+score.stage+': '+score.total+'/'+score.maximum));for(const c of score.criteria)detail.append(el('p',c.id+': '+c.points+'/10. '+c.reason),el('blockquote',c.evidence||'No supporting passage'));n.append(detail);}return n;}));
   $('reviewControls').hidden=s.phase!=='reunion';
   $('scoreReviewStatus').textContent=Object.entries(ps.appeals||{}).map(([stage,a])=>'Stage '+stage+' review: '+a.status).join(' · ')||'Use an exact passage from your own submitted Round 3 answer.';
@@ -54,8 +55,9 @@ function renderFourRounds(s,locked){
   $('confirmScoreReview').disabled=locked||ps.busy||s.phase!=='reunion'||Object.values(ps.appeals||{}).some(a=>['pending','failed'].includes(a.status));
   $('submitReunion').disabled=locked||s.phase!=='reunion';
   $('reunionDiscussion').replaceChildren(...r.discussion.map(x=>{const n=el('article',undefined,'line');n.append(el('b',x.name),el('p',x.text));return n;}));
-  $('announceWinner').disabled=!!s.test_skip?.ranking_disabled||locked||s.me!==s.ceo||s.phase!=='reunion'||!r.branches.every(b=>b.reviewed)||r.summary?.score_version!==r.score_version;
-  $('winnerAnnouncement').textContent=r.winners.length?(r.winners.length>1?'Joint winners: ':'Winner: ')+r.winners.map(id=>s.members.find(m=>m.id===id)?.name).join(', ')+'. Highest final Round 3 score.':s.test_skip?.ranking_disabled?'Historical incomplete test: rounds were skipped. Start a fresh room with the corrected controls; no winner is announced.':'Winner announced after every member reviews their evidence.';
+  $('announceWinner').textContent=s.solo_test?'Finish my test':'CEO: Announce final winner';
+ $('announceWinner').disabled=!!s.test_skip?.ranking_disabled||locked||s.me!==s.ceo||s.phase!=='reunion'||!r.branches.every(b=>b.reviewed)||r.summary?.score_version!==r.score_version;
+  $('winnerAnnouncement').textContent=s.solo_test?(s.phase==='ended'?'Your single member test is complete.':'Review your own results, then finish. No other members or competition winner are required.'):r.winners.length?(r.winners.length>1?'Joint winners: ':'Winner: ')+r.winners.map(id=>s.members.find(m=>m.id===id)?.name).join(', ')+'. Highest final Round 3 score.':s.test_skip?.ranking_disabled?'Historical incomplete test: rounds were skipped. Start a fresh room with the corrected controls; no winner is announced.':'Winner announced after every member reviews their evidence.';
  }
 }
 async function loadExerciseClips(key){const owner=context();try{const result=await api('/api/roundtable/exercise/recordings',undefined,owner);if(!same(owner)||key!==fixtureKey)return;fixtureClips=result.clips||[];$('fixtureSelect').replaceChildren(...fixtureClips.map(c=>{const option=el('option',c.title+' · '+c.duration_seconds.toFixed(1)+'s');option.value=c.id;return option;}));if(fixtureClips.length)$('fixtureSelect').value=fixtureClips[0].id;updateFixtureCaption();render();}catch(e){if(key===fixtureKey)$('fixtureStatus').textContent=e.message;}}
@@ -116,8 +118,10 @@ bind('requestScoreReview',async()=>{await api('/api/roundtable/exercise/review',
 bind('withdrawScoreReview',()=>command('withdraw_score_review',{review_stage:Number($('reviewStage').value)}));
 bind('confirmScoreReview',()=>command('confirm_score_review'));
 bind('submitReunion',async()=>{await command('reunion_contribute',{text:$('reunionAnswer').value.trim(),...(fixtureDraft?.key===exerciseKey(state())?{recording_lease:fixtureDraft.id}:{})});$('reunionAnswer').value='';fixtureDraft=null;});
-bind('announceWinner',()=>command('announce_winner'));
+bind('announceWinner',()=>command(state()?.solo_test?'finish_solo_test':'announce_winner'));
 async function automaticFourRounds(){
+ if(typeof savedSequence!=='undefined'&&savedSequence)return;
+ if(state()?.solo_test)return;
  if(typeof liveTask!=="undefined"&&liveTask)return;
  const s=state();if(!four(s)||busy||exerciseVoice||briefing||fixturePlayback||recording||turnPlayback)return;
  const p=s.private_session;let key=null,reunion=false;
@@ -133,7 +137,7 @@ function renderTestSkips(s){
  const control=s?.test_skip,ceo=s?.me===s?.ceo;
  $('testSkipPanel').hidden=!four(s)||['lobby','ended'].includes(s?.phase);
  $('testSkipButtons').replaceChildren();
- if(control?.version!==2){$('testSkipHint').textContent='The corrected section controls need the updated server. Your existing meeting stays available here. ';const link=el('a','Open updated test app');link.href='http://127.0.0.1:8791/roundtable';$('testSkipHint').append(link);return;}
+ if(control?.version!==2){$('testSkipHint').textContent='The corrected section controls need the updated server. Your existing meeting stays available here. ';const link=el('a','Open updated test app');link.href='http://127.0.0.1:8792/roundtable';$('testSkipHint').append(link);return;}
  for(const action of control.actions){
   const owner=context(),phase=s.phase,revision=control.revision;
   const b=button('CEO: '+action.label,async()=>{

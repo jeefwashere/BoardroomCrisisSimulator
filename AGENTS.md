@@ -138,3 +138,8 @@ X22 adds CEO only controls to skip the opening and remaining exercise rounds. Re
 ## Required decisions and recorded Live input
 
 X23 supersedes X22 whole round skips. Only the opening and shared discussion sections can end early; the expert completion gate, individual decisions, private coaching answers, card confirmation, assessment submissions and reunion reviews remain required. Read [the current workflow](playtest/RECORDED_LIVE_AND_SECTIONS.md). Explicit saved clip mode streams only this member's current question recording into Gemini Live and does not open the microphone. Playback and recognition are provisional until reviewed submission. Keep recording provenance, member isolation, stop cancellation and native Live speech separate from ordinary Gemini plus ElevenLabs output.
+
+
+## Single member recorded sequence
+
+X24 adds an explicitly selected solo test. Read [the solo guide](playtest/SOLO_SEQUENCE_GUIDE.md). One Alex membership may complete the exercise without Morgan or Sam. Only this beta mode permits a reviewed and explicitly approved batch of saved answers to submit their trusted captions after completed Live playback. Mark those answers scripted and preserve actual recognition separately. Never confirm the response card automatically, submit an interrupted recording, repeat completed clips or autoplay personal feedback after the final assessment. Stop prevents remaining submissions. Group participation rules and individual review remain unchanged. Solo completion has no competition winner.

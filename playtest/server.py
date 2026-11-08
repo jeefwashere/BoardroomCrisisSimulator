@@ -123,6 +123,10 @@ def create_app(engine=None, provider=None, speech=None, port=8788, recordings=No
     def preparation_script():
         return FileResponse(STATIC / 'preparation.js')
 
+    @app.get('/solo-sequence.js')
+    def solo_sequence_js():
+        return FileResponse(STATIC / 'solo-sequence.js')
+
     @app.get('/live-audio.js')
     def live_audio_js():
         return FileResponse(STATIC / 'live-audio.js')

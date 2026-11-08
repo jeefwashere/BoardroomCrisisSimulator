@@ -55,13 +55,13 @@ class RoundtableRecordings:
         def catalog(request: Request):
             with engine.lock:
                 room, _ = engine.identity(self.token(request))
-                selected = ROUND_ONE_CLIPS if engine.is_round_one(room) else DEFAULT_CLIPS
+                selected = ROUND_ONE_CLIPS[::3] if room.get('solo_test') else ROUND_ONE_CLIPS if engine.is_round_one(room) else DEFAULT_CLIPS
             clips = [clip for clip in self.library.entries() if clip['id'] in selected]
             for clip in clips:
                 clip['turn_number'] = selected.index(clip['id']) + 1
-                clip['default_seat'] = (clip['turn_number'] - 1) % 3
+                clip['default_seat'] = 0 if room.get('solo_test') else (clip['turn_number'] - 1) % 3
             return {'clips': clips, 'default_clip_ids': selected, 'script_length': len(selected),
-                    'note': 'Nine fixed participant turns in order. Each clip belongs to one numbered speaking turn; the script does not repeat after turn nine. AI agent voices are not prerecorded here. Completion commits the exact caption and passes the turn; playback does not call a provider.'}
+                    'note': ('Three Alex turns in order for this solo test. The script stops after turn three.' if room.get('solo_test') else 'Nine fixed participant turns in order. Each clip belongs to one numbered speaking turn; the script does not repeat after turn nine. AI agent voices are not prerecorded here. Completion commits the exact caption and passes the turn; playback does not call a provider.')}
 
         @router.post('/recordings/play')
         def play(data: dict, request: Request):
@@ -71,9 +71,9 @@ class RoundtableRecordings:
                         'Only the current discussion speaker can play a recording', 403)
                 require(not room.get('active_audio') and not room.get('active_stream'),
                         'Stop the current room audio before starting a recorded turn', 409)
-                require(1 <= room['turn_number'] <= len(DEFAULT_CLIPS),
-                        'The nine recorded turns are complete; continue by text or proceed to a decision', 409)
-                selected = ROUND_ONE_CLIPS if engine.is_round_one(room) else DEFAULT_CLIPS
+                require(1 <= room['turn_number'] <= (3 if room.get('solo_test') else len(DEFAULT_CLIPS)),
+                        'The recorded turns are complete; continue by text or proceed to a decision', 409)
+                selected = ROUND_ONE_CLIPS[::3] if room.get('solo_test') else ROUND_ONE_CLIPS if engine.is_round_one(room) else DEFAULT_CLIPS
                 assigned = selected[room['turn_number'] - 1]
                 require(data.get('clip_id') == assigned,
                         'Only the recording assigned to this numbered speaking turn may play', 403)

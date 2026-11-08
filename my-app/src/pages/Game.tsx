@@ -19,7 +19,7 @@ import './Game.css'
 
 const SKIP_LABELS: Record<string, string> = {
     briefing: 'Skip briefing', reading: 'Skip reading', speaking: 'Skip remaining turns',
-    discussion: 'Skip discussion', voting: 'Close voting now', tie_break: 'Skip tie break', result: 'Continue',
+    discussion: 'Skip discussion', voting: 'Record final decision', tie_break: 'Skip tie break', result: 'Continue',
 }
 
 function Game({ room, scenarios, error, rename, execute, onViewSummary }: { room: RoomSnapshot; scenarios: Scenario[]; error: string; rename: (name: string) => Promise<void>; execute: (path: string, fields?: Record<string, unknown>) => Promise<void>; onViewSummary: () => void }) {

@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createRoomApi, RoomApiError } from '../../services/rooms'
 import type { RoomApi, RoomSnapshot, Scenario } from '../../services/rooms'
 import { clearSeatSession, createTabSession, seatStorage } from '../../services/tabSession'
 import type { StoragePort } from '../../services/tabSession'
 import { acceptSnapshot, startInput } from '../rooms/roomState'
-import { DEMO_SEATS, DEMO_STORAGE_KEY, SPLIT_VIEW_MIN_WIDTH, demoRoles, demoRoomCode, followTarget, phaseLabel, pickDemoScenario, readStoredDemo, seatStatus } from './demoModel'
-import type { BallotSource, StoredDemo } from './demoModel'
+import { DEFAULT_DEMO_MODE, DEMO_BOTS, DEMO_SEATS, DEMO_STORAGE_KEY, SPLIT_VIEW_MIN_WIDTH, botStatusText, demoRoles, demoRoomCode, followTarget, phaseLabel, pickDemoScenario, readStoredDemo, seatStatus, soloStage } from './demoModel'
+import type { BallotSource, DemoMode, StoredDemo } from './demoModel'
+import { useSoloBots } from './useSoloBots'
 import './DemoRoom.css'
 
 type SeatClient = { seat: string; name: string; api: RoomApi }
@@ -49,6 +50,7 @@ export default function DemoRoom() {
     const [{ demo, clients }, setLoaded] = useState(initialDemo)
     const [busy, setBusy] = useState<'start' | 'lobby' | null>(null)
     const [ballotSource, setBallotSource] = useState<BallotSource>('authored')
+    const [mode, setMode] = useState<DemoMode>(() => demo?.mode ?? DEFAULT_DEMO_MODE)
     const [progress, setProgress] = useState<string[]>([])
     const [error, setError] = useState('')
     const [pollError, setPollError] = useState('')
@@ -60,6 +62,12 @@ export default function DemoRoom() {
     const [skipping, setSkipping] = useState(false)
     const hostView = snapshots[0]
     const hostCanSkip = Boolean(hostView?.game?.allowed_actions?.includes('skip_phase'))
+    const solo = demo?.mode === 'solo'
+    const apis = useMemo(() => clients?.map((client) => client.api) ?? null, [clients])
+    const acceptBotSnapshot = useCallback((index: number, next: RoomSnapshot) => {
+        setSnapshots((current) => current.map((item, position) => position === index ? acceptSnapshot(item, next) : item))
+    }, [])
+    const bots = useSoloBots({ enabled: solo, roomId: demo?.room_id ?? null, apis, snapshots, onSnapshot: acceptBotSnapshot })
     async function skipPhase() {
         const game = hostView?.game
         if (!demo || !clients || !game || skipping) return
@@ -116,7 +124,7 @@ export default function DemoRoom() {
         try {
             DEMO_SEATS.forEach(({ seat }) => clearSeatSession(storage, seat))
             const next = seatClients(storage)
-            step('Creating separate test sessions for Alex, Morgan and Sam…')
+            step(mode === 'solo' ? 'Creating test sessions: you play Alex; Morgan and Sam are automated…' : 'Creating separate test sessions for Alex, Morgan and Sam…')
             await Promise.all(next.map((client) => client.api.initializeSession()))
             step('Alex is creating a room…')
             let room: RoomSnapshot | null = null
@@ -133,7 +141,7 @@ export default function DemoRoom() {
                 const joined = await client.api.join({ command_id: crypto.randomUUID(), room_code: room.room_code, display_name: client.name })
                 memberIds.push(joined.self_member_id)
             }
-            const stored: StoredDemo = { room_id: room.room_id, room_code: room.room_code }
+            const stored: StoredDemo = { room_id: room.room_id, room_code: room.room_code, mode }
             storage.setItem(DEMO_STORAGE_KEY, JSON.stringify(stored))
             if (startGame) {
                 try {
@@ -193,20 +201,27 @@ export default function DemoRoom() {
             <section className="demo-setup__card" aria-labelledby="demo-title">
                 <button className="demo-link" type="button" onClick={() => { window.location.hash = '/' }}>‹ Back home</button>
                 <p className="demo-eyebrow">Single window test</p>
-                <h1 id="demo-title">Three player demo</h1>
-                <p className="demo-lede">Drive a full three player game from this one window. Alex, Morgan and Sam each get a separate <strong>test membership</strong> on the room server, shown side by side so you can act as every player.</p>
+                <h1 id="demo-title">{mode === 'solo' ? 'Solo demo' : 'Three player demo'}</h1>
+                {mode === 'solo'
+                    ? <p className="demo-lede">Play a full game as <strong>Alex, the CEO and host</strong>. Morgan (IT recovery) and Sam (communications) are automated board members with their own <strong>test memberships</strong>: they play their saved clips on their turns and vote after you.</p>
+                    : <p className="demo-lede">Drive a full three player game from this one window. Alex, Morgan and Sam each get a separate <strong>test membership</strong> on the room server, shown side by side so you can act as every player.</p>}
                 <ol className="demo-steps">
                     <li>Alex creates a room; Morgan and Sam join it.</li>
                     <li>Alex is CEO; Morgan takes the recovery (IT) role and Sam the communications role.</li>
                     <li>Alex starts the T01 Cedar Bridge test (or the first scenario if it is not listed), so the game opens on the briefing.</li>
                 </ol>
                 <fieldset className="demo-options" disabled={Boolean(busy)}>
+                    <legend>Mode</legend>
+                    <label><input type="radio" name="demo-mode" value="solo" checked={mode === 'solo'} onChange={() => setMode('solo')} /> Solo: you are Alex (CEO); Morgan and Sam are automated</label>
+                    <label><input type="radio" name="demo-mode" value="seats" checked={mode === 'seats'} onChange={() => setMode('seats')} /> Three seats in one window <span>(you act as every player)</span></label>
+                </fieldset>
+                <fieldset className="demo-options" disabled={Boolean(busy)}>
                     <legend>Voting options</legend>
                     <label><input type="radio" name="ballot-source" value="authored" checked={ballotSource === 'authored'} onChange={() => setBallotSource('authored')} /> Hardcoded T01 choices <span>(matches recorded decision guide)</span></label>
                     <label><input type="radio" name="ballot-source" value="ai" checked={ballotSource === 'ai'} onChange={() => setBallotSource('ai')} /> AI generated by Vertex agents</label>
                 </fieldset>
                 <div className="demo-actions">
-                    <button className="demo-primary" type="button" disabled={Boolean(busy)} aria-busy={busy === 'start'} onClick={() => void load(true)}>{busy === 'start' ? 'Loading…' : 'Load 3 test participants'}</button>
+                    <button className="demo-primary" type="button" disabled={Boolean(busy)} aria-busy={busy === 'start'} onClick={() => void load(true)}>{busy === 'start' ? 'Loading…' : mode === 'solo' ? 'Start solo game as Alex' : 'Load 3 test participants'}</button>
                     <button className="demo-secondary" type="button" disabled={Boolean(busy)} aria-busy={busy === 'lobby'} onClick={() => void load(false)}>{busy === 'lobby' ? 'Loading…' : 'Load seats only (start from lobby)'}</button>
                 </div>
                 {progress.length > 0 && <ol className="demo-progress" aria-live="polite">{progress.map((text, index) => <li key={index}>{text}</li>)}</ol>}
@@ -221,14 +236,56 @@ export default function DemoRoom() {
         </main>
     }
 
-    const statuses = snapshots.map(seatStatus)
     const hostRoom = snapshots[0]
+    const phaseText = `${phaseLabel(hostRoom?.phase ?? null)}${hostRoom?.game ? ` · Round ${hostRoom.game.round_number}` : ''}`
+    const alert = pollError || error || (solo ? bots.error : '')
+    const alexFrameSrc = `${window.location.pathname}?seat=${DEMO_SEATS[0].seat}#/room/${demo.room_id}`
+
+    if (solo) {
+        const stage = soloStage(snapshots)
+        return <main className="demo-room demo-room--solo">
+            <header className="demo-bar demo-bar--solo">
+                <div className="demo-bar__title">
+                    <span className="demo-badge">Solo · you are Alex (CEO)</span>
+                    <strong>Room {demo.room_code}</strong>
+                    <span className="demo-bar__phase">{phaseText}</span>
+                </div>
+                <div className="demo-board" role="group" aria-label="Board">
+                    <span className="demo-board__label">Board</span>
+                    {DEMO_BOTS.map((bot) => {
+                        const text = botStatusText(bot, snapshots, bots.activity[bot.seat])
+                        const live = /…$/.test(text) && !/^(connecting|reconnecting)/.test(text)
+                        return <span key={bot.seat} className={`demo-board__bot${live ? ' demo-board__bot--live' : ''}`} data-bot={bot.seat}>
+                            <strong>{bot.name} · {bot.title}</strong> — <span className="demo-board__status">{text}</span>
+                        </span>
+                    })}
+                </div>
+                <div className={`demo-stage${stage.action ? ' demo-stage--action' : ''}${stage.over ? ' demo-stage--over' : ''}`} role="status" aria-live="polite">
+                    <span className="demo-stage__text">{stage.text}</span>
+                    {stage.decision && <strong className="demo-stage__decision">{stage.decision}</strong>}
+                    {stage.action === 'record' && <button className="demo-record" type="button" disabled={skipping} onClick={() => void skipPhase()} title="Closes voting and tallies the ballots (host command, sent as Alex)">{skipping ? 'Recording…' : 'Record final decision'}</button>}
+                </div>
+                <div className="demo-bar__controls">
+                    {hostCanSkip && stage.action !== 'record' && <button className="demo-secondary demo-secondary--small" type="button" disabled={skipping} onClick={() => void skipPhase()} title="Ends the current phase for everyone (host command, sent as Alex)">{skipping ? 'Skipping…' : 'Skip phase ⏭'}</button>}
+                    <button className="demo-secondary demo-secondary--small" type="button" onClick={reset}>Reset demo</button>
+                </div>
+            </header>
+            {alert && <p className="demo-error demo-error--bar" role="alert">{alert}</p>}
+            <div className="demo-frames">
+                <section className="demo-frame" aria-label="Alex's player view">
+                    <iframe title="Alex's player view (test membership)" src={alexFrameSrc} allow="autoplay; microphone; clipboard-write" />
+                </section>
+            </div>
+        </main>
+    }
+
+    const statuses = snapshots.map(seatStatus)
     return <main className={`demo-room${split ? ' demo-room--split' : ''}`}>
         <header className="demo-bar">
             <div className="demo-bar__title">
                 <span className="demo-badge">Test memberships · one window</span>
                 <strong>Room {demo.room_code}</strong>
-                <span className="demo-bar__phase">{phaseLabel(hostRoom?.phase ?? null)}{hostRoom?.game ? ` · Round ${hostRoom.game.round_number}` : ''}</span>
+                <span className="demo-bar__phase">{phaseText}</span>
             </div>
             <div className="demo-seats" role="tablist" aria-label="Test participants">
                 {clients.map((client, index) => {
@@ -255,7 +312,7 @@ export default function DemoRoom() {
                 <button className="demo-secondary demo-secondary--small" type="button" onClick={reset}>Reset demo</button>
             </div>
         </header>
-        {(pollError || error) && <p className="demo-error demo-error--bar" role="alert">{pollError || error}</p>}
+        {alert && <p className="demo-error demo-error--bar" role="alert">{alert}</p>}
         <div className="demo-frames">
             {clients.map((client, index) => {
                 const visible = split || index === selected

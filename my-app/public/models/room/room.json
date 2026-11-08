@@ -1,0 +1,153 @@
+{
+  "generated": "2026-11-07",
+  "file": "room.glb",
+  "bytes": 3134668,
+  "builder": "game-ui/tools/build_room.py (Blender 5.2, Cycles Metal bake)",
+  "coordinates": "three.js metres, +Y up; interior x -5.25..7.6, z -3.6..3.6, floor y 0, ceiling y 3.2 (coffer recess rises to y 3.5 above the table)",
+  "meshes": {
+    "baked_unlit": [
+      "Room_Back",
+      "Room_Walls",
+      "Room_Floor",
+      "Room_Ceiling"
+    ],
+    "glass": "Glass",
+    "emissive": [
+      "Emit_Cove",
+      "Emit_Downlights",
+      "Emit_FrontLine",
+      "Emit_Pendant",
+      "Emit_WallWash"
+    ]
+  },
+  "materials": {
+    "baked_unlit": "KHR_materials_unlit, baseColorTexture is the full baked radiance (sRGB JPEG)",
+    "emissive": "black base colour, emissiveFactor holds the light colour at strength 1; boost emissiveIntensity for bloom",
+    "glass": "placeholder material, intended to be overridden"
+  },
+  "bake": {
+    "atlases": {
+      "Room_Back": {
+        "color_px": 4096,
+        "lighting_px": 2048,
+        "jpeg_quality": 86,
+        "luminance_p5_p50_p95_p99_p999": [
+          0.001,
+          0.022,
+          0.211,
+          0.4,
+          0.896
+        ]
+      },
+      "Room_Walls": {
+        "color_px": 2048,
+        "lighting_px": 2048,
+        "jpeg_quality": 86,
+        "luminance_p5_p50_p95_p99_p999": [
+          0.0,
+          0.047,
+          0.385,
+          0.899,
+          0.916
+        ]
+      },
+      "Room_Floor": {
+        "color_px": 4096,
+        "lighting_px": 2048,
+        "jpeg_quality": 84,
+        "luminance_p5_p50_p95_p99_p999": [
+          0.001,
+          0.091,
+          0.359,
+          0.462,
+          0.514
+        ]
+      },
+      "Room_Ceiling": {
+        "color_px": 2048,
+        "lighting_px": 1024,
+        "jpeg_quality": 84,
+        "luminance_p5_p50_p95_p99_p999": [
+          0.009,
+          0.056,
+          0.822,
+          0.922,
+          0.93
+        ]
+      }
+    },
+    "samples": 128,
+    "seconds": 493.2,
+    "denoiser": "OpenImageDenoise (compositor) on the lighting bake, with baked normals",
+    "tone": "linear below 0.62, exponential shoulder capped at 0.93, before sRGB encoding",
+    "exposure": 1.0
+  },
+  "sky": {
+    "file": "textures/sky/skyline.jpg",
+    "source": "Poly Haven sunset_jhbcentral (CC0), tonemapped JPG downscaled to 4096x2048",
+    "u_facing_minus_x": 0.4,
+    "blender_world_rotation_z_deg": -144.0,
+    "blender_world_strength": 1.2,
+    "three_background_rotation_y_rad_suggested": 2.5133,
+    "note": "three.js equirect lookup: u = atan2(dir.z, dir.x)/(2 pi) + 0.5, so -X samples u = 0 by default; scene.backgroundRotation.y = pi + 2 pi (u - 0.5) brings u onto -X (derived from the shader maths; check visually)."
+  },
+  "exposure_notes": [
+    "Render the room meshes with MeshBasicMaterial (map, sRGB colour space). Values are at or below about 0.93 and mostly below 0.6, so NeutralToneMapping at exposure 1.0 leaves them almost unchanged; toneMapped false is also fine.",
+    "Realtime lights only need to light characters and props; the room ignores them.",
+    "Daylight is a cool overcast twilight from the window side; warm 2700K pendant, amber cove, amber wall wash on the slats and amber line under the front wall brass rail."
+  ],
+  "keep_clear": {
+    "screen_recess": {
+      "center": [
+        -0.4,
+        1.75,
+        -3.62
+      ],
+      "size": [
+        2.5,
+        1.56
+      ],
+      "note": "flat dark graphite panel at z -3.62; slat fronts are at z -3.60"
+    },
+    "clock": [
+      2.0,
+      1.95,
+      -3.6
+    ],
+    "credenza": [
+      0,
+      0,
+      -3.15
+    ],
+    "plants": [
+      [
+        -4.6,
+        0,
+        -2.9
+      ],
+      [
+        -4.6,
+        0,
+        2.9
+      ]
+    ],
+    "door": {
+      "wall": "x 7.6",
+      "z": [
+        1.2,
+        2.2
+      ],
+      "height": 2.4
+    }
+  },
+  "sources": {
+    "hdri": "https://polyhaven.com/a/sunset_jhbcentral (CC0)",
+    "textures": [
+      "https://polyhaven.com/a/walnut_veneer (CC0)",
+      "https://polyhaven.com/a/poly_wool_herringbone (CC0)",
+      "https://polyhaven.com/a/granite_tile (CC0)",
+      "https://polyhaven.com/a/beige_wall_001 (CC0)"
+    ],
+    "procedural": "graphite and brushed brass are procedural noise materials"
+  }
+}

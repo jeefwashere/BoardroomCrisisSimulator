@@ -13,6 +13,7 @@ import { PRIVATE_OBSERVER, PRIVATE_UNAVAILABLE } from './usePrivateSession'
 import { formatClock } from './controlBarModel'
 import { AssessmentResults, PrivateBoard } from './PrivateSessionReport'
 import Countdown from './Countdown'
+import { useReportAgent } from '../boardroom3d/agentPresence'
 import CallTile from './CallTile'
 import { playerAvatarColor, playerInitials } from './playerPresentation'
 import { privateAutoEntry, privateEntry, privateTranscriptLines, silentHoldMs } from './transcriptModel'
@@ -243,6 +244,8 @@ export default function PrivateSessionStage({ room, handle, auto, selfName, self
 
     const coachTalking = playing || Boolean(current && current.status === 'ready' && !voiceDriven)
     const selfTalking = auto.playing || dictation.listening
+    // The 3D boardroom lights the table hub while the coach (or examiner) speaks.
+    useReportAgent(coachTalking ? { kind: 'coach', name: examiner ? `${agentName} · examiner` : agentName, role: examiner ? 'AI examiner · scored assessment' : 'AI crisis coach · private', accent: examiner ? '#b58c28' : null } : null)
     const coachState = handle.notEligible ? 'Observing' : unavailable ? 'Unavailable'
         : !session ? (error ? 'Reconnecting' : 'Connecting')
         : current?.status === 'pending' ? 'Thinking'

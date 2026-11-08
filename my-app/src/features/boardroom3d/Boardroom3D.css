@@ -1,0 +1,59 @@
+/* 3D boardroom stage (?view=3d). The canvas fills the stage area; the stage components keep their
+   heads, buttons and notices, which float over the room. Their call tiles are hidden: the characters
+   and the table hub show who is talking instead. */
+
+.game-live-main--3d { position: relative; max-width: none; grid-template-columns: minmax(0, 1fr); }
+.board3d { position: absolute; inset: 0; z-index: 0; overflow: hidden; border-radius: 16px; background: #1b1d21; }
+.board3d-canvas { position: absolute; inset: 0; }
+.board3d-canvas canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.board3d-vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 50%, transparent 58%, rgba(12, 14, 18, 0.32) 100%); }
+.board3d-loading { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 3; margin: 0; padding: 7px 14px; border-radius: 999px; background: rgba(20, 22, 26, 0.78); color: #e7e9ee; font-size: 13px; }
+.board3d-loading--failed { color: #ffb4a3; }
+
+/* Stage overlays above the canvas: only their own controls take pointer input, so dragging the room still orbits. */
+.game-live-main--3d > :not(.board3d) { position: relative; z-index: 1; }
+.game-live-main--3d .call-stage { background: transparent; border-color: transparent; pointer-events: none; overflow: hidden; }
+.game-live-main--3d .call-stage-main,
+.game-live-main--3d .call-experts,
+.game-live-main--3d .call-strip,
+.game-live-main--3d .call-duo { display: none; }
+.game-live-main--3d .call-stage-head { align-self: center; padding: 6px 8px 6px 6px; border-radius: 999px; background: rgba(20, 22, 26, 0.72); box-shadow: 0 8px 26px #0000004d; pointer-events: auto; }
+.game-live-main--3d .call-stage-head .opening-countdown,
+.game-live-main--3d .call-stage-head .private-meta-end { margin-left: 8px; }
+.game-live-main--3d .call-stage-footer { margin-top: auto; align-self: center; max-width: min(720px, 100%); padding: 10px 14px; border-radius: 14px; background: rgba(20, 22, 26, 0.72); box-shadow: 0 8px 26px #0000004d; pointer-events: auto; }
+.game-live-main--3d .call-stage-footer:empty { display: none; }
+.game-live-main--3d .call-stage > :is(.opening-problem, .private-complete, .private-dock-float, .opening-report) { pointer-events: auto; }
+.game-live-main--3d .private-complete { padding: 16px; border-radius: 14px; background: rgba(20, 22, 26, 0.86); overflow: auto; }
+.game-live-main--3d .game-stage-call { pointer-events: none; }
+.game-live-main--3d .game-stage-call > * { pointer-events: auto; }
+
+/* Name tags (SeatTags.ts places them every frame). */
+.board3d-labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.board3d-tag {
+  --tag-color: #5865bd;
+  position: absolute; left: 0; top: 0; transform-origin: 0 0;
+  display: flex; align-items: center; gap: 7px;
+  padding: 3px 10px 3px 3px; border-radius: 999px;
+  background: rgba(250, 249, 244, 0.94); color: #1f2a24;
+  box-shadow: 0 4px 14px rgba(20, 35, 28, 0.18), 0 0 0 1px rgba(33, 60, 50, 0.08);
+  white-space: nowrap; pointer-events: none;
+  transition: background 0.25s, box-shadow 0.25s, opacity 0.3s;
+}
+.board3d-tag-dot { width: 24px; height: 24px; border-radius: 50%; flex: none; display: grid; place-items: center; background: var(--tag-color); color: #fff; font-size: 11px; font-weight: 700; }
+.board3d-tag-body { display: grid; line-height: 1.15; }
+.board3d-tag-body strong { font-size: 12px; font-weight: 700; }
+.board3d-tag-body small { font-size: 10px; font-weight: 600; color: var(--tag-color); letter-spacing: 0.02em; }
+.board3d-tag.is-speaking { background: var(--tag-color); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9), 0 6px 22px rgba(20, 35, 28, 0.35); }
+.board3d-tag.is-speaking .board3d-tag-dot { background: #fff; color: var(--tag-color); }
+.board3d-tag.is-speaking .board3d-tag-body strong, .board3d-tag.is-speaking .board3d-tag-body small { color: #fff; }
+.board3d-tag.is-agent .board3d-tag-dot { font-size: 9px; letter-spacing: 0.04em; }
+.board3d-tag.is-agent.is-speaking { box-shadow: 0 0 0 3px rgba(255, 240, 214, 0.9), 0 0 26px color-mix(in srgb, var(--tag-color) 70%, transparent); }
+.board3d-tag.is-away { opacity: 0.5; filter: grayscale(0.6); }
+.board3d-tag-wave { display: flex; align-items: center; gap: 2px; height: 14px; margin-left: 1px; }
+.board3d-tag-wave i { display: block; width: 3px; height: 100%; border-radius: 2px; background: #fff; animation: board3d-wave 0.9s ease-in-out infinite; }
+.board3d-tag-wave i:nth-child(2) { animation-delay: -0.3s; }
+.board3d-tag-wave i:nth-child(3) { animation-delay: -0.6s; }
+.board3d-tag-wave i:nth-child(4) { animation-delay: -0.15s; }
+@keyframes board3d-wave { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
+.board3d-stem { position: absolute; left: 0; top: 0; width: 1.5px; margin-left: -0.75px; background: rgba(240, 240, 235, 0.45); pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .board3d-tag-wave i { animation: none; } }

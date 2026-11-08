@@ -4,8 +4,8 @@ import type { RoomApi, RoomSnapshot, Scenario } from '../../services/rooms'
 import { clearSeatSession, createTabSession, seatStorage } from '../../services/tabSession'
 import type { StoragePort } from '../../services/tabSession'
 import { acceptSnapshot, startInput } from '../rooms/roomState'
-import { DEFAULT_DEMO_MODE, DEMO_SEATS, DEMO_STORAGE_KEY, SPLIT_VIEW_MIN_WIDTH, demoRoles, demoRoomCode, followTarget, phaseLabel, pickDemoScenario, readStoredDemo, seatStatus } from './demoModel'
-import type { BallotSource, DemoMode, StoredDemo } from './demoModel'
+import { DEFAULT_DEMO_MODE, DEMO_SEATS, DEMO_STORAGE_KEY, DEMO_VIEW_KEY, SPLIT_VIEW_MIN_WIDTH, demoRoles, demoRoomCode, followTarget, phaseLabel, pickDemoScenario, readDemoView, readStoredDemo, seatStatus, soloFrameSrc } from './demoModel'
+import type { BallotSource, DemoMode, DemoView, StoredDemo } from './demoModel'
 import { useSoloBots } from './useSoloBots'
 import { usePrivateBots } from './usePrivateBots'
 import './DemoRoom.css'
@@ -52,6 +52,8 @@ export default function DemoRoom() {
     const [busy, setBusy] = useState<'start' | 'lobby' | null>(null)
     const [ballotSource, setBallotSource] = useState<BallotSource>('authored')
     const [mode, setMode] = useState<DemoMode>(() => demo?.mode ?? DEFAULT_DEMO_MODE)
+    const [view, setViewState] = useState<DemoView>(() => readDemoView(tabStorage()?.getItem(DEMO_VIEW_KEY) ?? null))
+    const setView = (next: DemoView) => { setViewState(next); try { tabStorage()?.setItem(DEMO_VIEW_KEY, next) } catch { /* Lasts for this view only. */ } }
     const [progress, setProgress] = useState<string[]>([])
     const [error, setError] = useState('')
     const [pollError, setPollError] = useState('')
@@ -233,6 +235,11 @@ export default function DemoRoom() {
                     <label><input type="radio" name="demo-mode" value="solo" checked={mode === 'solo'} onChange={() => setMode('solo')} /> Solo: you are Alex (CEO); Morgan and Sam are automated</label>
                     <label><input type="radio" name="demo-mode" value="seats" checked={mode === 'seats'} onChange={() => setMode('seats')} /> Three seats in one window <span>(you act as every player)</span></label>
                 </fieldset>
+                {mode === 'solo' && <fieldset className="demo-options" disabled={Boolean(busy)}>
+                    <legend>Stage</legend>
+                    <label><input type="radio" name="demo-view" value="3d" checked={view === '3d'} onChange={() => setView('3d')} /> 3D boardroom <span>(Alex, Morgan and Sam at the table; the hub lights up when an AI agent speaks)</span></label>
+                    <label><input type="radio" name="demo-view" value="call" checked={view === 'call'} onChange={() => setView('call')} /> Call tiles</label>
+                </fieldset>}
                 <fieldset className="demo-options" disabled={Boolean(busy)}>
                     <legend>Voting options</legend>
                     <label><input type="radio" name="ballot-source" value="authored" checked={ballotSource === 'authored'} onChange={() => setBallotSource('authored')} /> Hardcoded T01 choices <span>(matches recorded decision guide)</span></label>
@@ -257,13 +264,14 @@ export default function DemoRoom() {
     const hostRoom = snapshots[0]
     const phaseText = `${phaseLabel(hostRoom?.phase ?? null)}${hostRoom?.game ? ` · Round ${hostRoom.game.round_number}` : ''}`
     const alert = pollError || error || (solo ? bots.error || privateBots.error : '')
-    const alexFrameSrc = `${window.location.pathname}?seat=${DEMO_SEATS[0].seat}#/room/${demo.room_id}`
+    const alexFrameSrc = soloFrameSrc(window.location.pathname, demo.room_id, view)
 
     if (solo) {
         // Solo games give the whole window to Alex's call. Morgan and Sam keep running without a visible strip;
         // the in game control bar carries Skip, and only a quiet Reset stays for after server restarts.
         return <main className="demo-room demo-room--solo">
             <button className="demo-reset-float" type="button" onClick={reset} title="Discard these test memberships and return to the demo setup">Reset demo</button>
+            <button className="demo-reset-float demo-view-float" type="button" onClick={() => setView(view === '3d' ? 'call' : '3d')} title="Reloads Alex's view with the other stage; the game continues">{view === '3d' ? 'Call view' : '3D view'}</button>
             {alert && <p className="demo-error demo-error--float" role="alert">{alert}</p>}
             <div className="demo-frames">
                 <section className="demo-frame" aria-label="Alex's player view">

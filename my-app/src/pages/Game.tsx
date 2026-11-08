@@ -33,7 +33,11 @@ import TranscriptPanel from '../features/game/TranscriptPanel'
 import { useSpokenLine, useTranscript } from '../features/game/useTranscript'
 import { CAPTIONS_STORAGE_KEY, captionsPreference, speechDurationMs, turnEntry } from '../features/game/transcriptModel'
 import { clipForTurn } from '../features/game/savedClips'
-import { playerRoleLabel } from '../features/game/playerPresentation'
+import { playerAvatarColor, playerRoleLabel } from '../features/game/playerPresentation'
+import Boardroom3D from '../features/boardroom3d/Boardroom3D'
+import { AgentPresenceContext } from '../features/boardroom3d/agentPresence'
+import { boardroomView, viewFromSearch } from '../features/boardroom3d/boardroomModel'
+import type { StageAgent } from '../features/boardroom3d/boardroomModel'
 import { DEMO_STORAGE_KEY, readStoredDemo } from '../features/demo/demoModel'
 import { seatFromSearch } from '../services/tabSession'
 import './Game.css'
@@ -50,6 +54,11 @@ function readCaptions(): boolean {
 
 function storeCaptions(on: boolean) {
     try { tabStorage()?.setItem(CAPTIONS_STORAGE_KEY, on ? '1' : '0') } catch { /* The choice lasts for this view only. */ }
+}
+
+/** `?view=3d` swaps the call tiles for the 3D boardroom; controls, transcript and chat stay the same. */
+function readView3d(): boolean {
+    return typeof window !== 'undefined' && viewFromSearch(window.location.search) === '3d'
 }
 
 /** Alex's frame in the solo demo: Morgan's and Sam's clips play from the parent page, so this view captions them. */
@@ -90,6 +99,9 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const [dock, setDock] = useState<HTMLDivElement | null>(null)
     const { entries: transcriptEntries, writer: transcript } = useTranscript(`${room.room_id}:${room.game?.started_at ?? ''}`)
     const [soloBots] = useState(drivesSoloBots)
+    const [view3d] = useState(readView3d)
+    // The AI voice the current stage is playing (reported by the opening, expert and private stages) lights the 3D hub.
+    const [stageAgent, setStageAgent] = useState<StageAgent | null>(null)
     // Unread counts other members' messages that arrived after the drawer was last open (history at entry counts as read).
     const [seenChat, setSeenChat] = useState<number | null>(null)
     const others = othersCount(chat.state.records, room.self_member_id)
@@ -181,6 +193,13 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
         else if (auto.status === 'playing' || recorder.state.status === 'recording') talking.add(speaker.member_id)
     }
     if (dictation.listening) talking.add(room.self_member_id)
+    // In a private session your saved answer is spoken by your own character.
+    if (privatePhase && privateAuto.status === 'playing') talking.add(room.self_member_id)
+    const board = view3d ? boardroomView({
+        phase: room.phase, selfId: room.self_member_id, eligibleIds: game.eligible_member_ids, activeSpeakerId,
+        speakerIndex: game.speaker_index ?? null, speakerCount: game.speaker_order?.length ?? 0, scenarioTitle: game.scenario.title,
+    }, members.map((member) => ({ id: member.id, name: member.name, role: member.roleLabel ?? playerRoleLabel(member.role), color: playerAvatarColor(member.id), connected: member.connected ?? true })),
+    talking, stageAgent) : null
 
     const mic = micControl({
         phase: room.phase, phaseId: game.phase_id, ownTurn: recorder.ownTurn, recording: recorder.state,
@@ -209,13 +228,14 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
     const nodeArticle = node && <article className="game-situation"><h3>{node.title}</h3><p>{node.situation}</p>{node.study_questions.map((question) => <p key={question} className="game-question">{question}</p>)}</article>
     const answering = self?.eligible_current_round && ((room.phase === 'speaking' && recorder.ownTurn) || room.phase === 'discussion')
 
-    return <MotionConfig reducedMotion="user"><div className={`game-call-screen game-live-screen${transcriptOpen || chatOpen ? ' has-side-panel' : ''}`}>
+    return <AgentPresenceContext.Provider value={setStageAgent}><MotionConfig reducedMotion="user"><div className={`game-call-screen game-live-screen${transcriptOpen || chatOpen ? ' has-side-panel' : ''}`}>
         <header className="game-call-header">
             <div className="room-personal-controls"><button className="game-back-button" type="button" onClick={() => { window.location.hash = '/' }}><LobbyIcon name="back" /><span>Leave room</span></button><RoomNameEditor room={room} rename={rename} /></div>
             <div className="game-call-heading"><h1>Boardroom</h1><span>Room {room.room_code}</span></div>
             <div className="game-header-end"><button className="game-summary-button" type="button" onClick={onViewSummary}>Summary preview <span aria-hidden="true">↗</span></button><span className="game-player-count">{room.members.length} / {room.capacity}</span></div>
         </header>
-        <main className={`game-call-main game-live-main${layout}`}>
+        <main className={`game-call-main game-live-main${layout}${board ? ' game-live-main--3d' : ''}`}>
+            {board && <Boardroom3D view={board} clock={{ deadline: game.phase_deadline ?? null, serverTime: game.server_time ?? null }} />}
             <AnimatePresence mode="wait" initial={false}>
                 {opening ? <OpeningBriefing key="opening" room={room} members={members} transcript={transcript} onDismiss={() => setDismissedOpening(game.phase_id)} finishBriefing={actions.includes('finish_briefing') ? () => act(rounds + 'briefing/finish') : undefined} />
                     : experts ? <ExpertPanelStage key={`experts-${game.round_id}`} room={room} members={members} transcript={transcript} notice={error || notice} finishPanel={actions.includes('skip_phase') ? () => act(rounds + 'skip-phase') : undefined} />
@@ -233,7 +253,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
                         {room.phase === 'ended' && <TurnMedia room={room} recorder={recorder} />}
                     </motion.section>
                     : <motion.div key="call" className="game-stage-call" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4, ease: 'easeOut' }}>
-                        <CallGrid members={members} badges={badges} talking={talking} />
+                        {!board && <CallGrid members={members} badges={badges} talking={talking} />}
                         {!sidePanel && (error || notice) && <p className="game-alert game-alert--float" role="alert">{error || notice}</p>}
                     </motion.div>}
             </AnimatePresence>
@@ -271,6 +291,6 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat }: 
         <TranscriptPanel entries={transcriptEntries} open={transcriptOpen} onClose={hideCaptions} dockRef={setDock} />
         <ChatDrawer room={room} scenarios={scenarios} chat={chat} open={chatOpen} onClose={closeChat}
             pinned={individual && room.phase === 'individual_decision' ? <div className="game-briefing chat-decision"><p className="chat-decision-from">Facilitator · Round 1</p><IndividualDecisionPanel key={game.phase_id} room={room} pending={pending} act={act} notice={notice} dictation={dictation} attachDictation={attachDictation} /></div> : undefined} />
-    </div></MotionConfig>
+    </div></MotionConfig></AgentPresenceContext.Provider>
 }
 export default Game

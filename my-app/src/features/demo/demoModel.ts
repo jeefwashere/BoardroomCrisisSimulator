@@ -19,6 +19,18 @@ export type DemoMode = 'solo' | 'seats'
 export const DEFAULT_DEMO_MODE: DemoMode = 'solo'
 export type StoredDemo = { room_id: string; room_code: string; mode: DemoMode }
 
+/** Solo stage: the 3D boardroom (default) or the call tiles. Remembered for this tab. */
+export type DemoView = '3d' | 'call'
+export const DEMO_VIEW_KEY = 'boardroom.demoView'
+export function readDemoView(raw: string | null): DemoView {
+    return raw === 'call' ? 'call' : '3d'
+}
+
+/** Alex's frame in the solo demo; `view=3d` makes the game screen use the 3D boardroom stage. */
+export function soloFrameSrc(pathname: string, roomId: string, view: DemoView): string {
+    return `${pathname}?seat=${DEMO_SEATS[0].seat}${view === '3d' ? '&view=3d' : ''}#/room/${roomId}`
+}
+
 export function readStoredDemo(raw: string | null): StoredDemo | null {
     if (!raw) return null
     try {

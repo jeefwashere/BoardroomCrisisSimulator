@@ -6,6 +6,7 @@ import { facilitationApi, facilitationErrorMessage } from '../facilitation/facil
 import { pollRoom } from '../rooms/roomState'
 import { seatFromSearch } from '../../services/tabSession'
 import Countdown from './Countdown'
+import { useReportAgent } from '../boardroom3d/agentPresence'
 import type { LobbyMember } from '../lobby/lobbyModel'
 import CallTile, { MemberStrip } from './CallTile'
 import { expertEntry, silentHoldMs } from './transcriptModel'
@@ -155,6 +156,11 @@ export default function ExpertPanelStage({ room, finishPanel, notice, members, t
         finishRequested.current = true
         void finishPanel().then((ok) => { if (!ok) setFinishFailed(true) })
     }, [complete, finishPanel])
+
+    // The 3D boardroom lights the table hub in the speaking expert's colour (same rule as the active tile's talking state).
+    const expertTalking = Boolean(panel && activeTake && expertCardStatus(experts, active, active) === 'speaking'
+        && !(voiceDriven && startedIndex !== active) && (voiceDriven ? playing : true))
+    useReportAgent(expertTalking && activeTake ? { kind: 'expert', name: activeTake.label, role: expertPersona(activeTake.kind, advisers), accent: expertAccent(activeTake.kind) } : null)
 
     if (!game) return null
 

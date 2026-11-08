@@ -6,6 +6,7 @@ import type { Opening } from '../../services/facilitation'
 import { roomApi, errorMessage } from '../rooms/useRoom'
 import { pollRoom } from '../rooms/roomState'
 import Countdown from './Countdown'
+import { useReportAgent } from '../boardroom3d/agentPresence'
 import IncidentReportCard from './IncidentReportCard'
 import { seatFromSearch } from '../../services/tabSession'
 import type { LobbyMember } from '../lobby/lobbyModel'
@@ -75,6 +76,8 @@ export default function OpeningBriefing({ room, finishBriefing, onDismiss, membe
     // Without a voice on this screen (another seat, voice off or failed) the briefing goes to the transcript in full at once.
     const silent = Boolean(readyText && (!PLAYS_VOICE || !readyText.speech_id || (voice.notice && !voice.busy && !audio)))
     useEffect(() => { if (readyText && silent) transcript.upsert(briefingEntry(readyText)) }, [readyText, silent, transcript])
+    // The 3D boardroom lights the table hub while the preparation agent speaks.
+    useReportAgent(playing ? { kind: 'agent', name: 'Preparation agent', role: 'AI agent · opening briefing', accent: null } : null)
     if (!game) return null
 
     const status = error && !opening ? 'unreachable' : opening?.status ?? 'pending'

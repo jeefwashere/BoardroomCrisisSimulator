@@ -146,3 +146,31 @@ several tabs and you hear echoes.
 4. Reuse the existing hooks for audio; do not start audio from the 3D layer as well, or captions and turn
    commits will double.
 5. Run `cd my-app && npm run build && npm run lint && npm test` (218 tests) before pushing.
+
+## 11. Implemented 3D stage (solo demo)
+
+The 3D boardroom now runs inside `my-app` as an alternative stage. Open `#/demo`, keep **Stage: 3D boardroom** (the
+default for solo games) and press "Start solo game as Alex". Alex's frame loads with `?seat=alex&view=3d`; any room URL
+accepts `view=3d`. The "Call view" / "3D view" button beside "Reset demo" reloads Alex's frame with the other stage.
+
+* Three characters only: Alex at the head of the full size 4.2 m table, Morgan and Sam on opposite sides, offset along
+  the table (about 2.1 m, 2.5 m and 3.5 m apart). Seats follow `eligible_member_ids`.
+* The table hub is the AI agents' seat. While the preparation agent, an expert or the crisis coach is speaking, the
+  hub ring brightens, a light column rises, a voice orb pulses and a warm light falls on the table, in the expert's
+  accent colour where one exists. The hub keeps a soft standby glow during agent phases.
+* Presenter camera: a close shot across the table of whoever is talking (or holding the turn), an over the shoulder
+  shot of the hub while an agent talks, and the overview otherwise. Dragging steers the camera; it resumes presenting
+  10 seconds after the last drag, and a double click resumes at once.
+* Moods: talking members play the talking clip, everyone types during individual decisions, and in private sessions
+  Morgan and Sam work at their laptops. Heads turn toward the speaker or the hub.
+* No spoken text on the stage. The wall screen shows only the scenario title, the phase and the clock; name tags
+  show names, roles and a talking indicator.
+
+How it is wired, following section 10: the stage components report their talking agent through
+`features/boardroom3d/agentPresence.ts` (`useReportAgent`), with the same booleans their tiles use. `Game.tsx`
+builds the scene state with `boardroomView` (`features/boardroom3d/boardroomModel.ts`, unit tested in
+`tests/boardroom3d.test.ts`) and mounts `Boardroom3D.tsx` behind the stage overlays; tiles are hidden, while stage
+heads, buttons, notices, the transcript, the private answer box and the control bar are unchanged. Audio still
+plays only from the existing hooks. The scene (`Boardroom.ts`, `SeatTags.ts`) is ported from
+`game-ui/src/scene` on `arjun/game-ui-3d` and loads on demand, so the call view never downloads three.js. Models
+are in `my-app/public/models` (3 characters, the baked room and the props) and `my-app/public/textures/sky`.

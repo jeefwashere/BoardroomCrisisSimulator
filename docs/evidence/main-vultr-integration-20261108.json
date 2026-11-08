@@ -36,5 +36,45 @@
   "actual_container_build": "not run; Docker daemon unavailable; existing local services were not changed",
   "live_site": "https://boardroomcrisis.duckdns.org",
   "live_probe": "Public DNS resolved64.177.58.170 through Google DNS. TLS verification rejected TRAEFIK DEFAULT CERT; no insecure HTTP probe made.",
-  "paid_provider_calls": 0
+  "paid_provider_calls": 0,
+  "latest_live_probe": {
+    "site": "https://boardroomcrisis.duckdns.org",
+    "checks": [
+      {
+        "path": "/",
+        "status": 200,
+        "bytes": 682,
+        "seconds": 0.162,
+        "content_type": "text/html"
+      },
+      {
+        "path": "/healthz",
+        "status": 200,
+        "bytes": 15,
+        "seconds": 0.144,
+        "content_type": "application/json"
+      },
+      {
+        "path": "/api/health",
+        "status": 200,
+        "bytes": 34,
+        "seconds": 0.154,
+        "content_type": "application/json",
+        "body": "{\"status\":\"ok\",\"storage\":\"memory\"}"
+      },
+      {
+        "path": "/api/scenarios",
+        "status": 200,
+        "bytes": 600,
+        "seconds": 0.15,
+        "content_type": "application/json"
+      }
+    ],
+    "public_dns": [
+      "64.177.58.170"
+    ],
+    "scripts": [
+      "/assets/index-DcCpG-v1.js"
+    ]
+  }
 }

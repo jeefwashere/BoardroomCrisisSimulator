@@ -1,0 +1,9 @@
+# Optional local PDF retrieval dependencies. Install only into the app virtualenv.
+sentence-transformers==6.2.0
+transformers==5.22.2
+torch==2.15.0
+torchvision==0.29.2
+numpy>=2.0,<3
+pypdf==7.0.0
+reportlab==5.1.0
+pypdfium2>=5,<6

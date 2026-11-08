@@ -1,0 +1,213 @@
+{
+  "checked": "three independent HTTP clients, speaking, voting, consequences, rejoin and completion",
+  "live_models": true,
+  "rounds": 1,
+  "end_reason": "round_complete",
+  "history": [
+    {
+      "round": 1,
+      "node": "containment",
+      "option_id": "custom_b0c03cb4352b42a1901325243506de8a",
+      "outcome_id": "targeted_containment",
+      "summary": "The investigation boundary narrows. At least 160 customer records were exported before access was suspended. The incident is still under investigation.",
+      "metrics_before": {
+        "service_continuity": 60,
+        "data_protection": 60,
+        "public_trust": 60
+      },
+      "metrics_after": {
+        "service_continuity": 55,
+        "data_protection": 80,
+        "public_trust": 60
+      },
+      "facts": {
+        "verified_export_records": 160,
+        "export_status": "confirmed_minimum_scope_incomplete",
+        "containment": "targeted",
+        "service_condition": "storefront_monitored_finance_isolated",
+        "communication_status": "none",
+        "recovery_status": "not_started"
+      },
+      "reason": "vote",
+      "tally": {
+        "custom_b0c03cb4352b42a1901325243506de8a": 3
+      },
+      "at": 1794094286.77039,
+      "ai_explanation": "The action directly implements targeted containment by isolating the compromised finance device, revoking credentials, preserving evidence, and keeping checkout running, which aligns directly with the targeted_containment outcome."
+    }
+  ],
+  "jobs": [
+    {
+      "id": "695c4229a4684c1c9f39f5d1fe3fc0c3",
+      "kind": "facilitator",
+      "member": "b0c03cb4352b42a1901325243506de8a",
+      "status": "done",
+      "round": 1,
+      "error": null,
+      "submitted_at": 1794094263.895221,
+      "completed_at": 1794094273.334084,
+      "timing": {
+        "total_ms": 9438.6,
+        "local_queue_ms": 0.0,
+        "provider_roundtrip_ms": 9438.5
+      },
+      "question": "What do we know about the incident?",
+      "review": false,
+      "model_info": {
+        "provider": "vertex",
+        "model": "gemini-3.8-flash",
+        "thinking_level": "LOW",
+        "usage": {
+          "promptTokenCount": 192,
+          "candidatesTokenCount": 10,
+          "totalTokenCount": 202
+        }
+      }
+    },
+    {
+      "id": "c7722103dd4146b69092825841118b67",
+      "kind": "tracker",
+      "member": "b0c03cb4352b42a1901325243506de8a",
+      "status": "done",
+      "round": 1,
+      "error": null,
+      "submitted_at": 1794094263.89806,
+      "completed_at": 1794094265.251193,
+      "timing": {
+        "total_ms": 1352.9,
+        "local_queue_ms": 0.0,
+        "provider_roundtrip_ms": 1352.8
+      },
+      "question": "",
+      "review": false,
+      "model_info": {
+        "provider": "vertex",
+        "model": "gemini-3.8-flash",
+        "thinking_level": "LOW",
+        "usage": {
+          "promptTokenCount": 109,
+          "candidatesTokenCount": 35,
+          "totalTokenCount": 144
+        }
+      }
+    },
+    {
+      "id": "a6de731cd27045d28c6927e806bfaae5",
+      "kind": "resolve",
+      "member": "b0c03cb4352b42a1901325243506de8a",
+      "status": "done",
+      "round": 1,
+      "error": null,
+      "submitted_at": 1794094283.747655,
+      "completed_at": 1794094286.770644,
+      "timing": {
+        "total_ms": 3022.8,
+        "local_queue_ms": 0.0,
+        "provider_roundtrip_ms": 3022.7
+      },
+      "question": "",
+      "review": false,
+      "model_info": {
+        "provider": "vertex",
+        "model": "gemini-3.8-flash",
+        "thinking_level": "LOW",
+        "usage": {
+          "promptTokenCount": 279,
+          "candidatesTokenCount": 52,
+          "totalTokenCount": 331
+        }
+      }
+    },
+    {
+      "id": "64dc06e33d674ca6b1391cffd0f41038",
+      "kind": "debrief",
+      "member": "b0c03cb4352b42a1901325243506de8a",
+      "status": "done",
+      "round": 1,
+      "error": null,
+      "submitted_at": 1794094313.842361,
+      "completed_at": 1794094315.6934242,
+      "timing": {
+        "total_ms": 1850.7,
+        "local_queue_ms": 0.0,
+        "provider_roundtrip_ms": 1850.6
+      },
+      "question": "",
+      "review": false,
+      "model_info": {
+        "provider": "vertex",
+        "model": "gemini-3.8-flash",
+        "thinking_level": "LOW",
+        "usage": {
+          "promptTokenCount": 103,
+          "candidatesTokenCount": 10,
+          "totalTokenCount": 227,
+          "thoughtsTokenCount": 114
+        }
+      }
+    }
+  ],
+  "suggestions": [
+    {
+      "kind": "tracker",
+      "text": "Extracted spans require human review.",
+      "spans": [
+        {
+          "label": "person",
+          "start": 0,
+          "end": 4,
+          "text": "Jeff",
+          "raw_score": null
+        },
+        {
+          "label": "action",
+          "start": 10,
+          "end": 17,
+          "text": "call IT",
+          "raw_score": null
+        },
+        {
+          "label": "deadline",
+          "start": 25,
+          "end": 29,
+          "text": "3 PM",
+          "raw_score": null
+        }
+      ],
+      "contribution_id": "e8",
+      "classification": "mixed",
+      "id": "c7722103dd4146b69092825841118b67",
+      "round": 1,
+      "at": 1794094265.250912,
+      "question": "",
+      "review": false
+    },
+    {
+      "kind": "facilitator",
+      "text": "Three finance laptops display ransom demands. The finance integration account has attempted an unusual customer export. Checkout works, but the investigation is incomplete. A promotion begins at 15:00. Choose the first coordinated action.",
+      "evidence_ids": [
+        "current_situation"
+      ],
+      "note": "Gemini selected released evidence. Wording is authored, not invented.",
+      "id": "695c4229a4684c1c9f39f5d1fe3fc0c3",
+      "round": 1,
+      "at": 1794094273.333837,
+      "question": "What do we know about the incident?",
+      "review": false
+    },
+    {
+      "kind": "debrief",
+      "text": "Round 1: The investigation boundary narrows. At least 160 customer records were exported before access was suspended. The incident is still under investigation. Reflection: Which facts are confirmed?",
+      "evidence_ids": [
+        "round_1"
+      ],
+      "note": "Gemini selected authored reflections linked to committed history. The full decision record remains authoritative.",
+      "id": "64dc06e33d674ca6b1391cffd0f41038",
+      "round": 1,
+      "at": 1794094315.693019,
+      "question": "",
+      "review": false
+    }
+  ],
+  "no_browser_claim": true
+}

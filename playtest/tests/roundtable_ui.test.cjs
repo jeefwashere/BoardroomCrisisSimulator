@@ -1,0 +1,157 @@
+/* Real UI handlers with a minimal DOM, without network or paid providers. */
+const {test}=require('node:test');
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
+const {webcrypto}=require('node:crypto');
+const source=fs.readFileSync(path.join(__dirname,'../static/roundtable.js'),'utf8');
+assert(source.includes('async function init()'));
+function harness(){
+ const nodes=new Map();
+ function node(id){if(!nodes.has(id))nodes.set(id,{textContent:'',value:'',children:[],files:[],pause(){},removeAttribute(name){delete this[name];},play(){return Promise.resolve();},replaceChildren(...children){this.children=children;},append(...children){this.children.push(...children);},prepend(...children){this.children.unshift(...children);},querySelectorAll(q){return this.children.flatMap(c=>[...(q==='button'&&c.onclick?[c]:[]),...(c.querySelectorAll?.(q)||[])]);},click(){}});return nodes.get(id);}
+ const ctx=vm.createContext({Blob,AbortController,crypto:webcrypto,console,Date,setInterval(){},setTimeout,clearTimeout,document:{getElementById:node,createElement:()=>node(Symbol())},window:{addEventListener(){}},sessionStorage:{getItem(){return null;},setItem(){}},URL:{createObjectURL(){return 'blob:test';},revokeObjectURL(){}},fetch(){throw Error('Unexpected network request');}});
+ const run=s=>vm.runInContext(s,ctx,{timeout:1000});
+ run(source.split('async function init()')[0]);
+ run(`bundle={code:'DEMO',test:true,seats:[{name:'A',token:'secret'},{name:'B',token:'b'},{name:'C',token:'c'}]};states=[{code:'DEMO',me:'a',host:'a',ceo:'a',phase:'lobby',speaker:'a',speaking:['a','b','c'],turn_number:1,server_time:100,received:Date.now(),members:[{id:'a',name:'A',role:'ceo',ready:false,connected:true},{id:'b',name:'B',role:'finance',ready:false,connected:true},{id:'c',name:'C',role:'technology',ready:false,connected:true}],can_start:false,start_blockers:['Everyone must be ready'],documents_ready:true,documents:[{id:'doc',title:'Test PDF',pages:2}],transcript:[],summary:{items:[]},decisions:[],jobs:[],suggestions:[]}];render();`);
+ return {ctx,run,node};
+}
+test('phase and CEO controls follow the server snapshot',()=>{
+ const {run,node}=harness();assert(node('start').disabled);assert(!node('allReady').disabled);assert(node('commit').disabled);
+ run(`states[0].phase='discussion';render();`);assert(!node('record').disabled);assert(!node('commit').disabled);assert(!node('facilitate').disabled);
+ run(`states[0].phase='preparation';render();`);assert(node('facilitate').disabled);assert(node('commit').disabled);
+ run(`states[0].phase='discussion';states[0].me='b';render();`);assert(node('facilitate').disabled);assert(node('commit').disabled);assert(node('record').disabled);
+ run(`states[0].phase='decision';states[0].me='a';render();`);assert(!node('facilitate').disabled);
+});
+test('pending decisions block ending and positive ties expose explicit CEO choices',()=>{
+ const {run,node}=harness();run(`states[0].phase='decision';states[0].decisions=[{id:'d1',problem:'Problem',proposal:'Act',status:'pending',ballot_count:3,tally:{approve:1,reject:1,abstain:1}}];render();`);
+ assert(node('end').disabled);const labels=node('decisions').children[0].children.at(-1).children.map(c=>c.textContent);assert(labels.includes('CEO tie: approve'));assert(labels.includes('CEO tie: reject'));
+ run(`states[0].decisions[0].status='approved';render();`);assert(!node('end').disabled);
+});
+test('late transcription keeps captured auth and cannot replace a new room editor',async()=>{
+ const {ctx,run,node}=harness();let release,auth;ctx.fetch=(_,options)=>{auth=options.headers.Authorization;return new Promise(r=>release=r);};
+ run(`states[0].phase='discussion';clip=new Blob(['wav']);clipOwner=context();$('message').value='keep';health=async()=>{};`);
+ const pending=run(`$('transcribe').onclick()`);assert(run('busy'));assert(node('join').disabled);
+ run(`bundle={code:'NEW',seats:[{token:'new'}]};`);release({ok:true,json:async()=>({text:'stale text'})});await pending;
+ assert.equal(auth,'Bearer secret');assert.equal(node('message').value,'keep');assert.equal(run('source'),'typed');
+});
+test('partial summary coverage is visible and does not hide the transcript',()=>{
+ const {run,node}=harness();run(`states[0].transcript=[{id:'e1',member:'a',text:'First contribution',source:'typed'}];states[0].summary={items:[{source_ids:['e1'],text:'First contribution',speaker:'A'}],partial:true};render();`);
+ assert(node('summary').children[0].textContent.includes('Partial coverage'));assert.equal(node('transcript').children.length,1);
+});
+
+test('recorded playback finishes before a separate trusted caption commit',async()=>{
+ const {run,node,ctx}=harness();const calls=[];
+ ctx.fetch=async(url,options)=>{calls.push({url,auth:options.headers.Authorization,body:options.body});return {ok:true,json:async()=>({id:'lease'}),blob:async()=>new Blob(['fixed audio'])};};
+ run(`states[0].phase='discussion';recordings=[{id:'fixed',seat_index:0,available:true,text:'Known caption'}];refresh=async()=>{};`);
+ const pending=run('playRecordedTurn()');await new Promise(resolve=>setImmediate(resolve));
+ assert(!calls.some(c=>c.url.endsWith('/complete')));node('recordedAudio').onended();assert.equal(await pending,true);
+ assert(run('completedPlayback!==null'));assert(!calls.some(c=>c.url.endsWith('/complete')));
+ await run('commitRecordedTurn()');assert.equal(calls.filter(c=>c.url.endsWith('/complete')).length,1);assert(calls.every(c=>c.auth==='Bearer secret'));
+ assert(!calls.some(c=>c.url.includes('transcribe')||c.url.includes('/briefing')));
+});
+test('stopped pending recording cannot play or commit in a replacement room',async()=>{
+ const {run,ctx}=harness();let resolveLease;const calls=[];
+ ctx.fetch=(url,options)=>{calls.push({url,auth:options.headers.Authorization});if(url.endsWith('/play'))return new Promise(resolve=>resolveLease=resolve);return Promise.resolve({ok:true,json:async()=>({ok:true})});};
+ run(`states[0].phase='discussion';recordings=[{id:'fixed',seat_index:0,available:true}];`);
+ const pending=run('playRecordedTurn()');await run('stopTurnPlayback()');run(`bundle={code:'NEW',seats:[{token:'new'}]};`);
+ resolveLease({ok:true,json:async()=>({id:'old-lease'})});assert.equal(await pending,false);
+ assert(!calls.some(c=>c.url.includes('/audio/')||c.url.endsWith('/complete')));const stop=calls.find(c=>c.url.endsWith('/stop'));assert.equal(stop.auth,'Bearer secret');
+});
+test('decision and evaluation auto streams are marked before requests and never auto retry errors',async()=>{
+ const {run,ctx}=harness();ctx.requests=[];
+ run(`states[0].phase='decision';startPreparation=async(mode,kind,extra,owner)=>{requests.push({mode,kind,extra,token:owner.token});throw new Error('Provider unavailable');};`);
+ await run('automaticAgents()');await run('automaticAgents()');assert.equal(ctx.requests.length,1);assert.equal(ctx.requests[0].kind,'decision');
+ run(`states[0].decisions=[{id:'d1',status:'approved'}];`);await run('automaticAgents()');await run('automaticAgents()');assert.equal(ctx.requests.length,2);assert.equal(ctx.requests[1].kind,'evaluation');assert.equal(ctx.requests[1].extra.decision_id,'d1');assert.equal(ctx.requests[1].token,'secret');
+});
+
+test('each participant has manual turn controls and only the current speaker can play',async()=>{
+ const {run,node,ctx}=harness();ctx.plays=[];
+ run(`states[0].phase='discussion';states[0].speaker='b';states=[states[0],{...states[0],me:'b'},{...states[0],me:'c'}];recordings=[0,1,2].map(i=>({id:'clip'+i,seat_index:i,available:true,title:'Participant '+i}));playRecordedTurn=async()=>{plays.push(context().token);};render();`);
+ const cards=node('seats').children;assert.equal(cards.length,3);
+ const buttons=cards.map(card=>card.children.find(c=>c.className==='actions').children);
+ assert(buttons[0][0].disabled);assert(!buttons[1][0].disabled);assert(buttons[2][0].disabled);assert.equal(cards[1].children[1].textContent,'SPEAKING NOW');
+ assert.equal(ctx.plays.length,0);await buttons[1][0].onclick();assert.equal(ctx.plays.length,1);assert.equal(ctx.plays[0],'b');assert.equal(run('active'),1);
+ assert(!source.includes('autoTurns'));assert(!fs.readFileSync(path.join(__dirname,'../static/roundtable.html'),'utf8').includes('id="autoTurns"'));
+});
+test('unlimited health displays tracking without a false zero balance',async()=>{
+ const {run,node,ctx}=harness();ctx.fetch=async()=>({ok:true,json:async()=>({models:{model:'gemini',thinking_level:'LOW',budget:{unlimited:true,remaining_usd:null}},speech:{unlimited:true,remaining:null}})});
+ await run('health()');assert.equal(node('budget').textContent,'Usage tracking only · no app spending cap');assert(!node('budget').textContent.includes('$0'));
+});
+
+function fixedFixture(run){run(`states[0].phase='decision';states[0].fixed_scenario='T01';states[0].decisions=[{id:'t01_response',mode:'fixed_choice',problem:'Choose a response',status:'pending',ballot_count:1,voted_members:['a'],my_vote:'controlled_continuity',options:[{id:'controlled_continuity',label:'Controlled continuity',proposal:'Coordinate and verify'},{id:'technical_first',label:'Technical checks first',proposal:'Prioritize technical checks'},{id:'wait_for_director',label:'Wait for director',proposal:'Defer until contact'}]}];render();`);}
+test('consultation has a visible minute timer and CEO can finish it early',()=>{
+ const {run,node}=harness();run(`states[0].phase='consultation';states[0].deadline=160;states[0].received=Date.now();render();`);
+ assert.equal(node('phase').textContent,'One minute with live advisers');assert.equal(node('timer').textContent,'01:00');assert.equal(node('consultationNotice').hidden,false);assert(!node('skipConsultation').disabled);assert(!node('facilitate').disabled);
+ run(`states[0].me='b';render();`);assert(node('skipConsultation').disabled);assert(node('facilitate').disabled);
+});
+test('fixed ballot hides custom forms and sends explicit option votes with voter status',async()=>{
+ const {run,node,ctx}=harness();fixedFixture(run);ctx.commands=[];run(`command=async(action,data)=>commands.push({action,data});`);
+ assert(node('customDecision').hidden);const decision=node('decisions').children[0],options=decision.children.find(c=>c.className==='fixed-options');assert.equal(options.children.length,3);
+ assert(decision.children.find(c=>c.className==='voter-status').children[0].textContent.includes('voted'));
+ await options.children[1].children.at(-1).onclick();assert.equal(ctx.commands.length,0);
+ await node('decisions').children[0].children.find(c=>c.className==='vote-confirmation').children.at(-1).onclick();assert.equal(ctx.commands[0].action,'vote_option');assert.equal(ctx.commands[0].data.option_id,'technical_first');
+ const buttons=decision.children.at(-1).children;assert(buttons[0].disabled);assert(!decision.children.some(c=>c.textContent==='approve'));
+});
+test('fixed option ties offer only tied leaders to the CEO',async()=>{
+ const {run,node,ctx}=harness();fixedFixture(run);ctx.commands=[];run(`command=async(action,data)=>commands.push({action,data});states[0].decisions[0].ballot_count=3;states[0].decisions[0].tally={controlled_continuity:1,technical_first:1,wait_for_director:1};render();`);
+ const actions=node('decisions').children[0].children.at(-1).children.filter(c=>c.onclick);assert.equal(actions.length,3);await actions[1].onclick();assert.equal(ctx.commands[0].action,'commit_decision');assert.equal(ctx.commands[0].data.option_id,'technical_first');
+});
+test('fixed decision automatically uses the recorded guide once then live evaluation',async()=>{
+ const {run,ctx}=harness();fixedFixture(run);ctx.guides=[];ctx.generated=[];
+ run(`playDecisionGuide=async owner=>guides.push(owner.token);startPreparation=async(mode,kind,extra)=>generated.push({kind,extra});`);
+ await run('automaticAgents()');await run('automaticAgents()');assert.equal(ctx.guides.length,1);assert.equal(ctx.generated.length,0);
+ run(`states[0].decisions[0].status='approved';states[0].decisions[0].option_id='technical_first';`);await run('automaticAgents()');assert.equal(ctx.generated.length,1);assert.equal(ctx.generated[0].kind,'evaluation');assert.equal(ctx.generated[0].extra.decision_id,'t01_response');
+});
+test('recorded decision guide respects text only and makes no speech or vote call',async()=>{
+ const {run,ctx,node}=harness();fixedFixture(run);const calls=[];ctx.fetch=async(url)=>{calls.push(url);return {ok:true,json:async()=>({decision_id:'t01_response',text:'Read the three responses.',audio_url:'/api/roundtable/decision-prompt/audio'})};};
+ assert.equal(await run('playDecisionGuide()'),true);assert.equal(node('decisionGuideText').textContent,'Read the three responses.');assert.deepEqual(calls,['/api/roundtable/decision-prompt']);
+});
+test('stopping a pending guide prevents stale playback and releases captured room lease',async()=>{
+ const {run,ctx}=harness();fixedFixture(run);const calls=[];let release;
+ ctx.fetch=(url,options)=>{calls.push({url,auth:options.headers.Authorization});if(url.endsWith('/audio'))return new Promise(resolve=>release=resolve);return Promise.resolve({ok:true,json:async()=>({decision_id:'t01_response',text:'Guide',audio_url:'/api/roundtable/decision-prompt/audio'})});};
+ run(`$('voiceOn').checked=true;`);const playing=run('playDecisionGuide()');await new Promise(resolve=>setImmediate(resolve));await run('stopDecisionGuide()');run(`bundle={code:'NEW',seats:[{token:'new'}]};`);release({ok:true,blob:async()=>new Blob(['audio'])});assert.equal(await playing,false);
+ assert(calls.filter(c=>c.url.endsWith('/stop')).every(c=>c.auth==='Bearer secret'));assert(!calls.some(c=>c.url.includes('/command/')||c.url.includes('/briefing')));
+});
+
+test('recorded guide replay is enabled only for the CEO seat',()=>{
+ const {run,node}=harness();fixedFixture(run);assert(!node('playDecisionGuide').disabled);
+ run(`states[0].me='b';render();`);assert(node('playDecisionGuide').disabled);
+});
+
+
+test('named voting prompts advance test seats only after explicit confirmation',async()=>{
+ const {run,node,ctx}=harness();fixedFixture(run);ctx.commands=[];
+ run(`states[0].decisions[0].ballot_count=0;states[0].decisions[0].voted_members=[];states[0].decisions[0].my_vote=null;states[0].decisions[0].next_voter='a';states=['a','b','c'].map(id=>({...states[0],me:id,decisions:[{...states[0].decisions[0]}]}));active=2;render();
+ command=async(action,data,owner)=>{commands.push({action,data,token:owner.token});const mid=states[owner.seat].me;for(const own of states){const d=own.decisions[0];d.voted_members=[...new Set([...d.voted_members,mid])];d.ballot_count=d.voted_members.length;d.next_voter=['a','b','c'].find(id=>!d.voted_members.includes(id))||null;if(own.me===mid)d.my_vote=data.option_id;}};`);
+ assert.equal(run('active'),0);assert(node('votePrompt').textContent.startsWith('A, which response'));assert.equal(ctx.commands.length,0);
+ for(const [seat,name,token] of [[0,'A','secret'],[1,'B','b'],[2,'C','c']]){
+  assert.equal(run('active'),seat);assert(node('votePrompt').textContent.startsWith(name+', which response'));
+  let card=node('decisions').children[0],confirm=card.children.find(c=>c.className==='vote-confirmation').children.at(-1);assert(confirm.disabled);
+  const options=card.children.find(c=>c.className==='fixed-options');await options.children[0].children.at(-1).onclick();
+  assert.equal(ctx.commands.length,seat);assert.equal(run('active'),seat);
+  confirm=node('decisions').children[0].children.find(c=>c.className==='vote-confirmation').children.at(-1);assert(!confirm.disabled);await confirm.onclick();
+  assert.equal(ctx.commands.length,seat+1);assert.equal(ctx.commands[seat].token,token);
+ }
+ assert.equal(run('active'),0);assert(node('votePrompt').textContent.includes('Every member has voted'));
+});
+
+test('other members cannot select or confirm a first ballot before their turn',()=>{
+ const {run,node}=harness();fixedFixture(run);run(`bundle.test=false;states[0].me='c';states[0].decisions[0].my_vote=null;states[0].decisions[0].next_voter='b';render();`);
+ const card=node('decisions').children[0];assert(node('votePrompt').textContent.startsWith('B, which response'));
+ assert(card.children.find(c=>c.className==='fixed-options').children.every(c=>c.children.at(-1).disabled));
+ assert(card.children.find(c=>c.className==='vote-confirmation').children.at(-1).disabled);
+});
+
+test('single member sessions never switch identities and stale selection does not cast a ballot',async()=>{
+ const {run,node,ctx}=harness();fixedFixture(run);ctx.commands=[];
+ run(`bundle.test=false;command=async(...args)=>commands.push(args);render();`);
+ const staleButton=node('decisions').children[0].children.find(c=>c.className==='fixed-options').children[0].children.at(-1);
+ run(`bundle={code:'NEW',seats:[{token:'new'}]};`);await staleButton.onclick();assert.equal(ctx.commands.length,0);assert(node('notice').textContent.includes('changed'));
+});
+
+
+test('a stale confirmation cannot submit a different selected member ballot',async()=>{
+ const {run,node,ctx}=harness();fixedFixture(run);ctx.commands=[];run(`command=async(...args)=>commands.push(args);`);
+ await node('decisions').children[0].children.find(c=>c.className==='fixed-options').children[0].children.at(-1).onclick();
+ const confirm=node('decisions').children[0].children.find(c=>c.className==='vote-confirmation').children.at(-1);
+ run(`states.push({...states[0],me:'b',decisions:[{...states[0].decisions[0],my_vote:null,next_voter:'b'}]});active=1;voteDrafts[voteDraftKey(states[1].decisions[0],states[1])]='technical_first';`);
+ await confirm.onclick();assert.equal(ctx.commands.length,0);assert(node('notice').textContent.includes('changed'));
+});

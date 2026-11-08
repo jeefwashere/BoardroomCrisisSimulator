@@ -1,0 +1,24 @@
+{
+  "tts_ms": 327.0,
+  "tts_cached": true,
+  "stt_ms": 468.6,
+  "audio_seconds": 3.07,
+  "captions": "Who owns the incident and the continuity assumptions?",
+  "transcript": "Who owns the incident and the continuity assumptions?",
+  "word_error_rate": 0.0,
+  "audio_may_be_clipped": false,
+  "generated_audio_bytes": 50198,
+  "reserved_this_test": 400,
+  "budget": {
+    "cap": 10000,
+    "reserved": 1690,
+    "remaining": 8310,
+    "unit": "credits",
+    "note": "Conservative reservations, not an exact provider invoice. Failed calls stay reserved."
+  },
+  "committed_only_after_separate_command": true,
+  "input": "Synthetic agent reply spoken by ElevenLabs, not human microphone audio.",
+  "browser_playback_verified": false,
+  "pricing_source": "https://elevenlabs.io/pricing",
+  "reservation_rates": "1 credit per TTS character, 400 per short transcription; failed requests remain reserved."
+}

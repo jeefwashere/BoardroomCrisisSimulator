@@ -1,0 +1,270 @@
+{
+  "source": "Rehearsal_ElevenLabs_Local_Agents (1).md",
+  "source_sha256": "d32411b711950e5f22de028d1527aad88bd50bbab4aa47259e4e95ad14278815",
+  "common_rules": "- Three human roles: Arjun = chair; Jeff = treasurer; Ricardo = service-continuity board member. Replace display names as needed while keeping stable participant IDs.\n- A board action needs two explicit affirmative votes from eligible, non-conflicted members and a chair confirmation in the application.\n- A conflicted participant may supply requested facts but cannot vote on or approve the matter involving their conflict.\n- The chair has one vote and no special tiebreak power in these fixtures.\n- A participant's proposal or verbal assent is evidence for a draft. The server records the actual votes and authorized confirmation.\n- “By exercise minute 7” is a scenario deadline; it is not a legal or insurance deadline.\n- Unknown information stays unknown. Requests outside the authored scenario receive “That information is not available in this exercise” and can be recorded for follow-up.\n- Real sources are preparation/reference material. Only released fictional documents and events establish facts about the simulated organization.\n- No fixture needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.",
+  "packs": [
+    {
+      "id": "T01",
+      "title": "Service outage and unavailable director",
+      "documents": [
+        {
+          "id": "T01-ORG",
+          "title": "Cedar Bridge Community Services",
+          "text": "Fictional organization for software testing.\nThe organization coordinates community appointments.\nAnika Rao is executive director. Morgan Ellis is service manager.\nThe board exercise uses the common three-person voting rules.\nIT support is an external supplier and cannot authorize board spending.",
+          "clauses": [
+            {
+              "id": "T01-ORG",
+              "text": "Fictional organization for software testing. The organization coordinates community appointments. Anika Rao is executive director. Morgan Ellis is service manager. The board exercise uses the common three-person voting rules. IT support is an external supplier and cannot authorize board spending."
+            }
+          ]
+        },
+        {
+          "id": "T01-BCP",
+          "title": "Continuity plan, version 1",
+          "text": "[BCP-1] The executive director is the incident coordinator.\nNo alternate incident coordinator is named in this plan.\n[BCP-2] The board may appoint an interim incident coordinator\nusing the exercise voting procedure.\n[BCP-3] The service manager can operate an approved paper\nappointment process if the board authorizes its activation.\n[BCP-4] IT support must verify backup usability, recovery\ndependencies and a restoration estimate before the organization\npromises a service-restoration time.\n[BCP-5] The communications lead must distinguish confirmed facts,\nunknowns and the time of the next public update.\nNo alternate communications channel is documented.",
+          "clauses": [
+            {
+              "id": "T01-BCP:BCP-1",
+              "text": "The executive director is the incident coordinator. No alternate incident coordinator is named in this plan."
+            },
+            {
+              "id": "T01-BCP:BCP-2",
+              "text": "The board may appoint an interim incident coordinator using the exercise voting procedure."
+            },
+            {
+              "id": "T01-BCP:BCP-3",
+              "text": "The service manager can operate an approved paper appointment process if the board authorizes its activation."
+            },
+            {
+              "id": "T01-BCP:BCP-4",
+              "text": "IT support must verify backup usability, recovery dependencies and a restoration estimate before the organization promises a service-restoration time."
+            },
+            {
+              "id": "T01-BCP:BCP-5",
+              "text": "The communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No alternate communications channel is documented."
+            }
+          ]
+        },
+        {
+          "id": "T01-POLICY",
+          "title": "Fictional insurance exercise excerpt",
+          "text": "[POLICY-1] On contact, the simulated insurer requests an incident\ncontact, an event timeline and a staff-training record.\n[POLICY-2] A missing training record means evidence is outstanding.\nThis excerpt does not determine whether coverage is valid or denied.",
+          "clauses": [
+            {
+              "id": "T01-POLICY:POLICY-1",
+              "text": "On contact, the simulated insurer requests an incident contact, an event timeline and a staff-training record."
+            },
+            {
+              "id": "T01-POLICY:POLICY-2",
+              "text": "A missing training record means evidence is outstanding. This excerpt does not determine whether coverage is valid or denied."
+            }
+          ]
+        },
+        {
+          "id": "T01-STATUS",
+          "title": "Opening update",
+          "text": "[STATUS-1] Appointment software is unavailable.\nIT has reported suspicious account activity.\n[STATUS-2] No data disclosure has been confirmed.\n[STATUS-3] Backup copies are listed in the inventory, but their\nrestorability has not been checked during this incident.",
+          "clauses": [
+            {
+              "id": "T01-STATUS:STATUS-1",
+              "text": "Appointment software is unavailable. IT has reported suspicious account activity."
+            },
+            {
+              "id": "T01-STATUS:STATUS-2",
+              "text": "No data disclosure has been confirmed."
+            },
+            {
+              "id": "T01-STATUS:STATUS-3",
+              "text": "Backup copies are listed in the inventory, but their restorability has not been checked during this incident."
+            }
+          ]
+        }
+      ],
+      "status": "preparation_reference_only"
+    },
+    {
+      "id": "T02",
+      "title": "A fundraising allegation reaches the media",
+      "documents": [
+        {
+          "id": "T02-ORG",
+          "title": "Harbour Lantern Community Fund",
+          "text": "Fictional organization for software testing.\nThe organization raises money for community meal programs.\nFor this fixture, Jeff is treasurer and also owns Bright Print,\na commercial supplier. This declared relationship is fictional.",
+          "clauses": [
+            {
+              "id": "T02-ORG",
+              "text": "Fictional organization for software testing. The organization raises money for community meal programs. For this fixture, Jeff is treasurer and also owns Bright Print, a commercial supplier. This declared relationship is fictional."
+            }
+          ]
+        },
+        {
+          "id": "T02-GOV",
+          "title": "Exercise governance rules",
+          "text": "[GOV-1] The common three-person rules apply.\n[GOV-2] Jeff must not vote on or approve decisions concerning\nBright Print or the review of its transactions.\nArjun and Ricardo can provide the two eligible votes.\n[GOV-3] Relevant contracts, invoices and approval records must be\npreserved. A reviewer without the supplier conflict may be appointed.",
+          "clauses": [
+            {
+              "id": "T02-GOV:GOV-1",
+              "text": "The common three-person rules apply."
+            },
+            {
+              "id": "T02-GOV:GOV-2",
+              "text": "Jeff must not vote on or approve decisions concerning Bright Print or the review of its transactions. Arjun and Ricardo can provide the two eligible votes."
+            },
+            {
+              "id": "T02-GOV:GOV-3",
+              "text": "Relevant contracts, invoices and approval records must be preserved. A reviewer without the supplier conflict may be appointed."
+            }
+          ]
+        },
+        {
+          "id": "T02-CAMPAIGN",
+          "title": "Approved campaign wording",
+          "text": "[CAMPAIGN-1] Net proceeds, after event costs, support meal programs.\n[CAMPAIGN-2] The approved campaign does not promise that all gross\nticket revenue is donated directly to meal programs.",
+          "clauses": [
+            {
+              "id": "T02-CAMPAIGN:CAMPAIGN-1",
+              "text": "Net proceeds, after event costs, support meal programs."
+            },
+            {
+              "id": "T02-CAMPAIGN:CAMPAIGN-2",
+              "text": "The approved campaign does not promise that all gross ticket revenue is donated directly to meal programs."
+            }
+          ]
+        },
+        {
+          "id": "T02-COMMS",
+          "title": "Communication procedure",
+          "text": "[COMMS-1] The board designates a spokesperson.\n[COMMS-2] Statements separate verified facts from allegations,\nidentify what is being checked and provide a next-update time.\n[COMMS-3] Do not disclose private donor records in a public reply.",
+          "clauses": [
+            {
+              "id": "T02-COMMS:COMMS-1",
+              "text": "The board designates a spokesperson."
+            },
+            {
+              "id": "T02-COMMS:COMMS-2",
+              "text": "Statements separate verified facts from allegations, identify what is being checked and provide a next-update time."
+            },
+            {
+              "id": "T02-COMMS:COMMS-3",
+              "text": "Do not disclose private donor records in a public reply."
+            }
+          ]
+        },
+        {
+          "id": "T02-QUERY",
+          "title": "Journalist's opening inquiry",
+          "text": "[QUERY-1] A journalist asks whether ticket money was paid to a\nboard member's company. The inquiry includes a social-media image\nclaiming that every dollar would go directly to meals.\n[QUERY-2] Authenticity and context of the image are not yet verified.",
+          "clauses": [
+            {
+              "id": "T02-QUERY:QUERY-1",
+              "text": "A journalist asks whether ticket money was paid to a board member's company. The inquiry includes a social-media image claiming that every dollar would go directly to meals."
+            },
+            {
+              "id": "T02-QUERY:QUERY-2",
+              "text": "Authenticity and context of the image are not yet verified."
+            }
+          ]
+        }
+      ],
+      "status": "preparation_reference_only"
+    },
+    {
+      "id": "T03",
+      "title": "Two leaders unavailable before payroll",
+      "documents": [
+        {
+          "id": "T03-ORG",
+          "title": "Maple Reach Neighbourhood Services",
+          "text": "Fictional organization for software testing.\nAnika is executive director. Morgan is deputy director.\nPriya is program director. Sam is finance manager.\nThe board uses the common three-person exercise rules.",
+          "clauses": [
+            {
+              "id": "T03-ORG",
+              "text": "Fictional organization for software testing. Anika is executive director. Morgan is deputy director. Priya is program director. Sam is finance manager. The board uses the common three-person exercise rules."
+            }
+          ]
+        },
+        {
+          "id": "T03-SUCCESSION",
+          "title": "Emergency leadership plan",
+          "text": "[SUCCESSION-1] The board may activate a temporary appointment\nthrough its exercise voting procedure.\n[SUCCESSION-2] The order of candidates is Morgan, then Priya.\nIf neither is available, the board must choose and document an\nalternative; this document supplies no automatic third candidate.\n[SUCCESSION-3] Appointment requires acceptance by the candidate.\n[SUCCESSION-4] An acting director can approve ordinary operational\nspending up to CAD 2,000. Larger commitments require board approval.\n[SUCCESSION-5] The board reviews the temporary arrangement on the\nnext business day. No owner for that review is specified.\n[SUCCESSION-6] No handover or cross-training record is attached.",
+          "clauses": [
+            {
+              "id": "T03-SUCCESSION:SUCCESSION-1",
+              "text": "The board may activate a temporary appointment through its exercise voting procedure."
+            },
+            {
+              "id": "T03-SUCCESSION:SUCCESSION-2",
+              "text": "The order of candidates is Morgan, then Priya. If neither is available, the board must choose and document an alternative; this document supplies no automatic third candidate."
+            },
+            {
+              "id": "T03-SUCCESSION:SUCCESSION-3",
+              "text": "Appointment requires acceptance by the candidate."
+            },
+            {
+              "id": "T03-SUCCESSION:SUCCESSION-4",
+              "text": "An acting director can approve ordinary operational spending up to CAD 2,000. Larger commitments require board approval."
+            },
+            {
+              "id": "T03-SUCCESSION:SUCCESSION-5",
+              "text": "The board reviews the temporary arrangement on the next business day. No owner for that review is specified."
+            },
+            {
+              "id": "T03-SUCCESSION:SUCCESSION-6",
+              "text": "No handover or cross-training record is attached."
+            }
+          ]
+        },
+        {
+          "id": "T03-ACCESS",
+          "title": "Payment access rules",
+          "text": "[ACCESS-1] Payroll release needs two distinct authorized staff\napprovals: Sam and either the ED or an approved acting director.\n[ACCESS-2] Appointment alone does not provision payment-system\naccess. Finance must submit the recorded appointment to the provider.\n[ACCESS-3] Using another person's credentials is not an allowed\nsubstitute. No emergency provider contact is listed in this document.",
+          "clauses": [
+            {
+              "id": "T03-ACCESS:ACCESS-1",
+              "text": "Payroll release needs two distinct authorized staff approvals: Sam and either the ED or an approved acting director."
+            },
+            {
+              "id": "T03-ACCESS:ACCESS-2",
+              "text": "Appointment alone does not provision payment-system access. Finance must submit the recorded appointment to the provider."
+            },
+            {
+              "id": "T03-ACCESS:ACCESS-3",
+              "text": "Using another person's credentials is not an allowed substitute. No emergency provider contact is listed in this document."
+            }
+          ]
+        },
+        {
+          "id": "T03-COMMS",
+          "title": "Temporary leadership notice",
+          "text": "[COMMS-1] The board must identify who tells staff and key partners\nabout the temporary arrangement. No named owner is supplied.",
+          "clauses": [
+            {
+              "id": "T03-COMMS:COMMS-1",
+              "text": "The board must identify who tells staff and key partners about the temporary arrangement. No named owner is supplied."
+            }
+          ]
+        },
+        {
+          "id": "T03-STATUS",
+          "title": "Opening update",
+          "text": "[STATUS-1] The executive director is unexpectedly unavailable today.\n[STATUS-2] Payroll authorization is needed by exercise minute 9.\n[STATUS-3] Morgan's availability and Priya's availability have not\nyet been confirmed.",
+          "clauses": [
+            {
+              "id": "T03-STATUS:STATUS-1",
+              "text": "The executive director is unexpectedly unavailable today."
+            },
+            {
+              "id": "T03-STATUS:STATUS-2",
+              "text": "Payroll authorization is needed by exercise minute 9."
+            },
+            {
+              "id": "T03-STATUS:STATUS-3",
+              "text": "Morgan's availability and Priya's availability have not yet been confirmed."
+            }
+          ]
+        }
+      ],
+      "status": "preparation_reference_only"
+    }
+  ]
+}

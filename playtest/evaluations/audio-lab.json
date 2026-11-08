@@ -1,0 +1,385 @@
+{
+  "room": "Z8AWXM",
+  "browser_playback_verified": false,
+  "method": "Real HTTP clients, recorded MP3 fetch and actual server timers. Not browser or microphone QA.",
+  "before": {
+    "ok": true,
+    "storage": "single process memory",
+    "models": {
+      "online": true,
+      "verified": false,
+      "provider": "Google Vertex AI",
+      "model": "gemini-3.8-flash",
+      "thinking_level": "LOW",
+      "name": "Gemini 3.8 Flash \u00b7 LOW",
+      "note": "Configured; live response not yet verified",
+      "budget": {
+        "cap_usd": 2.0,
+        "reserved_usd": 1.05,
+        "remaining_usd": 0.95,
+        "attempts": 21,
+        "note": "Local test reservations, including failures; excludes other account spending."
+      }
+    },
+    "test_name_rejoin": true,
+    "speech": {
+      "cap": 10000,
+      "reserved": 4182,
+      "remaining": 5818,
+      "unit": "credits",
+      "note": "Conservative reservations, not an exact provider invoice. Failed calls stay reserved."
+    },
+    "speech_configured": true
+  },
+  "replayed": [
+    "discussion_owner",
+    "discussion_containment",
+    "discussion_public_update",
+    "discussion_backup",
+    "discussion_owner_unknown",
+    "discussion_deadline",
+    "discussion_disagree",
+    "discussion_reconsider",
+    "discussion_no_claim",
+    "discussion_handoff",
+    "discussion_condition",
+    "discussion_question",
+    "facilitator_open",
+    "facilitator_clarify",
+    "facilitator_quiet",
+    "facilitator_tradeoff",
+    "facilitator_summarize",
+    "facilitator_review",
+    "it_opening",
+    "it_preserve",
+    "it_dependencies",
+    "it_scope",
+    "journalist_confirmed",
+    "journalist_customers",
+    "journalist_update",
+    "journalist_uncertainty",
+    "control_handoff",
+    "control_wait",
+    "control_vote",
+    "control_review_text",
+    "reference_t01_backup",
+    "reference_t01_coverage",
+    "reference_t02_proceeds",
+    "reference_t02_approval",
+    "reference_t03_access",
+    "reference_t03_available"
+  ],
+  "transcripts": [
+    {
+      "clip_id": "discussion_owner",
+      "expected": "Jeff will call IT before three PM. Is the backup verified?",
+      "actual": "Jeff will call it before 3 PM. Is the backup verified?",
+      "normalized_exact": true,
+      "total_ms": 1074.6,
+      "provisional_verified": true
+    },
+    {
+      "clip_id": "discussion_containment",
+      "expected": "Preserve the logs and isolate the affected finance device.",
+      "actual": "Preserve the logs and isolate the affected finance device",
+      "normalized_exact": true,
+      "total_ms": 674.4,
+      "provisional_verified": true
+    },
+    {
+      "clip_id": "discussion_public_update",
+      "expected": "Separate confirmed facts from unknowns before a public update.",
+      "actual": "Separate confirmed facts from unknowns before a public update",
+      "normalized_exact": true,
+      "total_ms": 715.1,
+      "provisional_verified": true
+    }
+  ],
+  "jobs": [
+    {
+      "job": {
+        "id": "950e8c96c01a428d90f387a73c005957",
+        "kind": "tracker",
+        "member": "bd9b0bcbd6da4f8eb1313392548f9ff8",
+        "status": "done",
+        "round": 1,
+        "error": null,
+        "submitted_at": 1794095468.562785,
+        "completed_at": 1794095471.348072,
+        "timing": {
+          "total_ms": 2445.9,
+          "local_queue_ms": 0.1,
+          "provider_roundtrip_ms": 2445.8
+        },
+        "question": "",
+        "review": false,
+        "model_info": {
+          "provider": "vertex",
+          "model": "gemini-3.8-flash",
+          "thinking_level": "LOW",
+          "usage": {
+            "promptTokenCount": 109,
+            "candidatesTokenCount": 38,
+            "totalTokenCount": 147
+          }
+        }
+      },
+      "reply": {
+        "kind": "tracker",
+        "text": "Extracted spans require human review.",
+        "spans": [
+          {
+            "label": "person",
+            "start": 0,
+            "end": 4,
+            "text": "Jeff",
+            "raw_score": null
+          },
+          {
+            "label": "action",
+            "start": 5,
+            "end": 17,
+            "text": "will call it",
+            "raw_score": null
+          },
+          {
+            "label": "deadline",
+            "start": 18,
+            "end": 29,
+            "text": "before 3 PM",
+            "raw_score": null
+          }
+        ],
+        "contribution_id": "e82",
+        "classification": "mixed",
+        "id": "950e8c96c01a428d90f387a73c005957",
+        "round": 1,
+        "at": 1794095471.008617,
+        "question": "",
+        "review": false
+      }
+    },
+    {
+      "job": {
+        "id": "93781c7e958945308691b28fdd476b67",
+        "kind": "facilitator",
+        "member": "bd9b0bcbd6da4f8eb1313392548f9ff8",
+        "status": "done",
+        "round": 1,
+        "error": null,
+        "submitted_at": 1794095471.926399,
+        "completed_at": 1794095473.5900118,
+        "timing": {
+          "total_ms": 1662.9,
+          "local_queue_ms": 0.3,
+          "provider_roundtrip_ms": 1662.6
+        },
+        "question": "What consequence was recorded in decision_1?",
+        "review": true,
+        "model_info": {
+          "provider": "vertex",
+          "model": "gemini-3.8-flash",
+          "thinking_level": "LOW",
+          "usage": {
+            "promptTokenCount": 233,
+            "candidatesTokenCount": 10,
+            "totalTokenCount": 243
+          }
+        }
+      },
+      "reply": {
+        "kind": "facilitator",
+        "text": "The investigation boundary narrows. At least 160 customer records were exported before access was suspended. The incident is still under investigation.",
+        "evidence_ids": [
+          "decision_1"
+        ],
+        "note": "Gemini selected released evidence. Wording is authored, not invented.",
+        "id": "93781c7e958945308691b28fdd476b67",
+        "round": 1,
+        "at": 1794095473.589273,
+        "question": "What consequence was recorded in decision_1?",
+        "review": true
+      }
+    },
+    {
+      "job": {
+        "id": "6af36c0e415546b0bad878c8cb3862bc",
+        "kind": "it",
+        "member": "bd9b0bcbd6da4f8eb1313392548f9ff8",
+        "status": "done",
+        "round": 1,
+        "error": null,
+        "submitted_at": 1794095471.9284108,
+        "completed_at": 1794095473.935657,
+        "timing": {
+          "total_ms": 2002.5,
+          "local_queue_ms": 9.5,
+          "provider_roundtrip_ms": 1993.0
+        },
+        "question": "What consequence was recorded in decision_1?",
+        "review": true,
+        "model_info": {
+          "provider": "vertex",
+          "model": "gemini-3.8-flash",
+          "thinking_level": "LOW",
+          "usage": {
+            "promptTokenCount": 233,
+            "candidatesTokenCount": 10,
+            "totalTokenCount": 243
+          }
+        }
+      },
+      "reply": {
+        "kind": "it",
+        "text": "The investigation boundary narrows. At least 160 customer records were exported before access was suspended. The incident is still under investigation.",
+        "evidence_ids": [
+          "decision_1"
+        ],
+        "note": "Gemini selected released evidence. Wording is authored, not invented.",
+        "id": "6af36c0e415546b0bad878c8cb3862bc",
+        "round": 1,
+        "at": 1794095473.9306371,
+        "question": "What consequence was recorded in decision_1?",
+        "review": true
+      }
+    },
+    {
+      "job": {
+        "id": "3523b090e2fe41b68b949f45162772e7",
+        "kind": "journalist",
+        "member": "bd9b0bcbd6da4f8eb1313392548f9ff8",
+        "status": "done",
+        "round": 1,
+        "error": null,
+        "submitted_at": 1794095471.9609752,
+        "completed_at": 1794095474.415721,
+        "timing": {
+          "total_ms": 2449.2,
+          "local_queue_ms": 13.8,
+          "provider_roundtrip_ms": 2435.4
+        },
+        "question": "What consequence was recorded in decision_1?",
+        "review": true,
+        "model_info": {
+          "provider": "vertex",
+          "model": "gemini-3.8-flash",
+          "thinking_level": "LOW",
+          "usage": {
+            "promptTokenCount": 233,
+            "candidatesTokenCount": 9,
+            "totalTokenCount": 242
+          }
+        }
+      },
+      "reply": {
+        "kind": "journalist",
+        "text": "The investigation boundary narrows. At least 160 customer records were exported before access was suspended. The incident is still under investigation.",
+        "evidence_ids": [
+          "decision_1"
+        ],
+        "note": "Gemini selected released evidence. Wording is authored, not invented.",
+        "id": "3523b090e2fe41b68b949f45162772e7",
+        "round": 1,
+        "at": 1794095474.4101388,
+        "question": "What consequence was recorded in decision_1?",
+        "review": true
+      }
+    }
+  ],
+  "free_replay_verified": true,
+  "round": {
+    "elapsed_seconds": 90.19,
+    "contributions": [
+      {
+        "id": "e82",
+        "type": "contribution",
+        "at": 1794095389.586279,
+        "member": "bd9b0bcbd6da4f8eb1313392548f9ff8",
+        "text": "Jeff will call it before 3 PM. Is the backup verified?",
+        "source": "speech",
+        "round": 1
+      },
+      {
+        "id": "e87",
+        "type": "contribution",
+        "at": 1794095390.560917,
+        "member": "52220de43b2d487fbffdb39545b03855",
+        "text": "Preserve the logs and isolate the affected finance device",
+        "source": "speech",
+        "round": 1
+      },
+      {
+        "id": "e92",
+        "type": "contribution",
+        "at": 1794095391.661459,
+        "member": "506a1bdef96e448ebe987c14436922a0",
+        "text": "Separate confirmed facts from unknowns before a public update",
+        "source": "speech",
+        "round": 1
+      }
+    ],
+    "history": [
+      {
+        "round": 1,
+        "node": "containment",
+        "option_id": "contain_targeted",
+        "outcome_id": "targeted_containment",
+        "summary": "The investigation boundary narrows. At least 160 customer records were exported before access was suspended. The incident is still under investigation.",
+        "metrics_before": {
+          "service_continuity": 60,
+          "data_protection": 60,
+          "public_trust": 60
+        },
+        "metrics_after": {
+          "service_continuity": 55,
+          "data_protection": 80,
+          "public_trust": 60
+        },
+        "facts": {
+          "verified_export_records": 160,
+          "export_status": "confirmed_minimum_scope_incomplete",
+          "containment": "targeted",
+          "service_condition": "storefront_monitored_finance_isolated",
+          "communication_status": "none",
+          "recovery_status": "not_started"
+        },
+        "reason": "vote",
+        "tally": {
+          "contain_targeted": 3
+        },
+        "at": 1794095438.368416,
+        "ai_explanation": null
+      }
+    ]
+  },
+  "after": {
+    "ok": true,
+    "storage": "single process memory",
+    "models": {
+      "online": true,
+      "verified": true,
+      "provider": "Google Vertex AI",
+      "model": "gemini-3.8-flash",
+      "thinking_level": "LOW",
+      "name": "Gemini 3.8 Flash \u00b7 LOW",
+      "note": "Live response verified",
+      "budget": {
+        "cap_usd": 2.0,
+        "reserved_usd": 1.25,
+        "remaining_usd": 0.75,
+        "attempts": 25,
+        "note": "Local test reservations, including failures; excludes other account spending."
+      }
+    },
+    "test_name_rejoin": true,
+    "speech": {
+      "cap": 10000,
+      "reserved": 5382,
+      "remaining": 4618,
+      "unit": "credits",
+      "note": "Conservative reservations, not an exact provider invoice. Failed calls stay reserved."
+    },
+    "speech_configured": true
+  },
+  "passed": true
+}

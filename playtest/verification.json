@@ -1,0 +1,77 @@
+{
+  "verified_at_utc": "2026-11-07T21:28:29.045738+00:00",
+  "branch": "experiment/ai-voice-playtest",
+  "base_main": "b5d6fcb975a46658eb56e00358f4015336caf1ca",
+  "scenario": {
+    "id": "maplecart_cybersecurity",
+    "version": 2
+  },
+  "automated_tests": {
+    "playtest": 18,
+    "backend": 51,
+    "existing_prototype_and_tools": 31,
+    "total": 100,
+    "passed": true
+  },
+  "other_checks": [
+    "node --check playtest/static/app.js",
+    "pip check",
+    "prototype authored demo",
+    "git diff --check",
+    "static DOM ID and credential scan"
+  ],
+  "live_http": {
+    "independent_clients": 3,
+    "completed_rounds": 3,
+    "end_reason": "scenario_complete",
+    "rejoin": true,
+    "custom_winner_outcome": "targeted_containment",
+    "model_jobs": [
+      {
+        "kind": "facilitator",
+        "status": "done"
+      },
+      {
+        "kind": "tracker",
+        "status": "done"
+      },
+      {
+        "kind": "resolve",
+        "status": "done"
+      },
+      {
+        "kind": "debrief",
+        "status": "done"
+      }
+    ],
+    "debrief": {
+      "text": "Round 2: Customers receive an accurate limited update with accountable follow through. The verified export count does not change. Reflection: What can we say based on verified evidence?",
+      "evidence_ids": [
+        "round_2"
+      ]
+    }
+  },
+  "authored_http": {
+    "completed_rounds": 3,
+    "model_calls": false,
+    "note": "Verified before the metadata only scenario v2 selection; v1 and v2 node content is identical."
+  },
+  "speech": {
+    "tts_bytes": 265447,
+    "transcription_text": "Three finance laptops display ransom demands. The finance integration account has attempted an unu-",
+    "provisional_until_separate_commit": true,
+    "reserved_credits": 638,
+    "authorized_cap": 10000,
+    "remaining_credits": 9362,
+    "actual_provider_invoice_not_claimed": true,
+    "input": "Six seconds of generated fictional speech. No human microphone test."
+  },
+  "not_verified": [
+    "Visual browser QA: browser access host unavailable",
+    "Human microphone capture",
+    "Audible browser playback",
+    "Public shared deployment"
+  ],
+  "runtime": "Localhost only, one process, in memory rooms; speech ledger persists on disk",
+  "gpu_service_ends_utc": "2026-11-08T15:46:25Z"
+}

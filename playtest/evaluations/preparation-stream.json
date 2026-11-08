@@ -1,0 +1,1362 @@
+{
+  "room": "HKWX6U",
+  "documents": [
+    {
+      "id": "T01",
+      "title": "Service outage and unavailable director",
+      "filename": "demo-t01-service-outage.pdf",
+      "pages": 2
+    }
+  ],
+  "members": 3,
+  "health_before": {
+    "ok": true,
+    "storage": "single process memory",
+    "models": {
+      "online": true,
+      "verified": false,
+      "provider": "Google Vertex AI",
+      "model": "gemini-3.8-flash",
+      "thinking_level": "LOW",
+      "name": "Gemini 3.8 Flash \u00b7 LOW",
+      "note": "Configured; live response not yet verified",
+      "budget": {
+        "cap_usd": 20.0,
+        "reserved_usd": 1.65,
+        "remaining_usd": 18.35,
+        "attempts": 33,
+        "note": "Local test reservations, including failures; excludes other account spending."
+      }
+    },
+    "test_name_rejoin": true,
+    "speech": {
+      "cap": 30000,
+      "reserved": 5782,
+      "remaining": 24218,
+      "unit": "credits",
+      "note": "Conservative reservations, not an exact provider invoice. Failed calls stay reserved."
+    },
+    "speech_configured": true
+  },
+  "cases": [
+    {
+      "kind": "preparation",
+      "question": "",
+      "text": "Appointment software is currently unavailable, and IT has reported suspicious account activity. No data disclosure has been confirmed yet. Our executive director is named as the incident coordinator, but no alternate is listed in the plan. Furthermore, backup restorability has not been checked during this incident. Should the board appoint an interim coordinator and authorize the paper appointment process now, or verify backup status first?",
+      "audio_chunks": 1037,
+      "audio_bytes": 1257222,
+      "events": [
+        {
+          "type": "status",
+          "client_ms": 4.4
+        },
+        {
+          "type": "sources",
+          "client_ms": 128.9
+        },
+        {
+          "type": "text",
+          "client_ms": 1576.3
+        },
+        {
+          "type": "text",
+          "client_ms": 1658.9
+        },
+        {
+          "type": "text",
+          "client_ms": 1782.1
+        },
+        {
+          "type": "text",
+          "client_ms": 1865.4
+        },
+        {
+          "type": "text",
+          "client_ms": 1907.2
+        },
+        {
+          "type": "text_done",
+          "client_ms": 2032.4
+        },
+        {
+          "type": "done",
+          "client_ms": 6823.0
+        }
+      ],
+      "citations": [
+        {
+          "id": "T01:p2:c7",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 2,
+          "text": "Shared participant instructions\n1. Three human roles: Arjun = chair; Jeff = treasurer; Ricardo = service-continuity board member. Replace display names as\nneeded while keeping stable participant IDs.\n2. A board action needs two explicit affirmative votes from eligible, non-conflicted members and a chair confirmation in the\napplication.\n3. A conflicted participant may supply requested facts but cannot vote on or approve the matter involving their conflict.\n4. The chair has one vote and no special tiebreak power in these fixtures.\n5. A participant's proposal or verbal assent is evidence for a draft. The server records the actual votes and authorized\nconfirmation.\n6. \"By exercise minute 7\" is a scenario deadline; it is not a legal or insurance deadline.\n7. Unknown information stays unknown. Requests outside the authored scenario receive \"That information is not available in this\nexercise\" and can be recorded for follow-up.\n8. Real sources are preparation/reference material. Only released fictional documents and events establish facts about the\nsimulated organization.\n9. No fixture",
+          "score": 0.73462
+        },
+        {
+          "id": "T01:p1:c4",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "T01-POLICY:POLICY-1\nOn contact, the simulated insurer requests an incident contact, an event timeline and a staff-training record.\n\nT01-POLICY:POLICY-2\nA missing training record means evidence is outstanding. This excerpt does not determine whether coverage is\nvalid or denied.",
+          "score": 0.719445
+        },
+        {
+          "id": "T01:p2:c8",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 2,
+          "text": "needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.\nReference scope: this is a preparation pack, not a fully implemented timed scenario. Unknowns remain unknown. Use page\nnumbers and clause IDs when citing evidence.",
+          "score": 0.717526
+        },
+        {
+          "id": "T01:p2:c6",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 2,
+          "text": "T01-STATUS:STATUS-1\nAppointment software is unavailable. IT has reported suspicious account activity.\n\nT01-STATUS:STATUS-2\nNo data disclosure has been confirmed.\n\nT01-STATUS:STATUS-3\nBackup copies are listed in the inventory, but their restorability has not been checked during this incident.",
+          "score": 0.708628
+        },
+        {
+          "id": "T01:p1:c3",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+          "score": 0.702404
+        },
+        {
+          "id": "T01:p1:c1",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 1\nREHEARSAL / PARTICIPANT REFERENCE / T01\nService outage and unavailable director\nFictional exercise material. Public participant information only. These documents support preparation; they do\nnot establish live application voting rules or reveal future events.\nCedar Bridge Community Services",
+          "score": 0.661898
+        }
+      ],
+      "first_text_ms": 1576.3,
+      "text_complete_ms": 2032.4,
+      "first_audio_ms": 2653.5,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "timing": {
+          "retrieval_ms": 95.0,
+          "first_text_ms": 1545.0,
+          "text_complete_ms": 2013.4,
+          "first_audio_ms": 2647.5,
+          "total_ms": 6811.5
+        },
+        "speech_error": false,
+        "elapsed_ms": 6811.7
+      },
+      "total_ms": 6823.7,
+      "audio_seconds": 26.19,
+      "audio_before_text_finished": false,
+      "criterion_pass": true
+    },
+    {
+      "kind": "facilitator",
+      "question": "What should we clarify before deciding?",
+      "text": "The plan names the executive director as incident coordinator, but no alternate is listed. The board must formally vote to appoint an interim coordinator. Separately, IT support must confirm backup usability, recovery dependencies, and a restoration estimate before anyone promises a service-restoration time. You also need an incident contact, timeline, and training record ready for the insurer. The evidence does not show whether backups are verified or who will lead. Will the board vote to appoint an interim incident coordinator before directing external communications?",
+      "audio_chunks": 1335,
+      "audio_bytes": 1633942,
+      "events": [
+        {
+          "type": "status",
+          "client_ms": 2.8
+        },
+        {
+          "type": "sources",
+          "client_ms": 85.7
+        },
+        {
+          "type": "text",
+          "client_ms": 1823.9
+        },
+        {
+          "type": "text",
+          "client_ms": 2030.7
+        },
+        {
+          "type": "text",
+          "client_ms": 2263.3
+        },
+        {
+          "type": "text",
+          "client_ms": 2554.8
+        },
+        {
+          "type": "text",
+          "client_ms": 2555.3
+        },
+        {
+          "type": "text_done",
+          "client_ms": 2659.1
+        },
+        {
+          "type": "done",
+          "client_ms": 4936.9
+        }
+      ],
+      "citations": [
+        {
+          "id": "T01:p2:c8",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 2,
+          "text": "needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.\nReference scope: this is a preparation pack, not a fully implemented timed scenario. Unknowns remain unknown. Use page\nnumbers and clause IDs when citing evidence.",
+          "score": 0.674497
+        },
+        {
+          "id": "T01:p1:c1",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 1\nREHEARSAL / PARTICIPANT REFERENCE / T01\nService outage and unavailable director\nFictional exercise material. Public participant information only. These documents support preparation; they do\nnot establish live application voting rules or reveal future events.\nCedar Bridge Community Services",
+          "score": 0.655053
+        },
+        {
+          "id": "T01:p1:c3",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+          "score": 0.641585
+        },
+        {
+          "id": "T01:p1:c4",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "T01-POLICY:POLICY-1\nOn contact, the simulated insurer requests an incident contact, an event timeline and a staff-training record.\n\nT01-POLICY:POLICY-2\nA missing training record means evidence is outstanding. This excerpt does not determine whether coverage is\nvalid or denied.",
+          "score": 0.633657
+        },
+        {
+          "id": "T01:p2:c5",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 2,
+          "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 2\nT01 / OPENING INFORMATION\nFacts and exercise rules\nOpening update",
+          "score": 0.630221
+        },
+        {
+          "id": "T01:p2:c7",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 2,
+          "text": "Shared participant instructions\n1. Three human roles: Arjun = chair; Jeff = treasurer; Ricardo = service-continuity board member. Replace display names as\nneeded while keeping stable participant IDs.\n2. A board action needs two explicit affirmative votes from eligible, non-conflicted members and a chair confirmation in the\napplication.\n3. A conflicted participant may supply requested facts but cannot vote on or approve the matter involving their conflict.\n4. The chair has one vote and no special tiebreak power in these fixtures.\n5. A participant's proposal or verbal assent is evidence for a draft. The server records the actual votes and authorized\nconfirmation.\n6. \"By exercise minute 7\" is a scenario deadline; it is not a legal or insurance deadline.\n7. Unknown information stays unknown. Requests outside the authored scenario receive \"That information is not available in this\nexercise\" and can be recorded for follow-up.\n8. Real sources are preparation/reference material. Only released fictional documents and events establish facts about the\nsimulated organization.\n9. No fixture",
+          "score": 0.621258
+        }
+      ],
+      "first_text_ms": 1823.9,
+      "first_audio_ms": 2031.1,
+      "text_complete_ms": 2659.1,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "timing": {
+          "retrieval_ms": 58.7,
+          "first_text_ms": 1803.9,
+          "first_audio_ms": 2024.6,
+          "text_complete_ms": 2633.0,
+          "total_ms": 4919.5
+        },
+        "speech_error": false,
+        "elapsed_ms": 4919.6
+      },
+      "total_ms": 4938.2,
+      "audio_seconds": 34.04,
+      "audio_before_text_finished": true,
+      "criterion_pass": true
+    },
+    {
+      "kind": "it",
+      "question": "What must we verify before promising restoration?",
+      "text": "Before promising a service restoration time, IT support must verify three key items. We need to verify backup usability. We must also verify our recovery dependencies. Finally, we need to verify a restoration estimate. Right now, backup copies are listed in the inventory, but their restorability has not been checked during this incident. Until we complete these specific checks, our actual recovery capabilities and timing remain uncertain. We should not commit to a timeline without those verified facts.",
+      "audio_chunks": 1199,
+      "audio_bytes": 1426634,
+      "events": [
+        {
+          "type": "status",
+          "client_ms": 2.8
+        },
+        {
+          "type": "sources",
+          "client_ms": 86.2
+        },
+        {
+          "type": "text",
+          "client_ms": 1369.1
+        },
+        {
+          "type": "text",
+          "client_ms": 1534.6
+        },
+        {
+          "type": "text",
+          "client_ms": 1697.9
+        },
+        {
+          "type": "text",
+          "client_ms": 2008.2
+        },
+        {
+          "type": "text",
+          "client_ms": 2009.3
+        },
+        {
+          "type": "text_done",
+          "client_ms": 2086.7
+        },
+        {
+          "type": "done",
+          "client_ms": 5044.5
+        }
+      ],
+      "citations": [
+        {
+          "id": "T01:p2:c8",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 2,
+          "text": "needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.\nReference scope: this is a preparation pack, not a fully implemented timed scenario. Unknowns remain unknown. Use page\nnumbers and clause IDs when citing evidence.",
+          "score": 0.653502
+        },
+        {
+          "id": "T01:p1:c4",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "T01-POLICY:POLICY-1\nOn contact, the simulated insurer requests an incident contact, an event timeline and a staff-training record.\n\nT01-POLICY:POLICY-2\nA missing training record means evidence is outstanding. This excerpt does not determine whether coverage is\nvalid or denied.",
+          "score": 0.635307
+        },
+        {
+          "id": "T01:p1:c3",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+          "score": 0.625751
+        },
+        {
+          "id": "T01:p1:c1",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 1\nREHEARSAL / PARTICIPANT REFERENCE / T01\nService outage and unavailable director\nFictional exercise material. Public participant information only. These documents support preparation; they do\nnot establish live application voting rules or reveal future events.\nCedar Bridge Community Services",
+          "score": 0.619432
+        },
+        {
+          "id": "T01:p2:c7",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 2,
+          "text": "Shared participant instructions\n1. Three human roles: Arjun = chair; Jeff = treasurer; Ricardo = service-continuity board member. Replace display names as\nneeded while keeping stable participant IDs.\n2. A board action needs two explicit affirmative votes from eligible, non-conflicted members and a chair confirmation in the\napplication.\n3. A conflicted participant may supply requested facts but cannot vote on or approve the matter involving their conflict.\n4. The chair has one vote and no special tiebreak power in these fixtures.\n5. A participant's proposal or verbal assent is evidence for a draft. The server records the actual votes and authorized\nconfirmation.\n6. \"By exercise minute 7\" is a scenario deadline; it is not a legal or insurance deadline.\n7. Unknown information stays unknown. Requests outside the authored scenario receive \"That information is not available in this\nexercise\" and can be recorded for follow-up.\n8. Real sources are preparation/reference material. Only released fictional documents and events establish facts about the\nsimulated organization.\n9. No fixture",
+          "score": 0.614124
+        },
+        {
+          "id": "T01:p2:c6",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 2,
+          "text": "T01-STATUS:STATUS-1\nAppointment software is unavailable. IT has reported suspicious account activity.\n\nT01-STATUS:STATUS-2\nNo data disclosure has been confirmed.\n\nT01-STATUS:STATUS-3\nBackup copies are listed in the inventory, but their restorability has not been checked during this incident.",
+          "score": 0.609796
+        }
+      ],
+      "first_text_ms": 1369.1,
+      "first_audio_ms": 1821.4,
+      "text_complete_ms": 2086.7,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "timing": {
+          "retrieval_ms": 59.7,
+          "first_text_ms": 1343.9,
+          "first_audio_ms": 1804.8,
+          "text_complete_ms": 2068.6,
+          "total_ms": 4999.6
+        },
+        "speech_error": false,
+        "elapsed_ms": 4999.7
+      },
+      "total_ms": 5045.5,
+      "audio_seconds": 29.72,
+      "audio_before_text_finished": true,
+      "criterion_pass": true
+    },
+    {
+      "kind": "journalist",
+      "question": "What can the board responsibly communicate publicly?",
+      "text": "Here is what can be stated. The confirmed facts are that the organization coordinates community appointments, and any public update must separate known facts, unknowns, and the time of the next release. However, the evidence does not show what caused the outage or if backups are verified. The board has not approved any official statement or committed decisions yet. \n\nWhen will the board confirm an interim coordinator and provide a verified timeline for service restoration?",
+      "audio_chunks": 1160,
+      "audio_bytes": 1346386,
+      "events": [
+        {
+          "type": "status",
+          "client_ms": 2.8
+        },
+        {
+          "type": "sources",
+          "client_ms": 85.6
+        },
+        {
+          "type": "text",
+          "client_ms": 1449.5
+        },
+        {
+          "type": "text",
+          "client_ms": 1656.8
+        },
+        {
+          "type": "text",
+          "client_ms": 1904.9
+        },
+        {
+          "type": "text",
+          "client_ms": 2139.8
+        },
+        {
+          "type": "text_done",
+          "client_ms": 2235.9
+        },
+        {
+          "type": "done",
+          "client_ms": 3869.1
+        }
+      ],
+      "citations": [
+        {
+          "id": "T01:p1:c3",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+          "score": 0.705267
+        },
+        {
+          "id": "T01:p2:c7",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 2,
+          "text": "Shared participant instructions\n1. Three human roles: Arjun = chair; Jeff = treasurer; Ricardo = service-continuity board member. Replace display names as\nneeded while keeping stable participant IDs.\n2. A board action needs two explicit affirmative votes from eligible, non-conflicted members and a chair confirmation in the\napplication.\n3. A conflicted participant may supply requested facts but cannot vote on or approve the matter involving their conflict.\n4. The chair has one vote and no special tiebreak power in these fixtures.\n5. A participant's proposal or verbal assent is evidence for a draft. The server records the actual votes and authorized\nconfirmation.\n6. \"By exercise minute 7\" is a scenario deadline; it is not a legal or insurance deadline.\n7. Unknown information stays unknown. Requests outside the authored scenario receive \"That information is not available in this\nexercise\" and can be recorded for follow-up.\n8. Real sources are preparation/reference material. Only released fictional documents and events establish facts about the\nsimulated organization.\n9. No fixture",
+          "score": 0.669837
+        },
+        {
+          "id": "T01:p1:c1",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 1\nREHEARSAL / PARTICIPANT REFERENCE / T01\nService outage and unavailable director\nFictional exercise material. Public participant information only. These documents support preparation; they do\nnot establish live application voting rules or reveal future events.\nCedar Bridge Community Services",
+          "score": 0.655842
+        },
+        {
+          "id": "T01:p2:c5",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 2,
+          "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 2\nT01 / OPENING INFORMATION\nFacts and exercise rules\nOpening update",
+          "score": 0.650373
+        },
+        {
+          "id": "T01:p1:c2",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "T01-ORG\nFictional organization for software testing. The organization coordinates community appointments. Anika Rao is\nexecutive director. Morgan Ellis is service manager. The board exercise uses the common three-person voting\nrules. IT support is an external supplier and cannot authorize board spending.\nContinuity plan, version 1",
+          "score": 0.644072
+        },
+        {
+          "id": "T01:p2:c8",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 2,
+          "text": "needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.\nReference scope: this is a preparation pack, not a fully implemented timed scenario. Unknowns remain unknown. Use page\nnumbers and clause IDs when citing evidence.",
+          "score": 0.624718
+        }
+      ],
+      "first_text_ms": 1449.5,
+      "first_audio_ms": 1987.6,
+      "text_complete_ms": 2235.9,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "timing": {
+          "retrieval_ms": 61.9,
+          "first_text_ms": 1443.9,
+          "first_audio_ms": 1973.4,
+          "text_complete_ms": 2191.8,
+          "total_ms": 3862.0
+        },
+        "speech_error": false,
+        "elapsed_ms": 3862.1
+      },
+      "total_ms": 3870.5,
+      "audio_seconds": 28.05,
+      "audio_before_text_finished": true,
+      "criterion_pass": true
+    },
+    {
+      "kind": "decision",
+      "question": "",
+      "text": "The main unresolved problem is that the incident coordinator role remains vacant while service is disrupted. \n\nThe board can consider appointing an interim incident coordinator under the standard voting procedure. Alternatively, the board can consider authorizing the service manager to activate the approved paper appointment process. \n\nNeither action has been approved yet. Please submit an explicit proposal on one of these options and record the board vote.",
+      "audio_chunks": 1049,
+      "audio_bytes": 1248304,
+      "events": [
+        {
+          "type": "status",
+          "client_ms": 2.6
+        },
+        {
+          "type": "sources",
+          "client_ms": 126.9
+        },
+        {
+          "type": "text",
+          "client_ms": 1863.0
+        },
+        {
+          "type": "text",
+          "client_ms": 1904.2
+        },
+        {
+          "type": "text",
+          "client_ms": 2152.1
+        },
+        {
+          "type": "text",
+          "client_ms": 2193.9
+        },
+        {
+          "type": "text_done",
+          "client_ms": 2321.4
+        },
+        {
+          "type": "done",
+          "client_ms": 5344.7
+        }
+      ],
+      "citations": [
+        {
+          "id": "T01:p2:c7",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 2,
+          "text": "Shared participant instructions\n1. Three human roles: Arjun = chair; Jeff = treasurer; Ricardo = service-continuity board member. Replace display names as\nneeded while keeping stable participant IDs.\n2. A board action needs two explicit affirmative votes from eligible, non-conflicted members and a chair confirmation in the\napplication.\n3. A conflicted participant may supply requested facts but cannot vote on or approve the matter involving their conflict.\n4. The chair has one vote and no special tiebreak power in these fixtures.\n5. A participant's proposal or verbal assent is evidence for a draft. The server records the actual votes and authorized\nconfirmation.\n6. \"By exercise minute 7\" is a scenario deadline; it is not a legal or insurance deadline.\n7. Unknown information stays unknown. Requests outside the authored scenario receive \"That information is not available in this\nexercise\" and can be recorded for follow-up.\n8. Real sources are preparation/reference material. Only released fictional documents and events establish facts about the\nsimulated organization.\n9. No fixture",
+          "score": 0.735362
+        },
+        {
+          "id": "T01:p1:c3",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+          "score": 0.71433
+        },
+        {
+          "id": "T01:p1:c2",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "T01-ORG\nFictional organization for software testing. The organization coordinates community appointments. Anika Rao is\nexecutive director. Morgan Ellis is service manager. The board exercise uses the common three-person voting\nrules. IT support is an external supplier and cannot authorize board spending.\nContinuity plan, version 1",
+          "score": 0.698212
+        },
+        {
+          "id": "T01:p2:c8",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 2,
+          "text": "needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.\nReference scope: this is a preparation pack, not a fully implemented timed scenario. Unknowns remain unknown. Use page\nnumbers and clause IDs when citing evidence.",
+          "score": 0.675148
+        },
+        {
+          "id": "T01:p1:c4",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "T01-POLICY:POLICY-1\nOn contact, the simulated insurer requests an incident contact, an event timeline and a staff-training record.\n\nT01-POLICY:POLICY-2\nA missing training record means evidence is outstanding. This excerpt does not determine whether coverage is\nvalid or denied.",
+          "score": 0.66464
+        },
+        {
+          "id": "T01:p1:c1",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 1\nREHEARSAL / PARTICIPANT REFERENCE / T01\nService outage and unavailable director\nFictional exercise material. Public participant information only. These documents support preparation; they do\nnot establish live application voting rules or reveal future events.\nCedar Bridge Community Services",
+          "score": 0.663888
+        }
+      ],
+      "first_text_ms": 1863.0,
+      "first_audio_ms": 2194.8,
+      "text_complete_ms": 2321.4,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "timing": {
+          "retrieval_ms": 121.3,
+          "first_text_ms": 1825.4,
+          "first_audio_ms": 2190.8,
+          "text_complete_ms": 2282.1,
+          "total_ms": 5305.4
+        },
+        "speech_error": false,
+        "elapsed_ms": 5305.5
+      },
+      "total_ms": 5345.4,
+      "audio_seconds": 26.01,
+      "audio_before_text_finished": true,
+      "criterion_pass": true
+    },
+    {
+      "kind": "evaluation",
+      "question": "",
+      "text": "The problem addresses unverified recovery timing during the service outage. The actual proposal to ask IT to verify backup usability and recovery dependencies before announcing a restoration time was approved by a majority vote. Waiting for verification possibly delays public updates about when services will return. It also possibly prevents releasing inaccurate restoration promises based on unverified backups. This choice prioritizes confirmed technical checks before committing to a timeline.",
+      "audio_chunks": 1248,
+      "audio_bytes": 1477904,
+      "events": [
+        {
+          "type": "status",
+          "client_ms": 2.9
+        },
+        {
+          "type": "sources",
+          "client_ms": 128.1
+        },
+        {
+          "type": "text",
+          "client_ms": 2064.7
+        },
+        {
+          "type": "text",
+          "client_ms": 2230.6
+        },
+        {
+          "type": "text",
+          "client_ms": 2395.7
+        },
+        {
+          "type": "text",
+          "client_ms": 2673.7
+        },
+        {
+          "type": "text_done",
+          "client_ms": 2734.0
+        },
+        {
+          "type": "done",
+          "client_ms": 4958.5
+        }
+      ],
+      "citations": [
+        {
+          "id": "T01:p1:c3",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+          "score": 0.682406
+        },
+        {
+          "id": "T01:p2:c8",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 2,
+          "text": "needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.\nReference scope: this is a preparation pack, not a fully implemented timed scenario. Unknowns remain unknown. Use page\nnumbers and clause IDs when citing evidence.",
+          "score": 0.672311
+        },
+        {
+          "id": "T01:p2:c7",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 2,
+          "text": "Shared participant instructions\n1. Three human roles: Arjun = chair; Jeff = treasurer; Ricardo = service-continuity board member. Replace display names as\nneeded while keeping stable participant IDs.\n2. A board action needs two explicit affirmative votes from eligible, non-conflicted members and a chair confirmation in the\napplication.\n3. A conflicted participant may supply requested facts but cannot vote on or approve the matter involving their conflict.\n4. The chair has one vote and no special tiebreak power in these fixtures.\n5. A participant's proposal or verbal assent is evidence for a draft. The server records the actual votes and authorized\nconfirmation.\n6. \"By exercise minute 7\" is a scenario deadline; it is not a legal or insurance deadline.\n7. Unknown information stays unknown. Requests outside the authored scenario receive \"That information is not available in this\nexercise\" and can be recorded for follow-up.\n8. Real sources are preparation/reference material. Only released fictional documents and events establish facts about the\nsimulated organization.\n9. No fixture",
+          "score": 0.670333
+        },
+        {
+          "id": "T01:p1:c4",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "T01-POLICY:POLICY-1\nOn contact, the simulated insurer requests an incident contact, an event timeline and a staff-training record.\n\nT01-POLICY:POLICY-2\nA missing training record means evidence is outstanding. This excerpt does not determine whether coverage is\nvalid or denied.",
+          "score": 0.666643
+        },
+        {
+          "id": "T01:p2:c6",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 2,
+          "text": "T01-STATUS:STATUS-1\nAppointment software is unavailable. IT has reported suspicious account activity.\n\nT01-STATUS:STATUS-2\nNo data disclosure has been confirmed.\n\nT01-STATUS:STATUS-3\nBackup copies are listed in the inventory, but their restorability has not been checked during this incident.",
+          "score": 0.65894
+        },
+        {
+          "id": "T01:p1:c2",
+          "document_id": "T01",
+          "title": "Service outage and unavailable director",
+          "page": 1,
+          "text": "T01-ORG\nFictional organization for software testing. The organization coordinates community appointments. Anika Rao is\nexecutive director. Morgan Ellis is service manager. The board exercise uses the common three-person voting\nrules. IT support is an external supplier and cannot authorize board spending.\nContinuity plan, version 1",
+          "score": 0.649325
+        }
+      ],
+      "first_text_ms": 2064.7,
+      "first_audio_ms": 2519.3,
+      "text_complete_ms": 2734.0,
+      "result": {
+        "type": "done",
+        "status": "done",
+        "timing": {
+          "retrieval_ms": 113.9,
+          "first_text_ms": 2043.8,
+          "first_audio_ms": 2493.0,
+          "text_complete_ms": 2710.4,
+          "total_ms": 4941.5
+        },
+        "speech_error": false,
+        "elapsed_ms": 4941.6
+      },
+      "total_ms": 4959.7,
+      "audio_seconds": 30.79,
+      "audio_before_text_finished": true,
+      "criterion_pass": true
+    }
+  ],
+  "recordings": [
+    {
+      "clip_id": "discussion_owner",
+      "bytes": 58975,
+      "duration_seconds": 3.622,
+      "result": {
+        "ok": true,
+        "contribution_id": "HKWX6U_e13",
+        "clip_id": "discussion_owner",
+        "source": "recorded",
+        "speaker": "2ae3920f48c04082967255459db51e98",
+        "turn_number": 2
+      }
+    },
+    {
+      "clip_id": "discussion_containment",
+      "bytes": 54377,
+      "duration_seconds": 3.344,
+      "result": {
+        "ok": true,
+        "contribution_id": "HKWX6U_e17",
+        "clip_id": "discussion_containment",
+        "source": "recorded",
+        "speaker": "f8d627381d67408caf432d6598fa8745",
+        "turn_number": 3
+      }
+    },
+    {
+      "clip_id": "discussion_public_update",
+      "bytes": 54377,
+      "duration_seconds": 3.344,
+      "result": {
+        "ok": true,
+        "contribution_id": "HKWX6U_e21",
+        "clip_id": "discussion_public_update",
+        "source": "recorded",
+        "speaker": "c440acc64d0c4cd9af62f83c876ae3bf",
+        "turn_number": 4
+      }
+    }
+  ],
+  "method": "Actual HTTP streaming and timed byte playback checks; browser speakers and microphone not exercised.",
+  "introduction_seconds": 26.19,
+  "preparation_phase_seconds": 30.08,
+  "discussion_ended_early_with_seconds_left": 274.98,
+  "record": {
+    "phase": "ended",
+    "transcript": [
+      {
+        "id": "HKWX6U_e13",
+        "type": "contribution",
+        "at": 1794099816.298485,
+        "member": "c440acc64d0c4cd9af62f83c876ae3bf",
+        "name": "Alex streaming CEO",
+        "text": "Jeff will call IT before three PM. Is the backup verified?",
+        "source": "recorded",
+        "turn_number": 1,
+        "recording_id": "discussion_owner"
+      },
+      {
+        "id": "HKWX6U_e17",
+        "type": "contribution",
+        "at": 1794099819.8772202,
+        "member": "2ae3920f48c04082967255459db51e98",
+        "name": "Morgan recorded participant",
+        "text": "Preserve the logs and isolate the affected finance device.",
+        "source": "recorded",
+        "turn_number": 2,
+        "recording_id": "discussion_containment"
+      },
+      {
+        "id": "HKWX6U_e21",
+        "type": "contribution",
+        "at": 1794099823.445631,
+        "member": "f8d627381d67408caf432d6598fa8745",
+        "name": "Sam recorded participant",
+        "text": "Separate confirmed facts from unknowns before a public update.",
+        "source": "recorded",
+        "turn_number": 3,
+        "recording_id": "discussion_public_update"
+      }
+    ],
+    "summary": {
+      "items": [
+        {
+          "source_ids": [
+            "HKWX6U_e13"
+          ],
+          "text": "Jeff will call IT before three PM. Is the backup verified?",
+          "speaker": "Alex streaming CEO"
+        },
+        {
+          "source_ids": [
+            "HKWX6U_e17"
+          ],
+          "text": "Preserve the logs and isolate the affected finance device.",
+          "speaker": "Morgan recorded participant"
+        },
+        {
+          "source_ids": [
+            "HKWX6U_e21"
+          ],
+          "text": "Separate confirmed facts from unknowns before a public update.",
+          "speaker": "Sam recorded participant"
+        }
+      ],
+      "covered_ids": [
+        "HKWX6U_e13",
+        "HKWX6U_e17",
+        "HKWX6U_e21"
+      ],
+      "transcript_count": 3,
+      "generated_at": 1794099839.14774,
+      "partial": false,
+      "stale": false
+    },
+    "decisions": [
+      {
+        "id": "bbdc2a2d52284cfdb83c1b696654b11d",
+        "problem": "Unverified recovery timing",
+        "proposal": "Ask IT to verify backup usability and recovery dependencies before announcing a restoration time.",
+        "source_ids": [
+          "HKWX6U_e13"
+        ],
+        "member": "c440acc64d0c4cd9af62f83c876ae3bf",
+        "at": 1794099842.670339,
+        "status": "approved",
+        "votes": {
+          "c440acc64d0c4cd9af62f83c876ae3bf": "approve",
+          "2ae3920f48c04082967255459db51e98": "approve",
+          "f8d627381d67408caf432d6598fa8745": "reject"
+        },
+        "committed_by": "c440acc64d0c4cd9af62f83c876ae3bf",
+        "committed_at": 1794099842.699842,
+        "tally": {
+          "approve": 2,
+          "reject": 1,
+          "abstain": 0
+        },
+        "reason": "majority",
+        "tie_break": null,
+        "my_vote": "approve",
+        "ballot_count": 3
+      }
+    ],
+    "history": [
+      {
+        "id": "bbdc2a2d52284cfdb83c1b696654b11d",
+        "problem": "Unverified recovery timing",
+        "proposal": "Ask IT to verify backup usability and recovery dependencies before announcing a restoration time.",
+        "source_ids": [
+          "HKWX6U_e13"
+        ],
+        "member": "c440acc64d0c4cd9af62f83c876ae3bf",
+        "at": 1794099842.670339,
+        "status": "approved",
+        "votes": {
+          "c440acc64d0c4cd9af62f83c876ae3bf": "approve",
+          "2ae3920f48c04082967255459db51e98": "approve",
+          "f8d627381d67408caf432d6598fa8745": "reject"
+        },
+        "committed_by": "c440acc64d0c4cd9af62f83c876ae3bf",
+        "committed_at": 1794099842.699842,
+        "tally": {
+          "approve": 2,
+          "reject": 1,
+          "abstain": 0
+        },
+        "reason": "majority",
+        "tie_break": null
+      }
+    ],
+    "jobs": [
+      {
+        "id": "4815722087574f25ac1f2098103f211b",
+        "kind": "preparation_stream",
+        "member": "c440acc64d0c4cd9af62f83c876ae3bf",
+        "status": "done",
+        "question": "Explain what is happening now in the incident, who is unavailable, the immediate problem, and what we still need to verify.",
+        "submitted_at": 1794099782.298916,
+        "error": null,
+        "text": "Appointment software is currently unavailable, and IT has reported suspicious account activity. No data disclosure has been confirmed yet. Our executive director is named as the incident coordinator, but no alternate is listed in the plan. Furthermore, backup restorability has not been checked during this incident. Should the board appoint an interim coordinator and authorize the paper appointment process now, or verify backup status first?",
+        "sources": [
+          {
+            "id": "T01:p2:c7",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 2,
+            "text": "Shared participant instructions\n1. Three human roles: Arjun = chair; Jeff = treasurer; Ricardo = service-continuity board member. Replace display names as\nneeded while keeping stable participant IDs.\n2. A board action needs two explicit affirmative votes from eligible, non-conflicted members and a chair confirmation in the\napplication.\n3. A conflicted participant may supply requested facts but cannot vote on or approve the matter involving their conflict.\n4. The chair has one vote and no special tiebreak power in these fixtures.\n5. A participant's proposal or verbal assent is evidence for a draft. The server records the actual votes and authorized\nconfirmation.\n6. \"By exercise minute 7\" is a scenario deadline; it is not a legal or insurance deadline.\n7. Unknown information stays unknown. Requests outside the authored scenario receive \"That information is not available in this\nexercise\" and can be recorded for follow-up.\n8. Real sources are preparation/reference material. Only released fictional documents and events establish facts about the\nsimulated organization.\n9. No fixture",
+            "score": 0.73462
+          },
+          {
+            "id": "T01:p1:c4",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "T01-POLICY:POLICY-1\nOn contact, the simulated insurer requests an incident contact, an event timeline and a staff-training record.\n\nT01-POLICY:POLICY-2\nA missing training record means evidence is outstanding. This excerpt does not determine whether coverage is\nvalid or denied.",
+            "score": 0.719445
+          },
+          {
+            "id": "T01:p2:c8",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 2,
+            "text": "needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.\nReference scope: this is a preparation pack, not a fully implemented timed scenario. Unknowns remain unknown. Use page\nnumbers and clause IDs when citing evidence.",
+            "score": 0.717526
+          },
+          {
+            "id": "T01:p2:c6",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 2,
+            "text": "T01-STATUS:STATUS-1\nAppointment software is unavailable. IT has reported suspicious account activity.\n\nT01-STATUS:STATUS-2\nNo data disclosure has been confirmed.\n\nT01-STATUS:STATUS-3\nBackup copies are listed in the inventory, but their restorability has not been checked during this incident.",
+            "score": 0.708628
+          },
+          {
+            "id": "T01:p1:c3",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+            "score": 0.702404
+          },
+          {
+            "id": "T01:p1:c1",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 1\nREHEARSAL / PARTICIPANT REFERENCE / T01\nService outage and unavailable director\nFictional exercise material. Public participant information only. These documents support preparation; they do\nnot establish live application voting rules or reveal future events.\nCedar Bridge Community Services",
+            "score": 0.661898
+          }
+        ],
+        "completed_at": 1794099789.110535,
+        "timing": {
+          "retrieval_ms": 95.0,
+          "first_text_ms": 1545.0,
+          "text_complete_ms": 2013.4,
+          "first_audio_ms": 2647.5,
+          "total_ms": 6811.5
+        }
+      },
+      {
+        "id": "df2f6de540bb4e188e78fc2f36a49461",
+        "kind": "facilitator_stream",
+        "member": "c440acc64d0c4cd9af62f83c876ae3bf",
+        "status": "done",
+        "question": "What should we clarify before deciding?",
+        "submitted_at": 1794099823.451751,
+        "error": null,
+        "text": "The plan names the executive director as incident coordinator, but no alternate is listed. The board must formally vote to appoint an interim coordinator. Separately, IT support must confirm backup usability, recovery dependencies, and a restoration estimate before anyone promises a service-restoration time. You also need an incident contact, timeline, and training record ready for the insurer. The evidence does not show whether backups are verified or who will lead. Will the board vote to appoint an interim incident coordinator before directing external communications?",
+        "sources": [
+          {
+            "id": "T01:p2:c8",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 2,
+            "text": "needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.\nReference scope: this is a preparation pack, not a fully implemented timed scenario. Unknowns remain unknown. Use page\nnumbers and clause IDs when citing evidence.",
+            "score": 0.674497
+          },
+          {
+            "id": "T01:p1:c1",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 1\nREHEARSAL / PARTICIPANT REFERENCE / T01\nService outage and unavailable director\nFictional exercise material. Public participant information only. These documents support preparation; they do\nnot establish live application voting rules or reveal future events.\nCedar Bridge Community Services",
+            "score": 0.655053
+          },
+          {
+            "id": "T01:p1:c3",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+            "score": 0.641585
+          },
+          {
+            "id": "T01:p1:c4",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "T01-POLICY:POLICY-1\nOn contact, the simulated insurer requests an incident contact, an event timeline and a staff-training record.\n\nT01-POLICY:POLICY-2\nA missing training record means evidence is outstanding. This excerpt does not determine whether coverage is\nvalid or denied.",
+            "score": 0.633657
+          },
+          {
+            "id": "T01:p2:c5",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 2,
+            "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 2\nT01 / OPENING INFORMATION\nFacts and exercise rules\nOpening update",
+            "score": 0.630221
+          },
+          {
+            "id": "T01:p2:c7",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 2,
+            "text": "Shared participant instructions\n1. Three human roles: Arjun = chair; Jeff = treasurer; Ricardo = service-continuity board member. Replace display names as\nneeded while keeping stable participant IDs.\n2. A board action needs two explicit affirmative votes from eligible, non-conflicted members and a chair confirmation in the\napplication.\n3. A conflicted participant may supply requested facts but cannot vote on or approve the matter involving their conflict.\n4. The chair has one vote and no special tiebreak power in these fixtures.\n5. A participant's proposal or verbal assent is evidence for a draft. The server records the actual votes and authorized\nconfirmation.\n6. \"By exercise minute 7\" is a scenario deadline; it is not a legal or insurance deadline.\n7. Unknown information stays unknown. Requests outside the authored scenario receive \"That information is not available in this\nexercise\" and can be recorded for follow-up.\n8. Real sources are preparation/reference material. Only released fictional documents and events establish facts about the\nsimulated organization.\n9. No fixture",
+            "score": 0.621258
+          }
+        ],
+        "completed_at": 1794099828.371289,
+        "timing": {
+          "retrieval_ms": 58.7,
+          "first_text_ms": 1803.9,
+          "first_audio_ms": 2024.6,
+          "text_complete_ms": 2633.0,
+          "total_ms": 4919.5
+        }
+      },
+      {
+        "id": "23ebf8f9135545eabadb1e65ca7125d8",
+        "kind": "it_stream",
+        "member": "c440acc64d0c4cd9af62f83c876ae3bf",
+        "status": "done",
+        "question": "What must we verify before promising restoration?",
+        "submitted_at": 1794099828.39045,
+        "error": null,
+        "text": "Before promising a service restoration time, IT support must verify three key items. We need to verify backup usability. We must also verify our recovery dependencies. Finally, we need to verify a restoration estimate. Right now, backup copies are listed in the inventory, but their restorability has not been checked during this incident. Until we complete these specific checks, our actual recovery capabilities and timing remain uncertain. We should not commit to a timeline without those verified facts.",
+        "sources": [
+          {
+            "id": "T01:p2:c8",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 2,
+            "text": "needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.\nReference scope: this is a preparation pack, not a fully implemented timed scenario. Unknowns remain unknown. Use page\nnumbers and clause IDs when citing evidence.",
+            "score": 0.653502
+          },
+          {
+            "id": "T01:p1:c4",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "T01-POLICY:POLICY-1\nOn contact, the simulated insurer requests an incident contact, an event timeline and a staff-training record.\n\nT01-POLICY:POLICY-2\nA missing training record means evidence is outstanding. This excerpt does not determine whether coverage is\nvalid or denied.",
+            "score": 0.635307
+          },
+          {
+            "id": "T01:p1:c3",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+            "score": 0.625751
+          },
+          {
+            "id": "T01:p1:c1",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 1\nREHEARSAL / PARTICIPANT REFERENCE / T01\nService outage and unavailable director\nFictional exercise material. Public participant information only. These documents support preparation; they do\nnot establish live application voting rules or reveal future events.\nCedar Bridge Community Services",
+            "score": 0.619432
+          },
+          {
+            "id": "T01:p2:c7",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 2,
+            "text": "Shared participant instructions\n1. Three human roles: Arjun = chair; Jeff = treasurer; Ricardo = service-continuity board member. Replace display names as\nneeded while keeping stable participant IDs.\n2. A board action needs two explicit affirmative votes from eligible, non-conflicted members and a chair confirmation in the\napplication.\n3. A conflicted participant may supply requested facts but cannot vote on or approve the matter involving their conflict.\n4. The chair has one vote and no special tiebreak power in these fixtures.\n5. A participant's proposal or verbal assent is evidence for a draft. The server records the actual votes and authorized\nconfirmation.\n6. \"By exercise minute 7\" is a scenario deadline; it is not a legal or insurance deadline.\n7. Unknown information stays unknown. Requests outside the authored scenario receive \"That information is not available in this\nexercise\" and can be recorded for follow-up.\n8. Real sources are preparation/reference material. Only released fictional documents and events establish facts about the\nsimulated organization.\n9. No fixture",
+            "score": 0.614124
+          },
+          {
+            "id": "T01:p2:c6",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 2,
+            "text": "T01-STATUS:STATUS-1\nAppointment software is unavailable. IT has reported suspicious account activity.\n\nT01-STATUS:STATUS-2\nNo data disclosure has been confirmed.\n\nT01-STATUS:STATUS-3\nBackup copies are listed in the inventory, but their restorability has not been checked during this incident.",
+            "score": 0.609796
+          }
+        ],
+        "completed_at": 1794099833.390143,
+        "timing": {
+          "retrieval_ms": 59.7,
+          "first_text_ms": 1343.9,
+          "first_audio_ms": 1804.8,
+          "text_complete_ms": 2068.6,
+          "total_ms": 4999.6
+        }
+      },
+      {
+        "id": "1e4048b1ff55487b925526cfdfce7c3f",
+        "kind": "journalist_stream",
+        "member": "c440acc64d0c4cd9af62f83c876ae3bf",
+        "status": "done",
+        "question": "What can the board responsibly communicate publicly?",
+        "submitted_at": 1794099833.436317,
+        "error": null,
+        "text": "Here is what can be stated. The confirmed facts are that the organization coordinates community appointments, and any public update must separate known facts, unknowns, and the time of the next release. However, the evidence does not show what caused the outage or if backups are verified. The board has not approved any official statement or committed decisions yet. \n\nWhen will the board confirm an interim coordinator and provide a verified timeline for service restoration?",
+        "sources": [
+          {
+            "id": "T01:p1:c3",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+            "score": 0.705267
+          },
+          {
+            "id": "T01:p2:c7",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 2,
+            "text": "Shared participant instructions\n1. Three human roles: Arjun = chair; Jeff = treasurer; Ricardo = service-continuity board member. Replace display names as\nneeded while keeping stable participant IDs.\n2. A board action needs two explicit affirmative votes from eligible, non-conflicted members and a chair confirmation in the\napplication.\n3. A conflicted participant may supply requested facts but cannot vote on or approve the matter involving their conflict.\n4. The chair has one vote and no special tiebreak power in these fixtures.\n5. A participant's proposal or verbal assent is evidence for a draft. The server records the actual votes and authorized\nconfirmation.\n6. \"By exercise minute 7\" is a scenario deadline; it is not a legal or insurance deadline.\n7. Unknown information stays unknown. Requests outside the authored scenario receive \"That information is not available in this\nexercise\" and can be recorded for follow-up.\n8. Real sources are preparation/reference material. Only released fictional documents and events establish facts about the\nsimulated organization.\n9. No fixture",
+            "score": 0.669837
+          },
+          {
+            "id": "T01:p1:c1",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 1\nREHEARSAL / PARTICIPANT REFERENCE / T01\nService outage and unavailable director\nFictional exercise material. Public participant information only. These documents support preparation; they do\nnot establish live application voting rules or reveal future events.\nCedar Bridge Community Services",
+            "score": 0.655842
+          },
+          {
+            "id": "T01:p2:c5",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 2,
+            "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 2\nT01 / OPENING INFORMATION\nFacts and exercise rules\nOpening update",
+            "score": 0.650373
+          },
+          {
+            "id": "T01:p1:c2",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "T01-ORG\nFictional organization for software testing. The organization coordinates community appointments. Anika Rao is\nexecutive director. Morgan Ellis is service manager. The board exercise uses the common three-person voting\nrules. IT support is an external supplier and cannot authorize board spending.\nContinuity plan, version 1",
+            "score": 0.644072
+          },
+          {
+            "id": "T01:p2:c8",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 2,
+            "text": "needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.\nReference scope: this is a preparation pack, not a fully implemented timed scenario. Unknowns remain unknown. Use page\nnumbers and clause IDs when citing evidence.",
+            "score": 0.624718
+          }
+        ],
+        "completed_at": 1794099837.2984152,
+        "timing": {
+          "retrieval_ms": 61.9,
+          "first_text_ms": 1443.9,
+          "first_audio_ms": 1973.4,
+          "text_complete_ms": 2191.8,
+          "total_ms": 3862.0
+        }
+      },
+      {
+        "id": "8b054ad87082433cae54a26111c03c10",
+        "kind": "minutes",
+        "member": "c440acc64d0c4cd9af62f83c876ae3bf",
+        "status": "done",
+        "error": null,
+        "question": "",
+        "submitted_at": 1794099837.312068,
+        "text": "Jeff will call IT before three PM. Is the backup verified?\n\nPreserve the logs and isolate the affected finance device.\n\nSeparate confirmed facts from unknowns before a public update.",
+        "sources": [],
+        "completed_at": 1794099839.147756,
+        "timing": {
+          "total_ms": 1835.7,
+          "local_queue_ms": 0.1,
+          "retrieval_and_prompt_ms": 0.1,
+          "provider_roundtrip_ms": 1835.4
+        }
+      },
+      {
+        "id": "e750dcb93cf84580ba025a21357e6fe8",
+        "kind": "decision_stream",
+        "member": "c440acc64d0c4cd9af62f83c876ae3bf",
+        "status": "done",
+        "question": "Act as the decision guide. Identify the main unresolved problem discussed by participants, offer two concise possible actions to consider and ask the board to submit and vote on an explicit proposal. Do not claim any action has been approved.",
+        "submitted_at": 1794099837.320414,
+        "error": null,
+        "text": "The main unresolved problem is that the incident coordinator role remains vacant while service is disrupted. \n\nThe board can consider appointing an interim incident coordinator under the standard voting procedure. Alternatively, the board can consider authorizing the service manager to activate the approved paper appointment process. \n\nNeither action has been approved yet. Please submit an explicit proposal on one of these options and record the board vote.",
+        "sources": [
+          {
+            "id": "T01:p2:c7",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 2,
+            "text": "Shared participant instructions\n1. Three human roles: Arjun = chair; Jeff = treasurer; Ricardo = service-continuity board member. Replace display names as\nneeded while keeping stable participant IDs.\n2. A board action needs two explicit affirmative votes from eligible, non-conflicted members and a chair confirmation in the\napplication.\n3. A conflicted participant may supply requested facts but cannot vote on or approve the matter involving their conflict.\n4. The chair has one vote and no special tiebreak power in these fixtures.\n5. A participant's proposal or verbal assent is evidence for a draft. The server records the actual votes and authorized\nconfirmation.\n6. \"By exercise minute 7\" is a scenario deadline; it is not a legal or insurance deadline.\n7. Unknown information stays unknown. Requests outside the authored scenario receive \"That information is not available in this\nexercise\" and can be recorded for follow-up.\n8. Real sources are preparation/reference material. Only released fictional documents and events establish facts about the\nsimulated organization.\n9. No fixture",
+            "score": 0.735362
+          },
+          {
+            "id": "T01:p1:c3",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+            "score": 0.71433
+          },
+          {
+            "id": "T01:p1:c2",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "T01-ORG\nFictional organization for software testing. The organization coordinates community appointments. Anika Rao is\nexecutive director. Morgan Ellis is service manager. The board exercise uses the common three-person voting\nrules. IT support is an external supplier and cannot authorize board spending.\nContinuity plan, version 1",
+            "score": 0.698212
+          },
+          {
+            "id": "T01:p2:c8",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 2,
+            "text": "needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.\nReference scope: this is a preparation pack, not a fully implemented timed scenario. Unknowns remain unknown. Use page\nnumbers and clause IDs when citing evidence.",
+            "score": 0.675148
+          },
+          {
+            "id": "T01:p1:c4",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "T01-POLICY:POLICY-1\nOn contact, the simulated insurer requests an incident contact, an event timeline and a staff-training record.\n\nT01-POLICY:POLICY-2\nA missing training record means evidence is outstanding. This excerpt does not determine whether coverage is\nvalid or denied.",
+            "score": 0.66464
+          },
+          {
+            "id": "T01:p1:c1",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 1\nREHEARSAL / PARTICIPANT REFERENCE / T01\nService outage and unavailable director\nFictional exercise material. Public participant information only. These documents support preparation; they do\nnot establish live application voting rules or reveal future events.\nCedar Bridge Community Services",
+            "score": 0.663888
+          }
+        ],
+        "completed_at": 1794099842.62587,
+        "timing": {
+          "retrieval_ms": 121.3,
+          "first_text_ms": 1825.4,
+          "first_audio_ms": 2190.8,
+          "text_complete_ms": 2282.1,
+          "total_ms": 5305.4
+        }
+      },
+      {
+        "id": "92f4ba92b2754368ad1e2659d73ba508",
+        "kind": "evaluation_stream",
+        "member": "c440acc64d0c4cd9af62f83c876ae3bf",
+        "status": "done",
+        "question": "Explain the recorded decision in the context of the problem. State whether the actual proposal was approved or rejected. Explain possible tradeoffs, explicitly as possibilities. Do not invent downstream outcomes or rewrite the committed decision.",
+        "submitted_at": 1794099842.705645,
+        "error": null,
+        "text": "The problem addresses unverified recovery timing during the service outage. The actual proposal to ask IT to verify backup usability and recovery dependencies before announcing a restoration time was approved by a majority vote. Waiting for verification possibly delays public updates about when services will return. It also possibly prevents releasing inaccurate restoration promises based on unverified backups. This choice prioritizes confirmed technical checks before committing to a timeline.",
+        "sources": [
+          {
+            "id": "T01:p1:c3",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+            "score": 0.682406
+          },
+          {
+            "id": "T01:p2:c8",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 2,
+            "text": "needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.\nReference scope: this is a preparation pack, not a fully implemented timed scenario. Unknowns remain unknown. Use page\nnumbers and clause IDs when citing evidence.",
+            "score": 0.672311
+          },
+          {
+            "id": "T01:p2:c7",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 2,
+            "text": "Shared participant instructions\n1. Three human roles: Arjun = chair; Jeff = treasurer; Ricardo = service-continuity board member. Replace display names as\nneeded while keeping stable participant IDs.\n2. A board action needs two explicit affirmative votes from eligible, non-conflicted members and a chair confirmation in the\napplication.\n3. A conflicted participant may supply requested facts but cannot vote on or approve the matter involving their conflict.\n4. The chair has one vote and no special tiebreak power in these fixtures.\n5. A participant's proposal or verbal assent is evidence for a draft. The server records the actual votes and authorized\nconfirmation.\n6. \"By exercise minute 7\" is a scenario deadline; it is not a legal or insurance deadline.\n7. Unknown information stays unknown. Requests outside the authored scenario receive \"That information is not available in this\nexercise\" and can be recorded for follow-up.\n8. Real sources are preparation/reference material. Only released fictional documents and events establish facts about the\nsimulated organization.\n9. No fixture",
+            "score": 0.670333
+          },
+          {
+            "id": "T01:p1:c4",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "T01-POLICY:POLICY-1\nOn contact, the simulated insurer requests an incident contact, an event timeline and a staff-training record.\n\nT01-POLICY:POLICY-2\nA missing training record means evidence is outstanding. This excerpt does not determine whether coverage is\nvalid or denied.",
+            "score": 0.666643
+          },
+          {
+            "id": "T01:p2:c6",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 2,
+            "text": "T01-STATUS:STATUS-1\nAppointment software is unavailable. IT has reported suspicious account activity.\n\nT01-STATUS:STATUS-2\nNo data disclosure has been confirmed.\n\nT01-STATUS:STATUS-3\nBackup copies are listed in the inventory, but their restorability has not been checked during this incident.",
+            "score": 0.65894
+          },
+          {
+            "id": "T01:p1:c2",
+            "document_id": "T01",
+            "title": "Service outage and unavailable director",
+            "page": 1,
+            "text": "T01-ORG\nFictional organization for software testing. The organization coordinates community appointments. Anika Rao is\nexecutive director. Morgan Ellis is service manager. The board exercise uses the common three-person voting\nrules. IT support is an external supplier and cannot authorize board spending.\nContinuity plan, version 1",
+            "score": 0.649325
+          }
+        ],
+        "completed_at": 1794099847.6471832,
+        "timing": {
+          "retrieval_ms": 113.9,
+          "first_text_ms": 2043.8,
+          "first_audio_ms": 2493.0,
+          "text_complete_ms": 2710.4,
+          "total_ms": 4941.5
+        }
+      }
+    ]
+  },
+  "health_after": {
+    "ok": true,
+    "storage": "single process memory",
+    "models": {
+      "online": true,
+      "verified": true,
+      "provider": "Google Vertex AI",
+      "model": "gemini-3.8-flash",
+      "thinking_level": "LOW",
+      "name": "Gemini 3.8 Flash \u00b7 LOW",
+      "note": "Live response verified",
+      "budget": {
+        "cap_usd": 20.0,
+        "reserved_usd": 2.0,
+        "remaining_usd": 18.0,
+        "attempts": 40,
+        "note": "Local test reservations, including failures; excludes other account spending."
+      }
+    },
+    "test_name_rejoin": true,
+    "speech": {
+      "cap": 30000,
+      "reserved": 8713,
+      "remaining": 21287,
+      "unit": "credits",
+      "note": "Conservative reservations, not an exact provider invoice. Failed calls stay reserved."
+    },
+    "speech_configured": true
+  },
+  "checks": {
+    "single_preloaded_pdf": true,
+    "three_ready_members": true,
+    "intro_before_discussion": true,
+    "three_recorded_turns": true,
+    "free_recorded_playback": true,
+    "ceo_consultations": true,
+    "early_finish": true,
+    "decision_guidance_before_votes": true,
+    "evaluation_after_commit": true
+  }
+}

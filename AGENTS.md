@@ -33,3 +33,59 @@ Do not start or restart board watchers, require a reply from Jeff's agent, or au
 9. Voice spending defaults to zero. Preserve typed input and captions. Require a known price and authorized budget before paid calls; never mint an unmetered client token as a workaround.
 10. After relevant changes, run the prototype tests and demo described in [docs/prototype-guide.md](docs/prototype-guide.md). Keep production acceptance checks separate. A published model lab is not evidence that the FastAPI multiplayer or voice flow is complete.
 11. The hosted model lab lives in `sites/rehearsal-lab`. Reuse its `.openai/hosting.json` project ID, preserve its current audience, and follow the Sites publishing workflow when changing it. Keep completed response outboxes intact during worker recovery.
+
+## Experimental one round test and reference packs
+
+1. The isolated `playtest/` application now runs one MapleCart round, then its consequence and debrief. Read [playtest/README.md](playtest/README.md) for current agent responsibilities and test commands. This does not replace teammate production modules.
+2. The supplied revision 2 guide is archived in [the controller reference](playtest/fixtures/revision2-controller-reference.md). It contains T01 service outage, T02 fundraising allegation, and T03 succession and payroll, including hidden events and expected answers. Never ingest that full file into participant or conversational agent retrieval.
+3. Only [participant-packs.json](playtest/fixtures/participant-packs.json) is loaded by the preparation reference service. The three packs support scoped document questions; their full timed branches are not implemented playable modes. Do not claim otherwise or silently replace the live voting rules with their different fixture rules.
+
+4. The requested local test defaults to one five minute round. `--allow-name-rejoin` explicitly enables recovering an inactive seat by name and room; leave releases immediately, closed tabs require 30 seconds of inactivity, and the old token is revoked. Keep this exception within the localhost experiment and preserve production identity rules.
+
+5. [The manual test guide](playtest/TEST_GUIDE.md) documents current controls, agent responsibilities and reviewer checks for each participant pack. Keep its expected answers outside participant retrieval and update it when the implemented controls change.
+
+6. The latest user test uses `/meeting`: three explicitly labelled test memberships in one window, a 90 second scripted mechanics demo, real local agent replies and simultaneous post round review. This supersedes the separate window preference for this mode only. See [the measured evaluation](playtest/MEETING_REPORT.md). Preserve the distinction between scripted seats, model replies and enforced authored evidence.
+
+## Approved Vertex experiment
+
+The user explicitly approved Gemini 3.8 Flash with LOW reasoning for every text responsibility in `playtest/`, replacing its local model API calls. This supersedes the local provider direction above for this experiment only. Retain ElevenLabs Scribe v2 and Flash v2.5, the persistent shared 10,000 credit speech cap, and server authority. Vertex has a separately confirmed US$2 test reservation cap; keep its SQLite ledger across restarts. Do not delete GPU weights, stop shared workers, or alter teammate production modules. Historical local results remain in `playtest/MEETING_REPORT.md`. Read `playtest/PROGRESS.md` for current status and never treat a smoke probe as a completed evaluation.
+
+## Prerecorded audio testing
+
+The user requested parallel subagent work and reusable ElevenLabs recordings for conversation and turn tests. `playtest/recordings/` contains 36 fixed fictional MP3 assets generated at concurrency two, with a caption catalog and integrity manifest. Read `playtest/AUDIO_TEST_GUIDE.md` and `playtest/AUDIO_REPORT.md`. The `/audio-lab` recorded demo makes no new model or transcription calls; manual live calls are separately labelled. Keep recorded fixtures distinct from live Gemini replies and real human speech. Never regenerate files for playback or bypass the existing shared speech and Vertex ledgers. Only source text is committed by the free scripted demo; testing recognition requires an explicit transcription request and separate reviewed contribution.
+
+## Updated spending authorization
+
+During X09 the user explicitly raised total caps to 30,000 ElevenLabs credits and US$20 Vertex. This supersedes the older 10,000 credit and US$2 limits above. Retain all existing reservations and caches. Apply a ceiling increase only through an explicit operator authorization, never by deleting a ledger or changing data directories. Ordinary restarts cannot enlarge a stored cap. Provider billing plans and credit purchases are outside this local cap update.
+
+## CEO meeting and PDF preparation experiment
+
+The user selected the existing CEO role and written discussion records with explicit microphone transcription. The isolated `/roundtable` mode uses `playtest/roundtable.py` for authority and `playtest/roundtable_api.py` for room scoped advisory jobs. It has a ready gated lobby, optional 60 second opening and closing facilitator windows, three minute discussion and an untimed decision phase. Preserve explicit human proposals, ballots and CEO result commitment. This separate prototype freezes its roster at Start; production late admission requirements remain unchanged.
+
+`google/embeddinggemma-2` supplies actual local text embeddings for the PDF preparation memory. Gemini Flash LOW still supplies text selection; there is no local conversation API fallback. Read `playtest/PDF_MEMORY.md` and `playtest/ROUNDTABLE_GUIDE.md`. Only public participant packs may seed demo PDFs. Never index the hidden controller reference, review answers, environment files or credentials. Pass the room's selected document IDs for every search and download. Model weights, uploaded PDFs and index caches stay ignored on disk. Never send all uploaded documents to a room.
+
+Minutes select exact transcript quotes and suggest problems for human review. They cannot establish facts, cast votes, assign roles or mutate decisions. One automatic minutes job on entry to decision is labelled in the UI; retain the shared paid reservation ledgers. Recording and transcription are explicit and provisional until a separate contribution command. No continuous microphone capture is authorized for this mode. Test role gates, isolation, stale replies and idempotency before publication.
+
+## Current manual meeting and live agents
+
+X11 supersedes the earlier experimental flow. `/` and `/roundtable` automatically attach one T01 PDF. A button loads and readies three test members. CEO Start triggers a roughly 30 second live preparation introduction, then a five minute discussion with server enforced participant turns. The CEO can finish early and consult the live facilitator, IT adviser or journalist. A live decision guide prompts the board; explicit votes and CEO confirmation commit a result, then a live evaluation interprets that actual result.
+
+The latest user clarification requires manual controls beneath each participant and a clear current turn indicator. Do not autoplay participant recordings. Expose only the three saved participant clips; reject all prerecorded AI agent clips and other participants' assigned recordings. Playback completion and the trusted caption commit are separate explicit actions. Agent speech always comes from Gemini plus ElevenLabs, grounded in the PDF, discussion and actual decision. The removed `/audio-lab` and `/audio-guide` pages must not return to navigation or routing.
+
+The user explicitly removed all app credit and spending constraints. Both ledgers have persisted unlimited authorization; preserve usage rows and do not reintroduce the earlier US$20 or 30,000 credit caps. `--unlimited-budget` is the authorized operator flag. Do not delete ledgers or expose provider credentials. Request sizes, queue bounds, response length and microphone duration remain resource controls rather than financial gates.
+
+Gemini streams text through the backend; completed sentences stream as ElevenLabs PCM. Stop, phase and turn changes cancel output. Automatic decision and evaluation events are deduplicated in both client and backend. The generated briefing is advisory, replacing exact quote only preparation for this mode; minutes still select transcript quotes. Models cannot submit human contributions, vote, assign roles, start meetings or rewrite committed results. Read `playtest/ROUNDTABLE_GUIDE.md` and `playtest/STREAMING_PREPARATION.md` for current controls and measured limits.
+
+
+## Current guided decision round
+
+X12 restores a visible 60 second consultation phase between participant discussion and decisions. The CEO can end discussion early or skip the consultation minute. Preparation, facilitator, IT, journalist and evaluation remain live Gemini plus ElevenLabs. The user explicitly requested one exception: a prerecorded decision guide reads the fixed choices after consultation. Keep it clearly labelled as recorded and separate from human contributions, ballots and live adviser replies.
+
+For the default exact T01 PDF selection, the server creates one authored ballot with Controlled continuity, Technical checks first and Wait for the director. Every participant explicitly chooses an option. The CEO commits the winning option after every ballot, or selects among tied leaders. Do not fabricate votes, silently change a selected choice or let a model override the result. Other document selections retain the custom proposal flow. The fixed choices are potential board actions based on the public pack, not hidden event outcomes.
+
+The three new manual participant recordings are T01 leadership, recovery checks and communications. Their exact captions become contributions only after explicit completion and commit. The decision guide has its own authenticated read only playback route and cannot be submitted as a participant recording. Keep replay free of provider calls, preserve all usage ledger rows and retain unlimited app spending authorization. See `playtest/GUIDED_ROUND_REPORT.md` for the current check and `playtest/ROUNDTABLE_GUIDE.md` for controls.
+
+
+## Individual UI voting
+
+X14 makes the fixed T01 voting UI ask each eligible member by name. First ballots follow the server electorate order; no unvoted member may skip ahead, and no absent member receives an automatic ballot. Selecting a response is a local draft until Confirm my vote. Revisions remain explicit until CEO commitment. Advance between identities automatically only for the authorized single window test bundle, never for independent participant browsers. Preserve the all ballots required result lock and reject stale UI confirmation against a different selected identity.

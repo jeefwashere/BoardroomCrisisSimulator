@@ -1,0 +1,57 @@
+{
+  "before": {
+    "speech": {
+      "cap": 10000,
+      "reserved": 5382,
+      "entries": 45
+    },
+    "vertex": {
+      "cap_cents": 200,
+      "reserved_cents": 125,
+      "entries": 25
+    }
+  },
+  "after": {
+    "speech": {
+      "cap": 30000,
+      "reserved": 5382,
+      "entries": 45
+    },
+    "vertex": {
+      "cap_cents": 2000,
+      "reserved_cents": 125,
+      "entries": 25
+    }
+  },
+  "reservations_and_entry_counts_preserved": true,
+  "health": {
+    "ok": true,
+    "storage": "single process memory",
+    "models": {
+      "online": true,
+      "verified": false,
+      "provider": "Google Vertex AI",
+      "model": "gemini-3.8-flash",
+      "thinking_level": "LOW",
+      "name": "Gemini 3.8 Flash \u00b7 LOW",
+      "note": "Configured; live response not yet verified",
+      "budget": {
+        "cap_usd": 20.0,
+        "reserved_usd": 1.25,
+        "remaining_usd": 18.75,
+        "attempts": 25,
+        "note": "Local test reservations, including failures; excludes other account spending."
+      }
+    },
+    "test_name_rejoin": true,
+    "speech": {
+      "cap": 30000,
+      "reserved": 5382,
+      "remaining": 24618,
+      "unit": "credits",
+      "note": "Conservative reservations, not an exact provider invoice. Failed calls stay reserved."
+    },
+    "speech_configured": true
+  },
+  "paid_calls_for_cap_change": 0
+}

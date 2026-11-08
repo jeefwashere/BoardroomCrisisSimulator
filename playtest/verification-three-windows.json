@@ -1,0 +1,30 @@
+{
+  "date_utc": "2026-11-07T21:46:33.988851+00:00",
+  "task": "X02",
+  "test_users": [
+    "Test 01",
+    "Test 02",
+    "Test 03"
+  ],
+  "room": "9E5KKM",
+  "separate_native_chrome_windows": 3,
+  "gui_verified": [
+    "independent membership and window titles",
+    "each user sent a room text message",
+    "host displayed all three messages",
+    "lobby left ready for user testing"
+  ],
+  "automated_tests": {
+    "playtest": 19,
+    "existing_tests": 31,
+    "passed": true
+  },
+  "prototype_demo_passed": true,
+  "no_paid_calls": true,
+  "speech_reserved_credits": 638,
+  "notes": [
+    "Native Chrome accessibility and screenshot controls worked although the browser connector was unavailable.",
+    "Background browser windows may show away; bringing a window forward resumes its polling.",
+    "Microphone and audible playback were not exercised in this task."
+  ]
+}

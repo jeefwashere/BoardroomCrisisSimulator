@@ -1,0 +1,198 @@
+{
+  "checked_at_utc": "2026-11-07T22:06:36.865636+00:00",
+  "task": "X03",
+  "playable_scenario": "MapleCart",
+  "round_limit": 1,
+  "reference_packs": [
+    "T01",
+    "T02",
+    "T03"
+  ],
+  "reference_scope": "Participant documents only; full timed scenarios and complete external reports are not implemented or indexed.",
+  "automated_tests": {
+    "playtest": 24,
+    "existing": 31,
+    "passed": true
+  },
+  "prototype_demo_passed": true,
+  "live_one_round": {
+    "checked": "three independent HTTP clients, speaking, voting, consequences, rejoin and completion",
+    "live_models": true,
+    "rounds": 1,
+    "end_reason": "round_complete",
+    "history": [
+      {
+        "round": 1,
+        "node": "containment",
+        "option_id": "custom_1ad7c88a7d4a4854809fec8f5139dce4",
+        "outcome_id": "targeted_containment",
+        "summary": "The investigation boundary narrows. At least 160 customer records were exported before access was suspended. The incident is still under investigation.",
+        "metrics_before": {
+          "service_continuity": 60,
+          "data_protection": 60,
+          "public_trust": 60
+        },
+        "metrics_after": {
+          "service_continuity": 55,
+          "data_protection": 80,
+          "public_trust": 60
+        },
+        "facts": {
+          "verified_export_records": 160,
+          "export_status": "confirmed_minimum_scope_incomplete",
+          "containment": "targeted",
+          "service_condition": "storefront_monitored_finance_isolated",
+          "communication_status": "none",
+          "recovery_status": "not_started"
+        },
+        "reason": "vote",
+        "tally": {
+          "custom_1ad7c88a7d4a4854809fec8f5139dce4": 3
+        },
+        "at": 1794088649.621721,
+        "ai_explanation": "Isolating the compromised laptop limits exposure to that specific device, revoking its credentials stops further unauthorized data movement (the unusual customer export), preserving logs and any remaining evidence for forensic analysis, and assigning Jeff ensures rapid reporting within 30 minutes while leaving checkout operational for customers."
+      }
+    ],
+    "jobs": [
+      {
+        "id": "23e230ee7ec44536a6f0cd130d9278cd",
+        "kind": "facilitator",
+        "member": "1ad7c88a7d4a4854809fec8f5139dce4",
+        "status": "done",
+        "round": 1,
+        "error": null
+      },
+      {
+        "id": "ec5b50e5f7584e0899e015eb9e1b80cf",
+        "kind": "tracker",
+        "member": "1ad7c88a7d4a4854809fec8f5139dce4",
+        "status": "done",
+        "round": 1,
+        "error": null
+      },
+      {
+        "id": "427d73f22f8c417b8da6a679ca3ea454",
+        "kind": "resolve",
+        "member": "1ad7c88a7d4a4854809fec8f5139dce4",
+        "status": "done",
+        "round": 1,
+        "error": null
+      },
+      {
+        "id": "a6eb6d00b38c4127b71f30ea45b4a7ac",
+        "kind": "debrief",
+        "member": "1ad7c88a7d4a4854809fec8f5139dce4",
+        "status": "done",
+        "round": 1,
+        "error": null
+      }
+    ],
+    "suggestions": [
+      {
+        "kind": "facilitator",
+        "text": "Three finance laptops display ransom demands. The finance integration account has attempted an unusual customer export. Checkout works, but the investigation is incomplete. A promotion begins at 15:00. Choose the first coordinated action.",
+        "evidence_ids": [
+          "current_situation"
+        ],
+        "note": "LFM3 selected released evidence. Wording is authored, not invented.",
+        "id": "23e230ee7ec44536a6f0cd130d9278cd",
+        "round": 1,
+        "at": 1794088628.617322
+      },
+      {
+        "kind": "tracker",
+        "text": "Extracted spans require human review.",
+        "spans": [
+          {
+            "label": "person",
+            "start": 0,
+            "end": 4,
+            "text": "Jeff",
+            "raw_score": 0.9994309544563293
+          },
+          {
+            "label": "deadline",
+            "start": 25,
+            "end": 29,
+            "text": "3 PM",
+            "raw_score": 0.9884478449821472
+          },
+          {
+            "label": "action",
+            "start": 10,
+            "end": 17,
+            "text": "call IT",
+            "raw_score": 0.5883210897445679
+          }
+        ],
+        "contribution_id": "e8",
+        "classification": "question",
+        "id": "ec5b50e5f7584e0899e015eb9e1b80cf",
+        "round": 1,
+        "at": 1794088629.239263
+      },
+      {
+        "kind": "debrief",
+        "text": "Round 1: The investigation boundary narrows. At least 160 customer records were exported before access was suspended. The incident is still under investigation. Reflection: Which facts are confirmed?",
+        "evidence_ids": [
+          "round_1"
+        ],
+        "note": "LFM3 selected authored reflections linked to committed history. The full decision record remains authoritative.",
+        "id": "a6eb6d00b38c4127b71f30ea45b4a7ac",
+        "round": 1,
+        "at": 1794088679.679208
+      }
+    ],
+    "no_browser_claim": true
+  },
+  "live_references": {
+    "ok": true,
+    "mode": "participant_reference_only",
+    "results": [
+      {
+        "pack": "T01",
+        "question": "According to BCP-4, what must IT verify before promising a restoration time?",
+        "answer": "T01-BCP:BCP-4: IT support must verify backup usability, recovery dependencies and a restoration estimate before the organization promises a service-restoration time.",
+        "evidence": [
+          "T01-BCP:BCP-4"
+        ]
+      },
+      {
+        "pack": "T02",
+        "question": "According to CAMPAIGN-1, are gross ticket revenues or net proceeds donated?",
+        "answer": "T02-CAMPAIGN:CAMPAIGN-1: Net proceeds, after event costs, support meal programs.\n\nT02-CAMPAIGN:CAMPAIGN-2: The approved campaign does not promise that all gross ticket revenue is donated directly to meal programs.",
+        "evidence": [
+          "T02-CAMPAIGN:CAMPAIGN-1",
+          "T02-CAMPAIGN:CAMPAIGN-2"
+        ]
+      },
+      {
+        "pack": "T03",
+        "question": "According to ACCESS-2, does appointing a director automatically provision payment access?",
+        "answer": "T03-ACCESS:ACCESS-2: Appointment alone does not provision payment-system access. Finance must submit the recorded appointment to the provider.",
+        "evidence": [
+          "T03-ACCESS:ACCESS-2"
+        ]
+      }
+    ],
+    "paid_speech_calls": 0
+  },
+  "browser": {
+    "separate_windows": 3,
+    "users": [
+      "Test 01",
+      "Test 02",
+      "Test 03"
+    ],
+    "room": "YB2EZU",
+    "observed": "Three members in lobby, one round timing and reference library visible; host window left in front.",
+    "note": "Bring background windows forward to refresh presence before starting."
+  },
+  "paid_speech_calls_this_task": 0,
+  "speech_reserved_credits": 638,
+  "limitations": [
+    "Human microphone capture and audible browser playback were not exercised.",
+    "The development application is localhost only.",
+    "Models select bounded evidence and outcomes; code owns game state."
+  ]
+}

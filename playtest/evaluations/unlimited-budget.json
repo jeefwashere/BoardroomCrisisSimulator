@@ -1,0 +1,41 @@
+{
+  "authorization": "User explicitly requested removing all app credit and spending caps; retain usage tracking.",
+  "before": {
+    "speech": {
+      "cap": 30000,
+      "reserved": 8713,
+      "remaining": 21287,
+      "unlimited": false,
+      "unit": "credits",
+      "note": "Conservative reservations, not an exact provider invoice. Failed calls stay reserved."
+    },
+    "vertex": {
+      "cap_usd": 20.0,
+      "reserved_usd": 2.0,
+      "remaining_usd": 18.0,
+      "attempts": 40,
+      "unlimited": false,
+      "note": "Local test reservations, including failures; excludes other account spending."
+    }
+  },
+  "after": {
+    "speech": {
+      "cap": null,
+      "reserved": 8713,
+      "remaining": null,
+      "unlimited": true,
+      "unit": "credits",
+      "note": "Conservative reservations, not an exact provider invoice. Failed calls stay reserved."
+    },
+    "vertex": {
+      "cap_usd": null,
+      "reserved_usd": 2.0,
+      "remaining_usd": null,
+      "attempts": 40,
+      "unlimited": true,
+      "note": "Local test reservations, including failures; excludes other account spending."
+    }
+  },
+  "preserved_speech_rows": 78,
+  "preserved_vertex_rows": 40
+}

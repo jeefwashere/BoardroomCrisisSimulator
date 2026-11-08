@@ -98,7 +98,30 @@
 
 .lobby-room-code:hover strong { color: var(--lobby-accent); }
 
+.lobby-document-upload {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  justify-self: end;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.lobby-upload-error {
+  flex: 1 1 140px;
+  min-width: 0;
+  color: #b52e25;
+  font-family: var(--font-heading);
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
 .lobby-upload-button {
+  flex-shrink: 0;
   justify-self: end;
   padding-right: 0;
   color: var(--ink);
@@ -416,3 +439,5 @@
 @media (prefers-reduced-motion: reduce) {
   .lobby-role-trigger::after, .lobby-select-arrow { transition: none; }
 }
+
+.lobby-context { padding-bottom: max(88px, env(safe-area-inset-bottom)); }

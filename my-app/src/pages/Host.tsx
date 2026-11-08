@@ -9,6 +9,7 @@ import { roomMembers, startInput, startProblem } from '../features/rooms/roomSta
 import type { RoleDraft } from '../features/rooms/roomState'
 import type { RoomSnapshot, StartRoomInput } from '../services/rooms'
 import Game from './Game'
+import Summary from './Summary'
 import LobbyNameEditor from '../features/rooms/LobbyNameEditor'
 import RoomChat from '../features/rooms/RoomChat'
 import './Host.css'
@@ -20,11 +21,15 @@ function Host({ roomId, initialRoom }: { roomId: string; initialRoom?: RoomSnaps
     const [selectedTiming, setSelectedTiming] = useState('')
     const [documentNotice, setDocumentNotice] = useState('Optional uploads are acknowledged only. They do not change the scenario.')
     const [notice, setNotice] = useState('')
+    const [isDocumentUploading, setIsDocumentUploading] = useState(false)
+    const summaryPreview = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('preview') === 'summary'
+    function showSummaryPreview() { window.location.hash = `/room/${roomId}?preview=summary` }
+    function returnToRoom() { window.location.hash = `/room/${roomId}` }
     const startIntentRef = useRef<{ key: string; body: StartRoomInput } | null>(null)
     const scenario = scenarios.find((option) => `${option.scenario_id}:${option.version}` === selectedScenario) ?? scenarios[0]
     const timing = scenario?.timings.find((option) => option.profile_id === selectedTiming)?.profile_id ?? scenario?.timings[0]?.profile_id ?? ''
     const isHost = room?.self_member_id === room?.host_member_id
-    const controlsDisabled = starting || leaving
+    const controlsDisabled = starting || leaving || isDocumentUploading
 
     async function leaveLobby() {
         try { await leave(); window.location.hash = '/' }
@@ -53,12 +58,12 @@ function Host({ roomId, initialRoom }: { roomId: string; initialRoom?: RoomSnaps
     const members = roomMembers(room, isHost ? draft : {})
 
     return <>
-        {room.phase !== 'lobby' ? <Game room={room} scenarios={scenarios} error={error} rename={rename} execute={execute} /> : <MotionConfig reducedMotion="user">
+        {summaryPreview ? <Summary members={roomMembers(room, {}, scenario)} roomCode={room.room_code} onBackToCall={returnToRoom} /> : room.phase !== 'lobby' ? <Game room={room} scenarios={scenarios} error={error} rename={rename} execute={execute} onViewSummary={showSummaryPreview} /> : <MotionConfig reducedMotion="user">
         <div className="host-lobby">
             <header className="lobby-toolbar">
                 <button className="lobby-leave-button" type="button" disabled={controlsDisabled} title={isHost ? 'Close this lobby for everyone' : 'Leave this lobby and remove your seat'} onClick={() => void leaveLobby()}>{leaving ? 'Leaving…' : 'Leave'}</button>
                 <button className="lobby-room-code" type="button" onClick={() => void copyRoomCode()} aria-label={`Copy room code ${room.room_code}`} title="Copy room code"><span>Room code</span><strong>{room.room_code}</strong></button>
-                {isHost ? <DocumentUpload roomCode={room.room_code} onContextChange={(context) => setDocumentNotice(`${context} This upload is not processed or used by the briefing.`)} /> : <span className="lobby-waiting">Waiting for the host</span>}
+                {isHost ? <DocumentUpload onUploadingChange={setIsDocumentUploading} roomCode={room.room_code} onContextChange={(context) => setDocumentNotice(`${context} This upload is not processed or used by the briefing.`)} /> : <span className="lobby-waiting">Waiting for the host</span>}
             </header>
             <main className="lobby-main" aria-labelledby="lobby-title">
                 <h1 id="lobby-title" className="lobby-visually-hidden">{isHost ? 'Host' : 'Room'} lobby, {members.length} of {room.capacity} players</h1>
@@ -72,6 +77,7 @@ function Host({ roomId, initialRoom }: { roomId: string; initialRoom?: RoomSnaps
                 {isHost && <button className="lobby-start-button" type="button" disabled={controlsDisabled || Boolean(problem)} onClick={submitStart} title={problem ?? 'Start the server briefing'}>{starting ? 'Starting…' : 'Start'} <LobbyIcon name="play" /></button>}
                 <p className="lobby-live-status" role="status">{isHost ? problem ?? 'Ready. Start assigns these roles to all participants.' : 'The host assigns roles when the room starts.'} {room.members.filter((member) => member.connected).length} active.</p>
                 {(error || notice) && <p role={error ? 'alert' : 'status'}>{error || notice}</p>}
+                <button className="room-text-button" type="button" disabled={controlsDisabled} onClick={showSummaryPreview}>Summary demo preview</button>
                 <p id="room-context" title={documentNotice}><span>Upload:</span> {documentNotice} The selected scenario supplies the briefing.</p>
             </footer>
         </div>

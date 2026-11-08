@@ -4,6 +4,18 @@ This isolated experiment adds a minimal FastAPI browser application on branch `e
 
 Use [the manual test guide](TEST_GUIDE.md) for copyable T01, T02 and T03 questions, expected evidence, the agent roster, the five minute procedure and a results sheet.
 
+## Prerecorded conversation lab
+
+Open <http://127.0.0.1:8788/audio-lab> for 36 reusable ElevenLabs recordings in three standard voices. The MP3 files are included in `playtest/recordings/`, with fixed captions in `playtest/fixtures/recordings.json`. Replay and loading known script text make no provider calls. The recorded 90 second demo uses three explicit test seats, plays each clip during its actual speaking turn, commits its known text only after playback completes in that same turn, then submits prepared votes. An interrupted or expired clip is not silently committed.
+
+For a conversation you control, choose the five minute manual round, listen to a recorded participant, finish that seat's turn, and reply by typing or recording your microphone in your own seat. Live Vertex questions, extraction, comparison, debrief and paid transcription remain explicit controls. Prerecorded speakers are fixed fixtures, not autonomous listening agents. Optional transcription of a saved clip decodes it with the existing `ffmpeg` executable and sends it to Scribe; loading its script is a separate free action.
+
+Read [the audio test guide](AUDIO_TEST_GUIDE.md), also served as formatted HTML at <http://127.0.0.1:8788/audio-guide>. It includes 17 manual cases, a five minute conversation script, authority checks and a results sheet. [Recording verification](AUDIO_REPORT.md) distinguishes automated HTTP checks from browser and microphone checks that still need human testing.
+
+Generation is already complete. `python -m playtest.generate_recordings` only reports the planned catalog. The explicit `--generate` option uses two concurrent calls, standard premade voices, the existing speech ledger and cache, and never automatically retries failed calls. Completed files are verified and reused without new reservations. Do not regenerate the library just to replay it. The authentication boundary serves audio only through room owned, expiring leases; turn changes and shared Stop invalidate access.
+
+For an HTTP verification with no provider calls, use `python -m playtest.audio_benchmark`. Add `--allow-paid-transcription` to test three real Scribe calls and `--live-models` to test tracking plus three concurrent character replies. Each flag consumes the remaining shared allowance, so retain the existing ledgers and inspect `/api/health` first.
+
 ## Single window meeting lab
 
 Open <http://127.0.0.1:8788/meeting> for the requested meeting style UI. One window owns three explicitly labelled test memberships. Click Run 90s scripted demo to create a fresh room, submit three scripted contributions and prepared votes, and automatically request simultaneous character reviews after the round. The Vertex model replies are live; scripted seats are not autonomous AI participants. Click a seat to control it manually, or use Start manual round with either the 90 second mechanics profile or the normal five minute profile. The short profile has a clearly labelled 15 second ballot. The normal profile retains 60 seconds.
@@ -26,13 +38,13 @@ Open <http://127.0.0.1:8788>. Create a room and use **Open another seat** twice.
 
 The playtest now runs exactly one MapleCart round. The default profile runs for five minutes from Start: 15 seconds briefing, 30 seconds reading, 135 seconds discussion, 60 seconds voting, then up to 60 seconds for a consequence, any tie or custom outcome handling. Prepared outcomes remain visible until the five minute deadline. Model failure can end with an explicitly unresolved action. The host can also select an approximately 6 or 7 minute round with a full 60 second vote. The explicitly labelled accelerated test profile uses 8 second votes and shorter speaking windows. It tests mechanics, not human rehearsal timing. Late arrivals become eligible at the next round boundary. The current electorate and CEO remain unchanged.
 
-For the owner's authorized 10,000 credit speech test, the current separate worktree can run with:
+For the owner's authorized 30,000 credit speech test, the current separate worktree can run with:
 
 ```sh
 .venv/bin/python -m playtest \
   --env-file ../BoardroomCrisisSimulator/.env.local \
-  --speech-credit-cap 10000 \
-  --vertex-cap-cents 200 \
+  --speech-credit-cap 30000 \
+  --vertex-cap-cents 2000 \
   --allow-name-rejoin
 ```
 
@@ -65,7 +77,7 @@ The eight logical responsibilities map to authored preparation, Gemini facilitat
 
 The user selected **Gemini 3.8 Flash with LOW reasoning** for preparation, character replies, extraction, custom outcome mapping and debrief. The backend calls Vertex Express with its key in an HTTP header. The model and thinking level are fixed in `vertex.py`; changing either requires a separate model and price review. There are no automatic retries or provider fallbacks. Public jobs include the model, thinking level and reported token usage.
 
-The user authorized a **US$2 test cap**. `--vertex-cap-cents 200` is the maximum. Each request reserves five cents in `.local/ai-playtest/vertex-budget.sqlite` before transmission, including failures. Reservations are atomic across rooms and retained across restarts. Do not delete, move or replace the ledger to restore the allowance. This is a local test subbudget; it does not meter other Google account spending and does not expand the earlier overall account allowance.
+The user increased the total authorization from US$2 to a **US$20 test cap**. `--vertex-cap-cents 2000` is the maximum. Each request reserves five cents in `.local/ai-playtest/vertex-budget.sqlite` before transmission, including failures. Reservations are atomic across rooms and retained across restarts. Do not delete, move or replace the ledger to restore the allowance. This is a local test subbudget; it does not meter other Google account spending and does not expand the earlier overall account allowance.
 
 [Google pricing](https://cloud.google.com/model-garden/pricing) checked November 7, 2026 lists global introductory rates of US$0.75 per million input tokens and US$3.75 per million output tokens through December 31. The reservation uses the higher US$1.50 and US$7.50 rates, bounded input and 2,048 output tokens. Model responses and thinking tokens are billed as output. Pricing must be reviewed before calls in 2027. Health checks do not generate content. The status distinguishes configured credentials from a successfully verified response in the current server process.
 
@@ -73,7 +85,7 @@ Read [the progress record](PROGRESS.md) for the implementation checkpoint and [t
 
 ## Voice and the credit cap
 
-Speech defaults to zero credits. The user authorized up to **10,000 ElevenLabs credits** for this test build. The server refuses a configured cap above 10,000. All rooms share a SQLite reservation ledger. Restarting with the same ledger does not reset spending or increase its stored cap. Do not delete the ledger, move to another data directory, or run independent ledgers to bypass that shared cap. A ledger first initialized at zero remains disabled; an operator must deliberately provision a separately authorized ledger to change that initial setting.
+Speech defaults to zero credits. The user increased the authorization to **30,000 ElevenLabs credits** for this test build. The server refuses a configured cap above 30,000. All rooms share a SQLite reservation ledger. Restarting with the same ledger does not reset spending or increase its stored cap. Do not delete the ledger, move to another data directory, or run independent ledgers to bypass that shared cap. A higher startup value alone cannot raise the stored ceiling. After an explicit user authorization, the operator can run once with `--authorize-budget-increase` and the newly approved caps. This updates only the ceilings and retains all reservations; it never resets spending or creates a replacement ledger.
 
 Rates were checked against [ElevenLabs pricing](https://elevenlabs.io/pricing) on November 7, 2026. Flash API speech costs up to one credit per character; the application reserves one credit per character and selects only a standard premade voice. Speech recognition is listed at approximately 330 credits per minute. The application conservatively reserves 400 credits for each clip of at most 30 seconds, including a full minute minimum. No enhanced transcription options are requested. This is an application reservation limit based on those rates, not a change to the account's provider billing settings or an exact invoice.
 
@@ -99,6 +111,7 @@ The independent HTTP contract is documented by the executable clients in `smoke.
 .venv/bin/python -m unittest discover -s tests -v
 .venv/bin/python -m rehearsal demo
 node --check playtest/static/app.js
+node playtest/tests/audio_lab_ui.test.cjs
 .venv/bin/python -m pip check
 ```
 

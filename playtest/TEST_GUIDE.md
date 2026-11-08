@@ -37,7 +37,7 @@ The original guide associates T01 with R1, T02 with R2, and T03 with R3 and R4. 
 | Speech recognition | ElevenLabs Scribe v2, `scribe_v2` | Voice input → Record microphone → Stop recording → Transcribe recording | During an eligible speaking turn |
 | Speech generation | ElevenLabs Flash v2.5, `eleven_flash_v2_5` | Generate situation audio or Generate response audio → Play | When the relevant text and audio controls are available |
 
-These text responsibilities share one Vertex model. There is no separate managed ElevenLabs conversation agent, no enabled mood detector, and no OpenRouter fallback. Local model API calls are disabled in this app. The persistent Vertex test cap is US$2.
+These text responsibilities share one Vertex model. There is no separate managed ElevenLabs conversation agent, no enabled mood detector, and no OpenRouter fallback. Local model API calls are disabled in this app. The persistent Vertex test cap is US$20.
 
 ## How to run each reference test
 
@@ -163,7 +163,7 @@ Have the participants vote for it. Pass if the winning action is mapped to an al
 
 ## Optional voice test
 
-Voice is not required for any reference question. Text tests do not spend ElevenLabs credits. The existing test server enforces the shared 10,000 credit reservation cap; read the current remaining balance in the page header. Do not reset the ledger.
+Voice is not required for any reference question. Text tests do not spend ElevenLabs credits. The existing test server enforces the shared 30,000 credit reservation cap; read the current remaining balance in the page header. Do not reset the ledger.
 
 1. During an eligible speaking turn, expand Voice input and click Record microphone. Allow browser microphone access if you want to use it.
 2. Say: “Jeff will call IT before three PM.” Stop recording, then click Transcribe recording. Scribe returns provisional text.

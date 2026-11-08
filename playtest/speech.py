@@ -10,11 +10,11 @@ from rehearsal.voice import ElevenSpeech
 
 
 class CreditBudget:
-    MAX_CAP = 10000
+    MAX_CAP = 30000
 
     def __init__(self, path, cap=0):
         if type(cap) is not int or not 0 <= cap <= self.MAX_CAP:
-            raise ValueError('Credit cap must be an integer between 0 and 10000')
+            raise ValueError('Credit cap must be an integer between 0 and 30000')
         self.path, self.cap = str(path), cap
         Path(path).parent.mkdir(parents=True, exist_ok=True)
         with closing(sqlite3.connect(self.path)) as db, db:
@@ -25,6 +25,18 @@ class CreditBudget:
             stored = db.execute("SELECT value FROM settings WHERE key='cap'").fetchone()[0]
             self.cap = min(cap, stored)
         Path(path).chmod(0o600)
+
+    def authorize_increase(self, new_cap):
+        """Explicit operator authorization only; preserve every prior reservation."""
+        if type(new_cap) is not int or not 0 <= new_cap <= self.MAX_CAP:
+            raise ValueError('Credit cap must be an integer between 0 and 30000')
+        with closing(sqlite3.connect(self.path)) as db, db:
+            db.execute('BEGIN IMMEDIATE')
+            stored = db.execute("SELECT value FROM settings WHERE key='cap'").fetchone()[0]
+            if new_cap < stored:
+                raise ValueError('An authorized increase cannot lower the stored credit cap')
+            db.execute("UPDATE settings SET value=? WHERE key='cap'", (new_cap,))
+        self.cap = new_cap
 
     def status(self):
         with closing(sqlite3.connect(self.path)) as db:

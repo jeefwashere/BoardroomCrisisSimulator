@@ -463,7 +463,7 @@ class BudgetTests(unittest.TestCase):
             self.assertEqual(CreditBudget(path, 10000).status()['remaining'], 200)
             for invalid in (float('nan'), -1, 0):
                 with self.assertRaises(ValueError): budget.reserve('test', invalid)
-            with self.assertRaises(ValueError): CreditBudget(Path(d)/'other', 10001)
+            with self.assertRaises(ValueError): CreditBudget(Path(d)/'other', 30001)
 
 
 class FakeSpeech:

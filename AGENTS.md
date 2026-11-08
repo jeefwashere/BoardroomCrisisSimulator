@@ -48,3 +48,11 @@ This checklist is maintained by the agents through normal commits. It is not an 
 ## Approved Vertex experiment
 
 The user explicitly approved Gemini 3.8 Flash with LOW reasoning for every text responsibility in `playtest/`, replacing its local model API calls. This supersedes the local provider direction above for this experiment only. Retain ElevenLabs Scribe v2 and Flash v2.5, the persistent shared 10,000 credit speech cap, and server authority. Vertex has a separately confirmed US$2 test reservation cap; keep its SQLite ledger across restarts. Do not delete GPU weights, stop shared workers, or alter teammate production modules. Historical local results remain in `playtest/MEETING_REPORT.md`. Read `playtest/PROGRESS.md` for current status and never treat a smoke probe as a completed evaluation.
+
+## Prerecorded audio testing
+
+The user requested parallel subagent work and reusable ElevenLabs recordings for conversation and turn tests. `playtest/recordings/` contains 36 fixed fictional MP3 assets generated at concurrency two, with a caption catalog and integrity manifest. Read `playtest/AUDIO_TEST_GUIDE.md` and `playtest/AUDIO_REPORT.md`. The `/audio-lab` recorded demo makes no new model or transcription calls; manual live calls are separately labelled. Keep recorded fixtures distinct from live Gemini replies and real human speech. Never regenerate files for playback or bypass the existing shared speech and Vertex ledgers. Only source text is committed by the free scripted demo; testing recognition requires an explicit transcription request and separate reviewed contribution.
+
+## Updated spending authorization
+
+During X09 the user explicitly raised total caps to 30,000 ElevenLabs credits and US$20 Vertex. This supersedes the older 10,000 credit and US$2 limits above. Retain all existing reservations and caches. Apply a ceiling increase only through an explicit operator authorization, never by deleting a ledger or changing data directories. Ordinary restarts cannot enlarge a stored cap. Provider billing plans and credit purchases are outside this local cap update.

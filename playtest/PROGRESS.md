@@ -1,6 +1,6 @@
 # Rehearsal implementation progress
 
-Status snapshot: November 7, 2026, during task X08. The single window local model experiment is implemented and evaluated. The active test application now routes all text agents and extraction to Gemini 3.8 Flash with LOW reasoning through Google Vertex AI, with no local model fallback. The same fourteen case comparison has completed. The custom proposal round and Vertex speech integration check also passed.
+Status snapshot: November 7, 2026, updated through task X09. The single window local model experiment is implemented and evaluated. The active test application now routes all text agents and extraction to Gemini 3.8 Flash with LOW reasoning through Google Vertex AI, with no local model fallback. The same fourteen case comparison has completed. The custom proposal round and Vertex speech integration check also passed.
 
 The work is isolated on branch `experiment/ai-voice-playtest` in `/Users/arjunbehl/Developer/CommuniHacks/BoardroomCrisisSimulator-ai-playtest`. It has not been merged into the production application. Existing teammate modules and the shared GPU service are preserved.
 
@@ -104,10 +104,22 @@ The US$2 ledger is a local test subbudget, not an account wide Google billing me
 
 The HTML files can be opened as ordinary browser documents without a Markdown editor. The local application requires its server to be running. It is not a public deployment, and this documentation does not grant Velocity access to teammates.
 
-## Latest budgets and remaining work
+## Vertex comparison budgets before the recording library
 
 The completed Vertex test made 21 attempts. Conservative reservations are US$1.05, leaving US$0.95 of the confirmed US$2 cap. This includes the connection probe, fourteen comparison cases, four custom round jobs and two voice setup questions. The token estimate is much lower and is recorded separately in the Vertex report; reservations are not invoices.
 
 The additional speech check reserved 400 credits. The shared speech ledger now has 1,690 reserved and 8,310 remaining out of 10,000. Audio retrieval was cached; no new TTS generation latency is claimed. Fresh transcription took 0.469 seconds on the existing 3.07 second synthetic clip.
 
 Implementation, automated checks and live HTTP comparisons are complete. Human microphone quality, natural conversation, broader extraction quality, load testing and production integration remain separate work. Publication status is recorded in TODO.md; this feature branch has not been merged into production.
+
+## Reusable audio lab added in X09
+
+The user requested parallel subagents to create many reusable ElevenLabs recordings and HTML plus Markdown test instructions. The new audio lab is at <http://127.0.0.1:8788/audio-lab>. It includes 36 fixed recordings in three standard voices, a free recorded 90 second demo, manual five minute conversations, turn controls, optional microphone and Scribe transcription, explicit live Vertex requests, proposals, voting and exports. The prerecorded speakers do not improvise; live agents are separately labelled.
+
+Generation took 67.71 seconds with two concurrent requests. The library contains 142.29 seconds of audio and reserved 2,492 speech credits. All 36 MP3 files and captions passed integrity checks; a second generation command reused them without spending. They are embedded in the repository rather than depending on a future generation request.
+
+Verification passed 51 playtest tests, 31 existing tests, the prototype demo and JavaScript checks. All 36 files were fetched through authenticated playback leases without additional provider reservations. A real HTTP round completed in 90.19 seconds with three recorded clips, three provisional transcripts, separate contribution commits, three votes and one outcome. The tracker and concurrent three role review all completed. The transcripts matched after case, punctuation and numeral normalization; IT appeared as it, so exact text still needs review.
+
+The user subsequently increased total caps to **30,000 speech credits** and **US$20 Vertex**. Current conservative reservations are **5,382 speech credits**, leaving **24,618**, and **US$1.25 Vertex**, leaving **US$18.75**. The explicit cap migration retains every existing reservation; restart alone cannot expand a stored cap. The preceding section preserves the earlier provider comparison checkpoint. No GPU services were changed.
+
+Read [the audio guide](AUDIO_TEST_GUIDE.md) and [measured audio report](AUDIO_REPORT.md). The formatted guide is at <http://127.0.0.1:8788/audio-guide> and `/Users/arjunbehl/Downloads/Rehearsal_Audio_Test_Guide.html`. New browser, microphone and audible playback quality remain manual checks; this task did not use computer controls. Publication is recorded in TODO.md, and the feature branch is not merged.

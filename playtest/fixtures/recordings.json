@@ -1,0 +1,296 @@
+{
+  "version": 1,
+  "note": "Scripted fictional prerecorded fixtures. These are not live AI replies and do not assert a committed decision.",
+  "clips": [
+    {
+      "id": "discussion_owner",
+      "title": "Assign an owner",
+      "role": "Board member A",
+      "group": "discussion",
+      "text": "Jeff will call IT before three PM. Is the backup verified?",
+      "suggested_agent": "tracker"
+    },
+    {
+      "id": "discussion_containment",
+      "title": "Contain and preserve",
+      "role": "Board member B",
+      "group": "discussion",
+      "text": "Preserve the logs and isolate the affected finance device.",
+      "suggested_agent": "it"
+    },
+    {
+      "id": "discussion_public_update",
+      "title": "Separate facts and unknowns",
+      "role": "Board member C",
+      "group": "discussion",
+      "text": "Separate confirmed facts from unknowns before a public update.",
+      "suggested_agent": "journalist"
+    },
+    {
+      "id": "discussion_backup",
+      "title": "Check the backup",
+      "role": "Board member A",
+      "group": "discussion",
+      "text": "Do we know whether the backup is usable, or are we assuming it?",
+      "suggested_agent": "it"
+    },
+    {
+      "id": "discussion_owner_unknown",
+      "title": "Unassigned responsibility",
+      "role": "Board member B",
+      "group": "discussion",
+      "text": "We have a proposed action, but nobody has accepted responsibility yet.",
+      "suggested_agent": "tracker"
+    },
+    {
+      "id": "discussion_deadline",
+      "title": "Request a deadline",
+      "role": "Board member C",
+      "group": "discussion",
+      "text": "Please name an owner and a time for the next update.",
+      "suggested_agent": "facilitator"
+    },
+    {
+      "id": "discussion_disagree",
+      "title": "Respectful disagreement",
+      "role": "Board member A",
+      "group": "discussion",
+      "text": "I disagree with shutting everything down before we understand the impact.",
+      "suggested_agent": "facilitator"
+    },
+    {
+      "id": "discussion_reconsider",
+      "title": "Reconsider with evidence",
+      "role": "Board member B",
+      "group": "discussion",
+      "text": "I can reconsider if we identify evidence that changes the risk.",
+      "suggested_agent": "facilitator"
+    },
+    {
+      "id": "discussion_no_claim",
+      "title": "Reject an unsupported claim",
+      "role": "Board member C",
+      "group": "discussion",
+      "text": "We cannot promise recovery today without a verified restoration estimate.",
+      "suggested_agent": "it"
+    },
+    {
+      "id": "discussion_handoff",
+      "title": "Handoff request",
+      "role": "Board member A",
+      "group": "discussion",
+      "text": "Could finance check the business impact while IT investigates the technical scope?",
+      "suggested_agent": "tracker"
+    },
+    {
+      "id": "discussion_condition",
+      "title": "Conditional action",
+      "role": "Board member B",
+      "group": "discussion",
+      "text": "If the backup is verified, we can discuss recovery. It has not been confirmed yet.",
+      "suggested_agent": "tracker"
+    },
+    {
+      "id": "discussion_question",
+      "title": "Clarification before voting",
+      "role": "Board member C",
+      "group": "discussion",
+      "text": "What remains unknown, and would knowing it change our choice?",
+      "suggested_agent": "facilitator"
+    },
+    {
+      "id": "facilitator_open",
+      "title": "Open the discussion",
+      "role": "Facilitator",
+      "group": "facilitator",
+      "text": "Let us begin with what is confirmed, what is unknown, and who needs to act.",
+      "suggested_agent": "facilitator"
+    },
+    {
+      "id": "facilitator_clarify",
+      "title": "Clarify the decision",
+      "role": "Facilitator",
+      "group": "facilitator",
+      "text": "What should we clarify before deciding?",
+      "suggested_agent": "facilitator"
+    },
+    {
+      "id": "facilitator_quiet",
+      "title": "Invite another view",
+      "role": "Facilitator",
+      "group": "facilitator",
+      "text": "We have heard one perspective. Would someone with a different view like to respond?",
+      "suggested_agent": "facilitator"
+    },
+    {
+      "id": "facilitator_tradeoff",
+      "title": "Name the tradeoff",
+      "role": "Facilitator",
+      "group": "facilitator",
+      "text": "Which tradeoff are we accepting between keeping services running and protecting data?",
+      "suggested_agent": "facilitator"
+    },
+    {
+      "id": "facilitator_summarize",
+      "title": "Summarize before voting",
+      "role": "Facilitator",
+      "group": "facilitator",
+      "text": "Before voting, summarize the action, its owner, the evidence, and the next update.",
+      "suggested_agent": "facilitator"
+    },
+    {
+      "id": "facilitator_review",
+      "title": "Review after the round",
+      "role": "Facilitator",
+      "group": "facilitator",
+      "text": "What did we decide, and what should we clarify next?",
+      "suggested_agent": "facilitator"
+    },
+    {
+      "id": "it_opening",
+      "title": "Technical opening",
+      "role": "IT character",
+      "group": "it",
+      "text": "The finance devices and unusual export need investigation. Do not assume the full scope is known.",
+      "suggested_agent": "it"
+    },
+    {
+      "id": "it_preserve",
+      "title": "Preserve evidence question",
+      "role": "IT character",
+      "group": "it",
+      "text": "How will we preserve evidence while limiting further access?",
+      "suggested_agent": "it"
+    },
+    {
+      "id": "it_dependencies",
+      "title": "Check recovery dependencies",
+      "role": "IT character",
+      "group": "it",
+      "text": "Which recovery dependencies need verification before we give a restoration estimate?",
+      "suggested_agent": "it"
+    },
+    {
+      "id": "it_scope",
+      "title": "Scope is a question",
+      "role": "IT character",
+      "group": "it",
+      "text": "What evidence would tell us whether the affected system boundary is complete?",
+      "suggested_agent": "it"
+    },
+    {
+      "id": "journalist_confirmed",
+      "title": "Ask for confirmed facts",
+      "role": "Journalist",
+      "group": "journalist",
+      "text": "Which facts can you confirm now, and which are still under investigation?",
+      "suggested_agent": "journalist"
+    },
+    {
+      "id": "journalist_customers",
+      "title": "Ask about customer impact",
+      "role": "Journalist",
+      "group": "journalist",
+      "text": "What can you responsibly tell customers about the impact at this stage?",
+      "suggested_agent": "journalist"
+    },
+    {
+      "id": "journalist_update",
+      "title": "Next public update",
+      "role": "Journalist",
+      "group": "journalist",
+      "text": "Who will provide the next public update, and when should people expect it?",
+      "suggested_agent": "journalist"
+    },
+    {
+      "id": "journalist_uncertainty",
+      "title": "Preserve uncertainty",
+      "role": "Journalist",
+      "group": "journalist",
+      "text": "How will your statement distinguish verified information from an estimate?",
+      "suggested_agent": "journalist"
+    },
+    {
+      "id": "control_handoff",
+      "title": "Finish and hand over",
+      "role": "Turn cue",
+      "group": "controls",
+      "text": "I have finished my contribution. Please hand the turn to the next participant."
+    },
+    {
+      "id": "control_wait",
+      "title": "Wait for your turn",
+      "role": "Turn cue",
+      "group": "controls",
+      "text": "Another participant has the floor. Wait for your speaking turn."
+    },
+    {
+      "id": "control_vote",
+      "title": "Vote reminder",
+      "role": "Turn cue",
+      "group": "controls",
+      "text": "Review the options and cast your own vote. Playing this recording does not cast a vote."
+    },
+    {
+      "id": "control_review_text",
+      "title": "Review the transcript",
+      "role": "Turn cue",
+      "group": "controls",
+      "text": "Review the transcribed text before committing it as your contribution."
+    },
+    {
+      "id": "reference_t01_backup",
+      "title": "T01 backup question",
+      "role": "Preparation",
+      "group": "reference",
+      "text": "What must IT verify before promising a restoration time?",
+      "suggested_agent": "preparation",
+      "pack_id": "T01"
+    },
+    {
+      "id": "reference_t01_coverage",
+      "title": "T01 coverage uncertainty",
+      "role": "Preparation",
+      "group": "reference",
+      "text": "Does a missing training record prove that insurance coverage is denied?",
+      "suggested_agent": "preparation",
+      "pack_id": "T01"
+    },
+    {
+      "id": "reference_t02_proceeds",
+      "title": "T02 campaign wording",
+      "role": "Preparation",
+      "group": "reference",
+      "text": "Are gross ticket revenues or net proceeds donated?",
+      "suggested_agent": "preparation",
+      "pack_id": "T02"
+    },
+    {
+      "id": "reference_t02_approval",
+      "title": "T02 publication approval",
+      "role": "Preparation",
+      "group": "reference",
+      "text": "Which participant document describes who approves a public response?",
+      "suggested_agent": "preparation",
+      "pack_id": "T02"
+    },
+    {
+      "id": "reference_t03_access",
+      "title": "T03 payment access",
+      "role": "Preparation",
+      "group": "reference",
+      "text": "Does appointing a director automatically provide payment system access?",
+      "suggested_agent": "preparation",
+      "pack_id": "T03"
+    },
+    {
+      "id": "reference_t03_available",
+      "title": "T03 availability",
+      "role": "Preparation",
+      "group": "reference",
+      "text": "Has the availability of Morgan or Priya been confirmed?",
+      "suggested_agent": "preparation",
+      "pack_id": "T03"
+    }
+  ]
+}

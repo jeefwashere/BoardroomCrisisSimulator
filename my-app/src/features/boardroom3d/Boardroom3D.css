@@ -23,7 +23,7 @@
 .game-live-main--3d .call-stage-head .private-meta-end { margin-left: 8px; }
 .game-live-main--3d .call-stage-footer { margin-top: auto; align-self: center; max-width: min(720px, 100%); padding: 10px 14px; border-radius: 14px; background: rgba(20, 22, 26, 0.72); box-shadow: 0 8px 26px #0000004d; pointer-events: auto; }
 .game-live-main--3d .call-stage-footer:empty { display: none; }
-.game-live-main--3d .call-stage > :is(.opening-problem, .private-complete, .private-dock-float, .opening-report) { pointer-events: auto; }
+.game-live-main--3d .call-stage > :is(.opening-problem, .private-complete, .private-dock-float) { pointer-events: auto; }
 .game-live-main--3d .private-complete { padding: 16px; border-radius: 14px; background: rgba(20, 22, 26, 0.86); overflow: auto; }
 .game-live-main--3d .game-stage-call { pointer-events: none; }
 .game-live-main--3d .game-stage-call > * { pointer-events: auto; }

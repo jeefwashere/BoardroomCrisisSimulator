@@ -388,29 +388,9 @@ details.game-notice { display: block; border-color: #b58c28; background: #fbf1d6
 .game-briefing .saved-clip-turn-actions .saved-clip-stop { background: #9a3030; border-color: #9a3030; }
 .game-briefing .saved-clip-turn-actions button:disabled { cursor: not-allowed; }
 
-/* Incident report card on the AI opening stage. */
-.opening-report { display: grid; gap: 12px; padding: 14px 16px; border: 1px solid #ecc78366; border-radius: 12px; background: linear-gradient(180deg, #ecc78314 0%, #ffffff08 100%); }
-.opening-report-head { display: flex; align-items: flex-start; gap: 12px; }
-.opening-report-icon { display: grid; place-items: center; flex-shrink: 0; width: 40px; height: 40px; border-radius: 10px; background: #ecc78326; color: #ecc783; }
-.game-call-screen .opening-report-icon svg { width: 22px; height: 22px; fill: none; }
-.opening-report-text { display: grid; gap: 3px; min-width: 0; }
-.opening-report-eyebrow { color: #ecc783; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-.opening-report-name { font-size: 16px; font-weight: 650; letter-spacing: -.02em; }
-.opening-report-meta { color: #b0b4bf; font-size: 12px; }
-.opening-report-summary { margin: 4px 0 0; max-width: 68ch; color: #d6d8de; font-size: 13px; line-height: 1.55; }
-.opening-report-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
-.opening-report-button { min-height: 38px; padding: 7px 16px; border: 0; border-radius: 999px; background: #ecc783; color: #2b2112; font: inherit; font-size: 13px; font-weight: 650; cursor: pointer; transition: background-color 150ms ease; }
-.opening-report-button:hover { background: #f3d8a5; }
-.opening-report-link { color: #c6caff; font-size: 13px; font-weight: 600; text-underline-offset: 3px; }
-.opening-report-link:hover { color: #fff; }
-.opening-report-link:focus-visible { outline: 2px solid #9da4ff; outline-offset: 3px; }
-.opening-report-frame iframe { height: min(70vh, 720px); min-height: 360px; border-color: #ffffff1f; background: #fff; }
-.opening-report-frame .pdf-frame-fallback { color: #a6abb6; }
-.opening-report-frame .pdf-frame-fallback a { color: #c6caff; }
 
 @media (prefers-reduced-motion: reduce) {
   .saved-clip-status.is-speaking { animation: none; }
-  .opening-report-button { transition: none; }
 }
 
 .vote-ai-notice { margin: 0.35rem 0 0; font-size: 0.85rem; opacity: 0.8; }
@@ -714,7 +694,6 @@ details.game-notice { display: block; border-color: #b58c28; background: #fbf1d6
 .call-stage-main { display: flex; flex: 1 1 auto; min-height: 220px; }
 .call-stage-main > .call-tile { flex: 1 1 auto; }
 .call-stage-footer { margin-top: 0; }
-.call-stage .opening-report-summary { display: none; }
 
 .call-tile { --tile-accent: #9da4ff; position: relative; display: grid; grid-template-rows: minmax(0, 1fr) auto; min-width: 0; min-height: 0; overflow: hidden; border: 1px solid #ffffff10; border-radius: 14px; background: #2b2d31; transition: border-color 200ms ease, box-shadow 200ms ease; }
 .call-tile.is-talking { border-color: color-mix(in srgb, var(--tile-accent) 80%, transparent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--tile-accent) 35%, transparent), 0 10px 30px #00000040; }

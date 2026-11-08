@@ -68,21 +68,16 @@
 
 /* Opening briefing text and controls. */
 .game-call-screen .opening-state, .game-call-screen .opening-source, .game-call-screen .opening-next,
-.game-call-screen .opening-shimmer-label, .game-call-screen .opening-voice-notice, .game-call-screen .opening-report-meta { color: var(--call-muted); }
-.game-call-screen .opening-text p, .game-call-screen .opening-report-summary { color: var(--call-body); }
-.game-call-screen .opening-scenario, .game-call-screen .opening-report-eyebrow, .game-call-screen .game-round-label { color: var(--call-red); }
+.game-call-screen .opening-shimmer-label, .game-call-screen .opening-voice-notice { color: var(--call-muted); }
+.game-call-screen .opening-text p { color: var(--call-body); }
+.game-call-screen .opening-scenario, .game-call-screen .game-round-label { color: var(--call-red); }
 .game-call-screen .opening-caret, .game-call-screen .transcript-caret { background: var(--call-red); }
-.game-call-screen .opening-link, .game-call-screen .opening-report-link, .game-call-screen .private-history > summary { color: var(--call-red); }
-.game-call-screen .opening-report-link:hover { color: var(--call-red-hover); }
+.game-call-screen .opening-link, .game-call-screen .private-history > summary { color: var(--call-red); }
 .game-call-screen .opening-shimmer > span { background: linear-gradient(90deg, #4228200d 0%, #4228201f 50%, #4228200d 100%); background-size: 200% 100%; }
 .game-call-screen .opening-problem { border-left-color: #c0603f; background: #c0603f14; color: #6b2a1e; }
 .game-call-screen .opening-source.is-offline { background: #b58c281f; color: #6b4b14; }
 .game-call-screen .opening-play { border-radius: 0; background: var(--call-red); color: var(--call-cream); clip-path: var(--call-skew); padding-inline: 20px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .game-call-screen .opening-play:hover:not(:disabled) { background: var(--call-red-hover); }
-.game-call-screen .opening-report { border-color: #b58c2866; background: linear-gradient(180deg, #fbf1d6 0%, var(--call-card) 100%); }
-.game-call-screen .opening-report-icon { background: #b58c2826; color: var(--call-gold); }
-.game-call-screen .opening-report-button { border-radius: 0; background: var(--call-ink); color: var(--call-cream); clip-path: var(--call-skew); padding-inline: 20px; }
-.game-call-screen .opening-report-button:hover { background: var(--call-red); }
 
 /* Expert panel cards. */
 .game-call-screen .expert-card { border-color: var(--call-line); background: var(--call-card); }

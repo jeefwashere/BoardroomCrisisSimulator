@@ -7,7 +7,6 @@ import { roomApi, errorMessage } from '../rooms/useRoom'
 import { pollRoom } from '../rooms/roomState'
 import Countdown from './Countdown'
 import { useReportAgent } from '../boardroom3d/agentPresence'
-import IncidentReportCard from './IncidentReportCard'
 import { seatFromSearch } from '../../services/tabSession'
 import type { LobbyMember } from '../lobby/lobbyModel'
 import CallTile, { MemberStrip } from './CallTile'
@@ -154,6 +153,5 @@ export default function OpeningBriefing({ room, finishBriefing, onDismiss, membe
             {voice.notice && <p className="opening-voice-notice" role="status">{voice.notice}</p>}
             {status === 'ready' && sourceLabel && <span className={`opening-source${opening?.source === 'offline' ? ' is-offline' : ''}`}>{sourceLabel}</span>}
         </div>
-        <IncidentReportCard roomId={room.room_id} />
     </motion.section>
 }

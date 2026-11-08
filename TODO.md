@@ -258,6 +258,10 @@ The user now owns frontend implementation and backend integration, retaining Jef
 
   Owner: Arjun's Claude agent. Status: `done`. Evidence: completion record 34. Scope from the user: use the home page colour scheme and style in the call, with a similar theme everywhere and no dark gradient. Progress: new `my-app/src/pages/GameTheme.css`, loaded after `Game.css` and scoped to `.game-call-screen`, recolours the header, stage frame, tiles, AI orbs, opening, expert and private session stages, transcript card, chat drawer, control bar and 3D overlays in the home palette (paper `#f6f5ef`, brown ink `#422820`, brick red `#8b362c`, cream `#fff4dc`); the title uses the home italic uppercase treatment, and primary buttons and End use the home page's skewed red bar; transcript speaker accents now mix toward ink; the blue first avatar colour became warm brown; the solo demo frame and Reset button went light. Checks: `npx tsc -b`, `npm run lint`, `npm run build` passed; `npm test` passed 226 of 226; Playwright screenshots of the ended card, a sample expert panel stage with answer box, and the 3D view. Next action: none for this task.
 
+* [ ] X25 Remove the incident report card from the opening briefing.
+
+  Owner: Arjun's Claude agent. Status: `in_progress`. Scope from the user: delete the "Incident report (PDF)" card shown over the stage. Progress: removed the card from `OpeningBriefing.tsx`, deleted `IncidentReportCard.tsx` and its `opening-report` styles in `Game.css`, `GameTheme.css` and `Boardroom3D.css`. The PDF stays reachable from the facilitation documents tab. Checks: `npx tsc -b`, `npm run lint`, `npm run build` passed; `npm test` passed 226 of 226. Next action: commit, push and record completion.
+
 ## Integration and verification
 
 * [x] I01 Publish the frontend API and snapshot contract with examples.

@@ -46,9 +46,9 @@ export function startInput(room: RoomSnapshot, scenario: Scenario, timing: strin
 }
 
 // This scheduler waits for each request before scheduling the next one.
-export function pollRoom(
-    read: (signal: AbortSignal) => Promise<RoomSnapshot>,
-    receive: (room: RoomSnapshot) => void,
+export function pollRoom<T>(
+    read: (signal: AbortSignal) => Promise<T>,
+    receive: (room: T) => void,
     failed: (error: unknown) => void,
     interval = 2000,
     subscribeResume?: (resume: () => void) => () => void,

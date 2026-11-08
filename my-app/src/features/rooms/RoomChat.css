@@ -1,0 +1,23 @@
+.room-chat { position: fixed; right: 24px; bottom: 20px; width: min(390px, calc(100vw - 32px)); z-index: 80; border: 1px solid #b6bbb7; border-radius: 16px; background: #f7f8f2; color: #1d2d26; box-shadow: 0 8px 30px #18372c26; overflow: hidden; font-size: 13px; }
+.room-chat-toggle { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; padding: 15px 18px; background: #1e4436; color: #fff; border: 0; cursor: pointer; font: inherit; font-weight: 600; }
+.room-chat-toggle span:last-child { font-size: 12px; font-weight: 400; }
+.room-chat-note { margin: 12px 16px; color: #536158; line-height: 1.45; font-size: 12px; }
+.room-chat-history { overflow-y: auto; max-height: min(37vh, 360px); min-height: 80px; overscroll-behavior: contain; padding: 0 16px; }
+.room-chat-record { padding: 12px 0; border-bottom: 1px solid #dfe4dc; }
+.room-chat-meta { display: flex; justify-content: space-between; gap: 12px; }
+.room-chat-meta time { color: #647368; font-size: 11px; white-space: nowrap; }
+.room-chat-context { margin: 5px 0 7px; font-size: 11px; color: #647368; }
+.room-chat-text { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; line-height: 1.5; }
+.room-chat-empty { color: #647368; margin: 20px 0; }
+.room-chat-compose { padding: 12px 16px 16px; display: grid; gap: 7px; }
+.room-chat-compose label { font-weight: 600; }
+.room-chat-compose textarea { width: 100%; box-sizing: border-box; min-height: 65px; max-height: 130px; resize: vertical; border: 1px solid #bbc9bd; border-radius: 8px; padding: 10px; background: #fff; color: inherit; font: inherit; }
+.room-chat-compose textarea:focus { outline: 2px solid #548c6e; outline-offset: 1px; }
+.room-chat-compose-actions { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.room-chat-compose-actions span { color: #647368; font-size: 11px; }
+.room-chat-compose button, .room-chat-retry button { border: 0; border-radius: 7px; padding: 9px 12px; color: #fff; background: #245741; font: inherit; cursor: pointer; }
+.room-chat button:disabled { opacity: .5; cursor: default; }
+.room-chat-error { margin: 10px 16px; color: #9a312c; line-height: 1.4; }
+.room-chat-retry { margin: 10px 16px 16px; line-height: 1.4; }
+.room-chat-retry p { margin: 0 0 8px; }
+@media (max-width: 600px) { .room-chat { right: 16px; bottom: 12px; } .room-chat-history { max-height: 30vh; } }

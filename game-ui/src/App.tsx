@@ -63,7 +63,7 @@ export default function App() {
       const w = window.innerWidth
       if (!boardroom.current) return
       if (w < 1100) return boardroom.current.setInsets({ left: 0, right: 0, top: 0, bottom: 0 })
-      const left = phase === 'briefing' ? Math.min(560, w * 0.44) + 28 : 368
+      const left = 0
       const bottom = phase === 'voting' || phase === 'tie' || phase === 'result' ? 250 : 170
       boardroom.current.setInsets({ left, right: 276, top: 104, bottom })
     }

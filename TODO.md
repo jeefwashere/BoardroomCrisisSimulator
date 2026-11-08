@@ -144,6 +144,10 @@ The user assigned Jeff the pages before game start and Ricardo the backend. Keep
 
   Owner: Arjun's Claude agent. Status: `done`. Evidence: completion record 15. Scope from the user: remove the highlight under the chairs, and when someone speaks move the camera to present them speaking. Progress: the speaker and hover floor rings are removed from `game-ui/src/scene/Boardroom.ts`; `presenterShot()` places the camera across the table from the speaker (2 m out, 0.5 m to the side, above eye level) and eases back to the overview when nobody speaks; manual orbit still pauses it for 10 seconds. Checks: `npx tsc -b` passed; Playwright on Chromium showed close shots for the player and for a bot speaker and the overview during open discussion. Next action: none for this task.
 
+* [ ] G07 Remove the documents side panel from the game HUD.
+
+  Owner: Arjun's Claude agent. Status: `in_progress`. Scope from the user: remove the wall of text from the game. Progress: the left panel (Situation, Briefing, Evidence, Operations tabs) is removed from `game-ui/src/ui/Hud.tsx` with its styles and the now unused `Markdown.tsx`; the dock spans the full width and the 3D view no longer reserves a left inset; dock hints no longer mention the documents. The wall display in the room still shows the decision title and timer. Checks: `npm run build` passed; Playwright on Chromium showed the briefing and discussion layouts without the panel. Next action: commit, push and record completion.
+
 ## Integration and verification
 
 * [ ] I01 Publish the frontend API and snapshot contract with examples.

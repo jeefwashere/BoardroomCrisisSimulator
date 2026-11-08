@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Markdown } from './Markdown'
 import { clock, remaining, useNow } from './useNow'
 import { METRIC_NAMES, ROLE_NAMES, humanize, type GameClient, type GameView, type Member, type RoomSnapshot } from '../game/types'
 
@@ -13,12 +12,6 @@ const PHASE_LABELS: Record<string, string> = {
   debrief: 'Debrief',
 }
 
-const DOC_TITLES: Record<string, string> = {
-  briefing: 'Briefing',
-  initial_evidence: 'Evidence',
-  operations: 'Operations',
-}
-
 export function Hud({ room, client, onHover }: { room: RoomSnapshot; client: GameClient; onHover: (memberId: string | null) => void }) {
   const game = room.game!
   const [error, setError] = useState<string | null>(null)
@@ -26,7 +19,6 @@ export function Hud({ room, client, onHover }: { room: RoomSnapshot; client: Gam
   return (
     <div className={`hud phase-${room.phase}`}>
       <TopBar room={room} game={game} />
-      <SidePanel room={room} game={game} />
       <MembersPanel room={room} game={game} onHover={onHover} />
       <Dock room={room} game={game} client={client} act={act} />
       {error && (
@@ -81,63 +73,6 @@ function TopBar({ room, game }: { room: RoomSnapshot; game: GameView }) {
         })}
       </ul>
     </header>
-  )
-}
-
-function SidePanel({ room, game }: { room: RoomSnapshot; game: GameView }) {
-  const [tab, setTab] = useState<string>('situation')
-  const [open, setOpen] = useState(true)
-  const hasNode = Boolean(game.node)
-  const active = tab === 'situation' && !hasNode ? 'briefing' : tab
-  const doc = game.public_documents.find((d) => d.id === active)
-  const wide = room.phase === 'briefing'
-  return (
-    <aside className={`side panel ${open ? '' : 'collapsed'} ${wide ? 'wide' : ''}`}>
-      <div className="tabs" role="tablist">
-        {hasNode && (
-          <button role="tab" aria-selected={active === 'situation'} onClick={() => setTab('situation')}>
-            Situation
-          </button>
-        )}
-        {game.public_documents.map((d) => (
-          <button key={d.id} role="tab" aria-selected={active === d.id} onClick={() => setTab(d.id)}>
-            {DOC_TITLES[d.id] ?? humanize(d.id)}
-          </button>
-        ))}
-        <button className="collapse" aria-label={open ? 'Hide documents' : 'Show documents'} onClick={() => setOpen(!open)}>
-          {open ? '‹' : '›'}
-        </button>
-      </div>
-      {open && (
-        <div className="side-body">
-          {active === 'situation' && game.node ? (
-            <div className="situation">
-              <span className="kicker">{game.node.story_time} · Decision {game.round_number}</span>
-              <h2>{game.node.title}</h2>
-              <p className="inject">{game.node.inject}</p>
-              <h4>Questions to settle</h4>
-              <ul className="questions">
-                {game.node.study_questions.map((q) => (
-                  <li key={q}>{q}</li>
-                ))}
-              </ul>
-              {game.history.length > 0 && (
-                <>
-                  <h4>So far</h4>
-                  <ol className="so-far">
-                    {game.history.map((h) => (
-                      <li key={h.round_number}>{h.summary}</li>
-                    ))}
-                  </ol>
-                </>
-              )}
-            </div>
-          ) : (
-            doc && <Markdown text={doc.text} />
-          )}
-        </div>
-      )}
-    </aside>
   )
 }
 
@@ -210,7 +145,7 @@ function BriefingDock({ room }: DockProps) {
       <div>
         <span className="kicker">Your seat</span>
         <h3>{self?.role_id ? ROLE_NAMES[self.role_id] : 'Observer'}</h3>
-        <p className="dock-note">Read the briefing, the evidence and the operations notes. Everyone sees the same documents; no role has private facts.</p>
+        <p className="dock-note">The meeting starts when the timer ends. Everyone has the same facts; no role has private information.</p>
       </div>
     </div>
   )
@@ -222,7 +157,7 @@ function ReadingDock({ game }: DockProps) {
       <div>
         <span className="kicker">New development · {game.node?.story_time}</span>
         <h3>{game.node?.title}</h3>
-        <p className="dock-note">Study the situation. Discussion starts when the timer ends.</p>
+        <p className="dock-note">Check the wall screen. Discussion starts when the timer ends.</p>
       </div>
       <ol className="option-preview">
         {game.node?.options.map((o, i) => (

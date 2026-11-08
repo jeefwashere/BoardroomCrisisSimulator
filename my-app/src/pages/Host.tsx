@@ -7,7 +7,7 @@ import { pickDemoScenario } from '../features/demo/demoModel'
 import LobbyIcon from '../features/lobby/LobbyIcon'
 import RolePicker from '../features/lobby/RolePicker'
 import { useRoom } from '../features/rooms/useRoom'
-import { roomMembers, startInput, startProblem } from '../features/rooms/roomState'
+import { assignRole, roomMembers, startInput, startProblem } from '../features/rooms/roomState'
 import type { RoleDraft } from '../features/rooms/roomState'
 import type { RoomSnapshot, StartRoomInput } from '../services/rooms'
 import Game from './Game'
@@ -62,7 +62,8 @@ function Host({ roomId, initialRoom }: { roomId: string; initialRoom?: RoomSnaps
     function submitStart() {
         if (!room || !scenario) return
         try {
-            const body = startInput(room, scenario, timing, draft, '')
+            // Open floor, untimed: whoever presses Mic and speaks takes the turn; no turn order and no timers.
+            const body = { ...startInput(room, scenario, timing, draft, ''), manual_turns: true }
             const key = JSON.stringify(body)
             if (startIntentRef.current?.key !== key) startIntentRef.current = { key, body: { ...body, command_id: crypto.randomUUID() } }
             void start(startIntentRef.current.body)
@@ -87,7 +88,7 @@ function Host({ roomId, initialRoom }: { roomId: string; initialRoom?: RoomSnaps
             </header>
             <main className="lobby-main" aria-labelledby="lobby-title">
                 <h1 id="lobby-title" className="lobby-visually-hidden">{isHost ? 'Host' : 'Room'} lobby, {members.length} of {room.capacity} players</h1>
-                <PlayerRoster members={members} editable={isHost && !controlsDisabled} renderName={(member) => member.id === room.self_member_id ? <LobbyNameEditor name={member.name} rename={rename} disabled={controlsDisabled} /> : member.name} roles={[{ id: 'unassigned', label: 'Choose a role' }, ...scenario?.roles.map((role) => ({ id: role.role_id, label: role.name })) ?? []]} onAssignRole={(memberId, role) => { setDraft((current) => ({ ...current, [memberId]: role })); setNotice('') }} />
+                <PlayerRoster members={members} editable={isHost && !controlsDisabled} renderName={(member) => member.id === room.self_member_id ? <LobbyNameEditor name={member.name} rename={rename} disabled={controlsDisabled} /> : member.name} roles={[{ id: 'unassigned', label: 'Choose a role' }, ...scenario?.roles.map((role) => ({ id: role.role_id, label: role.name })) ?? []]} onAssignRole={(memberId, role) => { setDraft((current) => assignRole(current, memberId, role)); setNotice('') }} />
             </main>
             <footer className="lobby-context">
                 <div className="lobby-scenario-controls">

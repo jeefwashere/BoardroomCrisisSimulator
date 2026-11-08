@@ -450,6 +450,8 @@ class Rooms:
         self.automatic = automatic
         self.sessions: set[str] = set()
         self.rooms: dict[UUID, Room] = {}
+        # When the server ends each room's opening briefing (see end_briefing_at).
+        self.briefing_ends: dict[UUID, float] = {}
         # Rooms deleted mid game (the CEO left in Round 1): their members get this message instead of "not found".
         self.deleted: dict[UUID, str] = {}
         self.codes: dict[str, UUID] = {}
@@ -478,6 +480,27 @@ class Rooms:
         for room in tuple(self.rooms.values()):
             async with room.lock:
                 self.reconcile(room, self.clock())
+                self._end_briefing_due(room, self.clock())
+
+    def end_briefing_at(self, room_id: UUID, at: float) -> None:
+        """Ends the opening briefing at `at` (this service's clock) if no window has reported its end by then: the
+        tick then starts speaking at once, exactly like the host's finish_briefing, so no room waits out the
+        briefing timer and the reading phase after it."""
+        self.briefing_ends[room_id] = at
+
+    def _end_briefing_due(self, room: Room, now: float) -> None:
+        at = self.briefing_ends.get(room.room_id)
+        if at is None or now < at:
+            return
+        del self.briefing_ends[room.room_id]
+        group = room.phase
+        if room.closed or not isinstance(group, StartedGame) or not isinstance(group.state.phase, sim.BriefingPhase):
+            return
+        seen = {seat.member_id: seat.last_seen for seat in room.members.values()}
+        state = gameplay.begin_speaking(group.state, now, group.electorate, seen, ceo_of(group.assignments))
+        room.phase = replace(group, state=state)
+        room.version += 1
+        self.reconcile(room, now)
 
     async def play(self, session: str, room_id: UUID, command_id: UUID, phase_id: UUID,
                    round_id: UUID | None, action: str, value: str | UUID | None = None) -> RoomSnapshot:

@@ -203,6 +203,17 @@ class GameplayTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(frozen['game']['history'], result['game']['history'])
         self.assertEqual((await self.clients[0].get(self.path + '/evaluation-evidence')).json(), record)
 
+    async def test_server_ends_the_briefing_when_the_spoken_opening_is_over(self):
+        started = await self.ready(3)
+        self.assertEqual(started['phase'], 'briefing')
+        self.rooms.end_briefing_at(self.room_id, self.clock.now + 20)
+        await self.rooms.tick()
+        self.assertEqual((await self.view())['phase'], 'briefing')
+        self.clock.now += 21
+        await self.rooms.tick()
+        # Straight to speaking (like the host's finish_briefing), skipping the reading phase.
+        self.assertEqual((await self.view())['phase'], 'speaking')
+
     async def test_full_room_concurrent_voters_replacement_and_cutoff_equality(self):
         started = await self.ready(10)
         began = datetime.fromisoformat(started['game']['started_at'])

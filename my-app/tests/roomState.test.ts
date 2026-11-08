@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { acceptSnapshot, pollRoom, roomMembers, startInput, startProblem } from '../src/features/rooms/roomState.ts'
+import { assignRole, acceptSnapshot, pollRoom, roomMembers, startInput, startProblem } from '../src/features/rooms/roomState.ts'
 import type { RoomSnapshot, Scenario } from '../src/services/rooms.ts'
 
 const scenario: Scenario = {
@@ -122,4 +122,10 @@ test('returning to a tab refreshes immediately without overlapping an outstandin
     stop()
     assert.equal(unsubscribed, true)
     finish!(lobby())
+})
+
+test('only one CEO: giving the role to someone takes it from whoever had it', () => {
+    const draft = assignRole({ a: 'ceo', b: 'technology' }, 'b', 'ceo')
+    assert.deepEqual(draft, { a: 'unassigned', b: 'ceo' })
+    assert.deepEqual(assignRole(draft, 'a', 'operations'), { a: 'operations', b: 'ceo' })
 })

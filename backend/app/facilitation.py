@@ -119,6 +119,9 @@ def excerpt(text: str, limit: int) -> str:
     return text.rstrip(".!?,;: ")
 
 
+# Seconds past the estimated spoken length before the server ends the briefing itself.
+BRIEFING_END_GRACE_SECONDS = 2
+
 def spoken(text: str) -> str:
     """NarrationService accepts at most 500 characters; cut at a sentence when possible."""
     if len(text) <= MAX_TEXT_CHARACTERS:
@@ -385,6 +388,10 @@ class Facilitation:
             entry["speech_id"], entry["status"] = str(uuid4()), "ready"
             if room_id is not None:
                 self.spawn(self._prewarm_stream(room_id, entry["speech_id"], entry["text"], "facilitator"))
+                # The server ends the briefing when the spoken opening should be over (about 3 words a second plus a
+                # moment for the first audio), in case no window reports its end first.
+                words = len(spoken(entry["text"]).split())
+                self.rooms.end_briefing_at(room_id, self.rooms.clock() + words / 3.0 + BRIEFING_END_GRACE_SECONDS)
         except Exception:
             entry["status"], entry["error"] = "failed", "Opening briefing unavailable"
 

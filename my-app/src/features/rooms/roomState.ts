@@ -21,6 +21,13 @@ export function roomMembers(room: RoomSnapshot, draft: RoleDraft = {}, scenario?
     }))
 }
 
+/** One CEO only: giving someone the CEO role takes it from whoever had it (they go back to choosing a role). */
+export function assignRole(draft: RoleDraft, memberId: string, role: string): RoleDraft {
+    const next: RoleDraft = { ...draft, [memberId]: role }
+    if (role === 'ceo') for (const [other, current] of Object.entries(next)) if (other !== memberId && current === 'ceo') next[other] = 'unassigned'
+    return next
+}
+
 export function startProblem(room: RoomSnapshot, scenario: Scenario | undefined, draft: RoleDraft): string | null {
     if (room.self_member_id !== room.host_member_id) return 'Only the host can start this room.'
     if (room.phase !== 'lobby') return 'This room has already started.'

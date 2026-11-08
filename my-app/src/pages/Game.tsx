@@ -396,6 +396,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary, chat, le
         <ReportDialog report={report} open={reportOpen && reportAvailable} onClose={closeReport} />
         <TranscriptPanel entries={transcriptEntries} open={transcriptOpen} onClose={hideCaptions} dockRef={setDock} minimized={transcriptMinimized} onToggleMinimized={toggleTranscriptMinimized} />
         <ChatDrawer room={room} scenarios={scenarios} chat={chat} open={chatOpen} onClose={closeChat}
+            beforeSend={room.phase === 'speaking' && actions.includes('take_floor') ? () => act(rounds + 'speaker/claim') : undefined}
             pinned={individual && room.phase === 'individual_decision' ? <div className="game-briefing chat-decision"><p className="chat-decision-from">Facilitator · Round 1</p><DecisionStatusPanel room={room} speaking={decisionAuto.status === 'playing'} saving={decisionAuto.status === 'saving'} caption={decisionAuto.caption} /></div> : undefined}
             decision={individual && room.phase === 'individual_decision' && actions.includes('submit_decision') ? { submit: (text) => act(`rounds/${game.round_id}/decision`, { text }), pending, recorded: game.individual_decisions?.self?.text ?? null, attachDictation }
                 // Private coaching: typed answers go through Chat (the stage keeps only the coach's question; Dictate and AI reply answer by voice).

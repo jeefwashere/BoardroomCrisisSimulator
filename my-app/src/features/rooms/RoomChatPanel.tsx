@@ -23,7 +23,7 @@ const DECISION_COPY = {
 }
 
 /** Committed room history plus the composer. Rendered inside the lobby pill or the game's chat drawer. */
-export default function RoomChatPanel({ room, scenarios, chat, compact = false, autoFocus = false, decision }: { room: RoomSnapshot; scenarios: Scenario[]; chat: RoomChatHandle; compact?: boolean; autoFocus?: boolean; decision?: ChatDecision }) {
+export default function RoomChatPanel({ room, scenarios, chat, compact = false, autoFocus = false, decision, beforeSend }: { room: RoomSnapshot; scenarios: Scenario[]; chat: RoomChatHandle; compact?: boolean; autoFocus?: boolean; decision?: ChatDecision; beforeSend?: () => Promise<boolean> }) {
     const { store, state } = chat
     const [target, setTarget] = useState<'decision' | 'room'>('decision')
     const [decisionDraft, setDecisionDraft] = useState('')
@@ -43,7 +43,12 @@ export default function RoomChatPanel({ room, scenarios, chat, compact = false, 
         if (await decision.submit(decisionDraft.trim())) setDecisionDraft('')
         else setDecisionError(copy.failed)
     }
-    const send = () => { if (deciding) void sendDecision(); else void store.send(room.game?.phase_id ?? null, ended) }
+    // `beforeSend` runs first (open floor: a message takes the free floor, like Mic and AI reply); false cancels the send.
+    async function sendChat() {
+        if (beforeSend && state.draft.trim() && !(await beforeSend())) return
+        await store.send(room.game?.phase_id ?? null, ended)
+    }
+    const send = () => { if (deciding) void sendDecision(); else void sendChat() }
     const scenario = room.game ? scenarios.find((item) => item.scenario_id === room.game?.scenario.scenario_id && item.version === room.game.scenario.version) : scenarios[0]
     const ended = room.phase === 'ended'
     // Round 1 decisions are private records shown in the decision panel and the report, not chat messages.

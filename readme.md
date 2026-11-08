@@ -15,6 +15,10 @@ Multiplayer crisis simulation. The FastAPI backend supports frontend supplied ro
 
 Agents working on this repository should read `AGENTS.md` and update their own task in `TODO.md` after verifying and pushing completed work.
 
+## Vultr deployment plan
+
+See [the CPU hosting, 3D asset upload and GoDaddy DNS plan](docs/vultr-deployment.md). Branch `vultr` records the proposed setup; infrastructure and DNS have not been deployed.
+
 ## Selected speech and local agent architecture
 
 Use ElevenLabs for speech, LFM3 for local conversational inference, GLiNER for extraction, and the application backend for room authority. This direction is recorded in the agent instructions; do not substitute another provider or a managed voice orchestrator silently.

@@ -44,52 +44,29 @@ class FourRounds:
 
     def test_skip_controls(self, room):
         phase=room['phase'];actions=[]
-        if phase=='preparation':actions.append({'stage':'opening','label':'Skip introduction'})
-        if phase in ('preparation','discussion','consultation','decision'):
-            actions.append({'stage':'round1','label':'Skip Round 1 → private preparation'})
-        elif phase=='private':
-            preparing=any(s['phase'] in ('coaching','card_review') for s in room['private_sessions'].values())
-            actions.append({'stage':'coaching' if preparing else 'assessment',
-                'label':'Skip remaining preparation → assessment' if preparing else 'Skip remaining assessment → reunion'})
-        elif phase=='reunion':actions.append({'stage':'reunion','label':'Finish test meeting'})
-        blocked=bool(room.get('_reunion_busy')) or any(s['busy'] for s in room.get('private_sessions',{}).values())
-        return {'actions':actions,'revision':room.get('skip_revision',0),'blocked':blocked,
+        if phase=='preparation':actions.append({'stage':'opening','label':'Skip introduction → discussion'})
+        elif phase=='discussion':actions.append({'stage':'discussion','label':'Finish discussion → expert perspectives'})
+        elif phase=='consultation' and all(k in room['expert_briefings'] for k in ('it','operations','governance')):
+            actions.append({'stage':'consultation','label':'Continue to individual decisions'})
+        return {'version':2,'actions':actions,'revision':room.get('skip_revision',0),
+                'blocked':bool(room.get('active_stream')) if phase=='consultation' else False,
                 'history':deepcopy(room.get('test_skips',[])),
-                'ranking_disabled':any(x['stage'] not in ('opening','reunion') for x in room.get('test_skips',[]))}
+                'ranking_disabled':any(x['stage'] in ('round1','coaching','assessment') for x in room.get('test_skips',[]))}
 
     def skip_test_stage(self, room, mid, data):
-        require(mid==self._ceo(room),'Only the CEO can skip a test round',403)
+        require(mid==self._ceo(room),'Only the CEO can advance a shared section',403)
         controls=self.test_skip_controls(room)
         require(data.get('expected_phase')==room['phase'] and type(data.get('skip_revision')) is int and
-                data['skip_revision']==controls['revision'],'The round changed. Review the current skip control',409)
+                data['skip_revision']==controls['revision'],'The section changed. Review the current control',409)
         stage=data.get('stage')
-        require(stage in [a['stage'] for a in controls['actions']],'This stage cannot be skipped now',409)
-        require(not controls['blocked'],'Stop Live audio and wait for active agent requests before skipping',409)
+        require(stage in [a['stage'] for a in controls['actions']],
+                'Decisions, private answers, response cards and assessment cannot be skipped',409)
+        require(not controls['blocked'],'Wait for the current expert response',409)
+        if stage=='opening':self._transition(room,'discussion',reason='section_skip')
+        else:self._apply(room,mid,'finish_discussion' if stage=='discussion' else 'skip_consultation',{})
         room.setdefault('test_skips',[]).append({'stage':stage,'by':mid,'at':self.clock()})
         room['skip_revision']=controls['revision']+1
-        for person in room['electorate']:self.clear_fixture(room,person)
-        self.cancel_audio(room,'test_skip')
-        if stage=='opening':self._transition(room,'discussion',reason='test_skip')
-        elif stage=='round1':
-            for person in room['electorate']:
-                room['individual_decisions'].setdefault(person,{'action':'Not submitted: Round 1 was skipped for testing.',
-                    'reasoning':'','evidence':'','unknowns':'','skipped':True,'revision':0})
-            self.start_private(room)
-        elif stage=='coaching':
-            for session in room['private_sessions'].values():
-                if session['phase'] in ('coaching','card_review'):
-                    session.update(phase='assessment',turn=1,prompt=None,revision=session['revision']+1,
-                                   preparation_skipped=True,error=None)
-        elif stage=='assessment':
-            for session in room['private_sessions'].values():
-                if session['phase']!='assessment_done':
-                    session.update(phase='assessment_done',prompt=None,revision=session['revision']+1,
-                                   assessment_skipped=True,error=None)
-            self.maybe_reunion(room)
-        else:
-            room['winners']=[]
-            self._transition(room,'ended',reason='test_skip')
-        self.event(room,'test_stage_skipped',member=mid,stage=stage)
+        self.event(room,'test_section_advanced',member=mid,stage=stage)
 
     def four_round_command(self, room, mid, action, data):
         if not self.is_four_rounds(room):
@@ -121,13 +98,19 @@ class FourRounds:
                     'Wait for your coach or examiner question',409)
             text=bounded_text(data.get('text'),2500)
             scripted=False
+            live_source=None
+            if data.get('live_session_id'):
+                live_source=next((h for h in session.get('live_history',[]) if h['id']==data['live_session_id'] and
+                    h['revision']==session['revision']),None)
+                require(live_source is not None,'This Live transcript belongs to another question or member',409)
+                scripted=bool(live_source.get('recorded_clips'))
             if data.get('recording_lease'):
                 lease=self.fixture_lease(room,mid,data['recording_lease'])
                 require(lease.get('completed'),'Finish and review the recorded answer first',409)
                 scripted=True
             phase,turn=session['phase'],session['turn']
             session['history'].append({'phase':phase,'turn':turn,'question':session['prompt'],
-                'answer':text,'scripted':scripted,'at':self.clock()})
+                'answer':text,'scripted':scripted,'live_session_id':data.get('live_session_id'),'at':self.clock()})
             session['answers'][f'{phase}_{turn}']={'text':text,'question':session['prompt'],'scripted':scripted,'at':self.clock()}
             session.update(prompt=None,revision=session['revision']+1,error=None)
             self.clear_fixture(room,mid)

@@ -1,6 +1,6 @@
 # Test all four rounds in one window
 
-Open [the local meeting](http://127.0.0.1:8790/roundtable) and create a new room. The attached report is **Service outage and unavailable director**, about fictional Cedar Bridge Community Services. [The AI workflow](FOUR_ROUND_WORKFLOW.md) explains Gemini, ElevenLabs and document memory; [the report](FOUR_ROUND_REPORT.md) records verification and limitations.
+Open [the local meeting](http://127.0.0.1:8791/roundtable) and create a new room. The attached report is **Service outage and unavailable director**, about fictional Cedar Bridge Community Services. [The AI workflow](FOUR_ROUND_WORKFLOW.md) explains Gemini, ElevenLabs and document memory; [the report](FOUR_ROUND_REPORT.md) records verification and limitations.
 
 ## Start and choose the test mode
 
@@ -11,11 +11,9 @@ Open [the local meeting](http://127.0.0.1:8790/roundtable) and create a new room
 
 The new browser flow is `four_rounds`. Existing rooms created in the older Round 1 or ballot experiment retain their old flow; create a fresh room to test this update.
 
-## Skip ahead during testing
+## Move through sections without skipping decisions
 
-Select **Alex (CEO)**. The new controls sit directly below the meeting clock. **Skip introduction** starts discussion immediately. **Skip Round 1** jumps the group to private preparation. Then you can **Skip remaining preparation** to reach assessment, **Skip remaining assessment** to reach reunion, and **Finish test meeting** to end it.
-
-These controls advance the whole group. Existing answers and earned points remain; missing work is marked as skipped. Skipping exercise rounds disables the winner ranking. Stop Live audio and wait for active agent requests before skipping. Use [the updated app](http://127.0.0.1:8790/roundtable) with a fresh room. Earlier rooms remain on their original servers. Read [the skip guide](SKIP_ROUNDS.md).
+Select **Alex (CEO)**. The controls below the clock let you **Skip introduction**, **Finish discussion**, then **Continue to individual decisions** after all three expert perspectives complete. Every member must submit their decision. Coaching answers, response card confirmation, assessment answers and reunion reviews remain required. You can stop agent speech whenever needed and then answer. Whole round skip controls have been removed. Read [the current guide](RECORDED_LIVE_AND_SECTIONS.md).
 
 ## Round 1: shared discussion and individual decisions
 
@@ -39,11 +37,13 @@ Select Alex. Their private coach introduces the unavailable IT specialist and as
 
 Preparation earns no points. A recording never confirms its own text or card. To abandon a sample, use **Use my own answer**; the editable text stays available.
 
-## Optional Live microphone conversation in private rounds
+## Talk to the Live agent with saved clips or your microphone
 
-Use the updated server on port 8790. After the current question is ready and other audio stops, click **Start live conversation** and allow microphone access. Gemini speaks in its own native voice and listens live. You can interrupt, or use **I finished speaking** to flush your turn. Beta mode fixes the question, voice and scenario and uses temperature zero; wording can still vary.
+You do not have to speak yourself. In Round 2 or 3, wait for the current question and stop any existing speech or preview. Choose **Start Live with saved clips**. This keeps the microphone off and loads the recording for your selected member and question. Click **Play saved answer into Gemini Live**. You hear that recording while Gemini receives its actual audio, transcribes it and replies live.
 
-Click **Stop live microphone**, then **Use my spoken words as an answer draft**. Correct recognition errors and remove conversational questions before confirming and submitting. Live never submits or scores an answer itself. Start again for the next question. The examiner clarifies questions without coaching or scoring feedback. Each connection is limited to two minutes; reconnect explicitly if needed. Ordinary speech buttons still use Gemini plus ElevenLabs. Read [the Live workflow](LIVE_AUDIO_WORKFLOW.md) for privacy, costs and verification.
+After the reply, choose **Stop Live session**, then **Use recognized words as an answer draft**. Review and correct the text, confirm, and submit. Nothing is submitted automatically. Start a new connection for the next question. Choose **Start Live with microphone** instead if you want to speak yourself. Beta mode keeps canonical questions, fixed voice and temperature zero; wording can still vary.
+
+The original **Saved answer for this turn** panel still provides local playback and a trusted caption draft without sending the audio into Gemini. Round 1 discussion recordings remain under the participant controls. Files live in `playtest/recordings/`; assignments and captions are in `playtest/fixtures/four-round-audio.json`. See [recorded Live details](RECORDED_LIVE_AND_SECTIONS.md).
 
 ## Round 3: the same agent becomes examiner
 

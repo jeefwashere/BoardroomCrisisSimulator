@@ -25,3 +25,20 @@ test('stopping during microphone permission or worklet loading releases devices 
   assert.equal(stops,1);assert.equal(connections,0);assert.equal(closes,stage==='module'?1:0);assert.equal(run('liveTask'),null);
  }
 });
+test('saved Live mode never requests a microphone and explicitly sends the selected clip',async()=>{
+ const {ctx,run,node}=harness();let microphoneCalls=0;const sent=[];let socket;
+ ctx.navigator={mediaDevices:{getUserMedia(){microphoneCalls++;throw Error('No microphone expected');}}};
+ ctx.location={protocol:'http:',host:'127.0.0.1:8791'};
+ const players=[];ctx.PCMStreamPlayer=class{constructor(){this.chunks=[];players.push(this);}async unlock(){}async stop(){}async drain(){}append(pcm,rate){this.chunks.push({pcm,rate});}};
+ ctx.WebSocket=class{constructor(){socket=this;this.readyState=1;}send(raw){sent.push(JSON.parse(raw));}close(){this.readyState=3;}};
+ await node('startLiveClips').onclick();socket.onopen();assert.equal(microphoneCalls,0);assert.equal(sent[0].input_mode,'recordings');
+ socket.onmessage({data:JSON.stringify({type:'ready',connection_id:'live-session',max_seconds:120,clips:[{id:'r2_member_1_step_1',title:'Alex answer',text:'I would check authority.'}]})});await new Promise(resolve=>setImmediate(resolve));
+ await node('sendLiveClip').onclick();assert.equal(sent[1].type,'play_fixture');assert.equal(sent[1].clip_id,'r2_member_1_step_1');
+ assert.equal(run('liveTask.playingClip'),true);assert.equal(microphoneCalls,0);
+ socket.onmessage({data:JSON.stringify({type:'fixture_audio',pcm:'AAABAA==',sample_rate:16000})});
+ socket.onmessage({data:JSON.stringify({type:'audio',pcm:'AAABAA==',sample_rate:24000})});await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(players[1].chunks[0].rate,16000);assert.equal(players[2].chunks.length,0);
+ socket.onmessage({data:JSON.stringify({type:'fixture_complete'})});await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(players[2].chunks[0].rate,24000);assert.equal(run('liveTask.playingClip'),false);
+ await run("finishLive(liveTask,'Test finished')");
+});

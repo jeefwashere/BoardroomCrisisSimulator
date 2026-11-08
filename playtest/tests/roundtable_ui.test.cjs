@@ -270,7 +270,7 @@ test('Round 1 saved response fills one editable box and survives confirmed reloa
 
 test('CEO test skip control cancels speech, captures revision and never submits an answer',async()=>{
  const {ctx,run,node}=harness(true);ctx.calls=[];
- run(`states[0].flow='four_rounds';states[0].phase='preparation';states[0].test_skip={actions:[{stage:'opening',label:'Skip introduction'}],revision:0,blocked:false,history:[]};stopBriefing=async()=>calls.push('stop brief');stopExerciseVoice=async()=>calls.push('stop voice');command=async(action,data,owner)=>calls.push({action,data,owner});render();`);
+ run(`states[0].flow='four_rounds';states[0].phase='preparation';states[0].test_skip={version:2,actions:[{stage:'opening',label:'Skip introduction'}],revision:0,blocked:false,history:[]};stopBriefing=async()=>calls.push('stop brief');stopExerciseVoice=async()=>calls.push('stop voice');command=async(action,data,owner)=>calls.push({action,data,owner});render();`);
  const b=node('testSkipButtons').children[0];assert.equal(b.disabled,false);await b.onclick();
  assert.deepEqual(Array.from(ctx.calls).slice(0,2),['stop brief','stop voice']);assert.equal(ctx.calls[2].action,'skip_test_stage');assert.equal(ctx.calls[2].data.skip_revision,0);assert.equal(ctx.calls[2].owner.token,'secret');
  run(`states[0].test_skip.revision=1;`);await b.onclick();assert.equal(ctx.calls.length,3);assert.match(node('notice').textContent,/round changed/);
@@ -279,15 +279,15 @@ test('CEO test skip control cancels speech, captures revision and never submits 
 });
 test('skipped assessment reunion renders missing answers and disables winner ranking',()=>{
  const {run,node}=harness(true);
- run(`states[0].flow='four_rounds';states[0].phase='reunion';states[0].exercise_round=4;states[0].private_progress=[];states[0].private_session={phase:'assessment_done',revision:4,scores:{},appeals:{},assessment_skipped:true};states[0].test_skip={actions:[{stage:'reunion',label:'Finish test meeting'}],revision:3,blocked:false,history:[{stage:'assessment'}],ranking_disabled:true};states[0].reunion={branches:[{member:'a',name:'A',total:0,assessment_skipped:true,original_decision:{action:'Not submitted'},assessment_answers:{},scores:{},reviewed:false}],discussion:[],winners:[],score_version:1,summary:null};loadExerciseClips=async()=>{};render();`);
+ run(`states[0].flow='four_rounds';states[0].phase='reunion';states[0].exercise_round=4;states[0].private_progress=[];states[0].private_session={phase:'assessment_done',revision:4,scores:{},appeals:{},assessment_skipped:true};states[0].test_skip={version:2,actions:[],revision:3,blocked:false,history:[{stage:'assessment'}],ranking_disabled:true};states[0].reunion={branches:[{member:'a',name:'A',total:0,assessment_skipped:true,original_decision:{action:'Not submitted'},assessment_answers:{},scores:{},reviewed:false}],discussion:[],winners:[],score_version:1,summary:null};loadExerciseClips=async()=>{};render();`);
  assert.match(node('reunionResults').children[0].children[0].textContent,/incomplete/);
  assert.match(node('reunionResults').children[0].children[2].textContent,/Not submitted/);
  assert.equal(node('announceWinner').disabled,true);assert.match(node('winnerAnnouncement').textContent,/no winner/);
- assert.equal(node('testSkipButtons').children[0].disabled,false);
+ assert.equal(node('testSkipButtons').children.length,0);
 });
 
 test('a remote CEO skip stops stale private agent speech',()=>{
  const {run}=harness(true);
- run(`states[0].flow='four_rounds';states[0].test_skip={actions:[],revision:2,history:[]};exerciseVoice={owner:context(),skipRevision:1};let skippedSpeechStops=0;stopExerciseVoice=async()=>{skippedSpeechStops++;};render();`);
+ run(`states[0].flow='four_rounds';states[0].test_skip={version:2,actions:[],revision:2,history:[]};exerciseVoice={owner:context(),skipRevision:1};let skippedSpeechStops=0;stopExerciseVoice=async()=>{skippedSpeechStops++;};render();`);
  assert.equal(run('skippedSpeechStops'),1);
 });

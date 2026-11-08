@@ -98,3 +98,46 @@ class LiveTests(unittest.TestCase):
             env.write_text('GEMINI_LIVE_API_KEY=dedicated-fixture\n')
             self.assertEqual(provider.key(),'dedicated-fixture')
             self.assertNotIn('dedicated-fixture',json.dumps(provider.status()))
+
+    def test_recorded_input_streams_current_clip_and_preserves_review_boundary(self):
+        pcm=b'\x00\x01'*640;decoded=[]
+        async def decode(clip_id):decoded.append(clip_id);return pcm
+        self.f.app.state.live_audio.fixture_pcm=decode
+        clip=self.f.service.eligible_clips(self.f.room,self.f.state()['me'])[0]
+        with self.connect() as ws:
+            self.hello(ws,input_mode='recordings');ready=ws.receive_json();self.assertEqual(ready['input_mode'],'recordings')
+            self.assertEqual([c['id'] for c in ready['clips']],[clip['id']]);self.until(ws,'turn_complete')
+            ws.send_json({'type':'play_fixture','clip_id':clip['id']});events=self.until(ws,'fixture_complete')
+            self.assertTrue(any(e['type']=='fixture_audio' and e['sample_rate']==16000 for e in events))
+            self.assertTrue(any(e['type']=='transcript' and e['role']=='human' for e in events))
+            ws.send_json({'type':'stop'});self.until(ws,'closed')
+        self.assertEqual(decoded,[clip['id']]);self.assertEqual(self.f.state()['private_session']['answers'],{})
+        saved=self.f.state()['private_session']['live_history'][0]
+        self.assertEqual(saved['input_mode'],'recordings');self.assertEqual(saved['recorded_clips'],[clip['id']])
+        self.f.cmd('private_answer',revision=self.f.state()['private_session']['revision'],text='Reviewed recognized response',live_session_id=ready['connection_id'])
+        self.assertTrue(self.f.state()['private_session']['answers']['coaching_1']['scripted'])
+        self.f.agent(1)
+        response=self.f.call('command/private_answer',{'command_id':uuid.uuid4().hex,'revision':self.f.state(1)['private_session']['revision'],'text':'Other member','live_session_id':ready['connection_id']},1)
+        self.assertEqual(response.status_code,409)
+
+    def test_recorded_connection_rejects_other_member_clip_and_raw_microphone(self):
+        wrong=self.f.service.eligible_clips(self.f.room,self.f.state(1)['me'])[0]['id']
+        for payload in ({'type':'play_fixture','clip_id':wrong},b'\x00\x00'*640):
+            with self.connect() as ws:
+                self.hello(ws,input_mode='recordings');self.until(ws,'turn_complete')
+                ws.send_bytes(payload) if isinstance(payload,bytes) else ws.send_json(payload)
+                self.until(ws,'error');self.until(ws,'closed')
+            self.assertFalse(self.f.state()['private_session']['busy'])
+        self.assertEqual(self.live.pcm,[])
+
+    def test_stop_interrupts_a_paced_saved_clip(self):
+        async def decode(clip_id):return b'\x00\x01'*160000
+        self.f.app.state.live_audio.fixture_pcm=decode
+        clip=self.f.service.eligible_clips(self.f.room,self.f.state()['me'])[0]
+        with self.connect() as ws:
+            self.hello(ws,input_mode='recordings');self.until(ws,'turn_complete')
+            ws.send_json({'type':'play_fixture','clip_id':clip['id']});self.until(ws,'fixture_audio')
+            ws.send_json({'type':'stop'});self.until(ws,'closed')
+        saved=self.f.state()['private_session']['live_history'][0]
+        self.assertLess(saved['input_audio_seconds'],1)
+        self.assertFalse(self.f.state()['private_session']['busy'])

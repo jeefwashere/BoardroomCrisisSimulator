@@ -133,3 +133,8 @@ X21 authorizes explicit continuous microphone capture only while a user started 
 ## Explicit test round skipping
 
 X22 adds CEO only controls to skip the opening and remaining exercise rounds. Read [the skip guide](playtest/SKIP_ROUNDS.md). Preserve submitted work, retain earned scores, mark missing work explicitly and disable winner ranking after skipped exercise rounds. The opening skip alone preserves normal competition. Never synthesize participant answers, confirm a missing card or grade an unanswered stage. Block skips while private model or Live requests are active, and reject stale phase and skip revisions. These controls belong to the isolated test app, not production gameplay.
+
+
+## Required decisions and recorded Live input
+
+X23 supersedes X22 whole round skips. Only the opening and shared discussion sections can end early; the expert completion gate, individual decisions, private coaching answers, card confirmation, assessment submissions and reunion reviews remain required. Read [the current workflow](playtest/RECORDED_LIVE_AND_SECTIONS.md). Explicit saved clip mode streams only this member's current question recording into Gemini Live and does not open the microphone. Playback and recognition are provisional until reviewed submission. Keep recording provenance, member isolation, stop cancellation and native Live speech separate from ordinary Gemini plus ElevenLabs output.

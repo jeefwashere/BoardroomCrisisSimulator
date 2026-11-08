@@ -1,8 +1,10 @@
 # Current implementation and branch handoff
 
-Latest X22: [CEO skip controls](SKIP_ROUNDS.md) let you skip the introduction and exercise rounds for testing. Use the updated app on port 8790; earlier servers preserve their existing rooms. Missing work stays marked as skipped.
+Latest X23: [saved clips can speak into Gemini Live](RECORDED_LIVE_AND_SECTIONS.md) without microphone access. Only introduction and discussion sections can end early; decisions, private answers and reviewed cards remain mandatory. Current test app: port 8791.
 
-Latest X21: [optional Gemini Live private audio](LIVE_AUDIO_WORKFLOW.md) adds explicit microphone conversation in Rounds 2 and 3, native Gemini speech and reviewed transcript drafts. Use port 8789 for the updated local test server. Ordinary speech remains Gemini plus ElevenLabs.
+Historical X22 offered whole round bypasses. X23 removes them and retains required decisions and answers.
+
+Earlier X21: [optional Gemini Live private audio](LIVE_AUDIO_WORKFLOW.md) adds explicit microphone conversation in Rounds 2 and 3, native Gemini speech and reviewed transcript drafts. Use port 8789 for the updated local test server. Ordinary speech remains Gemini plus ElevenLabs.
 
 Latest X20: Round 1 now uses [one guided answer box](SINGLE_ANSWER_UPDATE.md), including saved audio drafts and reviewed microphone transcription.
 

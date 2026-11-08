@@ -36,7 +36,7 @@ class LiveProvider:
 
     def status(self):
         return {'configured': bool(self.key()), 'model': MODEL, 'voice': 'Gemini native audio',
-                'max_seconds': MAX_SECONDS,
+                'max_seconds': MAX_SECONDS, 'recorded_input': True,
                 'message': 'Live audio is ready to connect.' if self.key() else
                     'Add a Gemini Developer API key as GEMINI_LIVE_API_KEY or GEMINI_API_KEY in the backend environment file. The existing Vertex Express key does not support Live.'}
 
@@ -112,6 +112,22 @@ class LiveAudio:
                 'systemInstruction': {'parts': [{'text': instruction}]},
                 'inputAudioTranscription': {}, 'outputAudioTranscription': {}}
 
+    async def fixture_pcm(self, clip_id):
+        # Only the installed, eligible manifest asset reaches this decoder.
+        _, path = self.service.exercise.library.get(clip_id)
+        process = await asyncio.create_subprocess_exec('ffmpeg', '-v', 'error', '-i', str(path),
+            '-f', 's16le', '-ar', '16000', '-ac', '1', 'pipe:1',
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL)
+        try:
+            pcm, _ = await asyncio.wait_for(process.communicate(), 10)
+            require(process.returncode == 0 and 0 < len(pcm) <= MAX_INPUT_BYTES and len(pcm) % 2 == 0,
+                    'The saved recording could not be decoded', 502)
+            return pcm
+        finally:
+            if process.returncode is None:
+                process.kill()
+                await process.wait()
+
     def routes(self):
         @self.service.router.get('/exercise/live-status')
         def status():
@@ -128,6 +144,8 @@ class LiveAudio:
             session = room = None
             ident = None
             history = []
+            played_clips = []
+            input_mode = 'microphone'
             input_bytes = output_bytes = turns = 0
             started = time.monotonic()
             reason = 'stopped'
@@ -135,17 +153,47 @@ class LiveAudio:
                 hello = await asyncio.wait_for(ws.receive_text(), 5)
                 require(len(hello) <= 2048, 'Invalid authentication message', 422)
                 hello = json.loads(hello)
-                require(set(hello) <= {'token', 'revision'}, 'Send only membership and question revision', 422)
+                require(set(hello) <= {'token', 'revision', 'input_mode'}, 'Send only membership, question revision and input mode', 422)
                 require(self.provider.status()['configured'], self.provider.status()['message'], 503)
+                input_mode = hello.get('input_mode', 'microphone')
+                require(input_mode in ('microphone', 'recordings'), 'Choose microphone or recordings', 422)
                 room, mid, session, ident, frozen = self.claim(hello.get('token'), hello.get('revision'))
                 setup = await asyncio.to_thread(self.setup, frozen, mid)
+                clips = self.service.exercise.eligible_clips(frozen, mid) if input_mode == 'recordings' else []
+                fixture_queue = asyncio.Queue(maxsize=1)
+                fixture_active = False
                 async with self.provider.connect(setup) as (upstream, usage):
                     await ws.send_json({'type': 'ready', 'model': MODEL, 'max_seconds': MAX_SECONDS,
-                                        'agent_id': session['agent_id'], 'revision': session['revision']})
+                                        'agent_id': session['agent_id'], 'revision': session['revision'], 'connection_id': ident,
+                                        'input_mode': input_mode, 'clips': [{k: c[k] for k in ('id', 'title', 'text')} for c in clips]})
                     await upstream.send(json.dumps({'clientContent': {'turns': [{'role': 'user', 'parts': [{'text': 'Read my current question now, then listen.'}]}], 'turnComplete': True}}))
 
-                    async def incoming():
+                    async def send_pcm(pcm):
                         nonlocal input_bytes
+                        input_bytes += len(pcm)
+                        require(input_bytes <= MAX_INPUT_BYTES, 'Live audio input limit reached', 429)
+                        require(input_bytes <= (time.monotonic() - started + 3) * 32000, 'Audio arrived faster than live capture', 429)
+                        await upstream.send(json.dumps({'realtimeInput': {'audio': {'mimeType': 'audio/pcm;rate=16000', 'data': base64.b64encode(pcm).decode()}}}))
+
+                    async def fixture_worker():
+                        nonlocal fixture_active
+                        while True:
+                            clip = await fixture_queue.get()
+                            pcm = await self.fixture_pcm(clip['id'])
+                            await ws.send_json({'type': 'fixture_started', 'clip_id': clip['id'], 'title': clip['title'],
+                                                'caption': clip['text'], 'seconds': len(pcm)/32000})
+                            played_clips.append(clip['id'])
+                            for offset in range(0, len(pcm), 1280):
+                                chunk = pcm[offset:offset+1280]
+                                await send_pcm(chunk)
+                                await ws.send_json({'type': 'fixture_audio', 'pcm': base64.b64encode(chunk).decode(), 'sample_rate': 16000})
+                                await asyncio.sleep(len(chunk)/32000)
+                            await upstream.send(json.dumps({'realtimeInput': {'audioStreamEnd': True}}))
+                            fixture_active = False
+                            await ws.send_json({'type': 'fixture_complete', 'clip_id': clip['id']})
+
+                    async def incoming():
+                        nonlocal fixture_active
                         while True:
                             frame = await ws.receive()
                             if frame['type'] == 'websocket.disconnect': return
@@ -157,18 +205,23 @@ class LiveAudio:
                             if frame.get('bytes') is not None:
                                 pcm = frame['bytes']
                                 require(0 < len(pcm) <= 8192 and len(pcm) % 2 == 0, 'Invalid PCM frame', 422)
-                                input_bytes += len(pcm)
-                                require(input_bytes <= MAX_INPUT_BYTES, 'Live audio input limit reached', 429)
-                                # Reject uploads that outpace real-time capture by more than three seconds.
-                                require(input_bytes <= (time.monotonic() - started + 3) * 32000, 'Audio arrived faster than live capture', 429)
-                                await upstream.send(json.dumps({'realtimeInput': {'audio': {'mimeType': 'audio/pcm;rate=16000', 'data': base64.b64encode(pcm).decode()}}}))
+                                require(input_mode == 'microphone', 'This connection accepts saved clips only', 422)
+                                await send_pcm(pcm)
                             else:
                                 raw = frame.get('text', '')
                                 require(len(raw) <= 128, 'Invalid Live control message', 422)
                                 data = json.loads(raw)
-                                require(data in ({'type': 'stop'}, {'type': 'end_turn'}), 'Unsupported Live control', 422)
-                                if data['type'] == 'stop': return
-                                await upstream.send(json.dumps({'realtimeInput': {'audioStreamEnd': True}}))
+                                if data == {'type': 'stop'}: return
+                                if isinstance(data, dict) and set(data) == {'type','clip_id'} and data['type'] == 'play_fixture':
+                                    require(input_mode == 'recordings', 'Start Live with saved clips first', 409)
+                                    require(not fixture_active, 'A saved clip is already playing', 409)
+                                    clip = next((c for c in clips if c['id'] == data['clip_id']), None)
+                                    require(clip is not None, 'This clip does not belong to your current member and question', 403)
+                                    fixture_active = True
+                                    await fixture_queue.put(clip)
+                                else:
+                                    require(data == {'type': 'end_turn'} and not fixture_active, 'Unsupported Live control', 422)
+                                    await upstream.send(json.dumps({'realtimeInput': {'audioStreamEnd': True}}))
 
                     async def outgoing():
                         nonlocal output_bytes, turns
@@ -203,7 +256,7 @@ class LiveAudio:
                             if data.get('goAway') or data.get('error'):
                                 await ws.send_json({'type': 'notice', 'message': 'Gemini ended this connection. Review the transcript, or reconnect.'});return
 
-                    tasks = [asyncio.create_task(incoming()), asyncio.create_task(outgoing())]
+                    tasks = [asyncio.create_task(incoming()), asyncio.create_task(outgoing()), asyncio.create_task(fixture_worker())]
                     try:
                         done, pending = await asyncio.wait(tasks, timeout=MAX_SECONDS, return_when=asyncio.FIRST_COMPLETED)
                         if not done: reason = 'time_limit'
@@ -225,6 +278,7 @@ class LiveAudio:
                             session.pop('live_connection', None);session['busy'] = False
                         session.setdefault('live_history', []).append({'id': ident, 'phase': frozen['private_sessions'][mid]['phase'],
                             'revision': hello['revision'], 'transcript': history, 'provisional': True, 'reason': reason,
+                            'input_mode': input_mode, 'recorded_clips': played_clips,
                             'input_audio_seconds': round(input_bytes / 32000, 2), 'output_audio_seconds': round(output_bytes / 48000, 2)})
                 try:
                     await ws.send_json({'type': 'closed', 'reason': reason, 'transcript': history})

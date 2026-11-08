@@ -1,15 +1,17 @@
 # Rehearsal four round playtest
 
-Latest X22: [CEO skip controls](SKIP_ROUNDS.md) let you skip the introduction and exercise rounds for testing. Use the updated app on port 8790; earlier servers preserve their existing rooms. Missing work stays marked as skipped.
+Latest X23: [saved clips can speak into Gemini Live](RECORDED_LIVE_AND_SECTIONS.md) without microphone access. Only introduction and discussion sections can end early; decisions, private answers and reviewed cards remain mandatory. Current test app: port 8791.
 
-Latest X21: [optional Gemini Live private audio](LIVE_AUDIO_WORKFLOW.md) adds explicit microphone conversation in Rounds 2 and 3, native Gemini speech and reviewed transcript drafts. Use port 8789 for the updated local test server. Ordinary speech remains Gemini plus ElevenLabs.
+Historical X22 offered whole round bypasses. X23 removes them and retains required decisions and answers.
+
+Earlier X21: [optional Gemini Live private audio](LIVE_AUDIO_WORKFLOW.md) adds explicit microphone conversation in Rounds 2 and 3, native Gemini speech and reviewed transcript drafts. Use port 8789 for the updated local test server. Ordinary speech remains Gemini plus ElevenLabs.
 
 Latest X20: Round 1 now uses [one guided answer box](SINGLE_ANSWER_UPDATE.md), including saved audio drafts and reviewed microphone transcription.
 
 
-Working branch: **`experiment/ai-voice-playtest`**. Open [the local meeting](http://127.0.0.1:8790/roundtable), load three test participants and start as CEO. The included PDF is **Service outage and unavailable director**, about fictional Cedar Bridge Community Services.
+Working branch: **`experiment/ai-voice-playtest`**. Open [the local meeting](http://127.0.0.1:8791/roundtable), load three test participants and start as CEO. The included PDF is **Service outage and unavailable director**, about fictional Cedar Bridge Community Services.
 
-Read [the test guide](ROUNDTABLE_GUIDE.md), [Gemini and ElevenLabs workflow](FOUR_ROUND_WORKFLOW.md), [confirmed design](FOUR_ROUND_DESIGN.md) and [verification report](FOUR_ROUND_REPORT.md). The [formatted guide](http://127.0.0.1:8790/roundtable-guide) is also saved as `/Users/arjunbehl/Downloads/Rehearsal_Roundtable_Guide.html`.
+Read [the test guide](ROUNDTABLE_GUIDE.md), [Gemini and ElevenLabs workflow](FOUR_ROUND_WORKFLOW.md), [confirmed design](FOUR_ROUND_DESIGN.md) and [verification report](FOUR_ROUND_REPORT.md). The [formatted guide](http://127.0.0.1:8791/roundtable-guide) is also saved as `/Users/arjunbehl/Downloads/Rehearsal_Roundtable_Guide.html`.
 
 1. Round 1 retains the 30 second live preparation opening, up to five minutes of discussion, three expert perspectives and each member's individual decision. No points.
 2. Round 2 gives each member a private crisis coach, three questions and a reviewed response card. No points.
@@ -25,7 +27,7 @@ Use the existing virtual environment and backend environment file:
 ```sh
 .venv/bin/python -m playtest \
   --env-file ../BoardroomCrisisSimulator/.env.local \
-  --port 8790 --unlimited-budget \
+  --port 8791 --unlimited-budget \
   --allow-name-rejoin
 ```
 

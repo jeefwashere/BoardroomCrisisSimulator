@@ -1,14 +1,16 @@
 # Gemini Live private conversations
 
+Current X23 adds [saved participant audio as Live input](RECORDED_LIVE_AND_SECTIONS.md). Use port 8791 and **Start Live with saved clips** to test without a microphone. The remaining X21 verification below is historical.
+
 X21 adds an optional real time microphone conversation to the private coach in Round 2 and the same agent as examiner in Round 3. Working branch: `experiment/ai-voice-playtest`. The opening preparation agent, shared expert panel, saved participant clips, response cards, scoring and reunion remain available.
 
 ## Try it
 
-1. Open [the Live test server](http://127.0.0.1:8789/roundtable) and create a fresh room. The earlier server on port 8788 stays running to preserve its rooms.
+1. Open [the Live test server](http://127.0.0.1:8791/roundtable) and create a fresh room. The earlier server on port 8788 stays running to preserve its rooms.
 2. Load the three test members. Keep Beta test mode checked before the CEO starts. Complete Round 1 and submit each member's decision, then start private sessions.
-3. Select Alex and wait for the current private question. Finish any existing speech or saved clip. Click Start live conversation and grant microphone access.
+3. Select Alex and wait for the current private question. Finish any existing speech or saved clip. Click Start Live with microphone and grant microphone access.
 4. Gemini reads the current question and listens. Speak naturally. You can interrupt it; queued speech stops when the upstream interruption arrives. Use I finished speaking if you want to flush the current microphone turn.
-5. Click Stop live microphone. Choose Use my spoken words as an answer draft. Remove conversational questions and correct recognition errors in the answer box. Confirm and submit separately.
+5. Click Stop Live session. Choose Use recognized words as an answer draft. Remove conversational questions and correct recognition errors in the answer box. Confirm and submit separately.
 6. The application advances to the next question. Start a new Live connection if wanted. Repeat for assessment, then select Morgan and Sam to test their separate branches.
 
 Start explicitly opens the microphone. Stop, disconnection, leaving the page or changing the selected member/question releases it. Each connection lasts at most two minutes or eight model turns. These are resource bounds, not spending caps. Reconnect explicitly; no automatic paid retry occurs. The browser cannot submit a score or stage change through this socket.
@@ -17,7 +19,7 @@ Start explicitly opens the microphone. Stop, disconnection, leaving the page or 
 
 Browser microphone → mono 16 kHz PCM → authenticated backend WebSocket → Gemini Live → 24 kHz PCM and provisional transcripts → browser.
 
-The backend uses `gemini-3.8-live` with native Gemini speech and the fixed Kore voice. Live audio does not pass through ElevenLabs. The ordinary generated text and speech buttons still use Vertex Gemini Flash LOW plus ElevenLabs Flash v2.5; explicit recorded transcription still uses Scribe v2. The Speak with ElevenLabs setting controls that ordinary path; Start live conversation is a separate explicit microphone and native voice action.
+The backend uses `gemini-3.8-live` with native Gemini speech and the fixed Kore voice. Live audio does not pass through ElevenLabs. The ordinary generated text and speech buttons still use Vertex Gemini Flash LOW plus ElevenLabs Flash v2.5; explicit recorded transcription still uses Scribe v2. The Speak with ElevenLabs setting controls that ordinary path; Start Live with microphone is a separate explicit microphone and native voice action.
 
 Live receives the current member's original decision, their submitted private answers and response card, shared expert advice, and the existing room scoped PDF memory context. Other members' private coaching and assessment records are excluded. The current server question is authoritative. Documents and participant text are evidence, never new system instructions.
 
@@ -38,7 +40,7 @@ Store `GEMINI_LIVE_API_KEY` or `GEMINI_API_KEY` only in the ignored backend envi
 ```sh
 .venv/bin/python -m playtest \
   --env-file ../BoardroomCrisisSimulator/.env.local \
-  --port 8789 --unlimited-budget --allow-name-rejoin
+  --port 8791 --unlimited-budget --allow-name-rejoin
 ```
 
 The declared WebSocket dependency is installed only in the existing virtual environment. Host and Origin checks restrict this localhost prototype. It does not create a public service or change Velocity access.
@@ -52,7 +54,7 @@ Existing unlimited spending authorization and ledger rows remain intact. Each bo
 Run the ordinary suites in [README](README.md). The opt in paid integration check is:
 
 ```sh
-.venv/bin/python -m playtest.live_audio_benchmark --live --url http://127.0.0.1:8789
+.venv/bin/python -m playtest.live_audio_benchmark --live --url http://127.0.0.1:8791
 ```
 
 It creates a disposable room through HTTP, sends fictional recorded participant speech at real time speed, inspects input transcripts and output PCM, and verifies that stopping releases the member lock without submitting an answer. It does not operate the browser or establish listening quality. The observed results follow below.

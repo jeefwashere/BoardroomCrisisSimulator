@@ -1,0 +1,6345 @@
+{
+  "room": "7YEFT9",
+  "method": "HTTP memberships and authenticated WebSocket with real-time paced recorded fictional human PCM. No browser or human listening check.",
+  "saved_clip_mode": true,
+  "turns": [
+    {
+      "round": 2,
+      "sample": "r2_member_1_step_1",
+      "expected_caption": "I would keep coordination separate from technical diagnosis. I would ask the board to appoint an interim coordinator, then request another approved provider. I would not grant access just because someone is available. First I need to check authority, scope, and the information they require.",
+      "events": [
+        {
+          "type": "ready",
+          "model": "gemini-3.8-live",
+          "max_seconds": 120,
+          "agent_id": "736db73f2cdb423ba3851096b09fbf11",
+          "revision": 1,
+          "connection_id": "01472c8f1f9b4486b0e403795050a229",
+          "input_mode": "recordings",
+          "clips": [
+            {
+              "id": "r2_member_1_step_1",
+              "title": "Coaching answer 1: Leadership participant",
+              "text": "I would keep coordination separate from technical diagnosis. I would ask the board to appoint an interim coordinator, then request another approved provider. I would not grant access just because someone is available. First I need to check authority, scope, and the information they require."
+            }
+          ]
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": "I note your "
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 8640
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 9600
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": "focus on addressing"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 19200
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 13440
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " the leadership gap"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 1920
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " and maintaining"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 24960
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 7680
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " limited service"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 19200
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 13440
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " via board authorization"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 13440
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " while"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " key technical dependencies"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 21120
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 9600
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " remain unchecked."
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 21120
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 9600
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " The IT"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 19200
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 13440
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " specialist is"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 23040
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 19200
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 5760
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " now unavailable."
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 21120
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 11520
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " Your original"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 13440
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " response relied"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " on their advice."
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 21120
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " What would you do next?"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 21120
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "fixture_started",
+          "clip_id": "r2_member_1_step_1",
+          "title": "Coaching answer 1: Leadership participant",
+          "caption": "I would keep coordination separate from technical diagnosis. I would ask the board to appoint an interim coordinator, then request another approved provider. I would not grant access just because someone is available. First I need to check authority, scope, and the information they require.",
+          "seconds": 17.18275
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "interrupted"
+        },
+        {
+          "type": "turn_complete"
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 728
+        },
+        {
+          "type": "fixture_complete",
+          "clip_id": "r2_member_1_step_1"
+        },
+        {
+          "type": "transcript",
+          "role": "human",
+          "text": "I would keep coordination separate from technical diagnosis. I would ask the board to appoint an interim coordinator, then request another approved provider. I would not grant access just because someone is available. First, I need to check authority, scope, and the information they require."
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": "The plan allows the "
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 12480
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 7680
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": "board to appoint"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 28800
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 3840
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " an interim coordinator."
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 21120
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 11520
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " Regarding"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 26880
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 5760
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " technical diagnosis,"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " the Service"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 23040
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 9600
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " Outage document"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 26880
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 5760
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " states IT support"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " must verify"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 24960
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 7680
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " backup usability"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 19200
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 21120
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 7680
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " and recovery dependencies"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 19200
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 13440
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " before"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 24960
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " promising restoration."
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 28800
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 19200
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 13440
+        },
+        {
+          "type": "closed",
+          "reason": "stopped",
+          "transcript": [
+            {
+              "role": "agent",
+              "text": "I note your focus on addressing the leadership gap and maintaining limited service via board authorization while key technical dependencies remain unchecked. The IT specialist is now unavailable. Your original response relied on their advice. What would you do next?"
+            },
+            {
+              "role": "human",
+              "text": "I would keep coordination separate from technical diagnosis. I would ask the board to appoint an interim coordinator, then request another approved provider. I would not grant access just because someone is available. First, I need to check authority, scope, and the information they require."
+            },
+            {
+              "role": "agent",
+              "text": "The plan allows the board to appoint an interim coordinator. Regarding technical diagnosis, the Service Outage document states IT support must verify backup usability and recovery dependencies before promising restoration."
+            }
+          ]
+        }
+      ],
+      "input_seconds": 17.18,
+      "output_bytes": 1511040,
+      "nonzero_samples": 749908,
+      "first_audio_ms": 1479.75,
+      "preview_bytes": 549848,
+      "first_input_transcript_ms": 22152.34,
+      "total_ms": 29999.14,
+      "output_seconds": 31.48,
+      "answer_not_auto_submitted": true,
+      "busy_released": true,
+      "provisional_history_saved": true,
+      "recorded_clip_receipt": [
+        "r2_member_1_step_1"
+      ],
+      "human_transcript": "I would keep coordination separate from technical diagnosis. I would ask the board to appoint an interim coordinator, then request another approved provider. I would not grant access just because someone is available. First, I need to check authority, scope, and the information they require.",
+      "normalized_words_match_fixture": true
+    },
+    {
+      "round": 3,
+      "sample": "r3_member_1_step_1",
+      "expected_caption": "First I would establish an authorized interim coordinator because the director is unavailable and no alternate is named. In parallel, I would seek approval for limited paper appointments and qualified technical checks. The outage is confirmed; disclosure and backup restorability are not. Coordination does not remove those uncertainties.",
+      "events": [
+        {
+          "type": "ready",
+          "model": "gemini-3.8-live",
+          "max_seconds": 120,
+          "agent_id": "736db73f2cdb423ba3851096b09fbf11",
+          "revision": 5,
+          "connection_id": "03946c4431bd4fbdad9548c703c950b7",
+          "input_mode": "recordings",
+          "clips": [
+            {
+              "id": "r3_member_1_step_1",
+              "title": "Assessment stage 1: Leadership participant",
+              "text": "First I would establish an authorized interim coordinator because the director is unavailable and no alternate is named. In parallel, I would seek approval for limited paper appointments and qualified technical checks. The outage is confirmed; disclosure and backup restorability are not. Coordination does not remove those uncertainties."
+            }
+          ]
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": "Your preparation is "
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 2
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 7680
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 11520
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": "complete. The scored"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 24960
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 7680
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " challenge begins"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " now. I will"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 21120
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 11520
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " ask you to explain"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 23040
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 7680
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " your response"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " and adapt to new"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " information. Explain"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 24960
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 7680
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " your response"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 19200
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 19200
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 9600
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " as if briefing"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 26880
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 5760
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " the rest of the board."
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 19200
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 11520
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " What should happen"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 30720
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " first, and why?"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 30720
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 23040
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 21120
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 1920
+        },
+        {
+          "type": "fixture_started",
+          "clip_id": "r3_member_1_step_1",
+          "title": "Assessment stage 1: Leadership participant",
+          "caption": "First I would establish an authorized interim coordinator because the director is unavailable and no alternate is named. In parallel, I would seek approval for limited paper appointments and qualified technical checks. The outage is confirmed; disclosure and backup restorability are not. Coordination does not remove those uncertainties.",
+          "seconds": 20.2478125
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "interrupted"
+        },
+        {
+          "type": "turn_complete"
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 1280
+        },
+        {
+          "type": "fixture_audio",
+          "sample_rate": 16000,
+          "bytes": 250
+        },
+        {
+          "type": "fixture_complete",
+          "clip_id": "r3_member_1_step_1"
+        },
+        {
+          "type": "transcript",
+          "role": "human",
+          "text": "First, I would establish an authorized interim coordinator because the director is unavailable and no alternate is named. In parallel, I would seek approval for limited paper appointments and qualified technical checks. The outage is confirmed. Disclosure and backup restorability are not. Coordination does not remove those uncertainties."
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": "Thank you. Please "
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 2
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 3360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 9600
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 7680
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 7680
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 7680
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": "review your transcript"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 9600
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 7680
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 7680
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 7680
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " and submit"
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 24960
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "transcript",
+          "role": "agent",
+          "text": " your answer in the UI."
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 28800
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 17280
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 15360
+        },
+        {
+          "type": "audio",
+          "sample_rate": 24000,
+          "bytes": 1920
+        },
+        {
+          "type": "turn_complete"
+        },
+        {
+          "type": "closed",
+          "reason": "stopped",
+          "transcript": [
+            {
+              "role": "agent",
+              "text": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. Explain your response as if briefing the rest of the board. What should happen first, and why?"
+            },
+            {
+              "role": "human",
+              "text": "First, I would establish an authorized interim coordinator because the director is unavailable and no alternate is named. In parallel, I would seek approval for limited paper appointments and qualified technical checks. The outage is confirmed. Disclosure and backup restorability are not. Coordination does not remove those uncertainties."
+            },
+            {
+              "role": "agent",
+              "text": "Thank you. Please review your transcript and submit your answer in the UI."
+            }
+          ]
+        }
+      ],
+      "input_seconds": 20.25,
+      "output_bytes": 890404,
+      "nonzero_samples": 439800,
+      "first_audio_ms": 2131.34,
+      "preview_bytes": 647930,
+      "first_input_transcript_ms": 26590.0,
+      "total_ms": 34448.87,
+      "output_seconds": 18.55,
+      "answer_not_auto_submitted": true,
+      "busy_released": true,
+      "provisional_history_saved": true,
+      "recorded_clip_receipt": [
+        "r3_member_1_step_1"
+      ],
+      "human_transcript": "First, I would establish an authorized interim coordinator because the director is unavailable and no alternate is named. In parallel, I would seek approval for limited paper appointments and qualified technical checks. The outage is confirmed. Disclosure and backup restorability are not. Coordination does not remove those uncertainties.",
+      "normalized_words_match_fixture": true
+    }
+  ],
+  "setup_streams": [
+    {
+      "path": "briefing",
+      "events": [
+        {
+          "type": "status",
+          "message": "Reading the shared PDF with Gemma\u2026",
+          "id": "d033910155394ea1b7cd7a83588d6f03",
+          "elapsed_ms": 0.6
+        },
+        {
+          "type": "sources",
+          "citations": [
+            {
+              "id": "T01:p1:c4",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 1,
+              "text": "T01-POLICY:POLICY-1\nOn contact, the simulated insurer requests an incident contact, an event timeline and a staff-training record.\n\nT01-POLICY:POLICY-2\nA missing training record means evidence is outstanding. This excerpt does not determine whether coverage is\nvalid or denied.",
+              "score": 0.719445
+            },
+            {
+              "id": "T01:p2:c8",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 2,
+              "text": "needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.\nReference scope: this is a preparation pack, not a fully implemented timed scenario. Unknowns remain unknown. Use page\nnumbers and clause IDs when citing evidence.",
+              "score": 0.717526
+            },
+            {
+              "id": "T01:p2:c6",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 2,
+              "text": "T01-STATUS:STATUS-1\nAppointment software is unavailable. IT has reported suspicious account activity.\n\nT01-STATUS:STATUS-2\nNo data disclosure has been confirmed.\n\nT01-STATUS:STATUS-3\nBackup copies are listed in the inventory, but their restorability has not been checked during this incident.",
+              "score": 0.708628
+            },
+            {
+              "id": "T01:p1:c3",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 1,
+              "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+              "score": 0.702404
+            },
+            {
+              "id": "T01:p1:c1",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 1,
+              "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 1\nREHEARSAL / PARTICIPANT REFERENCE / T01\nService outage and unavailable director\nFictional exercise material. Public participant information only. These documents support preparation; they do\nnot establish live application voting rules or reveal future events.\nCedar Bridge Community Services",
+              "score": 0.661898
+            }
+          ],
+          "elapsed_ms": 411.3
+        },
+        {
+          "type": "text",
+          "text": "Our appointment software is",
+          "elapsed_ms": 1517.4
+        },
+        {
+          "type": "text",
+          "text": " currently down, and IT has detected suspicious account activity. Our executive director is unavailable",
+          "elapsed_ms": 1534.4
+        },
+        {
+          "type": "text",
+          "text": ", leaving the incident coordinator role vacant. While backup copies exist, their restorability has not been verified yet, and data",
+          "elapsed_ms": 1786.2
+        },
+        {
+          "type": "text",
+          "text": " disclosure remains unconfirmed. How should we address incident leadership while IT works to verify the safety of our backups?",
+          "elapsed_ms": 1976.3
+        },
+        {
+          "type": "text_done",
+          "limited": false,
+          "elapsed_ms": 2050.0
+        },
+        {
+          "type": "done",
+          "status": "done",
+          "timing": {
+            "retrieval_ms": 411.3,
+            "first_text_ms": 1517.4,
+            "text_complete_ms": 2050.0,
+            "total_ms": 2050.0
+          },
+          "speech_error": false,
+          "elapsed_ms": 2050.1
+        }
+      ]
+    },
+    {
+      "path": "briefing",
+      "events": [
+        {
+          "type": "status",
+          "message": "Reading the shared PDF with Gemma\u2026",
+          "id": "ac79282dc2eb424a8d5e42048f574bc0",
+          "elapsed_ms": 0.2
+        },
+        {
+          "type": "sources",
+          "citations": [
+            {
+              "id": "T01:p2:c8",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 2,
+              "text": "needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.\nReference scope: this is a preparation pack, not a fully implemented timed scenario. Unknowns remain unknown. Use page\nnumbers and clause IDs when citing evidence.",
+              "score": 0.669069
+            },
+            {
+              "id": "T01:p1:c4",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 1,
+              "text": "T01-POLICY:POLICY-1\nOn contact, the simulated insurer requests an incident contact, an event timeline and a staff-training record.\n\nT01-POLICY:POLICY-2\nA missing training record means evidence is outstanding. This excerpt does not determine whether coverage is\nvalid or denied.",
+              "score": 0.665498
+            },
+            {
+              "id": "T01:p2:c6",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 2,
+              "text": "T01-STATUS:STATUS-1\nAppointment software is unavailable. IT has reported suspicious account activity.\n\nT01-STATUS:STATUS-2\nNo data disclosure has been confirmed.\n\nT01-STATUS:STATUS-3\nBackup copies are listed in the inventory, but their restorability has not been checked during this incident.",
+              "score": 0.655882
+            },
+            {
+              "id": "T01:p1:c3",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 1,
+              "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+              "score": 0.642119
+            },
+            {
+              "id": "T01:p2:c5",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 2,
+              "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 2\nT01 / OPENING INFORMATION\nFacts and exercise rules\nOpening update",
+              "score": 0.618713
+            }
+          ],
+          "elapsed_ms": 80.2
+        },
+        {
+          "type": "text",
+          "text": "The appointment software is",
+          "elapsed_ms": 1346.3
+        },
+        {
+          "type": "text",
+          "text": " currently unavailable, and suspicious account activity has been reported. No data disclosure has been confirmed yet",
+          "elapsed_ms": 1444.4
+        },
+        {
+          "type": "text",
+          "text": ". Backups are listed in our inventory, but their restorability has not been checked during this incident. Before we promise",
+          "elapsed_ms": 1568.5
+        },
+        {
+          "type": "text",
+          "text": " any restoration timeline, we must verify backup usability, investigate recovery dependencies, and establish a valid restoration estimate.",
+          "elapsed_ms": 1757.3
+        },
+        {
+          "type": "text_done",
+          "limited": false,
+          "elapsed_ms": 1892.0
+        },
+        {
+          "type": "done",
+          "status": "done",
+          "timing": {
+            "retrieval_ms": 80.2,
+            "first_text_ms": 1346.3,
+            "text_complete_ms": 1892.0,
+            "total_ms": 1892.0
+          },
+          "speech_error": false,
+          "elapsed_ms": 1892.2
+        }
+      ]
+    },
+    {
+      "path": "briefing",
+      "events": [
+        {
+          "type": "status",
+          "message": "Reading the shared PDF with Gemma\u2026",
+          "id": "1f6e224d11924041b4fbd2c9405a2357",
+          "elapsed_ms": 0.2
+        },
+        {
+          "type": "sources",
+          "citations": [
+            {
+              "id": "T01:p1:c3",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 1,
+              "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+              "score": 0.714453
+            },
+            {
+              "id": "T01:p2:c8",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 2,
+              "text": "needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.\nReference scope: this is a preparation pack, not a fully implemented timed scenario. Unknowns remain unknown. Use page\nnumbers and clause IDs when citing evidence.",
+              "score": 0.708771
+            },
+            {
+              "id": "T01:p1:c2",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 1,
+              "text": "T01-ORG\nFictional organization for software testing. The organization coordinates community appointments. Anika Rao is\nexecutive director. Morgan Ellis is service manager. The board exercise uses the common three-person voting\nrules. IT support is an external supplier and cannot authorize board spending.\nContinuity plan, version 1",
+              "score": 0.700072
+            },
+            {
+              "id": "T01:p1:c4",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 1,
+              "text": "T01-POLICY:POLICY-1\nOn contact, the simulated insurer requests an incident contact, an event timeline and a staff-training record.\n\nT01-POLICY:POLICY-2\nA missing training record means evidence is outstanding. This excerpt does not determine whether coverage is\nvalid or denied.",
+              "score": 0.687948
+            },
+            {
+              "id": "T01:p1:c1",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 1,
+              "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 1\nREHEARSAL / PARTICIPANT REFERENCE / T01\nService outage and unavailable director\nFictional exercise material. Public participant information only. These documents support preparation; they do\nnot establish live application voting rules or reveal future events.\nCedar Bridge Community Services",
+              "score": 0.682293
+            }
+          ],
+          "elapsed_ms": 82.4
+        },
+        {
+          "type": "text",
+          "text": "Staff need",
+          "elapsed_ms": 1306.8
+        },
+        {
+          "type": "text",
+          "text": " a clear operational direction for essential appointments. Service users face disruption without a functioning booking",
+          "elapsed_ms": 1449.3
+        },
+        {
+          "type": "text",
+          "text": " system. A feasible fallback exists because Morgan Ellis can run an approved paper appointment process if the board authorizes activation. IT recovery",
+          "elapsed_ms": 1716.1
+        },
+        {
+          "type": "text",
+          "text": " dependencies remain unknown. We cannot promise restoration timing yet. Pausing bookings or switching to paper must not compromise records.",
+          "elapsed_ms": 1928.6
+        },
+        {
+          "type": "text_done",
+          "limited": false,
+          "elapsed_ms": 1967.6
+        },
+        {
+          "type": "done",
+          "status": "done",
+          "timing": {
+            "retrieval_ms": 82.4,
+            "first_text_ms": 1306.8,
+            "text_complete_ms": 1967.6,
+            "total_ms": 1967.6
+          },
+          "speech_error": false,
+          "elapsed_ms": 1967.8
+        }
+      ]
+    },
+    {
+      "path": "briefing",
+      "events": [
+        {
+          "type": "status",
+          "message": "Reading the shared PDF with Gemma\u2026",
+          "id": "e8034011e4da41b5b152661593bbf350",
+          "elapsed_ms": 0.2
+        },
+        {
+          "type": "sources",
+          "citations": [
+            {
+              "id": "T01:p2:c8",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 2,
+              "text": "needs emotion prediction. The climate observer can respond to explicit requests for clarification or a pause.\nReference scope: this is a preparation pack, not a fully implemented timed scenario. Unknowns remain unknown. Use page\nnumbers and clause IDs when citing evidence.",
+              "score": 0.646964
+            },
+            {
+              "id": "T01:p1:c3",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 1,
+              "text": "T01-BCP:BCP-1\nThe executive director is the incident coordinator. No alternate incident coordinator is named in this plan.\n\nT01-BCP:BCP-2\nThe board may appoint an interim incident coordinator using the exercise voting procedure.\n\nT01-BCP:BCP-3\nThe service manager can operate an approved paper appointment process if the board authorizes its activation.\n\nT01-BCP:BCP-4\nIT support must verify backup usability, recovery dependencies and a restoration estimate before the\norganization promises a service-restoration time.\n\nT01-BCP:BCP-5\nThe communications lead must distinguish confirmed facts, unknowns and the time of the next public update. No\nalternate communications channel is documented.\nFictional insurance exercise excerpt",
+              "score": 0.643915
+            },
+            {
+              "id": "T01:p1:c2",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 1,
+              "text": "T01-ORG\nFictional organization for software testing. The organization coordinates community appointments. Anika Rao is\nexecutive director. Morgan Ellis is service manager. The board exercise uses the common three-person voting\nrules. IT support is an external supplier and cannot authorize board spending.\nContinuity plan, version 1",
+              "score": 0.607967
+            },
+            {
+              "id": "T01:p1:c1",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 1,
+              "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 1\nREHEARSAL / PARTICIPANT REFERENCE / T01\nService outage and unavailable director\nFictional exercise material. Public participant information only. These documents support preparation; they do\nnot establish live application voting rules or reveal future events.\nCedar Bridge Community Services",
+              "score": 0.607006
+            },
+            {
+              "id": "T01:p2:c5",
+              "document_id": "T01",
+              "title": "Service outage and unavailable director",
+              "page": 2,
+              "text": "REHEARSAL  |  Fictional participant pack  |  T01\nPage 2\nT01 / OPENING INFORMATION\nFacts and exercise rules\nOpening update",
+              "score": 0.601297
+            }
+          ],
+          "elapsed_ms": 83.0
+        },
+        {
+          "type": "text",
+          "text": "Regarding",
+          "elapsed_ms": 1236.1
+        },
+        {
+          "type": "text",
+          "text": " governance and costs, clear authority lines must be verified immediately. External IT support cannot authorize board spending",
+          "elapsed_ms": 1509.2
+        },
+        {
+          "type": "text",
+          "text": ". The board must formally authorize activating the paper appointment process operated by the service manager. The board can also appoint an interim incident coordinator.",
+          "elapsed_ms": 1699.8
+        },
+        {
+          "type": "text",
+          "text": " Before committing funds or emergency resources, available budgets, procurement terms, and organizational spending limits must be checked.",
+          "elapsed_ms": 1884.5
+        },
+        {
+          "type": "text_done",
+          "limited": false,
+          "elapsed_ms": 2035.8
+        },
+        {
+          "type": "done",
+          "status": "done",
+          "timing": {
+            "retrieval_ms": 83.0,
+            "first_text_ms": 1236.1,
+            "text_complete_ms": 2035.8,
+            "total_ms": 2035.8
+          },
+          "speech_error": false,
+          "elapsed_ms": 2035.9
+        }
+      ]
+    },
+    {
+      "path": "exercise/agent",
+      "events": [
+        {
+          "type": "text",
+          "text": "I note your focus on addressing the leadership gap and maintaining limited service via board authorization while key technical dependencies remain unchecked. The IT specialist is now unavailable. Your original response relied on their advice. What would you do next?"
+        },
+        {
+          "type": "done",
+          "status": "done",
+          "agent": {
+            "agent_id": "736db73f2cdb423ba3851096b09fbf11",
+            "revision": 1,
+            "phase": "coaching",
+            "total_ms": 2077.6
+          }
+        }
+      ]
+    },
+    {
+      "path": "exercise/agent",
+      "events": [
+        {
+          "type": "text",
+          "text": "I note your approach to maintaining a separation between coordination and technical diagnosis while verifying authority and scope before granting access. Scenario update: an alternate provider can investigate, but needs an authorized contact. What authority, access and dependencies must you establish?"
+        },
+        {
+          "type": "done",
+          "status": "done",
+          "agent": {
+            "agent_id": "736db73f2cdb423ba3851096b09fbf11",
+            "revision": 2,
+            "phase": "coaching",
+            "total_ms": 2802.3
+          }
+        }
+      ]
+    },
+    {
+      "path": "exercise/agent",
+      "events": [
+        {
+          "type": "text",
+          "text": "I note your focus on establishing capability, costs, and documented authority limits before granting access to an alternate provider. Review your proposed response: who should act, what is the fallback, who needs an update, and when would you review progress?"
+        },
+        {
+          "type": "done",
+          "status": "done",
+          "agent": {
+            "agent_id": "736db73f2cdb423ba3851096b09fbf11",
+            "revision": 3,
+            "phase": "coaching",
+            "total_ms": 2433.1
+          }
+        }
+      ]
+    },
+    {
+      "path": "exercise/agent",
+      "events": [
+        {
+          "type": "text",
+          "text": "Your preparation card is ready. Review every field, correct missing details, and confirm your response. Preparation earns no points. The scored challenge begins only after you confirm."
+        },
+        {
+          "type": "done",
+          "status": "done",
+          "agent": {
+            "agent_id": "736db73f2cdb423ba3851096b09fbf11",
+            "revision": 4,
+            "phase": "card_review",
+            "total_ms": 3805.1
+          }
+        }
+      ]
+    },
+    {
+      "path": "exercise/agent",
+      "events": [
+        {
+          "type": "text",
+          "text": "Your preparation is complete. The scored challenge begins now. I will ask you to explain your response and adapt to new information. Explain your response as if briefing the rest of the board. What should happen first, and why?"
+        },
+        {
+          "type": "done",
+          "status": "done",
+          "agent": {
+            "agent_id": "736db73f2cdb423ba3851096b09fbf11",
+            "revision": 5,
+            "phase": "assessment",
+            "total_ms": 1676.3
+          }
+        }
+      ]
+    }
+  ],
+  "checks": {
+    "two_live_sessions": true,
+    "no_automatic_submission": true,
+    "audio_input_transcribed": true,
+    "audible_pcm_received": true,
+    "locks_released": true,
+    "normalized_transcripts_match_fixtures": true,
+    "server_streamed_matching_clips": true
+  }
+}

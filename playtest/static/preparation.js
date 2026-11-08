@@ -8,7 +8,7 @@ class PCMStreamPlayer {
   async unlock() { await this.context.resume(); }
   append(encoded, rate = 24000) {
     if (this.stopped) return;
-    if (rate !== 24000) throw new Error('Unexpected speech sample rate');
+    if (![16000, 24000].includes(rate)) throw new Error('Unexpected speech sample rate');
     const raw = Uint8Array.from(atob(encoded), c => c.charCodeAt(0));
     const data = new Uint8Array(raw.length + (this.tail === null ? 0 : 1));
     if (this.tail !== null) data[0] = this.tail;

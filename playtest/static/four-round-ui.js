@@ -55,7 +55,7 @@ function renderFourRounds(s,locked){
   $('submitReunion').disabled=locked||s.phase!=='reunion';
   $('reunionDiscussion').replaceChildren(...r.discussion.map(x=>{const n=el('article',undefined,'line');n.append(el('b',x.name),el('p',x.text));return n;}));
   $('announceWinner').disabled=!!s.test_skip?.ranking_disabled||locked||s.me!==s.ceo||s.phase!=='reunion'||!r.branches.every(b=>b.reviewed)||r.summary?.score_version!==r.score_version;
-  $('winnerAnnouncement').textContent=r.winners.length?(r.winners.length>1?'Joint winners: ':'Winner: ')+r.winners.map(id=>s.members.find(m=>m.id===id)?.name).join(', ')+'. Highest final Round 3 score.':s.test_skip?.ranking_disabled?'Testing only: rounds were skipped. Use Finish test meeting; no winner is announced.':'Winner announced after every member reviews their evidence.';
+  $('winnerAnnouncement').textContent=r.winners.length?(r.winners.length>1?'Joint winners: ':'Winner: ')+r.winners.map(id=>s.members.find(m=>m.id===id)?.name).join(', ')+'. Highest final Round 3 score.':s.test_skip?.ranking_disabled?'Historical incomplete test: rounds were skipped. Start a fresh room with the corrected controls; no winner is announced.':'Winner announced after every member reviews their evidence.';
  }
 }
 async function loadExerciseClips(key){const owner=context();try{const result=await api('/api/roundtable/exercise/recordings',undefined,owner);if(!same(owner)||key!==fixtureKey)return;fixtureClips=result.clips||[];$('fixtureSelect').replaceChildren(...fixtureClips.map(c=>{const option=el('option',c.title+' · '+c.duration_seconds.toFixed(1)+'s');option.value=c.id;return option;}));if(fixtureClips.length)$('fixtureSelect').value=fixtureClips[0].id;updateFixtureCaption();render();}catch(e){if(key===fixtureKey)$('fixtureStatus').textContent=e.message;}}
@@ -103,7 +103,7 @@ bind('privateAgent',()=>runExerciseAgent());bind('reunionAgent',()=>runExerciseA
 bind('submitPrivate',async()=>{
  const owner=context(),s=state(),ps=s.private_session;if(!four(s)||s.phase!=='private'||!['coaching','assessment'].includes(ps?.phase)||!$('confirmPrivateAnswer').checked)throw new Error('Review and confirm your answer for the current private question.');
  const text=$('privateAnswer').value.trim();if(!text)throw new Error('Enter or record an answer.');
- await command('private_answer',{text,revision:ps.revision,...(fixtureDraft?.key===exerciseKey(s)?{recording_lease:fixtureDraft.id}:{})},owner);fixtureDraft=null;
+ await command('private_answer',{...(typeof liveAnswerMetadata==='function'?liveAnswerMetadata():{}),text,revision:ps.revision,...(fixtureDraft?.key===exerciseKey(s)?{recording_lease:fixtureDraft.id}:{})},owner);fixtureDraft=null;
 });
 $('confirmPrivateAnswer').onchange=render;$('privateAnswer').oninput=()=>{$('confirmPrivateAnswer').checked=false;render();};
 $('confirmCard').onchange=render;
@@ -133,7 +133,7 @@ function renderTestSkips(s){
  const control=s?.test_skip,ceo=s?.me===s?.ceo;
  $('testSkipPanel').hidden=!four(s)||['lobby','ended'].includes(s?.phase);
  $('testSkipButtons').replaceChildren();
- if(!control){$('testSkipHint').textContent='Skip controls need the updated server. Your existing meeting stays available here. ';const link=el('a','Open updated test app');link.href='http://127.0.0.1:8790/roundtable';$('testSkipHint').append(link);return;}
+ if(control?.version!==2){$('testSkipHint').textContent='The corrected section controls need the updated server. Your existing meeting stays available here. ';const link=el('a','Open updated test app');link.href='http://127.0.0.1:8791/roundtable';$('testSkipHint').append(link);return;}
  for(const action of control.actions){
   const owner=context(),phase=s.phase,revision=control.revision;
   const b=button('CEO: '+action.label,async()=>{
@@ -145,6 +145,6 @@ function renderTestSkips(s){
   },busy||!ceo||control.blocked||!!recording||(typeof liveTask!=='undefined'&&!!liveTask));
   $('testSkipButtons').append(b);
  }
- const skipped=control.history.map(x=>({opening:'introduction',round1:'Round 1',coaching:'preparation',assessment:'assessment',reunion:'reunion'})[x.stage]).join(', ');
- $('testSkipHint').textContent=(!ceo?'Select the CEO seat to skip. ':control.blocked?'Stop Live and wait for active agent requests. ':'')+'These controls advance the whole group. Missing answers are marked as skipped; no answers or scores are invented.'+(skipped?' Skipped: '+skipped+'.':'')+(control.ranking_disabled?' This test has no winner.':'');
+ const skipped=control.history.map(x=>({opening:'introduction',discussion:'discussion ended early',consultation:'continued to decisions'})[x.stage]).join(', ');
+ $('testSkipHint').textContent=(!ceo?'Select the CEO for shared section controls. ':control.blocked?'Wait for the current expert response. ':'')+'Only presentation and discussion sections can end early. Every member must still submit their decision, coaching answers, reviewed card and assessment answers. Stop agent speech to move at your own pace without skipping an answer.'+(skipped?' Completed early: '+skipped+'.':'');
 }

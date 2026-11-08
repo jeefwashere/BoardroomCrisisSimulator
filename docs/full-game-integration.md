@@ -54,3 +54,7 @@ The existing question asks whether custom actions use one editable 1000 characte
 The other question asks for a dollar cap before paid speech verification. Physical microphone input, actual ElevenLabs STT and actual paid narration remain unverified. Offline transcription fixtures, synthetic browser audio and a key presence check do not satisfy that live acceptance.
 
 Document upload still acknowledges and discards the uploaded file. Arbitrary document driven scenario generation, psychological scoring, video calling, game WebSockets, durable restart recovery, cloud deployment and the teammate watcher reply were not added to the named remaining scope.
+
+## User decision update
+
+At November 8 at 00:33:55 UTC the user removed the custom answer product character limit and authorized a USD 100 speech test ceiling. The earlier 1000 character proposal is superseded. Provider prompt limits must be handled by evidence preserving partitioning rather than silently truncating answers. Verified pricing and conservative shared budget reservations still apply. The prior wall clock ceiling is not automatically extended by this cost authorization. Further execution time is awaiting the user answer.

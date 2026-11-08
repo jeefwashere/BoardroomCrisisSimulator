@@ -1,0 +1,52 @@
+{
+  "mode": "Actual background browser pages in same default browser context, disposable API 18005 and Vite 4181",
+  "providers": "disabled, no paid speech or model calls",
+  "checks": [
+    "Three real members in same browser context, guest rename propagated",
+    "Two document upload acknowledgements shown, explicitly not processed",
+    "Summary preview shows actual roster with pending summaries and explicit no email sent receipt",
+    "Unsent chat draft survives preview and return",
+    "Start entered shared real briefing on all three pages",
+    "Summary preview returns to live game without changing room",
+    "Committed real room chat propagated between members",
+    "Guest lobby Leave removed real seat",
+    "Host lobby Leave closed fixture room for guest",
+    "Clean reload and preview return keep real manual microphone controls with zero runtime errors"
+  ],
+  "runtimeErrors": [],
+  "cleanReloadVerified": true,
+  "success": true,
+  "frontend_tests": 120,
+  "backend_tests": 149,
+  "existing_python_tests": 31,
+  "narration_player_tests": 7,
+  "build": "passed",
+  "lint": "passed",
+  "offline_demos": [
+    "authored prototype",
+    "prepared gameplay TCP HTTP",
+    "internal narrative HTTP"
+  ],
+  "gameplay_mock_state_replaced": false,
+  "manual_recorder_source_unchanged": true,
+  "summary_and_email_are_explicit_demos": true,
+  "no_paid_or_live_provider_calls": true,
+  "cleanup": {
+    "owned_targets_closed": 7,
+    "absence_verified": true,
+    "exact_lease_released": true,
+    "managed_browser_stopped": true,
+    "disposable_servers_stopped": true
+  },
+  "development_edit_warnings": [
+    "The final argument passed to %s changed size between renders. The order and size of this array must remain constant.\n\nPrevious: %s\nIncoming: %s useEffect [] [function () { [native code] }]"
+  ],
+  "screenshots_sha256": {
+    "lobby-desktop.png": "dd402fd6369911ad3e3ed419c8249d7541fbe0e2a085c5bd8aaac9474fa975d2",
+    "lobby-mobile.png": "8a76ec83df743adbb3c65bcf47ba6ee4fef7f27d00412e1fb8f71d16dd375b51",
+    "summary-desktop.png": "c76ccb7b06317610c3362529006bf3e52a778ae70f9fa756a22fab2ed38b48d5",
+    "summary-mobile.png": "38bd651190ed18434409d8d8039a749d4e91358fb3e5627c3f7088eefb98cfd9",
+    "game-desktop.png": "ed1c115338a32d740443f4d62e3803c3d9d36281e52d49d4dc4497c7ca5b0476",
+    "game-mobile.png": "f48f364b743a6bcae484cf2508935922552cd2c3463ad0311c28db3999429e19"
+  }
+}

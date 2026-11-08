@@ -289,6 +289,8 @@ class Room:
             if not isinstance(state.phase, sim.EndedPhase):
                 if caller.member_id == self.host_member_id:
                     actions.append("end")
+                if isinstance(state.phase, sim.BriefingPhase) and caller.member_id == self.host_member_id:
+                    actions.append("finish_briefing")
                 if isinstance(state.phase, sim.SpeakingPhase):
                     if caller.member_id == state.phase.order[state.phase.index]:
                         actions.append("finish_speaking")
@@ -396,6 +398,13 @@ class Rooms:
                 if caller.member_id != room.host_member_id:
                     raise RoomError(403, "host_required", "Only the host can end the meeting")
                 state = gameplay.end(state, now, "host_ended")
+            elif action == "finish_briefing":
+                # The host ends the opening once the spoken briefing has played for the room.
+                if caller.member_id != room.host_member_id:
+                    raise RoomError(403, "host_required", "Only the host can finish the briefing")
+                if not isinstance(phase, sim.BriefingPhase):
+                    raise RoomError(409, "not_briefing", "The briefing has already finished")
+                state = replace(state, phase=sim.ReadingPhase(uuid4(), now + state.timing.reading_seconds))
             elif action in {"finish", "skip"}:
                 if not isinstance(phase, sim.SpeakingPhase):
                     raise RoomError(409, "not_speaking", "There is no active speaker")

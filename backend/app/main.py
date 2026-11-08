@@ -185,6 +185,10 @@ def create_app(*, secure_cookie: bool | None = None, allowed_origins: list[str] 
     async def finish_speaking(room_id: UUID, round_id: UUID, body: PhaseCommand, member_session: authenticated):
         return await rooms.play(member_session, room_id, body.command_id, body.phase_id, round_id, "finish")
 
+    @app.post("/api/rooms/{room_id}/rounds/{round_id}/briefing/finish", response_model=RoomView, responses=errors)
+    async def finish_briefing(room_id: UUID, round_id: UUID, body: PhaseCommand, member_session: authenticated):
+        return await rooms.play(member_session, room_id, body.command_id, body.phase_id, round_id, "finish_briefing")
+
     @app.post("/api/rooms/{room_id}/rounds/{round_id}/speaker/skip", response_model=RoomView, responses=errors)
     async def skip_speaker(room_id: UUID, round_id: UUID, body: SkipCommand, member_session: authenticated):
         return await rooms.play(member_session, room_id, body.command_id, body.phase_id, round_id, "skip", body.reason)

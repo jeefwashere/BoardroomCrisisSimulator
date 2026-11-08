@@ -95,6 +95,16 @@ class GameplayTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.status_code, expected, response.text)
         return response.json()
 
+    async def test_host_finishes_briefing_after_spoken_opening(self):
+        briefing = await self.ready()
+        self.assertEqual(briefing['phase'], 'briefing')
+        self.assertIn('finish_briefing', (await self.view(0))['game']['allowed_actions'])
+        self.assertNotIn('finish_briefing', (await self.view(1))['game']['allowed_actions'])
+        await self.action(1, briefing, 'briefing/finish', expected=403)
+        reading = await self.action(0, briefing, 'briefing/finish')
+        self.assertEqual(reading['phase'], 'reading')
+        await self.action(0, briefing, 'briefing/finish', expected=409)
+
     async def test_complete_game_tie_late_admission_and_frozen_evidence(self):
         await self.ready()
         speaker = await self.reach('speaking')

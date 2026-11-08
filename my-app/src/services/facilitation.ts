@@ -8,7 +8,7 @@ export type Opening = {
     status: JobStatus
     title: string
     text: string
-    source: 'hosted' | 'offline' | null
+    source: 'vertex' | 'hosted' | 'offline' | null
     speech_id: string | null
     error: string | null
 }
@@ -24,7 +24,7 @@ export type Consultation = {
     question: string
     status: JobStatus
     reply: string | null
-    source: 'hosted' | 'offline' | null
+    source: 'vertex' | 'hosted' | 'offline' | null
     speech_id: string | null
     error: string | null
     at: string

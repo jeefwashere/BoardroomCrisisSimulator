@@ -19,6 +19,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary }: { room
     const [notice, setNotice] = useState('')
     const [pending, setPending] = useState(false)
     const [text, setText] = useState('')
+    const [dismissedOpening, setDismissedOpening] = useState('')
     const [proposal, setProposal] = useState('')
     const [ceo, setCeo] = useState('')
     const [speech, setSpeech] = useState({ phaseId: '', url: '' })
@@ -48,7 +49,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary }: { room
     }
     const speaker = room.members.find((member) => member.member_id === game.active_speaker_id)
     // The AI opening owns the stage before the call splits into the participant grid.
-    const opening = room.phase === 'briefing' || (room.phase === 'reading' && game.round_number === 1)
+    const opening = room.phase === 'briefing' && dismissedOpening !== game.phase_id
     // Only the caller's own ballot is known, so ballot badges are limited to the self tile.
     const badges: Record<string, TileBadge> = {}
     if (speaker && room.phase === 'speaking') badges[speaker.member_id] = { label: 'Speaking', tone: 'speaking' }
@@ -62,7 +63,7 @@ function Game({ room, scenarios, error, rename, execute, onViewSummary }: { room
         </header>
         <main className={`game-call-main game-live-main${opening ? ' game-live-main--opening' : ''}`}>
             <AnimatePresence mode="wait" initial={false}>
-                {opening ? <OpeningBriefing key="opening" room={room} />
+                {opening ? <OpeningBriefing key="opening" room={room} onDismiss={() => setDismissedOpening(game.phase_id)} finishBriefing={actions.includes('finish_briefing') ? () => act(rounds + 'briefing/finish') : undefined} />
                     : <motion.div key="call" className="game-stage-call" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4, ease: 'easeOut' }}><CallGrid members={roomMembers(room, {}, scenario)} badges={badges} /></motion.div>}
             </AnimatePresence>
             <section className="game-briefing" aria-labelledby="briefing-title">
